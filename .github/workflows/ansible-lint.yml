@@ -31,9 +31,6 @@ jobs:
     - name: Check Ansible version
       run: ansible --version
 
-    - name: Check Ansible-lint version
-      run: ansible-lint --version
-
     - name: ansible-lint 
       # replace "master" with any valid ref
       uses: ansible/ansible-lint-action@c37fb7b4bda2c8cb18f4942716bae9f11b0dc9bc
