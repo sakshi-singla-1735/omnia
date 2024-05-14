@@ -25,8 +25,14 @@ jobs:
     - name: Check pip version
       run: pip --version
 
+    - name: Check available Ansible versions
+      run: curl -sL https://pypi.org/pypi/ansible/json | jq '.releases | keys[]'
+
+    - name: check anisble version 
+      run: ansible --version
+      
     - name: ansible-lint 
-      # replace "master" with any valid ref
+    #  replace "master" with any valid ref
       uses: ansible/ansible-lint-action@c37fb7b4bda2c8cb18f4942716bae9f11b0dc9bc
       with:
         # [required]
@@ -68,8 +74,8 @@ jobs:
         # Must follow the example syntax.
         override-deps: |
           pip==24.0
-          ansible==7.7.0
           ansible-lint==6.19.0
+          ansible==7.7.0
         # [optional]
         # Arguments to be passed to the ansible-lint
 
