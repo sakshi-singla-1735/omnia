@@ -33,6 +33,9 @@ jobs:
 
     - name: check anisble version 
       run: ansible --version
+
+    - name: Uninstall Ansible
+      run: pip uninstall ansible -y
       
     - name: ansible-lint 
     #  replace "master" with any valid ref
@@ -76,7 +79,7 @@ jobs:
         # Arguments to override a package and its version to be set explicitly.
         # Must follow the example syntax.
         override-deps: |
-          ansible==7.7.0
+          ansible==2.14
           ansible-lint==6.19.0
         # [optional]
         # Arguments to be passed to the ansible-lint
