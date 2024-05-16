@@ -16,13 +16,6 @@ on:
       - release-1.7
 
 jobs:
-  set-python-version:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Set Python 3.10 as default
-        run: |
-          sudo update-alternatives --set python3 /usr/bin/python3.10
-          
   ansible-lint:
     runs-on: ubuntu-latest
     steps:
@@ -31,6 +24,11 @@ jobs:
 
     - name: Display Installed Packages
       run: pip freeze
+
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v2
+      with:
+          python-version: '3.10'
       
     - name: ansible-lint 
     #  replace "master" with any valid ref
