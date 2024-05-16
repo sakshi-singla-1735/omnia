@@ -52,8 +52,7 @@ jobs:
             /github/workspace/utils/ip_rule_assignment/ip_rule_assignment.yml
             /github/workspace/utils/nodeinfo_db/nodeinfo_db.yml
           override-deps: |
+            ansible==7.7.0
             ansible-lint==6.19.0
-            rich==13.7.1
           args: "-x 305"
-        env:
-          PYTHON_VERSION: '3.9'
+          python-version: '3.10'
