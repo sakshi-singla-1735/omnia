@@ -23,31 +23,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: List installed Python3 version
-        run: python3 --version
-
-      - name: List installed Python3.6 version
-        run: python3.6 --version
-
-      - name: List installed Python3.7 version
-        run: python3.7 --version
-
-      - name: List installed Python3.8 version
-        run: python3.8 --version
-
-      - name: List installed Python3.9 version
-        run: python3.9 --version
-
-      - name: List installed Python3.10 version
-        run: python3.10 --version
-
-      - name: where is python3
-        run: python3 -c "import sys; print(sys.executable)"
-
-      - name: where is python3.8
-        run: python3.8 -c "import sys; print(sys.executable)"
-
-      - name: where is python3.10
-        run: python3.10 -c "import sys; print(sys.executable)"
+        run: ls -l /usr/local/lib
 
       - name: ansible-lint 
         uses: ansible/ansible-lint-action@c37fb7b4bda2c8cb18f4942716bae9f11b0dc9bc
