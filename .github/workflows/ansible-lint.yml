@@ -26,7 +26,7 @@ jobs:
         run: ls -l /usr/local/lib | more
 
       - name: ansible-lint 
-        uses: ansible/ansible-lint-action@830aae5e96ead270bb022b1755700f7eb7f194b5
+        uses: ansible/ansible-lint-action@c37fb7b4bda2c8cb18f4942716bae9f11b0dc9bc
         with:
           targets: |
             /github/workspace/omnia.yml
@@ -55,6 +55,7 @@ jobs:
             /github/workspace/utils/ip_rule_assignment/ip_rule_assignment.yml
             /github/workspace/utils/nodeinfo_db/nodeinfo_db.yml
           override-deps: |
+            rich>=9.5.1,<11.0.0
             ansible==7.7.0
             ansible-lint==6.19.0
           args: "-x 305"
