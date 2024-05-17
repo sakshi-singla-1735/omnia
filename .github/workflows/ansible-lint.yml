@@ -26,6 +26,8 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
+      with:
+        fetch-depth: 2
 
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -39,9 +41,8 @@ jobs:
 
     - name: Run ansible-lint
       run: |
-        # List the files that will be checked
+        echo "Base branch: ${{ github.event.pull_request.base.ref }}"
+        echo "Head branch: ${{ github.event.pull_request.head.ref }}"
+
         echo "Linting the following files:"
-        git diff --name-only ${{ github.event.before }} ${{ github.sha }} -- '*.yml' '*.yaml'
-        echo "Running ansible-lint"
-        # Run ansible-lint on the files changed in the PR
-        git diff --name-only ${{ github.event.before }} ${{ github.sha }} -- '*.yml' '*.yaml' | xargs ansible-lint
+        git diff --name-only origin/${{ github.event.pull_request.base.ref }} origin/${{ github.event.pull_request.head.ref }} -- '*.yml' '*.yaml'
