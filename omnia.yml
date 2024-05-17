@@ -41,7 +41,7 @@
         name: scheduler/roles/node_validation
         tasks_from: validate_internet_access.yml
 
-- name: Configure security on nodes
+ - name: Configure security on nodes
   ansible.builtin.import_playbook: security/security.yml
 
 - name: Execute slurm/kubernetes
