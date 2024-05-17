@@ -1,4 +1,5 @@
 name: Ansible Lint
+
 on:
   pull_request:
     branches:
@@ -14,48 +15,33 @@ on:
       - release-1.5.1
       - release-1.6
       - release-1.7
+    paths:
+      - '**/*.yml'
+      - '**/*.yaml'
 
 jobs:
-  ansible-lint:
+  lint:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+    - name: Checkout repository
+      uses: actions/checkout@v3
 
-      - name: List installed Python3 version
-        run: ls -l /usr/local/lib | more
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'  # Specify the version of Python you need
 
-      - name: ansible-lint 
-        uses: ansible/ansible-lint-action@c37fb7b4bda2c8cb18f4942716bae9f11b0dc9bc
-        with:
-          targets: |
-            /github/workspace/omnia.yml
-            /github/workspace/discovery_provision.yml
-            /github/workspace/local_repo/local_repo.yml
-            /github/workspace/server_spec_update/server_spec_update.yml
-            /github/workspace/scheduler/job_based_user_access.yml
-            /github/workspace/security/user_passwordless_ssh.yml
-            /github/workspace/storage/nfs_sas.yml
-            /github/workspace/storage/powervault.yml
-            /github/workspace/telemetry/add_node_idrac.yml
-            /github/workspace/tools/jupyterhub.yml
-            /github/workspace/tools/kserve.yml
-            /github/workspace/tools/kubeflow.yml
-            /github/workspace/tools/pytorch.yml
-            /github/workspace/tools/tensorflow.yml
-            /github/workspace/tools/vllm.yml
-            /github/workspace/utils/control_plane_cleanup.yml
-            /github/workspace/utils/delete_node.yml
-            /github/workspace/utils/remove_node_configuration.yml
-            /github/workspace/utils/reset_cluster_configuration.yml
-            /github/workspace/utils/update_user_repo.yml
-            /github/workspace/utils/servicetag_host_mapping.yml
-            /github/workspace/utils/software_update/software_update.yml
-            /github/workspace/utils/timescaledb_utility/timescaledb_utility.yml
-            /github/workspace/utils/ip_rule_assignment/ip_rule_assignment.yml
-            /github/workspace/utils/nodeinfo_db/nodeinfo_db.yml
-          override-deps: |
-            rich>=9.5.1,<11.0.0
-            ansible==7.7.0
-            ansible-lint==6.19.0
-          args: "-x 305"
+    - name: Install ansible and ansible-lint
+      run: |
+        python -m pip install --upgrade pip
+        pip install ansible==7.7.0 ansible-lint==6.19.0
+
+    - name: Run ansible-lint
+      run: |
+        # List the files that will be checked
+        echo "Linting the following files:"
+        git diff --name-only ${{ github.event.before }} ${{ github.sha }} -- '*.yml' '*.yaml'
+
+        # Run ansible-lint on the files changed in the PR
+        git diff --name-only ${{ github.event.before }} ${{ github.sha }} -- '*.yml' '*.yaml' | xargs ansible-lint
