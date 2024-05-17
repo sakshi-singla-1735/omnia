@@ -44,5 +44,8 @@ jobs:
         echo "Base branch: ${{ github.event.pull_request.base.ref }}"
         echo "Head branch: ${{ github.event.pull_request.head.ref }}"
 
-        echo "Linting the following files:"
-        git diff --name-only origin/${{ github.event.pull_request.base.ref }} origin/${{ github.event.pull_request.head.ref }} -- '*.yml' '*.yaml'
+        echo "base sha : ${{ github.event.pull_request.base.sha }}"
+        echo "head sha : ${{ github.event.pull_request.head.sha }}"
+
+        #echo "Linting the following files:"
+        #git diff --name-only origin/${{ github.event.pull_request.base.sha }} origin/${{ github.event.pull_request.head.sha }} -- '*.yml' '*.yaml'
