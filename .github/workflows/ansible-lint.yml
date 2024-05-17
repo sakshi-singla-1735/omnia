@@ -41,4 +41,7 @@ jobs:
       run: |
         # List the files that will be checked
         echo "Linting the following files:"
-        git show --name-only --pretty=format: ${{ github.sha }} | grep -E '\.yml$|\.yaml$' | xargs ansible-lint
+        git diff --name-only ${{ github.event.before }} ${{ github.sha }} -- '*.yml' '*.yaml'
+        echo "Running ansible-lint"
+        # Run ansible-lint on the files changed in the PR
+        git diff --name-only ${{ github.event.before }} ${{ github.sha }} -- '*.yml' '*.yaml' | xargs ansible-lint
