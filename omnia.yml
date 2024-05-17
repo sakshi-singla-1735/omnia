@@ -13,7 +13,7 @@
 # limitations under the License.
 ---
 
-- name: Check node reachable
+ - name: Check node reachable
   hosts: manager, compute, login
   tasks:
     - name: Check node reachable
@@ -21,7 +21,7 @@
         name: scheduler/roles/node_validation
         tasks_from: validate_node_reachable.yml
 
-- name: Validate all input parameters
+ - name: Validate all input parameters
   hosts: localhost
   connection: local
   gather_facts: true
@@ -31,7 +31,7 @@
     - storage/roles/storage_validation
     - telemetry/roles/telemetry_validation
 
-- name: Check internet access
+ - name: Check internet access
   hosts: manager, compute, login
   gather_facts: false
   any_errors_fatal: true
