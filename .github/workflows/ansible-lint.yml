@@ -26,11 +26,28 @@ jobs:
       with:
         python-version: '3.9'
 
-    - name: Install dependencies
+    - name: Check if specified version of Ansible is installed
+      id: check_ansible_version
       run: |
-        python -m pip install --upgrade pip
+        ansible_version=$(ansible --version | head -n 1 | awk '{print $2}')
+        if [ "$ansible_version" != "7.7.0" ]; then
+          echo "::set-output name=ansible_not_installed::true"
+        else
+          echo "::set-output name=ansible_not_installed::false"
+        fi
+      shell: bash
+
+    - name: Install Ansible and Ansible Lint if required version is not installed
+      if: steps.check_ansible_version.outputs.ansible_not_installed == 'true'
+      run: |
+        echo "Installing required version of Ansible..."
         pip install ansible==7.7.0
+        echo "Installed Ansible version $(ansible --version)"
+        echo "Installing required version of Ansible Lint..."
         pip install ansible-lint==6.19.0
+        echo "Installed Ansible Lint version $(ansible-lint --version)"
+      shell: bash
+
 
     - name: Get list of changed YAML files
       id: changed_files
@@ -47,15 +64,4 @@ jobs:
         done
       shell: bash
 
-   # - name: Run ansible lint on the changed files
-   #   run: |
-   #     ansible --version
-   #     ansible-lint --version
-   #     python3.9 --version
-   #     pip --version
-   #     echo "${{ env.files }}"
-       # Iterate through each file and run ansible-lint
-   #     for file in ${{ env.files }}; do
-   #       echo "Linting $GITHUB_WORKSPACE/$file"
-   #       ansible-lint "$GITHUB_WORKSPACE/$file"
-   #     done
+   

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
-#
+
 - name: Check node reachable
   hosts: manager, compute, login
   tasks:
@@ -54,4 +54,4 @@
   ansible.builtin.import_playbook: utils/passwordless_ssh.yml
 
 - name: Import playbook to start telemetry services
-  ansible.builtin.import_playbook: telemetry/telemetry.yml      
+  ansible.builtin.import_playbook: telemetry/telemetry.yml
