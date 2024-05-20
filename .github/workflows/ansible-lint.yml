@@ -36,9 +36,9 @@ jobs:
       id: changed_files
       run: |
         files=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | grep -E '\.ya?ml$' || echo '')
-        files=$(echo "$files" | tr '\n' ' ')
-        echo "files=$files" >> $GITHUB_ENV
-        echo "Changed files: ${{ env.files }}"
+        echo "files<<EOF" >> $GITHUB_ENV
+        echo "$files" >> $GITHUB_ENV
+        echo "EOF" >> $GITHUB_ENV
       shell: bash
 
     - name: Print env.files for verification
@@ -53,9 +53,7 @@ jobs:
         ansible-lint --version
         python3.9 --version
         pip --version
-        files="${{ env.files }}"
-        files=$(echo $files | tr ' ' '\n')
-        for file in $files; do
+        while IFS= read -r file; do
           echo "Linting file: $GITHUB_WORKSPACE/$file"
           ansible-lint "$GITHUB_WORKSPACE/$file"
-        done
+        done <<< "${{ env.files }}"
