@@ -22,7 +22,7 @@
         tasks_from: validate_node_reachable.yml
 
  - name: Validate all input parameters
-  hosts: localhost
+   hosts: localhost
   connection: local
   gather_facts: true
   roles:
@@ -31,7 +31,7 @@
     - storage/roles/storage_validation
     - telemetry/roles/telemetry_validation
 
-- name: Check internet access
+-  name: Check internet access
   hosts: manager, compute, login
   gather_facts: false
   any_errors_fatal: true
