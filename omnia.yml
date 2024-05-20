@@ -45,7 +45,7 @@
   ansible.builtin.import_playbook: security/security.yml
 
 - name: Execute slurm/kubernetes
-  ansible.builtin.import_playbook: scheduler/scheduler.yml
+   ansible.builtin.import_playbook: scheduler/scheduler.yml
 
 -  name: Import playbook to configure storage on nodes
    ansible.builtin.import_playbook: storage/storage.yml
