@@ -30,6 +30,7 @@ jobs:
 
     - name: Debug changed files
       run: echo "Changed files: ${{ env.files }}"
+      shell: bash
 
     - name: Run ansible-lint
       if: env.files != ''
