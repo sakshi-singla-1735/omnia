@@ -31,8 +31,7 @@ jobs:
 
 
     - name: Run ansible-lint
-      if: ${{ env.files != '' }}
-      uses: ansible/ansible-lint-action@v6
+      uses: ansible/ansible-lint-action@c37fb7b4bda2c8cb18f4942716bae9f11b0dc9bc
       with:
         targets: omnia.yml
         override-deps: |
