@@ -47,7 +47,7 @@
 - name: Execute slurm/kubernetes
    ansible.builtin.import_playbook: scheduler/scheduler.yml
 
--  name: Import playbook to configure storage on nodes
+-   name: Import playbook to configure storage on nodes
     ansible.builtin.import_playbook: storage/storage.yml
 
 -  name: Passwordless SSH between manager and compute nodes
