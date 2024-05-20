@@ -21,14 +21,21 @@ jobs:
       with:
         python-version: '3.9'
 
-    - name: Retrieve the SHA of the latest commit
-      shell: git rev-parse HEAD
-      register: commit_sha
+    - name: Get the SHA of the latest commit
+      run: |
+        commit_sha=$(git rev-parse HEAD)
+        echo "commit_sha=$commit_sha"
+      register: commit_sha_result
+      changed_when: false
+
+    - name: Set the commit SHA as a fact
+      set_fact:
+        commit_sha: "{{ commit_sha_result.stdout_lines[0].split('=')[1] }}"
 
     - name: Get list of changed YAML files
       id: changed-files
       run: |
-        files=$(git diff --name-only ${{ github.event.pull_request.base.sha }}  {{ commit_sha.stdout }} | grep -E '\.ya?ml$' || echo '')
+        files=$(git diff --name-only ${{ github.event.pull_request.base.sha }}  {{ commit_sha }} | grep -E '\.ya?ml$' || echo '')
         echo "files=$files" >> $GITHUB_ENV
 
     - name: Run ansible-lint
