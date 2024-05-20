@@ -42,7 +42,7 @@
         tasks_from: validate_internet_access.yml
 
 - name: Configure security on nodes
-  ansible.builtin.import_playbook: security/security.yml
+   ansible.builtin.import_playbook: security/security.yml
 
 - name: Execute slurm/kubernetes
    ansible.builtin.import_playbook: scheduler/scheduler.yml

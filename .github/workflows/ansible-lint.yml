@@ -23,9 +23,6 @@ jobs:
 
 
     - name: Get list of changed YAML files
-    - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
     - env:
           EVENT_NAME: ${{ github.event_name }}
           PULL_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
