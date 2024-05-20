@@ -39,6 +39,10 @@ jobs:
         echo $files
         files_list=$(echo $files | tr " " "\n")
         echo $files_list
+        for file in $files_list; do
+          echo "Linting $GITHUB_WORKSPACE/$file"
+          ansible-lint "$GITHUB_WORKSPACE/$file"
+        done
       shell: bash
 
    # - name: Run ansible lint on the changed files
