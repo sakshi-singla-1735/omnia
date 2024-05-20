@@ -24,7 +24,7 @@ jobs:
     - name: Get list of changed YAML files
       id: changed-files
       run: |
-        files=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep -E '\.ya?ml$' || echo '')
+        files=$(git diff --name-only ${{ github.event.pull_request.base.sha }} $(git rev-parse HEAD) | grep -E '\.ya?ml$' || echo '')
         echo "files=$files" >> $GITHUB_ENV
 
     - name: Run ansible-lint
