@@ -25,28 +25,13 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: '3.9'
+  
 
-    - name: Check if specified version of Ansible is installed
-      id: check_ansible_version
+    - name: Install dependencies
       run: |
-        ansible_version=$(ansible --version | head -n 1 | awk '{print $2}')
-        if [ "$ansible_version" != "7.7.0" ]; then
-          echo "::set-output name=ansible_not_installed::true"
-        else
-          echo "::set-output name=ansible_not_installed::false"
-        fi
-      shell: bash
-
-    - name: Install Ansible and Ansible Lint if required version is not installed
-      if: steps.check_ansible_version.outputs.ansible_not_installed == 'true'
-      run: |
-        echo "Installing required version of Ansible..."
+        python -m pip install --upgrade pip
         pip install ansible==7.7.0
-        echo "Installed Ansible version $(ansible --version)"
-        echo "Installing required version of Ansible Lint..."
         pip install ansible-lint==6.19.0
-        echo "Installed Ansible Lint version $(ansible-lint --version)"
-      shell: bash
 
 
     - name: Get list of changed YAML files
@@ -56,12 +41,18 @@ jobs:
         echo $files
         files_list=$(echo $files | tr " " "\n")
         echo $files_list
+        lint_failed=false
         for file in $files_list; do
           echo "Linting $GITHUB_WORKSPACE/$file"
           if ! ansible-lint "$GITHUB_WORKSPACE/$file"; then
             echo "Linting of $GITHUB_WORKSPACE/$file failed"
+            lint_failed=true
           fi
         done
+        if [ "$lint_failed" = true ]; then
+          exit 1  # Exit with non-zero exit code if any linting failed
+        fi
       shell: bash
+      register: ansible_lint_output
 
    
