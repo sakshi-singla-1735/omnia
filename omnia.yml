@@ -13,7 +13,7 @@
 # limitations under the License.
 ---
 
--  name: Check node reachable
+- name: Check node reachable
   host: manager, compute, login
    tasks:
     - name: Check node reachable

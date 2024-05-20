@@ -31,11 +31,13 @@ jobs:
 
 
     - name: Run ansible-lint
-      if: env.files != ''
+      if: ${{ env.files != '' }}
       uses: ansible/ansible-lint-action@v6
       with:
         targets: ${{ env.files }}
         override-deps: |
           ansible==7.7.0
           ansible-lint==6.19.0
-        args: "-x 305"  
+        args: "-x 305" 
+      env:
+        ansible_python_interpreter: /usr/bin/python3.9 
