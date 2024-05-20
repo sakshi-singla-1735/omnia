@@ -45,13 +45,15 @@ jobs:
         echo "Files to lint:"
         echo ${{ env.files }}
       shell: bash
-      
+
     - name: Run ansible lint on the changed files
       run: |
         ansible --version
         ansible-lint --version
         python3.9 --version
         pip --version
-        for file in ${{ env.files }}; do
-          ansible-lint /home/runner/work/omnia/omnia/$file
+        IFS=' ' read -r -a file_array <<< "${{ env.files }}"
+        for file in "${file_array[@]}"; do
+          echo "Linting file: $GITHUB_WORKSPACE/$file"
+          ansible-lint "$GITHUB_WORKSPACE/$file"
         done

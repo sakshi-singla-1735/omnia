@@ -67,5 +67,3 @@
         msg: "{{ manager_information_update_fail_msg }}"
 
 
-
-
