@@ -15,7 +15,7 @@
 
 -  name: Check node reachable
   host: manager, compute, login
-  tasks:
+   tasks:
     - name: Check node reachable
       ansible.builtin.include_role:
         name: scheduler/roles/node_validation

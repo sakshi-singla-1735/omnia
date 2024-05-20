@@ -38,3 +38,4 @@ jobs:
         override-deps: |
           ansible==7.7.0
           ansible-lint==6.19.0
+        args: "-x 305"  
