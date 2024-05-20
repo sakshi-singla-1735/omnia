@@ -51,7 +51,7 @@
     ansible.builtin.import_playbook: storage/storage.yml
 
 -  name: Passwordless SSH between manager and compute nodes
-  ansible.builtin.import_playbook: utils/passwordless_ssh.yml
+   ansible.builtin.import_playbook: utils/passwordless_ssh.yml
 
 -  name: Import playbook to start telemetry services
   ansible.builtin.import_playbook: telemetry/telemetry.yml

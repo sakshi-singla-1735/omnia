@@ -17,8 +17,9 @@ jobs:
         fetch-depth: 0  # Fetch all history so the base commit is available
 
     - name: Print GITHUB_WORKSPACE
-      debug:
-        msg: "GITHUB_WORKSPACE is {{ lookup('env', 'GITHUB_WORKSPACE') }}"
+      run: |
+        echo "GITHUB_WORKSPACE is $GITHUB_WORKSPACE"
+      shell: bash
 
     - name: Set up Python 3.9
       uses: actions/setup-python@v2
