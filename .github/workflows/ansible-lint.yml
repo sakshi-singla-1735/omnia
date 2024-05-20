@@ -41,7 +41,7 @@ jobs:
           echo "$file" >> $GITHUB_ENV
         done
         echo "EOF" >> $GITHUB_ENV
-
+      shell: bash
 
     - name: Run ansible lint on the changed files
       run: |
