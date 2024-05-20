@@ -21,6 +21,12 @@ jobs:
       with:
         python-version: '3.9'
 
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install ansible==7.7.0
+        pip install ansible-lint==6.19.0
+
     - name: Get list of changed YAML files
       run: |
         files=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | grep -E '\.ya?ml$' || echo '')
@@ -30,15 +36,10 @@ jobs:
       shell: bash
 
 
-    - name: Run ansible-lint
-      uses: ansible/ansible-lint-action@fc898ee7befba9ba93dbe7b24f896e76f46e085e
-      with:
-        targets: |
-          /github/workspace/accelerator/accelerator.yml
-          /github/workspace/provision/provision.yml
-        override-deps: |
-          ansible==7.7.0
-          ansible-lint==6.19.0
-        args: "-x 305" 
-      env:
-        ansible_python_interpreter: /usr/bin/python3.9 
+    - name: Run ansible lint on the changed files
+      run: |
+        ansible --version
+        ansible-lint --version
+        python3.9 --version
+        pip --version
+        ansible-lint ${{ env.files }}
