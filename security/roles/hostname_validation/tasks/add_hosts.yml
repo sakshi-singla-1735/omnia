@@ -65,3 +65,7 @@
     - name: Updating manager hosts information failed
       ansible.builtin.fail:
         msg: "{{ manager_information_update_fail_msg }}"
+
+
+
+

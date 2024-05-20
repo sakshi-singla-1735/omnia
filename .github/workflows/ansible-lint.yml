@@ -40,11 +40,18 @@ jobs:
         echo "Changed files: ${{ env.files }}"
       shell: bash
 
-
+    - name: Print env.files for verification
+      run: |
+        echo "Files to lint:"
+        echo ${{ env.files }}
+      shell: bash
+      
     - name: Run ansible lint on the changed files
       run: |
         ansible --version
         ansible-lint --version
         python3.9 --version
         pip --version
-        ansible-lint /home/runner/work/omnia/omnia/omnia.yml
+        for file in ${{ env.files }}; do
+          ansible-lint /home/runner/work/omnia/omnia/$file
+        done

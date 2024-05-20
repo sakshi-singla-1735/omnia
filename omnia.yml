@@ -14,16 +14,16 @@
 ---
 
 - name: Check node reachable
-  host: manager, compute, login
-   tasks:
+  hosts: manager, compute, login
+  tasks:
     - name: Check node reachable
-       ansible.builtin.include_role:
+      ansible.builtin.include_role:
         name: scheduler/roles/node_validation
         tasks_from: validate_node_reachable.yml
 
- - name: Validate all input parameters
-   hosts: localhost
-   connection: local
+- name: Validate all input parameters
+  hosts: localhost
+  connection: local
   gather_facts: true
   roles:
     - scheduler/roles/cluster_validation
@@ -31,27 +31,28 @@
     - storage/roles/storage_validation
     - telemetry/roles/telemetry_validation
 
--  name: Check internet access
-   hosts: manager, compute, login
+- name: Check internet access
+  hosts: manager, compute, login
   gather_facts: false
   any_errors_fatal: true
-   tasks:
+  tasks:
     - name: Check internet access
-       ansible.builtin.include_role:
+      ansible.builtin.include_role:
         name: scheduler/roles/node_validation
         tasks_from: validate_internet_access.yml
 
--  name: Configure security on nodes
-    ansible.builtin.import_playbook: security/security.yml
+- name: Configure security on nodes
+  ansible.builtin.import_playbook: security/security.yml
 
--  name: Execute slurm/kubernetes
+- name: Execute slurm/kubernetes
   ansible.builtin.import_playbook: scheduler/scheduler.yml
 
--  name: Import playbook to configure storage on nodes
-    ansible.builtin.import_playbook: storage/storage.yml
+- name: Import playbook to configure storage on nodes
+  ansible.builtin.import_playbook: storage/storage.yml
 
--  name:  Passwordless SSH between manager and compute nodes
-   ansible.builtin.import_playbook: utils/passwordless_ssh.yml
+- name: Passwordless SSH between manager and compute nodes
+  ansible.builtin.import_playbook: utils/passwordless_ssh.yml
 
--  name: Import playbook to start telemetry services
+- name: Import playbook to start telemetry services
   ansible.builtin.import_playbook: telemetry/telemetry.yml
+  
