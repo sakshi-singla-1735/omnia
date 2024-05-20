@@ -33,6 +33,7 @@ jobs:
         pip install ansible-lint==6.19.0
 
     - name: Get list of changed YAML files
+      id: changed_files
       run: |
         files=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | grep -E '\.ya?ml$' || echo '')
         files=$(echo "$files" | tr '\n' ' ')
@@ -52,8 +53,9 @@ jobs:
         ansible-lint --version
         python3.9 --version
         pip --version
-        IFS=' ' read -r -a file_array <<< "${{ env.files }}"
-        for file in "${file_array[@]}"; do
+        files="${{ env.files }}"
+        files=$(echo $files | tr ' ' '\n')
+        for file in $files; do
           echo "Linting file: $GITHUB_WORKSPACE/$file"
           ansible-lint "$GITHUB_WORKSPACE/$file"
         done
