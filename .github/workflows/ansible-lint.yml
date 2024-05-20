@@ -31,7 +31,7 @@ jobs:
 
 
     - name: Run ansible-lint
-      uses: ansible/ansible-lint-action@c37fb7b4bda2c8cb18f4942716bae9f11b0dc9bc
+      uses: ansible/ansible-lint@main
       with:
         targets: omnia.yml
         override-deps: |

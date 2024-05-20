@@ -37,7 +37,7 @@
   any_errors_fatal: true
    tasks:
     - name: Check internet access
-      ansible.builtin.include_role:
+       ansible.builtin.include_role:
         name: scheduler/roles/node_validation
         tasks_from: validate_internet_access.yml
 
