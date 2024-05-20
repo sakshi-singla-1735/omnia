@@ -31,7 +31,7 @@ jobs:
 
 
     - name: Run ansible-lint
-      uses: ansible/ansible-lint-action@v6.19.0
+      uses: ansible/ansible-lint-action@fc898ee7befba9ba93dbe7b24f896e76f46e085e
       with:
         targets: |
           /github/workspace/accelerator/accelerator.yml
