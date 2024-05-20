@@ -21,15 +21,22 @@ jobs:
       with:
         python-version: '3.9'
 
-    - name: Get the SHA of the latest commit
-      run: |
-        latest_commit=$(git rev-parse HEAD)
-        echo "latest_commit=$latest_commit" >> latest_commit.txt
 
     - name: Get list of changed YAML files
+    - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+    - env:
+          EVENT_NAME: ${{ github.event_name }}
+          PULL_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
       run: |
-        files=$(git diff --name-only ${{ github.event.pull_request.base.sha }} $(cat latest_commit.txt) | grep -E '\.ya?ml$' || echo '')
-        echo "files=$files" >> $HOME/files_env
+          echo event type: $EVENT_NAME
+          echo pull head sha: $PULL_HEAD_SHA
+          git fetch
+          echo sha last: $(git rev-parse $PULL_HEAD_SHA)
+          echo sha last: $(git rev-parse --short $PULL_HEAD_SHA)
+          files=$(git diff --name-only ${{ github.event.pull_request.base.sha }} $(git rev-parse $PULL_HEAD_SHA) | grep -E '\.ya?ml$' || echo '')
+          echo "files=$files" >> $HOME/files_env
 
     - name: Run ansible-lint
       if: env.files != ''
