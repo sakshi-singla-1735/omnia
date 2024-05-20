@@ -26,11 +26,9 @@ jobs:
         files=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | grep -E '\.ya?ml$' || echo '')
         files=$(echo "$files" | tr '\n' ' ')
         echo "files=$files" >> $GITHUB_ENV
+        echo "Changed files: ${{ env.files }}"
       shell: bash
 
-    - name: Debug changed files
-      run: echo "Changed files: ${{ env.files }}"
-      shell: bash
 
     - name: Run ansible-lint
       if: env.files != ''
