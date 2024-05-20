@@ -53,6 +53,5 @@ jobs:
           exit 1  # Exit with non-zero exit code if any linting failed
         fi
       shell: bash
-      register: ansible_lint_output
 
    
