@@ -42,4 +42,4 @@ jobs:
         ansible-lint --version
         python3.9 --version
         pip --version
-        ansible-lint ${{ env.files }}
+        ansible-lint /github/workspace/network/omnia.yml
