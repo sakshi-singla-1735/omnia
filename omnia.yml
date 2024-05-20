@@ -32,7 +32,7 @@
     - telemetry/roles/telemetry_validation
 
 -  name: Check internet access
-  hosts: manager, compute, login
+   hosts: manager, compute, login
   gather_facts: false
   any_errors_fatal: true
   tasks:
