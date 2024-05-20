@@ -16,6 +16,10 @@ jobs:
       with:
         fetch-depth: 0  # Fetch all history so the base commit is available
 
+    - name: Print GITHUB_WORKSPACE
+      debug:
+        msg: "GITHUB_WORKSPACE is {{ lookup('env', 'GITHUB_WORKSPACE') }}"
+
     - name: Set up Python 3.9
       uses: actions/setup-python@v2
       with:
@@ -42,4 +46,4 @@ jobs:
         ansible-lint --version
         python3.9 --version
         pip --version
-        ansible-lint /github/workspace/omnia.yml
+        ansible-lint github/workspace/omnia.yml
