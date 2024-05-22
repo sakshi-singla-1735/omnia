@@ -37,7 +37,7 @@
     create: true
     mode: "{{ hosts_file_mode }}"
 
-- name: Add manager information in compute and login nodes
+- name: Add manager information in compute and login nodes 
   block:
     - name: Add manager hosts info in compute node hosts file
       ansible.builtin.lineinfile:

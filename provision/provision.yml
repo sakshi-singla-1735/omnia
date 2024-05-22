@@ -19,5 +19,5 @@
 - name: Create and update repositories
   ansible.builtin.import_playbook: repo_manipulate.yml
 
-- name: Discover and provision nodes
+- name: Discover and provision nodes 
   ansible.builtin.import_playbook: discovery_provision.yml
