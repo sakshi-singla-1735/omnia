@@ -1,7 +1,7 @@
 name: Ansible Lint
 
 on:
-  push:
+  pull_request:
     branches:
       - main
       - release-1.4
