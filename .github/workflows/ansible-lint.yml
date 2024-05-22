@@ -12,7 +12,6 @@ on:
       - devel-1.4.2.1
       - devel-1.4.2.2
       - devel-1.5
-      - release-1.6
 
 jobs:
   ansible-lint:
