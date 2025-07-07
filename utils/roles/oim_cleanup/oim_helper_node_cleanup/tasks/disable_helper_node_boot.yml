@@ -12,82 +12,88 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 ---
+- name: Set boot mode and disable non-PXE boot entries
+  block:
+    - name: Print helper node details
+      ansible.builtin.debug:
+        msg: "{{ node_info.node }} / {{ node_info.bmc_ip }}"
 
-- name: Print helper node details
-  ansible.builtin.debug:
-    msg: "{{ node_info.node }} / {{ node_info.bmc_ip }}"
+    - name: Set Boot Mode to UEFI
+      dellemc.openmanage.idrac_bios:
+        idrac_ip: "{{ node_info.bmc_ip }}"
+        idrac_user: "{{ bmc_username }}"
+        idrac_password: "{{ bmc_password }}"
+        validate_certs: false
+        attributes:
+          BootMode: Uefi
+        apply_time: Immediate
+      register: set_boot_mode_result
+      failed_when: set_boot_mode_result.failed
+      ignore_errors: false
+      no_log: true
 
-- name: Set Boot Mode to UEFI
-  dellemc.openmanage.idrac_bios:
-    idrac_ip: "{{ node_info.bmc_ip }}"
-    idrac_user: "{{ bmc_username }}"
-    idrac_password: "{{ bmc_password }}"
-    validate_certs: false
-    attributes:
-      BootMode: Uefi
-    apply_time: Immediate
-  register: set_boot_mode_result
-  failed_when: set_boot_mode_result.failed
-  ignore_errors: false
-  no_log: true
+    - name: Get Redfish system URI data
+      ansible.builtin.uri:
+        url: "{{ idrac_system_url }}"
+        user: "{{ bmc_username }}"
+        password: "{{ bmc_password }}"
+        validate_certs: false
+        body: {}
+        body_format: json
+        return_content: true
+        status_code: 200
+        headers: 'Accept=application/json'
+      register: uri_data
+      failed_when: uri_data.status != 200
+      no_log: true
 
-- name: Get Redfish system URI data
-  ansible.builtin.uri:
-    url: "{{ idrac_system_url }}"
-    user: "{{ bmc_username }}"
-    password: "{{ bmc_password }}"
-    validate_certs: false
-    body: {}
-    body_format: json
-    return_content: true
-    status_code: 200
-    headers: 'Accept=application/json'
-  register: uri_data
-  failed_when: uri_data.status != 200
-  no_log: true
+    - name: Set BootSources URL
+      ansible.builtin.set_fact:
+        bootsources_url: "https://{{ node_info.bmc_ip }}{{ uri_data.json.Members[0]['@odata.id'] }}/BootSources"
 
-- name: Set BootSources URL
-  ansible.builtin.set_fact:
-    bootsources_url: "https://{{ node_info.bmc_ip }}{{ uri_data.json.Members[0]['@odata.id'] }}/BootSources"
+    - name: Get Uefi bootsources uri data
+      ansible.builtin.uri:
+        url: "{{ bootsources_url }}"
+        user: "{{ bmc_username }}"
+        password: "{{ bmc_password }}"
+        validate_certs: false
+        body: {}
+        body_format: json
+        return_content: true
+        status_code: 200
+        headers: 'Accept=application/json'
+      register: bootsources_data
+      failed_when: bootsources_data.status != 200
 
-- name: Get Uefi bootsources uri data
-  ansible.builtin.uri:
-    url: "{{ bootsources_url }}"
-    user: "{{ bmc_username }}"
-    password: "{{ bmc_password }}"
-    validate_certs: false
-    body: {}
-    body_format: json
-    return_content: true
-    status_code: 200
-    headers: 'Accept=application/json'
-  register: bootsources_data
-  failed_when: bootsources_data.status != 200
+    - name: Filter enabled UEFI boot entries that are not PXE
+      ansible.builtin.set_fact:
+        enabled_boot_names: >-
+          {{ bootsources_data.json.Attributes.UefiBootSeq
+            | selectattr('Enabled', 'equalto', true)
+            | rejectattr('Name', 'search', 'PxeDevice')
+            | map(attribute='Name')
+            | list }}
 
-- name: Filter enabled UEFI boot entries that are not PXE
-  ansible.builtin.set_fact:
-    enabled_boot_names: >-
-      {{ bootsources_data.json.Attributes.UefiBootSeq
-        | selectattr('Enabled', 'equalto', true)
-        | rejectattr('Name', 'search', 'PxeDevice')
-        | map(attribute='Name')
-        | list }}
+    - name: Show filtered Uefi boot names that are not PXE
+      ansible.builtin.debug:
+        var: enabled_boot_names
 
-- name: Show filtered Uefi boot names that are not PXE
-  ansible.builtin.debug:
-    var: enabled_boot_names
+    - name: Disable non-PXE boot entries on {{ node_info.bmc_ip }}
+      when: enabled_boot_names | length > 0
+      dellemc.openmanage.idrac_bios:
+        idrac_ip: "{{ node_info.bmc_ip }}"
+        idrac_user: "{{ bmc_username }}"
+        idrac_password: "{{ bmc_password }}"
+        validate_certs: false
+        boot_sources:
+          - Name: "{{ item }}"
+            Enabled: false
+      loop: "{{ enabled_boot_names }}"
+      register: bios_disable_result
+      failed_when: bios_disable_result.failed
+      no_log: true
 
-- name: Disable non-PXE boot entries on {{ node_info.bmc_ip }}
-  when: enabled_boot_names | length > 0
-  dellemc.openmanage.idrac_bios:
-    idrac_ip: "{{ node_info.bmc_ip }}"
-    idrac_user: "{{ bmc_username }}"
-    idrac_password: "{{ bmc_password }}"
-    validate_certs: false
-    boot_sources:
-      - Name: "{{ item }}"
-        Enabled: false
-  loop: "{{ enabled_boot_names }}"
-  register: bios_disable_result
-  failed_when: bios_disable_result.failed
-  no_log: true
+  rescue:
+    - name: Fail if boot mode setting or boot source disable failed
+      ansible.builtin.fail:
+        msg: "{{ bootmode_failure_msg_template }}"
