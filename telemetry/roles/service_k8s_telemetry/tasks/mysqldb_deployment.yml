@@ -96,7 +96,7 @@
         labels:
           app: "{{ mysqldb_k8s_name }}"
       spec:
-        type: ClusterIP
+        type: NodePort
         ports:
           - name: mysqldb-http-port-1
             port: "{{ mysqldb_container_port1 }}"
