@@ -33,8 +33,8 @@
       ansible.builtin.fail:
         msg: "{{ mysqldb_pod_wait_fail_msg }}"
 
-- name: Get mysqlDB svc IP
-  ansible.builtin.command: kubectl get svc "{{ mysqldb_k8s_name }}"-n "{{ telemetry_namespace }}" -o=jsonpath='{.spec.ports[0].nodePort}'
+- name: Get mysqlDB svc port
+  ansible.builtin.command: kubectl get svc "{{ mysqldb_k8s_name }}" -n "{{ telemetry_namespace }}" -o=jsonpath='{.spec.ports[0].nodePort}'
   changed_when: false
   register: mysql_svc_port
 
