@@ -30,6 +30,10 @@
       ansible.builtin.include_vars: "{{ playbook_dir }}/roles/telemetry_validation/vars/main.yml"
       no_log: true
 
+    - name: Fetch pod details for federated telemetry
+      ansible.builtin.include_tasks: fetch_pods_details.yml
+      when: hostvars['localhost']['federated_idrac_telemetry_collection']
+
     - name: Initialize variables
       ansible.builtin.set_fact:
         telemetry_idrac: []
@@ -173,7 +177,7 @@
             python3 ./ConfigurationScripts/EnableOrDisableAllTelemetryReports.py -ip "{{ item }}"
             -u "{{ hostvars['localhost']['bmc_username'] }}" -p "{{ hostvars['localhost']['bmc_password'] }}" -s Enabled
           args:
-            chdir: "{{ telemetry_dir_path }}/{{ idrac_telemetry_scripting_folder }}"
+            chdir: "{{ idrac_telemetry_scripting_git_clone_path }}"
           with_items: "{{ telemetry_idrac }}"
           changed_when: false
           no_log: true
