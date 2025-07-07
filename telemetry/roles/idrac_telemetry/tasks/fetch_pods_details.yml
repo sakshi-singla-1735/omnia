@@ -34,14 +34,19 @@
         msg: "{{ mysqldb_pod_wait_fail_msg }}"
 
 - name: Get mysqlDB svc IP
-  ansible.builtin.command: kubectl get svc "{{ mysqldb_k8s_name }}" -n "{{ telemetry_namespace }}" -o=jsonpath='{.spec.clusterIP}'
-  changed_when: false
-  register: mysql_svc_ip
-
-- name: Get mysqlDB svc port
-  ansible.builtin.command: kubectl get svc "{{ mysqldb_k8s_name }}" -n "{{ telemetry_namespace }}" -o=jsonpath='{.spec.ports[0].port}'
+  ansible.builtin.command: kubectl get svc "{{ mysqldb_k8s_name }}"-n "{{ telemetry_namespace }}" -o=jsonpath='{.spec.ports[0].nodePort}'
   changed_when: false
   register: mysql_svc_port
+
+- name: Get mysqlDB pod node name
+  ansible.builtin.command: kubectl get pods -n "{{ telemetry_namespace }}" -l app="{{ mysqldb_k8s_name }}" -o jsonpath="{.items[0].spec.nodeName}"
+  changed_when: false
+  register: mysql_node_name
+
+- name: Get mysqlDB node IP
+  ansible.builtin.command: kubectl get nodes -o=jsonpath='{.items[?(@.metadata.name=="{{ mysql_node_name.stdout }}")].status.addresses[?(@.type=="InternalIP")].address}'
+  changed_when: false
+  register: mysql_node_ip
 
 - name: Get idrac-telemetry pod name
   ansible.builtin.command: kubectl get pods -n "{{ telemetry_namespace }}" -l app="{{ idrac_telemetry_k8s_name }}" -o jsonpath="{.items[0].metadata.name}"
@@ -51,5 +56,5 @@
 - name: Set telemetry pod details
   ansible.builtin.set_fact:
     idrac_telemetry_pod_name: "{{ idrac_telemetry_pod.stdout }}"
-    mysqldb_host: "{{ mysql_svc_ip.stdout }}"
+    mysqldb_host: "{{ mysql_node_ip.stdout }}"
     mysqldb_container_port: "{{ mysql_svc_port.stdout }}"
