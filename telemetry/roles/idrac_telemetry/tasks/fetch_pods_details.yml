@@ -13,64 +13,40 @@
 # limitations under the License.
 ---
 
-- name: Fetch mysqldb pod details
+- name: Wait for idrac-telemetry pod to come to ready state
   block:
     - name: Wait for idrac-telemetry pod to come to ready state
-      block:
-        - name: Wait for idrac-telemetry pod to come to ready state
-          ansible.builtin.command: kubectl wait --for=condition=ready --timeout=10m -n "{{ telemetry_namespace }}" pod -l app="{{ idrac_telemetry_k8s_name }}"
-          changed_when: false
-      rescue:
-        - name: Failed - idrac-telemetry pod is not running
-          ansible.builtin.fail:
-            msg: "{{ idrac_telemetry_pod_wait_fail_msg }}"
-
-    - name: Wait for mysqldb pod to come to ready state
-      block:
-        - name: Wait for mysqldb pod to come to ready state
-          ansible.builtin.command: kubectl wait --for=condition=ready --timeout=10m -n "{{ telemetry_namespace }}" pod -l app="{{ mysqldb_k8s_name }}"
-          changed_when: false
-      rescue:
-        - name: Failed - mysqldb pod is not running
-          ansible.builtin.fail:
-            msg: "{{ mysqldb_pod_wait_fail_msg }}"
-
-    - name: Get mysqlDB svc IP
-      ansible.builtin.command: kubectl get svc "{{ mysqldb_k8s_name }}" -n "{{ telemetry_namespace }}" -o=jsonpath='{.spec.clusterIP}'
+      ansible.builtin.command: kubectl wait --for=condition=ready --timeout=10m -n "{{ telemetry_namespace }}" pod -l app="{{ idrac_telemetry_k8s_name }}"
       changed_when: false
-      register: mysql_svc_ip
+  rescue:
+    - name: Failed - idrac-telemetry pod is not running
+      ansible.builtin.fail:
+        msg: "{{ idrac_telemetry_pod_wait_fail_msg }}"
 
-    - name: Get mysqlDB svc port
-      ansible.builtin.command: kubectl get svc "{{ mysqldb_k8s_name }}" -n "{{ telemetry_namespace }}" -o=jsonpath='{.spec.ports[0].port}'
-      changed_when: false
-      register: mysql_svc_port
-
-- name: Fetch idrac-telemetry pod details
+- name: Wait for mysqldb pod to come to ready state
   block:
-    - name: Wait for idrac-telemetry pod to come to ready state
-      block:
-        - name: Wait for idrac-telemetry pod to come to ready state
-          ansible.builtin.command: kubectl wait --for=condition=ready --timeout=10m -n "{{ telemetry_namespace }}" pod -l app="{{ idrac_telemetry_k8s_name }}"
-          changed_when: false
-      rescue:
-        - name: Failed - idrac-telemetry pod is not running
-          ansible.builtin.fail:
-            msg: "{{ idrac_telemetry_pod_wait_fail_msg }}"
-
     - name: Wait for mysqldb pod to come to ready state
-      block:
-        - name: Wait for mysqldb pod to come to ready state
-          ansible.builtin.command: kubectl wait --for=condition=ready --timeout=10m -n "{{ telemetry_namespace }}" pod -l app="{{ mysqldb_k8s_name }}"
-          changed_when: false
-      rescue:
-        - name: Failed - mysqldb pod is not running
-          ansible.builtin.fail:
-            msg: "{{ mysqldb_pod_wait_fail_msg }}"
-
-    - name: Get idrac-telemetry pod name
-      ansible.builtin.command: kubectl get pods -n "{{ telemetry_namespace }}" -l app="{{ idrac_telemetry_k8s_name }}" -o jsonpath="{.items[0].metadata.name}"
+      ansible.builtin.command: kubectl wait --for=condition=ready --timeout=10m -n "{{ telemetry_namespace }}" pod -l app="{{ mysqldb_k8s_name }}"
       changed_when: false
-      register: idrac_telemetry_pod
+  rescue:
+    - name: Failed - mysqldb pod is not running
+      ansible.builtin.fail:
+        msg: "{{ mysqldb_pod_wait_fail_msg }}"
+
+- name: Get mysqlDB svc IP
+  ansible.builtin.command: kubectl get svc "{{ mysqldb_k8s_name }}" -n "{{ telemetry_namespace }}" -o=jsonpath='{.spec.clusterIP}'
+  changed_when: false
+  register: mysql_svc_ip
+
+- name: Get mysqlDB svc port
+  ansible.builtin.command: kubectl get svc "{{ mysqldb_k8s_name }}" -n "{{ telemetry_namespace }}" -o=jsonpath='{.spec.ports[0].port}'
+  changed_when: false
+  register: mysql_svc_port
+
+- name: Get idrac-telemetry pod name
+  ansible.builtin.command: kubectl get pods -n "{{ telemetry_namespace }}" -l app="{{ idrac_telemetry_k8s_name }}" -o jsonpath="{.items[0].metadata.name}"
+  changed_when: false
+  register: idrac_telemetry_pod
 
 - name: Set telemetry pod details
   ansible.builtin.set_fact:
