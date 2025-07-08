@@ -209,6 +209,44 @@ def validate_service_node_in_software_config(input_file_path):
         return True
     return False
 
+# Validate that service cluster K8s roles do not overlap with non-service k8s roles
+def validate_cluster_name_overlap(roles, groups):
+    """
+    Validates that service cluster K8s roles do not overlap with non-service k8s roles.
+    Args:
+        roles (list): List of role dictionaries from the config
+        groups (dict): Dictionary of group definitions from the config  
+    Returns:
+        list: List of validation errors
+    """
+    errors = []
+    service_k8s_roles = {"service_kube_control_plane", "service_etcd", "service_kube_node"}
+    k8s_roles = {"kube_control_plane", "etcd", "kube_node"}
+
+    service_k8s_clusters = set()
+    k8s_clusters = set()
+
+    for role in roles:
+        role_name = role.get("name", "")
+        for group in role.get("groups", []):
+            cluster_name = groups.get(group, {}).get("cluster_name", "").strip()
+            if not cluster_name:
+                continue
+            if role_name in service_k8s_roles:
+                service_k8s_clusters.add(cluster_name)
+            elif role_name in k8s_roles:
+                k8s_clusters.add(cluster_name)
+
+    overlapping_clusters = service_k8s_clusters & k8s_clusters
+    for cluster in overlapping_clusters:
+        errors.append(
+            create_error_msg(
+                "cluster_name",
+                cluster,
+                en_us_validation_msg.CLUSTER_NAME_OVERLAP_MSG.format(cluster)
+            )
+        )
+    return errors
 
 def validate_roles_config(
     input_file_path, data, logger, _module, _omnia_base_dir, _module_utils_base, _project_name
@@ -272,6 +310,11 @@ def validate_roles_config(
     if errors:
         return errors
 
+    # Validate cluster name overlap
+    errors.extend(validate_cluster_name_overlap(roles, groups))
+    if errors:
+        return errors
+
     # Check for duplicate groups if groups section exists
     if groups is not None:
         errors.extend(validate_group_duplicates(input_file_path))
@@ -320,6 +363,10 @@ def validate_roles_config(
     # Validate all service cluster roles should be deined in roles_config.yml
     service_cluster_roles = ["service_kube_control_plane", "service_etcd", "service_kube_node"]
     defined_service_roles = [role["name"] for role in roles if role["name"] in service_cluster_roles]
+    cluster_name_mandatory_roles = {
+                    "service_kube_control_plane", "service_etcd", "service_kube_node",
+                    "kube_control_plane", "etcd", "kube_node"
+                }
 
     if 0 < len(defined_service_roles) < len(service_cluster_roles):
         service_cluster_str = ', '.join(defined_service_roles)
@@ -391,6 +438,20 @@ def validate_roles_config(
                             en_us_validation_msg.MAX_NUMBER_OF_ROLES_PER_GROUP_MSG
                         )
                      )
+                # Validate cluster_name for service cluster roles
+                # If the role is a service cluster role, check if cluster_name is defined
+                if role[name] in cluster_name_mandatory_roles:
+                    if group in groups:
+                        cluster_name_val = groups[group].get("cluster_name", "")
+                        if validation_utils.is_string_empty(cluster_name_val):
+                            errors.append(
+                                create_error_msg(
+                                    group,
+                                    f"Group {group} must have non-empty cluster_name for role '{role[name]}'.",
+                                    en_us_validation_msg.MISSING_CLUSTER_NAME_MSG
+                                )
+                            )
+                
                 # commenting below code to skip parent validation when federated_provison false supported
                 # if group in groups:
                 #     # Validate parent field is empty for specific role cases

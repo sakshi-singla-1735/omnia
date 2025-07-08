@@ -94,9 +94,18 @@ slurm_head_node_ha:
 # - active_node_service_tags: <Mandatory if enable_k8s_ha is true> List of service tags of active K8s head nodes. Separate tags with commas.
 # ***********************************************************************
 
-k8s_head_node_ha:
-  enable_k8s_ha: false
-  virtual_ip_address: ""
-  external_loadbalancer_ip: ""
-  loadbalancer_port:
-  active_node_service_tags: [] # List of service tags, separated by commas. e.g. ["ABC","DEF"]
+service_k8s_cluster_ha:
+  - cluster_name: service_cluster1
+    enable_k8s_ha: false
+    virtual_ip_address: ""
+    external_loadbalancer_ip: ""
+    loadbalancer_port:
+    active_node_service_tags: [] # List of service tags, separated by commas. e.g. ["ABC","DEF"]
+
+compute_k8s_cluster_ha:
+  - cluster_name: compute_cluster1
+    enable_k8s_ha: false
+    virtual_ip_address: ""
+    external_loadbalancer_ip: ""
+    loadbalancer_port:
+    active_node_service_tags: [] # List of service tags, separated by commas. e.g. ["ABC","DEF"]

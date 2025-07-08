@@ -11,6 +11,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License
+#pylint: disable=import-error,no-name-in-module
 """This module contains functions for updating db based on mtms."""
 import ipaddress
 import sys
@@ -37,10 +38,15 @@ uncorrelated_admin_start_ip = ipaddress.IPv4Address(sys.argv[9])
 location_id = sys.argv[11]
 architecture = sys.argv[12]
 role = sys.argv[13]
-if len(sys.argv) == 15:
+if len(sys.argv) > 15:
     PARENT = sys.argv[14]
+    cluster_name = sys.argv[15]
+elif len(sys.argv) == 15:
+    PARENT = sys.argv[14]
+    cluster_name = ""
 else:
     PARENT = None
+    cluster_name = ""
 DISCOVERY_MECHANISM = "mtms"
 BMC_MODE = "static"
 admin_static_start_range = ipaddress.IPv4Address(admin_static_range.split('-')[0])
