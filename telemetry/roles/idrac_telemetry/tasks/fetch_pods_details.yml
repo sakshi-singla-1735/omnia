@@ -44,7 +44,7 @@
   register: mysql_node_name
 
 - name: Get mysqlDB node IP
-  ansible.builtin.command: kubectl get nodes -o=jsonpath='{.items[?(@.metadata.name=="{{ mysql_node_name.stdout }}")].status.addresses[?(@.type=="InternalIP")].address}'
+  ansible.builtin.command: kubectl get nodes -o=jsonpath='{.items[?(@.metadata.name=="{{ mysql_node_name.stdout }}")].status.addresses[?(@.type=="InternalIP")].address}' # noqa: yaml[line-length]
   changed_when: false
   register: mysql_node_ip
 

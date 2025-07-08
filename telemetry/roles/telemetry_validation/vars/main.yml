@@ -121,9 +121,9 @@ invalid_parent_tags_message: |
   And then run `telemetry.yml` playbook again.
 telemetry_host_group: "telemetry_group"
 telemetry_host: >-
-  {{ groups['kube_control_plane'] 
-     if federated_idrac_telemetry_collection | default(false) 
-     else ['oim'] 
+  {{ groups['kube_control_plane']
+     if federated_idrac_telemetry_collection | default(false)
+     else ['oim']
   }}
 # Usage: include_high_availability_config.yml
 high_availability_config_path: "{{ input_project_dir }}/high_availability_config.yml"

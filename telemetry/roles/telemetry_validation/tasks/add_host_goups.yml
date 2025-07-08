@@ -69,6 +69,6 @@
 - name: Create telemetry group
   ansible.builtin.add_host:
     hostname: "{{ item }}"
-    ansible_host: "{{ item  }}"
+    ansible_host: "{{ item }}"
     groups: "{{ telemetry_host_group }}"
   loop: "{{ telemetry_host }}"
