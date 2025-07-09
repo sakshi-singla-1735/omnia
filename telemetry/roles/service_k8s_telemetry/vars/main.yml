@@ -13,6 +13,13 @@
 #  limitations under the License.
 ---
 
+# Usage: prereq_checks.yml
+storage_class_name: "nfs-client"
+k8s_not_installed_fail_msg: "Failed. Kubernetes installation required.
+  Execute scheduler/service_k8s_cluster.yml to install Kubernetes and re-run the playbook."
+storage_class_missing_fail_msg: "Failed. StorageClass {{ storage_class_name }} is not present in the cluster.
+  To resolve this, create the StorageClass by running scheduler/service_k8s_cluster.yml playbook."
+
 # Usage: mysqldb_deployment.yml
 mysqldb_storage: 1Gi
 mysqldb_pvc_name: mysqldb-storage-claim
@@ -60,5 +67,4 @@ prometheus_image: "docker.io/prom/prometheus:v3.4.1"
 prometheus_container_port: 9090
 statefulset_replicas: 1
 prometheus_storage: 1Gi
-storage_class_name: "nfs-client"
 prometheus_service_port: 30090

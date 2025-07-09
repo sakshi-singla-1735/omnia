@@ -33,9 +33,11 @@ pcs_directories:
 
 pcs_startup_file:
   - {template: "pcs-start.sh.j2", dest: "{{ oim_shared_path }}/omnia/pcs/pcs-start.sh", mode: "{{ read_write_execute_mode }}" }
-  - {template: "corosync.conf.j2", dest: "{{ oim_shared_path }}/omnia/pcs/corosync/corosync.conf", mode: "{{ read_write_mode }}" }
   - {template: "pcs-container.container.j2", dest: "{{ oim_shared_path }}/omnia/pcs/{{ pcs_container_name }}.container", mode: "{{ read_write_mode }}" }
   - {template: "pcs-container.container.j2", dest: "{{ container_systemd_dir }}/{{ pcs_container_name }}.container", mode: "{{ read_write_mode }}" }
+
+pcs_corosync_file:
+  - {template: "corosync.conf.j2", dest: "{{ oim_shared_path }}/omnia/pcs/corosync/corosync.conf", mode: "{{ read_write_mode }}" }
 
 pcs_resource_script:
   - {template: "pcs-container-resource-init.sh.j2", dest: "{{ oim_shared_path }}/omnia/pcs/pcs-start.sh", mode: "{{ read_write_execute_mode }}" }

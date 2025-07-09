@@ -11,62 +11,142 @@
       "description": "indicates whether slurm control node services(slurmctld) should be restarted or not and if  restart_slurm_services is set to true, slurmctld services will be restarted on every execution of omnia.yml",
       "type": "boolean"
     },
-    "k8s_cni": {
-      "description": "Kubernetes internal network for services",
-      "enum":["calico", "flannel"]
-    },
-    "k8s_service_addresses": {
-      "description": "Kubernetes pod network CIDR for internal network",
-      "type":"string",
-      "pattern":"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)/[0-9]{1,2}$"
-    },
-    "pod_external_ip_range": {
-      "description": "Kubernetes pod network CIDR for internal network",
-      "type":"string",
-      "pattern":"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)-(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$|^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)/[0-9]{1,2}$"
-    },
-    "k8s_pod_network_cidr": {
-      "type": "string",
-      "pattern":"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)/[0-9]{1,2}$",
-      "description": "CIDR for the Kubernetes Pod Network (e.g., 10.233.64.0/18)"
-    },
-    "topology_manager_policy": {
-      "enum": ["none", "best-effort", "restricted", "single-numa-node"],
-      "default": "none",
-      "description": "Kubernetes Topology manager policies"
-    },
-    "topology_manager_scope": {
-      "enum": ["container", "pod"],
-      "default": "container",
-      "description": "Kubernetes Topology manager scope"
-    },
     "run_intel_gaudi_tests": {
       "description": "Set to true to run validation tests; default will not run the tests.",
       "type": "boolean"
     },
-    "csi_powerscale_driver_secret_file_path": {
-      "description": "Absolute file path for the secret.yaml file.",
-      "type": "string",
-      "pattern": "^$|^/?([a-zA-Z0-9_-]+(/?[a-zA-Z0-9_-]+)*)$"
+    "service_k8s_cluster": {
+      "type": "array",
+      "description": "List of service Kubernetes cluster configurations.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "cluster_name": { 
+            "type": "string", 
+            "minLength": 1,
+            "description": "Unique name for the service Kubernetes cluster." 
+          },
+          "deployment": {
+            "type": "boolean"
+          },
+          "k8s_cni": {
+            "enum": ["calico", "flannel"],
+            "description": "K8s CNI plugin to use for this cluster."
+          },
+          "pod_external_ip_range": { 
+            "description": "Kubernetes pod network CIDR for internal network",
+            "type":"string",
+            "pattern":"^(?:(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)-(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?))|(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)/[0-9]{1,2}$|^$"
+          },
+          "k8s_service_addresses": {
+            "type": "string",
+            "pattern": "^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)/[0-9]{1,2}$",
+            "description": "CIDR for K8s service IPs."
+          },
+          "k8s_pod_network_cidr": {
+            "type": "string",
+            "pattern": "^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)/[0-9]{1,2}$",
+            "description": "CIDR for K8s pod network."
+          },
+          "topology_manager_policy": {
+            "enum": ["none", "best-effort", "restricted", "single-numa-node"],
+            "description": "Topology policy for this cluster."
+          },
+          "topology_manager_scope": {
+            "enum": ["container", "pod"],
+            "description": "Scope of topology manager policy."
+          },
+          "k8s_offline_install": {
+            "type": "boolean",
+            "description": "Whether to pull packages/images from local repo."
+          }
+        },
+        "required": [
+          "cluster_name",
+          "k8s_cni",
+          "k8s_service_addresses"
+        ],
+        "allOf": [
+        {
+          "if": {
+            "required": ["topology_manager_policy"]
+          },
+          "then": {
+            "required": ["topology_manager_scope"]
+          }
+        }
+      ]
+      }
     },
-    "csi_powerscale_driver_values_file_path": {
-      "description": "File path for the values.yaml file.",
-      "type": "string",
-      "pattern": "^$|^/?([a-zA-Z0-9_-]+(/?[a-zA-Z0-9_-]+)*)$"
-    },
-    "k8s_offline_install": {
-      "type": "boolean",
-      "description": "If true, packages/images will be pulled from OIM local repo; if false, pulled from internet.",
-      "default": true
+    "compute_k8s_cluster": {
+      "type": "array",
+      "description": "List of Compute Kubernetes cluster configurations.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "cluster_name": { 
+            "type": "string", 
+            "minLength": 1,
+            "description": "Unique name for the service Kubernetes cluster." 
+          },
+          "deployment": {
+            "type": "boolean"
+          },
+          "k8s_cni": {
+            "enum": ["calico", "flannel"],
+            "description": "K8s CNI plugin to use for this cluster."
+          },
+          "pod_external_ip_range": { 
+            "description": "Kubernetes pod network CIDR for internal network",
+            "type":"string",
+            "pattern":"^(?:(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)-(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?))|(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)/[0-9]{1,2}$|^$"
+          },
+          "k8s_service_addresses": {
+            "type": "string",
+            "pattern": "^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)/[0-9]{1,2}$",
+            "description": "CIDR for K8s service IPs."
+          },
+          "k8s_pod_network_cidr": {
+            "type": "string",
+            "pattern": "^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)/[0-9]{1,2}$",
+            "description": "CIDR for K8s pod network."
+          },
+          "topology_manager_policy": {
+            "enum": ["none", "best-effort", "restricted", "single-numa-node"],
+            "description": "Topology policy for this cluster."
+          },
+          "topology_manager_scope": {
+            "enum": ["container", "pod"],
+            "description": "Scope of topology manager policy."
+          },
+          "k8s_offline_install": {
+            "type": "boolean",
+            "description": "Whether to pull packages/images from local repo."
+          }
+        },
+        "required": [
+          "cluster_name",
+          "k8s_cni",
+          "k8s_service_addresses"
+        ],
+        "allOf": [
+        {
+          "if": {
+            "required": ["topology_manager_policy"]
+          },
+          "then": {
+            "required": ["topology_manager_scope"]
+          }
+        }
+      ]
+      }
     }
 },
   "required": [
      "slurm_installation_type",
      "restart_slurm_services",
-     "k8s_cni",
-     "k8s_service_addresses",
-     "k8s_pod_network_cidr",
-     "pod_external_ip_range",
      "run_intel_gaudi_tests",
-     "k8s_offline_install"]
+     "compute_k8s_cluster",
+     "service_k8s_cluster"
+    ]
 }

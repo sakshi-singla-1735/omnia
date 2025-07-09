@@ -17,6 +17,9 @@ This module contains functions for validating common configuration files.
 """
 import json
 import os
+import ipaddress
+import yaml
+from ast import literal_eval
 import ansible.module_utils.input_validation.common_utils.data_fetch as get
 import ansible.module_utils.input_validation.common_utils.data_validation as validate
 from ansible.modules.validate_input import generate_log_failure_message
@@ -167,6 +170,15 @@ def validate_software_config(
     software_json_data = load_json(input_file_path)
     subgroup_dict, _ = get_subgroup_dict(software_json_data)
 
+    # mismatches = validate_versions(software_json_data, config.expected_versions)
+    # if mismatches:
+    #     for msg in mismatches:
+    #         errors.append(
+    #             create_error_msg(
+    #                 "Validation Error: ","Version Mismatch found at" , msg
+    #                 )
+    #             )
+
     # check if the corresponding json files for softwares and subgroups exists in config folder
     software_list = get_software_names(input_file_path)
     validation_results = []
@@ -180,7 +192,8 @@ def validate_software_config(
         if json_path is None:
             errors.append(
                 create_error_msg(
-                    "Validation Error: ", None, en_us_validation_msg.json_file_mandatory(json_path)
+                    "Validation Error: ", software,
+                    f"is present in software_config.json. JSON file not found: {os.path.dirname(input_file_path)}/config/{cluster_os_type}/{cluster_os_version}/{software}.json"
                 )
             )
         else:
@@ -210,6 +223,46 @@ def validate_software_config(
         )
 
     return errors
+
+def is_version_valid(actual_version, expected):
+    if isinstance(expected, list):
+        return actual_version in expected
+    return actual_version == expected
+ 
+def validate_versions(data, expected):
+    mismatches = []
+ 
+    # Validate top-level 'softwares'
+    for sw in data.get("softwares", []):
+        name = sw.get("name")
+        version = sw.get("version")
+        expected_version = expected.get(name)
+ 
+        if expected_version:
+            if not version:
+                mismatches.append(f"{name} is missing a version")
+            elif not is_version_valid(version, expected_version):
+                mismatches.append(f"{name} version mismatch: expected {expected_version}, got {version}")
+ 
+    # Validate subgroup software (e.g. "amdgpu": [{...}])
+    for parent_key, children in data.items():
+        if parent_key == "softwares" or not isinstance(children, list):
+            continue
+ 
+        for sub_sw in children:
+            name = sub_sw.get("name")
+            version = sub_sw.get("version")
+            expected_version = expected.get(name)
+ 
+            # Skip if version is not provided
+            if expected_version and version:
+                if not is_version_valid(version, expected_version):
+                    mismatches.append(
+                        f"{name} version mismatch in {parent_key}: expected {expected_version}, got {version}"
+                    )
+ 
+    return mismatches
+
 
 def validate_openldap_input_params(authentication_type, mandatory_fields, data, errors, _logger):
 
@@ -876,115 +929,165 @@ def get_admin_bmc_networks(
                 admin_bmc_networks[key] = {
                     "static_range": static_range,
                     "dynamic_range": dynamic_range,
+                    "primary_oim_admin_ip": value.get("primary_oim_admin_ip")
                 }
     return admin_bmc_networks
 
-
-def validate_omnia_config(
-    input_file_path, data, logger, module, omnia_base_dir, module_utils_base, project_name
-):
+def is_ip_in_range(ip_str, ip_range_str):
     """
-    Validates the Omnia configuration.
-
-    Args:
-        input_file_path (str): The path to the input file.
-        data (dict): The data to be validated.
-        logger (Logger): A logger instance.
-        module (Module): A module instance.
-        omnia_base_dir (str): The base directory of the Omnia configuration.
-        module_utils_base (str): The base directory of the module utils.
-        project_name (str): The name of the project.
-
-    Returns:
-        list: A list of errors encountered during validation.
+    Checks if the given IP address is inside the given IP range.
+    The range format should be: "start_ip-end_ip"
     """
-    errors = []
-    results = []
-    tag_names = eval(module.params["tag_names"])
+    try:
+        ip = ipaddress.IPv4Address(ip_str)
+        start_ip_str, end_ip_str = ip_range_str.strip().split("-")
+        start_ip = ipaddress.IPv4Address(start_ip_str)
+        end_ip = ipaddress.IPv4Address(end_ip_str)
+        return start_ip <= ip <= end_ip
+    except ValueError:
+        return False
 
-    admin_bmc_networks = get_admin_bmc_networks(
-        input_file_path, logger, module, omnia_base_dir, module_utils_base, project_name
-    )
+def validate_k8s(data, admin_bmc_networks, softwares, ha_config, tag_names, errors):
+    """
+    Validates Kubernetes cluster configurations.
+
+    Parameters:
+        data (dict): A dictionary containing Kubernetes cluster configurations.
+        admin_bmc_networks (dict): A dictionary containing admin BMC network information.
+        softwares (list): A list of software name sin software_config.
+        errors (list): A list to store error messages.
+    """
     admin_static_range = admin_bmc_networks["admin_network"]["static_range"]
     admin_dynamic_range = admin_bmc_networks["admin_network"]["dynamic_range"]
     bmc_static_range = admin_bmc_networks["bmc_network"]["static_range"]
     bmc_dynamic_range = admin_bmc_networks["bmc_network"]["dynamic_range"]
-    _pod_external_ip_range = data["pod_external_ip_range"]
-    k8s_service_addresses = data["k8s_service_addresses"]
-    k8s_pod_network_cidr = data["k8s_pod_network_cidr"]
+    primary_oim_admin_ip = admin_bmc_networks["admin_network"]["primary_oim_admin_ip"]
 
-    if "k8s" in tag_names:
-        results = scheduler_validation.validate_k8s_parameters(
-            admin_static_range,
-            bmc_static_range,
-            admin_dynamic_range,
-            bmc_dynamic_range,
-            k8s_service_addresses,
-            k8s_pod_network_cidr,
-        )
-        if results:
-            errors.append(
-                create_error_msg("IP overlap -", results, en_us_validation_msg.IP_OVERLAP_FAIL_MSG)
-            )
+    # service_k8s_cluster = data["service_k8s_cluster"]
+    cluster_set = {}
+    if "k8s" in softwares and "k8s" in tag_names:
+        cluster_set["compute_k8s_cluster"] = data.get(
+            "compute_k8s_cluster", [])
+    if "service_k8s" in softwares and "service_k8s" in tag_names:
+        cluster_set["service_k8s_cluster"] = data.get(
+            "service_k8s_cluster", [])
 
-    run_intel_gaudi_tests = data["run_intel_gaudi_tests"]
-    csi_powerscale_driver_secret_file_path = data["csi_powerscale_driver_secret_file_path"]
-    csi_powerscale_driver_values_file_path = data["csi_powerscale_driver_values_file_path"]
+    for k8s_cluster_type, k8s_clusters in cluster_set.items():
+        deployments_list = [k.get('deployment', False) for k in k8s_clusters]
+        true_count = deployments_list.count(True)
+
+        if true_count > 1:
+            errors.append(create_error_msg(
+                f"{k8s_cluster_type} Multiple cluster", true_count,
+                "There are multiple deployment values as True in the "
+                "service_k8s_cluster and compute_k8s_cluster"))
+        if not true_count:
+            errors.append(create_error_msg(
+                "No cluster deployment is true", true_count,
+                "There should be atleast one cluster deployment set to True"))
+        for kluster in k8s_clusters:
+            cluster_name = kluster.get("cluster_name")
+            deployment = kluster.get("deployment")
+            if deployment:
+                if cluster_name not in ha_config.get(k8s_cluster_type+"_ha", []):
+                    errors.append(
+                        create_error_msg(
+                            f"Cluster - {cluster_name} - not found in high_availability_config.yml",
+                            cluster_name,
+                            f"{cluster_name} not found in high_availability_config.yml"
+                        ))
+                pod_external_ip_range = kluster.get("pod_external_ip_range")
+                if not pod_external_ip_range:
+                    errors.append(
+                        create_error_msg(
+                            "Pod External IP Range -",
+                            pod_external_ip_range,
+                            f"For Cluster with name - {cluster_name} - "
+                            "The pod external IP range is not provided in omnia_config.yml"))
+                else:
+                    does_overlap = is_ip_in_range(
+                        primary_oim_admin_ip, pod_external_ip_range)
+                    if does_overlap:
+                        errors.append(
+                            create_error_msg(
+                                "Ip Overlap:",
+                                does_overlap,
+                                f"For Cluster with name - {cluster_name} - "
+                                "The pod external IP range provided in omnia_config.yml overlaps "
+                                "with the admin ip defined in network_spec.yml"))
+                k8s_service_addresses = kluster.get("k8s_service_addresses")
+                k8s_pod_network_cidr = kluster.get("k8s_pod_network_cidr")
+                # k8s_offline_install = kluster.get("k8s_offline_install")
+                ip_ranges = [
+                    admin_static_range,
+                    bmc_static_range,
+                    admin_dynamic_range,
+                    bmc_dynamic_range,
+                    k8s_service_addresses,
+                    k8s_pod_network_cidr]
+                does_overlap, _ = validation_utils.check_overlap(ip_ranges)
+                if does_overlap:
+                    errors.append(
+                        create_error_msg(
+                            "IP overlap -",
+                            None,
+                            en_us_validation_msg.ip_overlap_fail_msg))
+
+def validate_omnia_config(
+        input_file_path,
+        data,
+        logger,
+        module,
+        omnia_base_dir,
+        module_utils_base,
+        project_name):
+    """
+    Validates the L2 logic of the omnia_config.yml file.
+
+    Args:
+        input_file_path (str): The path to the input file.
+        data (dict): The data to be validated.
+        logger (object): The logger to be used.
+        module (object): The module to be used.
+        omnia_base_dir (str): The base directory of Omnia.
+        module_utils_base (str): The base directory of module_utils.
+        project_name (str): The name of the project.
+
+    Returns:
+        list: A list of errors.
+    """
+    errors = []
+    tag_names = literal_eval(module.params["tag_names"])
+
+    software_config_file_path = create_file_path(
+        input_file_path, file_names["software_config"])
+    with open(software_config_file_path, "r", encoding="utf-8") as f:
+        software_config_json = json.load(f)
+    softwares = software_config_json["softwares"]
+    sw_list = [k['name'] for k in softwares]
 
     # verify intel_gaudi with sofwate config json
-    software_config_file_path = create_file_path(input_file_path, file_names["software_config"])
-    software_config_json = json.load(open(software_config_file_path, "r"))
-    softwares = software_config_json["softwares"]
-    if contains_software(softwares, "intelgaudi") and not run_intel_gaudi_tests:
+    run_intel_gaudi_tests = data["run_intel_gaudi_tests"]
+    if "intelgaudi" in sw_list and not run_intel_gaudi_tests:
         errors.append(
             create_error_msg(
                 "run_intel_gaudi_tests",
                 run_intel_gaudi_tests,
-                en_us_validation_msg.INTEL_GAUDI_FAIL_MSG,
+                en_us_validation_msg.INTEL_GAUDI_FAIL_MSG
             )
         )
 
-    # verify csi with sofwate config json
-    software_config_file_path = create_file_path(input_file_path, file_names["software_config"])
-    software_config_json = json.load(open(software_config_file_path, "r"))
-    softwares = software_config_json["softwares"]
-    if contains_software(softwares, "csi_driver_powerscale"):
-        # Validate if secret file path is empty
-        if not csi_powerscale_driver_secret_file_path:
-            errors.append(
-                create_error_msg(
-                    "csi_powerscale_driver_secret_file_path",
-                    csi_powerscale_driver_secret_file_path,
-                    en_us_validation_msg.CSI_DRIVER_SECRET_FAIL_MSG,
-                )
-            )
-
-        # Validate if values file path is empty
-        if not csi_powerscale_driver_values_file_path:
-            errors.append(
-                create_error_msg(
-                    "csi_powerscale_driver_values_file_path",
-                    csi_powerscale_driver_values_file_path,
-                    en_us_validation_msg.CSI_DRIVER_VALUES_FAIL_MSG,
-                )
-            )
-
-    # Check IP range overlap between omnia IPs, admin network, and bmc network
-    ip_ranges = [
-        admin_static_range,
-        bmc_static_range,
-        admin_dynamic_range,
-        bmc_dynamic_range,
-        k8s_service_addresses,
-        k8s_pod_network_cidr,
-    ]
-    does_overlap, _ = validation_utils.check_overlap(ip_ranges)
-
-    if does_overlap:
-        errors.append(
-            create_error_msg("IP overlap -", None, en_us_validation_msg.IP_OVERLAP_FAIL_MSG)
-        )
-
+    if ("k8s" in sw_list or "service_k8s" in sw_list) and \
+        ("k8s" in tag_names or "service_k8s" in tag_names):
+        admin_bmc_networks = get_admin_bmc_networks(
+            input_file_path, logger, module, omnia_base_dir, module_utils_base, project_name)
+        ha_config_path = create_file_path(
+            input_file_path, file_names["high_availability_config"])
+        with open(ha_config_path, "r", encoding="utf-8") as f:
+            ha_config = yaml.safe_load(f)
+        for k in ["service_k8s_cluster_ha", "compute_k8s_cluster_ha"]:
+            ha_config[k] = [xha["cluster_name"] for xha in ha_config.get(k, [])]
+        validate_k8s(data, admin_bmc_networks, sw_list, ha_config, tag_names, errors)
     return errors
 
 def validate_telemetry_config(

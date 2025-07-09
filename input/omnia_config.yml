@@ -32,34 +32,64 @@ slurm_installation_type: "configless"
 # Default value is true
 restart_slurm_services: true
 
-# ----------------------------K8S------------------------------------------------------
-
-
-service_k8s_cluster:
-  - cluster_name: service_cluster1
-    deployment: "true"
-    k8s_cni: "calico"
-    pod_external_ip_range: ""
-    k8s_service_addresses: "10.233.0.0/18"
-    k8s_pod_network_cidr: "10.233.64.0/18"
-    topology_manager_policy: "none"
-    topology_manager_scope: "container"
-    k8s_offline_install: true
-
-compute_k8s_cluster:
-  - cluster_name: compute_cluster1
-    deployment: "true"
-    k8s_cni: "calico"
-    pod_external_ip_range: ""
-    k8s_service_addresses: "10.233.0.0/18"
-    k8s_pod_network_cidr: "10.233.64.0/18"
-    topology_manager_policy: "none"
-    topology_manager_scope: "container"
-    k8s_offline_install: true
-
 # ----------------------------VERIFY INTEL GAUDI INSTALLATION------------------------------------------------------
 
 # It's recommended to do extensive tests hl_qual and hccl when installing a new Gaudi node. This takes around 20mins.
 # To do that during provisioning this variable has to be set to true.
 # By default  no tests are run
 run_intel_gaudi_tests: false
+
+
+# ----------------------------K8S------------------------------------------------------
+#For both service nodes k8s cluster and compute nodes k8s cluster below parameters are required,(List)
+# - cluster_name is required field
+
+# - deployment: Exactly one entry in both the service_k8s_cluster and compute_k8s_cluster lists must have deployment set to true to indicate where Kubernetes should be deployed.
+
+# - Kubernetes SDN network.K8s_cni (Mandatory) - It can either be "calico" or "flannel".Default value assigned is "calico".
+# While setting up Kubernetes plugin for RoCE NIC, ensure that this value is set to "flannel"
+
+# - pod_external_ip_range: (Mandatory) These addresses will be used by Loadbalancer for assigning External IPs to K8s services
+# Make sure the IP range is not assigned to any node in the cluster.
+# Acceptable formats: "10.11.0.100-10.11.0.150" , "10.11.0.0/16"
+
+# - k8s_service_addresses: Kubernetes internal network for services.This network must be unused in your network infrastructure.
+# Default value is "10.233.0.0/18"
+
+# - k8s_pod_network_cidr: Kubernetes pod network CIDR for internal network. When used, it will assign IP addresses from this range to individual pods.
+# This network must be unused in your network infrastructure.
+# Default value is "10.233.64.0/18"
+
+# - topology_manager_policy: Kubernetes Topology manager policies. Default value assigned is "none".
+# It can either be "none" or "best-effort" or "restricted" or "single-numa-node".
+
+# - topology_manager_scope: Kubernetes Topology manager scope. Default value assigned is "container".
+# It can either be "container" or "pod".
+
+# - k8s_offline_install: Kubernetes Offline Install. # It can either be true or false
+# Default value is true, means packages/images will be pulled from OIM local repo
+# If set to true, all packages/images will be pulled from OIM local repo.
+# If set to false, all packages/images will be pulled from source via internet.
+
+#validation wrt roles config L2
+service_k8s_cluster:
+  - cluster_name: service_cluster
+    deployment: true
+    k8s_cni: "calico"
+    pod_external_ip_range: ""
+    k8s_service_addresses: "10.233.0.0/18"
+    k8s_pod_network_cidr: "10.233.64.0/18"
+    topology_manager_policy: "none"
+    topology_manager_scope: "container"
+    k8s_offline_install: true
+ 
+compute_k8s_cluster:
+  - cluster_name: compute_cluster
+    deployment: true
+    k8s_cni: "calico"
+    pod_external_ip_range: ""
+    k8s_service_addresses: "10.233.0.0/18"
+    k8s_pod_network_cidr: "10.233.64.0/18"
+    topology_manager_policy: "none"
+    topology_manager_scope: "container"
+    k8s_offline_install: true

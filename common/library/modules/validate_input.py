@@ -106,9 +106,9 @@ def main():
     passwords_set = config.passwords_set
     extensions = config.extensions
 
-    json_files_dic = {}
-    yml_files_dic = {}
-    schema_files_dic = {}
+    json_files_dict = {}
+    yml_files_dict = {}
+    schema_files_dict = {}
     validation_status = {}
     vstatus = []
 
@@ -128,11 +128,11 @@ def main():
     schema_files = get.files_recursively(schema_base_file_path, extensions['json'])
 
     for file_path in json_files:
-        json_files_dic.update({get.file_name_from_path(file_path): file_path})
+        json_files_dict.update({get.file_name_from_path(file_path): file_path})
     for file_path in yml_files:
-        yml_files_dic.update({get.file_name_from_path(file_path): file_path})
+        yml_files_dict.update({get.file_name_from_path(file_path): file_path})
     for file_path in schema_files:
-        schema_files_dic.update({get.file_name_from_path(file_path): file_path})
+        schema_files_dict.update({get.file_name_from_path(file_path): file_path})
 
     if not json_files and not yml_files:
         error_message = f"yml and json files not found in directory: {directory_path}"
@@ -159,10 +159,10 @@ def main():
                 logger.info(error_message)
                 module.fail_json(msg=error_message)
                 raise FileNotFoundError(error_message)
-            if name in json_files_dic.keys():
-                input_file_path = json_files_dic[name]
-            if name in yml_files_dic.keys():
-                input_file_path = yml_files_dic[name]
+            if name in json_files_dict.keys():
+                input_file_path = json_files_dict[name]
+            if name in yml_files_dict.keys():
+                input_file_path = yml_files_dict[name]
 
             if input_file_path is None:
                 error_message = f"file not found in directory: {omnia_base_dir}/{project_name}"
@@ -197,11 +197,6 @@ def main():
                     validation_status.update(project_data)
                     fname, _ = os.path.splitext(name)
 
-                    # If there's a replacement rule for the current tag_name, apply it
-                    if (tag_name in config.tag_file_replacements and
-                            fname in config.tag_file_replacements[tag_name]):
-                        fname = config.tag_file_replacements[tag_name][fname]
-
                     error_message = f"name:  {name}"
                     schema_file_path = schema_base_file_path + "/" + fname + extensions['json']
                     input_file_path = None
@@ -215,10 +210,10 @@ def main():
                         module.fail_json(msg=error_message)
                         raise FileNotFoundError(error_message)
 
-                    if name in json_files_dic.keys():
-                        input_file_path = json_files_dic[name]
-                    if name in yml_files_dic.keys():
-                        input_file_path = yml_files_dic[name]
+                    if name in json_files_dict:
+                        input_file_path = json_files_dict[name]
+                    if name in yml_files_dict:
+                        input_file_path = yml_files_dict[name]
 
                     if input_file_path is None:
                         error_message = (

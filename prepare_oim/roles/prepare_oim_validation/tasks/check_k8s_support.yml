@@ -118,8 +118,8 @@
     - name: Fail if the latest 3 release tags of kubespray do not support the Kubernetes version
       ansible.builtin.fail:
         msg: "{{ fail_msg_k8s_version }}"
-      when: version not in k8s_to_kubespray_comp_ver.compatible_tags
-      loop: "{{ kube_versions_list | default([]) }}"
+      when: version in [None, '']
+      loop: "{{ kubespray_versions | default([]) }}"
       loop_control:
         loop_var: version
 
