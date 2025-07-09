@@ -21,3 +21,15 @@
     intelgaudi_version: "omnia_default"
     k8s_support: false
     service_k8s_support: false
+
+- name: Load software_config.json
+  ansible.builtin.include_vars:
+    file: "{{ sw_config_json_path }}"
+    name: software_config
+    
+- name: Set facts for cluster
+  ansible.builtin.set_fact:
+    cluster_os_type: "{{ software_config.cluster_os_type }}"
+    cluster_os_version: "{{ software_config.cluster_os_version }}"
+    repo_config: "{{ software_config.repo_config }}"
+    software: "{{ software_config.softwares }}"
