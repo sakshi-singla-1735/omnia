@@ -112,7 +112,7 @@ def validate_layer_group_separation(logger, roles):
     # Define layer roles
     frontend_roles = {
         "service_node",
-        "login",
+        "login_node",
         "auth_server",
         "compiler_node",
         "kube_control_plane",
@@ -232,7 +232,7 @@ def validate_cluster_name_overlap(roles, groups):
     Validates that service cluster K8s roles do not overlap with non-service k8s roles.
     Args:
         roles (list): List of role dictionaries from the config
-        groups (dict): Dictionary of group definitions from the config  
+        groups (dict): Dictionary of group definitions from the config
     Returns:
         list: List of validation errors
     """
@@ -295,14 +295,14 @@ def validate_roles_config(
 
     roles_per_group = {}
     empty_parent_roles = {
-        "login",
+        "login_node",
         "compiler_node",
         "service_node",
         'service_kube_control_plane',
         'service_etcd',
         "kube_control_plane",
         "etcd",
-        "slurm_control_plane",
+        "slurm_control_node",
         "slurm_dbd",
         "auth_server"
     }
@@ -504,7 +504,7 @@ def validate_roles_config(
                 #    if role[name] in empty_parent_roles and not validation_utils.is_string_empty(
                 #         groups[group].get(parent, None)
                 #     ):
-                #         # If parent is not empty and group is associated with login,
+                #         # If parent is not empty and group is associated with login_node,
                 #         #  compiler_node, service_node, kube_control_plane,
                 #         # or slurm_control_plane
                 #         errors.append(

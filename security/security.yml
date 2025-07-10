@@ -86,21 +86,21 @@
   any_errors_fatal: true
   gather_facts: false
   roles:
-    - login_common
+    - freeipa_common
   tags: freeipa
 
 - name: Apply login server installation and config
   hosts: auth_server
   gather_facts: false
   roles:
-    - login_server
+    - freeipa_server
   tags: freeipa
 
 - name: Install FreeIPA client on login and nodes
   hosts: slurm_control_node, slurm_node, kube_control_plane, kube_node, login, etcd:!auth_server
   gather_facts: false
   roles:
-    - login_node
+    - freeipa_client
   tags: freeipa
 
 - name: Install openldap server and apply configurations
