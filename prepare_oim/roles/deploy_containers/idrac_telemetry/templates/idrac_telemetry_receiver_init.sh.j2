@@ -18,5 +18,12 @@
 
 # Script to initialize idrac-telemetry-receiver
 
-exec /go/src/github.com/telemetry-reference-tools/scripts/example/idrac-telemetry-receiver.sh
-nohup go run cmd/redfishread/redfishread.go &
+go run cmd/dbdiscauth/dbdiscauth.go &
+PID1=$!
+go run cmd/configui/configui.go &
+PID2=$!
+go run cmd/redfishread/redfishread.go &
+PID3=$!
+
+# Wait for all processes
+wait $PID1 $PID2 $PID3
