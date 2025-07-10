@@ -19,10 +19,9 @@ import json
 import os
 import ipaddress
 import yaml
-from ast import literal_eval
+
 import ansible.module_utils.input_validation.common_utils.data_fetch as get
 import ansible.module_utils.input_validation.common_utils.data_validation as validate
-from ansible.modules.validate_input import generate_log_failure_message
 
 from ansible.module_utils.input_validation.common_utils import (
     validation_utils,
@@ -124,7 +123,7 @@ def validate_software_config(
         new_file_path = json_files_dic.get("additional_software.json", None)
 
         # Validate the schema of the input file (L1)
-        validation_status = {}
+        validation_status = {"Passed": [], "Failed": []}
         vstatus = []
         project_data = {project_name: {"status": [], "tag": "additional_software"}}
         validation_status.update(project_data)
@@ -140,13 +139,23 @@ def validate_software_config(
         vstatus.append(schema_status)
 
         # Append the validation status for the input file
-        validation_status[project_name]["status"].append(
-            {new_file_path: "Passed" if schema_status else "Failed"})
+        if schema_status:
+            validation_status["Passed"].append(new_file_path)
+        else:
+            validation_status["Failed"].append(new_file_path)
 
         if False in vstatus:
             log_file_name = os.path.join(
                 config.input_validator_log_path, f"validation_omnia_{project_name}.log")
-            generate_log_failure_message(log_file_name, project_name, validation_status, module)
+            message = (f"Input validation failed for: {project_name} - additional_software.json"
+               f"Look at the logs for more details: filename={log_file_name}")
+
+            module.fail_json(
+                msg=message,
+                log_file_name=log_file_name,
+                passed_files=validation_status["Passed"],
+                failed_files=validation_status["Failed"]
+            )
 
         # Check for the addtional_software.json file exist
         if new_file_path is None or not file_exists(new_file_path, module, logger):
@@ -1057,7 +1066,7 @@ def validate_omnia_config(
         list: A list of errors.
     """
     errors = []
-    tag_names = literal_eval(module.params["tag_names"])
+    tag_names = module.params["tag_names"]
 
     software_config_file_path = create_file_path(
         input_file_path, file_names["software_config"])
