@@ -123,8 +123,8 @@ To install k8s provide scheduler_type: k8s. To install slurm and k8s provide sch
 install_scheduler_msg: "Installing job scheduler:"
 
 # # Usage: Fetch_software_config.yml
-# csi_driver_powerscale_packages_file: >-
-#   {{ role_path }}/../../../input/config/{{ software_config.cluster_os_type }}/{{ software_config.cluster_os_version }}/csi_driver_powerscale.json
+csi_driver_powerscale_packages_file: >-
+  {{ input_project_dir }}/config/{{ software_config.cluster_os_type }}/{{ software_config.cluster_os_version }}/csi_driver_powerscale.json
 
 # Usage: fetch_omnia_inputs.yml
 csi_driver_secret_file_path_success_msg: "Success. csi_driver_secret_file_path is valid in omnia_config.yml"

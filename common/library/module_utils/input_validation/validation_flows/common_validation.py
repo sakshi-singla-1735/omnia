@@ -962,7 +962,7 @@ def validate_k8s(data, admin_bmc_networks, softwares, ha_config, tag_names, erro
     bmc_static_range = admin_bmc_networks["bmc_network"]["static_range"]
     bmc_dynamic_range = admin_bmc_networks["bmc_network"]["dynamic_range"]
     primary_oim_admin_ip = admin_bmc_networks["admin_network"]["primary_oim_admin_ip"]
-
+    
     # service_k8s_cluster = data["service_k8s_cluster"]
     cluster_set = {}
     if "k8s" in softwares and "k8s" in tag_names:
@@ -1032,6 +1032,30 @@ def validate_k8s(data, admin_bmc_networks, softwares, ha_config, tag_names, erro
                             "IP overlap -",
                             None,
                             en_us_validation_msg.ip_overlap_fail_msg))
+                #csi validation
+                if "csi_driver_powerscale" in softwares and "k8s" in softwares:
+                    csi_powerscale_driver_secret_file_path = kluster.get("csi_powerscale_driver_secret_file_path")
+                    csi_powerscale_driver_values_file_path = kluster.get("csi_powerscale_driver_values_file_path")
+                    # Validate if secret file path is empty
+                    if not csi_powerscale_driver_secret_file_path:
+                        errors.append(
+                            create_error_msg(
+                                "csi_powerscale_driver_secret_file_path",
+                                csi_powerscale_driver_secret_file_path,
+                                en_us_validation_msg.CSI_DRIVER_SECRET_FAIL_MSG,
+                            )
+                        )
+
+                    # Validate if values file path is empty
+                    if not csi_powerscale_driver_values_file_path:
+                        errors.append(
+                            create_error_msg(
+                                "csi_powerscale_driver_values_file_path",
+                                csi_powerscale_driver_values_file_path,
+                                en_us_validation_msg.CSI_DRIVER_VALUES_FAIL_MSG,
+                            )
+                        )
+
 
 def validate_omnia_config(
         input_file_path,
