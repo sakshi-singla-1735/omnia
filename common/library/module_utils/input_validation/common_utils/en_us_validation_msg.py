@@ -66,9 +66,13 @@ SERVICE_NODE_ENTRY_MISSING_ROLES_CONFIG_MSG = ("The role service_node defined in
     " but service_node entry missing in sofware_config.json, "
     "Please rerun local repo with service_node entry in software_config.json "
     "to deploy service nodes successfully")
+SERVICE_K8S_ENTRY_MISSING_SOFTWARE_CONFIG_MSG = ("The role service_kube_control_plane is defined in roles_config.yml, "
+    "but the service_k8s package entry is missing in software_config.json. "
+    "To deploy Kubernetes in the service_k8s cluster, the package must be added to software_config.json.")
 SERVICE_NODE_ENTRY_INVALID_ROLES_CONFIG_MSG = ("The 'service_node' role defined in roles_config.yml"
     " is not currently supported and is reserved for future use. Please remove or update this role"
     " to avoid configuration errors.")
+
 # provision_config.yml
 DEFAULT_LEASE_TIME_FAIL_MSG = "Please provide a valid default_lease_time."
 TIMEZONE_FAIL_MSG = ("Unsupported Timezone. Please check the timezone.txt file "

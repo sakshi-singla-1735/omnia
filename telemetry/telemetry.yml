@@ -70,7 +70,7 @@
 #   when: not ( hostvars['127.0.0.1']['update_user_repo_executed'] | default(false) | bool )
 
 - name: Configure oim ha node for telemetry
-  hosts: oim_ha_node
+  hosts: oim_ha_node,active_oim_node
   connection: ssh
   gather_facts: false
   roles:

@@ -407,6 +407,7 @@ def generate_inventory_per_cluster(cursor) -> None:
                 cluster_map[cluster_name].setdefault(role, []).append(hostname)
 
         for cluster_name, role_map in cluster_map.items():
+            cluster_name = cluster_name.strip()
             if not cluster_name.strip():  # Skip empty cluster names
                 continue
             inventory_file = os.path.join(inventory_dir, f"{cluster_name}_cluster_layout")

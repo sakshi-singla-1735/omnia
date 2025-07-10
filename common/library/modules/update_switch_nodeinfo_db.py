@@ -136,6 +136,7 @@ def main():
         bmc_details = group_data.get("bmc_details", {})
         roles = ','.join(group_data.get("roles", []))
         parent = group_data.get("parent", "")
+        cluster_name = group_data.get("cluster_name", "")
         location_id = group_data.get("location_id", "")
         architecture = group_data.get("architecture", "")
 

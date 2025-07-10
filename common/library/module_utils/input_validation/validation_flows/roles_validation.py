@@ -209,6 +209,23 @@ def validate_service_node_in_software_config(input_file_path):
         return True
     return False
 
+# Below function will be used to validate service_k8s entry in software_config
+def validate_service_k8s_in_software_config(input_file_path):
+    """
+    verifies service_k8s entry present in sofwate config.json
+
+    Returns:
+        True if service_k8s entry is present
+        False if no entry
+    """
+    # verify service_k8s  with sofwate config json
+    software_config_file_path = create_file_path(input_file_path, file_names["software_config"])
+    software_config_json = json.load(open(software_config_file_path, "r"))
+    softwares = software_config_json["softwares"]
+    if validation_utils.contains_software(softwares, "service_k8s"):
+        return True
+    return False
+
 # Validate that service cluster K8s roles do not overlap with non-service k8s roles
 def validate_cluster_name_overlap(roles, groups):
     """
@@ -367,7 +384,7 @@ def validate_roles_config(
         "service_cluster_roles": {"service_kube_control_plane", "service_etcd",
                                   "service_kube_node"},
         "k8s_cluster_roles": {"kube_control_plane", "kube_node", "etcd"},
-        "slurm_cluster_roles": {"slurm_control_plane", "slurm_node"},
+        "slurm_cluster_roles": {"slurm_control_node", "slurm_node"},
     }
     for role_type, service_cluster_roles in role_sets.items():
         defined_service_roles = role_name_set.intersection(service_cluster_roles)
@@ -404,6 +421,27 @@ def validate_roles_config(
                                     None,
                                     f"An error occurred while validating software_config.json: {str(e)}"))
 
+    # Role service_kube_control_plane is defined in roles_config.yml,
+    # verify service_k8s package entry is present in software_config.json
+    # If no entry is present, then fail the input validator
+    if validation_utils.key_value_exists(roles, name, "service_kube_control_plane"):
+        try:
+            if not validate_service_k8s_in_software_config(input_file_path):
+                errors.append(
+                    create_error_msg(
+                        "software_config.json",
+                        None,
+                        en_us_validation_msg.SERVICE_K8S_ENTRY_MISSING_SOFTWARE_CONFIG_MSG
+                    )
+                )
+        except Exception as e:
+            errors.append(
+                create_error_msg(
+                    "software_config.json",
+                    None,
+                    f"An error occurred while validating software_config.json: {str(e)}"
+                )
+            )
 
     if len(errors) <= 0:
         # List of groups which need to have their resource_mgr_id set

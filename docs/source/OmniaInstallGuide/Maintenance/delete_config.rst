@@ -1,11 +1,11 @@
 Remove Slurm/Kubernetes configuration from a compute node
 ================================================================
 
-Use this playbook to remove the Slurm and/or Kubernetes configuration and stop all clustering software on the compute nodes of the cluster. This will help clean up the cluster and ensure that all clustering components are properly deactivated and removed from the compute nodes.
+Use this playbook to remove the Slurm and/or Kubernetes configuration and stop all clustering software on the compute nodes of the cluster. This will help to clean up the cluster and ensure that all clustering components are properly deactivated and removed from the compute nodes.
 
 .. note::
     * All target nodes should be drained before executing the playbook. If a job is running on any target nodes, the playbook may timeout waiting for the node state to change.
-    * When running ``remove_node_configuration.yml``, ensure that the ``input/storage_config.yml`` and ``input/omnia_config.yml`` have not been edited since ``omnia.yml`` was run.
+    * When running ``remove_node_configuration.yml``, ensure that the ``input/storage_config.yml`` and ``input/omnia_config.yml`` have not been edited since the last run of ``omnia.yml``.
 
 .. caution:: While attempting to remove a slurm_node configured on a cluster, the ``slurmctld`` services might fail on the ``slurm_control_node``. This happens only when there is a single ``slurm_node`` present in the cluster.
 

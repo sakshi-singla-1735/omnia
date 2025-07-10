@@ -5,7 +5,7 @@ Use this playbook to remove discovered or provisioned nodes from all inventory f
 
 **Configurations performed by the playbook**
 
-    * Nodes will be deleted from the Omnia DB and the xCAT node object will be deleted.
+    * Nodes will be deleted from the Omnia DB and the xCAT node object.
     * Telemetry services will be stopped and removed.
 
 **To run the playbook**

@@ -66,6 +66,7 @@ pcs resource create {{ provision_container_name }} ocf:heartbeat:podman \
  op stop interval={{ stop_interval }}  timeout={{ stop_timeout }}
 
 pcs resource group add {{ pcs_group }} {{ omnia_core_name }} {{ pulp_container_name }} {{ provision_container_name }}
+pcs resource manage {{ omnia_core_name }}
 
 {% if hostvars['localhost']['k8s_support'] %}
 {% for version in hostvars['localhost']['kubespray_versions'] %}

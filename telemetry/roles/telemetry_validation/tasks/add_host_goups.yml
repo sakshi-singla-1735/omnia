@@ -65,3 +65,10 @@
   when:
     - enable_oim_ha
     - host_inventory.oim_ha_hosts | length > 0
+
+- name: Add passive oim hosts to inventory
+  ansible.builtin.add_host:
+    name: "{{ primary_oim_admin_ip }}"
+    groups: "active_oim_node"
+  when:
+    - enable_oim_ha

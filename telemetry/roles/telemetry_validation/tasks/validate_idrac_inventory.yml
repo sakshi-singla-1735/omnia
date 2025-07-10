@@ -41,6 +41,11 @@
     bmc_dict_list: "{{ bmc_dict_list | default([]) + [dict(bmc_headers | zip(item.split(',')) | list)] }}"
   loop: "{{ bmc_group_data[1:] }}"
 
+- name: Fail if bmc entries missing
+  ansible.builtin.fail:
+    msg: "{{ bmc_group_data_empty_msg }}"
+  when: bmc_dict_list is not defined or bmc_dict_list | length == 0
+
 - name: Validate each BMC_IP in bmc_dict_list
   ansible.builtin.fail:
     msg: "{{ bmc_group_data_invalid_ip_msg }} : {{ item.BMC_IP }}"

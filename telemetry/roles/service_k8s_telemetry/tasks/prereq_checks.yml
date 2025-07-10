@@ -35,13 +35,25 @@
   loop: "{{ hostvars['localhost']['k8s_pip_packages'] }}"
 
 - name: Check if k8s is running
-  ansible.builtin.command: kubectl get nodes -o='Name'
-  register: kubectl_status
-  changed_when: false
-  failed_when: false
+  block:
+    - name: Check if Kubernetes is running
+      kubernetes.core.k8s_info:
+        api_version: v1
+        kind: Node
+      register: node_info
+      failed_when: node_info.resources is not defined or node_info.resources | length == 0
+  rescue:
+    - name: Kubernetes is not running
+      ansible.builtin.fail:
+        msg: "{{ k8s_not_installed_fail_msg }}"
 
-- name: Check storageclass is present - {{ storage_class_name }}
-  ansible.builtin.command: kubectl get storageclass {{ storage_class_name }} -o jsonpath='{.status}'
-  register: nfs_client_status
-  changed_when: false
-  failed_when: false
+- name: Get all StorageClasses
+  kubernetes.core.k8s_info:
+    api_version: storage.k8s.io/v1
+    kind: StorageClass
+  register: sc_info
+
+- name: Fail if the StorageClass does not exist - {{ storage_class_name }}
+  ansible.builtin.fail:
+    msg: "{{ storage_class_missing_fail_msg }}"
+  when: storage_class_name not in (sc_info.resources | map(attribute='metadata.name') | list)

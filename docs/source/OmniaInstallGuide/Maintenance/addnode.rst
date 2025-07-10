@@ -7,7 +7,7 @@ A new node can be provisioned using the following ways, based on the `discovery 
 
 1. Using a **mapping file**:
 
-    * Update the existing mapping file by appending the new entry (without the disrupting the older entries) or provide a new mapping file by pointing ``pxe_mapping_file_path`` in ``provision_config.yml`` to the new location.
+    * Update the existing mapping file by appending the new entry (without disrupting the older entries) or provide a new mapping file by pointing ``pxe_mapping_file_path`` in ``provision_config.yml`` to the new location.
 
     .. note:: Any IP overlap between the mapping files will result in PXE boot failure. This can be resolved by running the `Delete Node script <deletenode.html>`_ or the `Clean Up script <cleanup.html>`_. Re-run ``discovery_provision.yml`` once the node has been deleted.
 
@@ -34,7 +34,7 @@ A new node can be provisioned using the following ways, based on the `discovery 
 
     .. note::
         * All ports residing on the same switch should be listed in the same JSON list element.
-        * Ports configured via Omnia should be not be removed from ``switch_based_details`` in ``input/provision_config.yml``.
+        * Ports configured via Omnia should not be removed from ``switch_based_details`` in ``input/provision_config.yml``.
 
 
     * Run ``discovery_provision.yml`` ::
@@ -49,7 +49,7 @@ Verify that the node has been provisioned successfully by checking the Omnia `no
 
 **Adding new compute nodes to the cluster**
 
-1. Insert the new IPs in the existing inventory file following the below example.
+1. Add the new IP addresses to the existing inventory file, as shown in the following example.
 
 *Existing kubernetes inventory*
 
@@ -131,7 +131,7 @@ In the above examples, nodes 10.5.0.105 and 10.5.0.106 have been added to the cl
 
 .. note::
     * The ``[etcd]`` group only supports an odd number of servers in the group. Adding nodes to ``[etcd]`` groups is not supported in re-run scenarios.
-    * Do not change the ``kube_control_plane``, ``slurm_control_node`` and/or ``auth_server`` in the existing inventory file. Simply add the new node information in the ``kube_node`` and/or ``slurm_node`` group.
+    * Do not change the ``kube_control_plane``, ``slurm_control_node`` and/or ``auth_server`` in the existing inventory file. Add only the new node information to the ``kube_node`` and/or ``slurm_node`` groups.
     * When re-running ``omnia.yml`` to add a new node, ensure that the ``input/security_config.yml`` and ``input/omnia_config.yml`` are not edited between runs.
 
 2. Once the new node IPs have been provided in the inventory, you can install security tools (OpenLDAP, FreeIPA), job schedulers (Kubernetes, Slurm), and storage tools (NFS, BeeGFS) on the nodes by executing ``omnia.yml`` with the updated inventory file: ::

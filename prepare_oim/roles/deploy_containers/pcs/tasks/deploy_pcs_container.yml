@@ -28,6 +28,21 @@
     mode: "{{ item.mode }}"
   loop: "{{ pcs_startup_file }}"
 
+- name: Check if dest file exists
+  ansible.builtin.stat:
+    path: "{{ pcs_corosync_file[0].dest }}"
+  register: dest_file
+  when: pcs_corosync_file | length > 0
+
+- name: Copy template if file does not exist
+  ansible.builtin.template:
+    src: "{{ pcs_corosync_file[0].template }}"
+    dest: "{{ pcs_corosync_file[0].dest }}"
+    mode: "{{ pcs_corosync_file[0].mode }}"
+  when:
+    - pcs_corosync_file | length > 0
+    - not dest_file.stat.exists
+
 - name: Check if {{ pcs_container_name }} container is running # noqa: name[template]
   containers.podman.podman_container_info:
     name: "{{ pcs_container_name }}"
@@ -131,7 +146,7 @@
     - name: Parse PCS resources for any that are not started
       ansible.builtin.shell: |
         set -o pipefail
-        cat {{ pcs_start_shared_finished }} | grep "Stopped\|FAILED"
+        cat {{ pcs_start_shared_finished }} | grep "VIP Stopped\|VIP FAILED"
       args:
         executable: /bin/bash
       register: improper_resources

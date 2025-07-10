@@ -13,7 +13,7 @@ Access the Grafana UI
         
             http://localhost:5000/login  
 
-        .. note:: In the above command, instead of ``localhost``, you can also provide the admin IP or public IP address to access the Grafana UI.
+        .. note:: In the above URL, instead of ``localhost``, you can also provide the admin IP or public IP address to access the Grafana UI.
     
     2. Enter the ``grafana_username`` and ``grafana_password`` as mentioned previously in the ``/opt/omnia/input/project_default/omnia_config_credentials.yml`` input file. Click **Log in**.
 
@@ -46,7 +46,7 @@ Access the Grafana UI
             :width: 600px
 
 
-    4. To view the **Data Sources** configured by Omnia, go to **Configuration > Data Sources**. 
+    4. To view the **Data Sources** configured by Omnia, go to **Connections > Data Sources**. 
 
 
         .. image:: ../images/Datasources_Grafana.png
@@ -72,7 +72,7 @@ Filter logs using Loki
         
             http://localhost:5000/login
 
-        .. note:: In the above command, instead of ``localhost``, you can also provide the admin IP or public IP address to access the Grafana UI.
+        .. note:: In the above URL, instead of ``localhost``, you can also provide the admin IP or public IP address to access the Grafana UI.
 
     2. In the Explore page, select **oim-loki** to view the log browser.
 

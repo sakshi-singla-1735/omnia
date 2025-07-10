@@ -1,6 +1,7 @@
 {
     "cluster_os_type": "rhel",
     "cluster_os_version": "9.6",
+    "iso_file_path": "",
     "repo_config": "always",
     "softwares": [
         {"name": "amdgpu", "version": "6.3.1"},
@@ -13,7 +14,8 @@
         {"name": "nfs"},
         {"name": "beegfs", "version": "7.4.5"},
         {"name": "slurm"},
-        {"name": "k8s", "version":"1.31.4"},
+        {"name": "k8s", "version": "1.31.4"},
+        {"name": "service_k8s", "version": "1.31.4"},
         {"name": "intel_benchmarks", "version": "2024.1.0"},
         {"name": "amd_benchmarks"},
         {"name": "utils"},
@@ -24,6 +26,11 @@
 
     "amdgpu": [
         {"name": "rocm", "version": "6.3.1" }
+    ],
+    "slurm": [
+        {"name": "slurm_control_node"},
+        {"name": "slurm_node"},
+        {"name": "login"}
     ]
 
 }

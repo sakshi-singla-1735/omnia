@@ -6,13 +6,13 @@ Use this playbook to stop and remove all Slurm and Kubernetes services from the 
 .. warning:: This action will destroy the existing Slurm/Kubernetes cluster.
 
 .. note::
-    * All target nodes should be drained before executing the playbook. If a job is running on any target nodes, the playbook may timeout waiting for the node state to change.
+    * All target nodes should be drained before executing the playbook. If a job is running on any target nodes, the playbook may timeout while waiting for the node state to change.
     * When running ``reset_cluster_configuration.yml``, ensure that the ``input/storage_config.yml`` and ``input/omnia_config.yml`` have not been edited since ``omnia.yml`` was run.
 
 **Configurations performed by the playbook**
 
     * The Slurm and Kubernetes configuration will be reset on the ``kube_control_plane`` or the ``slurm_control_node``, as defined in the inventory file.
-    * All services pertaining to Slurm and Kubernetes are stopped and removed.
+    * All services related to Slurm and Kubernetes are stopped and removed.
 
 **To run the playbook**
 
