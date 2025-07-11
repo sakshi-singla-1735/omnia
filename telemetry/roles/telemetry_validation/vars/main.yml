@@ -20,7 +20,7 @@ fail_msg_telemetry_config_file: "telemetry_config.yml file doesn't exist."
 pause_time_15: 15
 bmc_group_data_filename: "/opt/omnia/telemetry/bmc_group_data.csv"
 warning_telemetry_support_false: |
-  "[WARNING] idrac_telemetry_support and visualization_support are false in telemetry_config.yml.
+  "[WARNING] kube_prometheus_support, idrac_telemetry_support and visualization_support are false in telemetry_config.yml.
   Omnia does not deploy telemetry feature if none of the support category is true."
 telemetry_config_syntax_fail_msg: "Failed. Syntax errors present in telemetry_config.yml. Fix errors and re-run playbook again."
 warning_idrac_telemetry_support_false: |
@@ -41,10 +41,13 @@ warning_federated_telemetry_support: "Failed: Federated iDRAC Telemetry Collecti
 # fail_msg_provision_config_file: "provision_config.yml file doesn't exist."
 # fail_timezone_msg: "Failed. Incorrect timezone provided. Please check the file timezone.txt in discovery/roles/discovery_validations/common/files/ folder."
 
-# # Usage: validate_k8s_prometheus_prometheus_gaudi.yml
-# k8s_prom_gaudi_inventory_fail_msg: "Inventory comprising kube_control_plane, kube_node and etcd groups should be passed  \
-# when k8s_prometheus_support or prometheus_gaudi_support is true in telemetry_config.yml."
-# prometheus_scrape_interval_fail_msg: "Failed. prometheus_scrape_interval accepts integer values greater than 0"
+# Usage: validate_k8s_prometheus.yml
+k8s_prom_gaudi_inventory_fail_msg: "Inventory comprising kube_control_plane, kube_node and etcd groups should be passed  \
+  when kube_prometheus_support is true in telemetry_config.yml."
+kube_control_plane_group_fail_msg: "kube_control_plane group should contain atleast 1 node in inventory"
+kube_node_group_fail_msg: "kube_node group should contain atleast 1 node in inventory"
+etcd_group_fail_msg: "etcd group should contain atleast 1 node in inventory"
+etcd_odd_entry_fail_msg: "etcd group should have odd number of nodes in inventory"
 
 # Usage: validate_image_tars.yml
 # noqa: yaml[line-length]
@@ -74,11 +77,6 @@ software_config_syntax_fail_msg: "Failed. Syntax errors present in software_conf
 # fail_msg_k8s_prometheus_support_false: "Failed. k8s_prometheus_support must be true when prometheus_gaudi_support is true in telemetry_config.yml."
 # fail_msg_prometheus_gaudi_support: "Failed. prometheus_gaudi_support is only available for cluster_os_type: ubuntu and cluster_os_version: 22.04 , 24.04. \
 # Please update prometheus_gaudi_support to false in telemetry_config.yml."
-
-# # Usage: validate_k8s_setup.yml
-# k8s_error_message: "No such file or directory"
-# k8s_cluster_fail_msg: "Failed. k8s cluster setup not found. Hence k8s prometheus or prometheus gaudi will not be deployed. \
-# Please run scheduler/scheduler.yml to setup k8s cluster"
 
 # # Usage: validate_site_config.yml
 # site_config_file: "{{ input_project_dir }}/site_config.yml"

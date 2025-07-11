@@ -13,19 +13,22 @@
 #  limitations under the License.
 ---
 
-- name: Include oim metadata vars
-  ansible.builtin.include_vars: "{{ omnia_metadata_file }}"
-  register: include_metadata
-  no_log: true
+- name: Include oim metadata
+  when: k8s_support
+  block:
+    - name: Include oim metadata vars
+      ansible.builtin.include_vars: "{{ omnia_metadata_file }}"
+      register: include_metadata
+      no_log: true
 
-- name: Create directory for storing data
-  ansible.builtin.file:
-    path: "/opt/omnia/k8s_pvc_data"
-    state: directory
-    mode: '0755'
+    - name: Create directory for storing data
+      ansible.builtin.file:
+        path: "/opt/omnia/k8s_pvc_data"
+        state: directory
+        mode: '0755'
 
-- name: Set facts
-  ansible.builtin.set_fact:
-    k8s_nfs_server_ip: "{{ nfs_server_ip }}"
-    k8s_server_share_path: "{{ nfs_server_share_path }}/omnia/k8s_pvc_data"
-    plugins_deployment: true
+    - name: Set facts
+      ansible.builtin.set_fact:
+        k8s_nfs_server_ip: "{{ nfs_server_ip }}"
+        k8s_server_share_path: "{{ nfs_server_share_path }}/omnia/k8s_pvc_data"
+        plugins_deployment: true
