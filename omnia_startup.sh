@@ -92,14 +92,14 @@ display_supported_use_cases() {
     echo -e "${BLUE} Please choose the type of Omnia shared path in Omnia Infrastructure Manager (OIM): ${NC}"
     echo -e "${BLUE} It is recommended to use a external NFS share for the Omnia shared path. ${NC}"
     echo -e "${BLUE} If you are not using NFS, make sure enough space is available on the disk. ${NC}"
-    echo -e "${YELLOW} Using a Extrenal NFS share is mandatory for Omnia shared path if you are planning to have high availability in OIM or require a hierarchical cluster. ${NC}"
+    echo -e "${YELLOW} Using a Extrenal NFS share is mandatory for Omnia shared path if you are planning to have high availability in OIM or require K8s service cluster. ${NC}"
     echo -e "\nSupported Use Cases:\n"
 
     # Table content
     {
         echo -e "Share Option\tType\tDescription\tAdditional Info"
         echo -e "${GREEN}NFS\tExternal\tExternal NFS server(outside OIM) created by user\tMust be reachable from OIM and service nodes. Mounts on OIM. Recommended for HA and hierarchical clusters.${NC}"
-        echo -e "NFS\tInternal\tNFS server created by user in OIM\tUsed only for flat provisioning. No HA or hierarchical support. No mount performed."
+        echo -e "NFS\tInternal\tNFS server created by user in OIM\tUsed only for flat provisioning. No HA or k8s service cluster support. No mount performed."
         echo -e "Local\tDisk\tDisk storage in OIM\tUsed only for flat provisioning. No HA or hierarchical support."
     } | column -t -s $'\t'
 }
@@ -680,7 +680,7 @@ post_setup_config() {
     podman exec -u root omnia_core bash -c "
     mkdir -p /opt/omnia/input/project_default
     cp -r /omnia/input/* /opt/omnia/input/project_default
-    rm -rf /omnia/input 
+    rm -rf /omnia/input
     rm -rf /omnia/omnia_startup.sh"
 
     # Copy shared libraries from /omnia to /opt/omnia/shard_libraries/ inside omnia_core container
@@ -752,8 +752,8 @@ start_container_session() {
                 - Use the playbook /omnia/utils/oim_cleanup.yml to safely remove the shared directory and Omnia containers (except the core container).
                 - If you need to delete the core container or redeploy the core container with new input configs, please rerun the omnia_startup.sh script.
                 - Provide any file paths (ISO, mapping files, etc.) that are mentioned in input files in the /opt/omnia directory.
-                - The domain name that will be used for Omnia is $domain_name, if you wish to change the domain name please cleanup Omnia, 
-                  change the Omnia Infrastructure Manager's domain name and rerun omnia_startup.sh. 
+                - The domain name that will be used for Omnia is $domain_name, if you wish to change the domain name please cleanup Omnia,
+                  change the Omnia Infrastructure Manager's domain name and rerun omnia_startup.sh.
 
     --------------------------------------------------------------------------------------------------------------------------------------------------
     ${NC}"
