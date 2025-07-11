@@ -57,7 +57,7 @@ telemetry_config_syntax_fail_msg: "Failed. Syntax errors present in telemetry_co
 high_availability_config_path: "{{ hostvars['localhost']['input_project_dir'] }}/high_availability_config.yml"
 high_availability_config_syntax_fail_msg: "Failed. Syntax errors present in high_availability_config.yml. Fix errors and re-run playbook again."
 nfs_not_configured: "When enabling OIM HA or K8s Service Cluster an NFS server must be configured.
-  Please run the OIM cleanup in utils and re-run the Omnia startup script using the NFS option."
+  Please run the oim_cleanup.yml in utils and re-run the omnia_startup.sh script using the NFS option."
 # nfs_not_configured: "When enabling OIM HA or Service Node HA or Heirarchical cluster or K8s Service Cluster an NFS server must be configured.
 #   Please run the OIM cleanup in utils and re-run the Omnia startup script using the NFS option."
 
@@ -95,6 +95,9 @@ service_node_no_parent_msg: |
 ha_nfs_error_msg: |
   ERROR: Internal NFS is not supported with HA OIM or Service HA.
   Please configure External NFS for HA capabilities.
+service_cluster_nfs_error_msg: |
+  ERROR: Internal NFS is not supported for K8s Service Cluster, external NFS server must be configured.
+  Please run the oim_cleanup.yml in utils and re-run the omnia_startup.sh script using the NFS(external) option.
 warning_wait_time_10s: 10
 hierarchical_provision_warning_msg: |
   "WARNING: The service_node role is defined in roles_config.yml, but none of the groups have a parent field specified.

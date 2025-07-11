@@ -23,7 +23,7 @@ pulp_protocol_https: true
 # enable_routed_internet should be set to true for clusters having partial or no dedicated internet access.
 # enable_routed_internet should be set to false for clusters having dedicated internet access.
 # When set to true, Squid Proxy will be deployed on OIM and will be used for routing requests from compute nodes.
-# By default, enable_routed_internet is set to true.
+# By default, enable_routed_internet is set to false.
 enable_routed_internet: false
 
 # Optional
