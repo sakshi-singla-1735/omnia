@@ -26,7 +26,7 @@ mail_packages_ubuntu:
   - postfix
 alerting_file_path: /root/auth_failure_check.yml
 hosts_file_mode: "0644"
-local_repo_access_path: "/opt/omnia/offline/local_repo_access.yml"
+local_repo_access_path: "/opt/omnia/provision/local_repo_access.yml"
 ansible_name: "ansible"
 secure_ansible_version: "7.7.0"
 cryptography_name: "cryptography"
