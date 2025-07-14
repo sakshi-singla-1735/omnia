@@ -161,7 +161,9 @@ def update_inventory_file_entries(
                     )
                 # Check if the line have a service tag, node name or hostname
                 # but doesn't have ansible_host
-                if host and not is_ip(host) and re.fullmatch(r"[A-Za-z0-9.]+", host) and "ansible_host=" not in next_line:
+                if host and not is_ip(host) \
+                and re.fullmatch(r"(?!-)[A-Za-z0-9-]{1,63}(?<!-)(\.(?!-)[A-Za-z0-9-]{1,63}(?<!-))*", host) \
+                and "ansible_host=" not in next_line:
 
                     next_line, is_content_modified = get_host_admin_ip(
                         host, group_status, token)
