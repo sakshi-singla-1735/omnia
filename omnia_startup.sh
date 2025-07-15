@@ -196,7 +196,7 @@ cleanup_config(){
 
     # Remove the Omnia core configuration.
     echo -e "${BLUE} Removing Omnia core configuration.${NC}"
-    rm -rf $omnia_path/omnia/{hosts,input,log,offline_repo,omnia_inventory,pulp,provision,kubespray,pcs,services,shared_libraries,ssh_config,tmp,images,.data}
+    rm -rf $omnia_path/omnia/{hosts,input,log,pulp,provision,kubespray,pcs,shared_libraries,ssh_config,tmp,.data}
 
     # Unmount the NFS shared path if the share option is NFS.
     if [ "$share_option" = "NFS" ] && [ "$nfs_type" = "external" ]; then
@@ -600,6 +600,40 @@ validate_oim() {
     echo -e "${GREEN} Podman socket has been enabled and started.${NC}"
 }
 
+# Checks if the required directories for Omnia are present.
+# This function iterates over a list of required directories/files and checks if each one exists.
+check_required_directories() {
+    required_paths=(
+        "$omnia_path/omnia"
+        "$omnia_path/omnia/ssh_config/.ssh"
+        "$omnia_path/omnia/log/core/container"
+        "$omnia_path/omnia/hosts"
+        "$omnia_path/omnia/pulp/pulp_ha"
+    )
+
+    missing_paths=()
+
+    for path in "${required_paths[@]}"; do
+        if [ ! -e "$path" ]; then  # Checks both files and directories
+            missing_paths+=("$path")
+        fi
+    done
+
+    if [ "${#missing_paths[@]}" -ne 0 ]; then
+        echo -e "${RED}Error: The following required files or directories are missing:${NC}"
+        echo -e "${RED}${missing_paths[*]}${NC}"
+        echo -e "User can not Retain Existing configuration"
+        echo
+        echo -e "${YELLOW}Instructions:${NC}"
+        echo -e "${YELLOW}* Backup any existing files if required${NC}"
+        echo -e "${YELLOW}* Run ./omnia_startup.sh and choose:${NC}"
+        echo -e "${YELLOW}    Options:${NC}"
+        echo -e "${YELLOW}      -> Reinstall the container${NC}"
+        echo -e "${YELLOW}      -> Overwrite and create new configuration${NC}"
+        exit 1
+    fi
+}
+
 # Sets up the Omnia core container.
 # This function pulls the Omnia core Docker image and runs the container.
 # It defines the container options and runs the container.
@@ -852,6 +886,7 @@ main() {
                 # If the user wants to retain existing configuration, call the remove_container function
                 if [ "$choice" = "1" ]; then
                     fetch_config
+                    check_required_directories
                     remove_container
                     setup_container
                     init_ssh_config

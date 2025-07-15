@@ -90,16 +90,6 @@ Slurm control plane - ``slurm_control_node``,Management,"* Nodes with ``slurm_co
     groups:
       - grp0
       - grp1"
-Slurm DB daemon role - ``slurm_dbd``,Management,"* This role is used to configure the nodes for Slurm DB Daemon. The nodes included in this role will have the necessary tools and configurations to run Slurm DB Daemon.
-* The nodes in this role can be used to run Slurm DB Daemon.
-
-**Example**:
-::
-    Roles:
-  - name: ""slurm_dbd""
-    groups:
-      - grp0
-      - grp1"
 Login node - ``login``,Management,"* This role is used to configure the nodes for user logins. The nodes included in this role will have the necessary tools and configurations to support user login activities.
 
 **Example**:
