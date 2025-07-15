@@ -21,7 +21,7 @@ optional_warning_msg: "WARNING: The following are optional credentials. If left 
 
 # Usage: fetch_mandatory_credentials.yml
 mandatory_warning_msg: "WARNING: The following are mandatory credentials and cannot be left them empty. Please enter valid inputs."
-mandatory_input: "is a [MANDATORY] credential and can not be left empty."
+mandatory_input: "is a [MANDATORY] credential and cannot be left empty."
 optional_input: "is an [OPTIONAL] credential and can be left empty to skip."
 
 # Usage: prompt_credentials.yml

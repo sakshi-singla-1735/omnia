@@ -2,11 +2,6 @@
   "secure_login_node": {
     "cluster": [
       {
-      "package": "community.general",
-      "type": "tarball",
-      "url": "https://github.com/ansible-collections/community.general/archive/refs/tags/4.4.0.tar.gz"
-      },
-      {
       "package": "snoopy",
       "type": "rpm",
       "repo_name": "snoopy"
