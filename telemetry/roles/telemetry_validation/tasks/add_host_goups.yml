@@ -72,10 +72,3 @@
     groups: "active_oim_node"
   when:
     - enable_oim_ha
-
-- name: Create telemetry group
-  ansible.builtin.add_host:
-    hostname: "{{ item }}"
-    groups: "{{ telemetry_host_group }}"
-    ansible_connection: "{{ 'local' if item == 'localhost' else 'ssh' }}"
-  loop: "{{ telemetry_host }}"

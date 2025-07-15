@@ -124,8 +124,8 @@
         name: service_k8s_telemetry
 
 - name: Enable idrac telemetry in OIM
-  hosts: telemetry_group
-  connection: ssh
+  hosts: localhost
+  connection: local
   gather_facts: false
   tasks:
     - name: Enable idrac telemetry
