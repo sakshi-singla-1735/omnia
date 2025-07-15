@@ -27,7 +27,7 @@
     msg: "{{ smtp_server_reach_msg }}"
   when: ping_msg in smtp_server_reachability.stdout
 
-- name: Install mailx and postfix for RHEL/Rocky
+- name: Install s-nail and postfix for RHEL/Rocky
   ansible.builtin.package:
     name: "{{ mail_packages_redhat }}"
     state: present
