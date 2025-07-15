@@ -32,12 +32,12 @@ MIN_NUMBER_OF_GROUPS_MSG = "At least 1 group is required."
 MIN_NUMBER_OF_ROLES_MSG = "At least 1 role is required."
 MAX_NUMBER_OF_ROLES_PER_GROUP_MSG = "Groups can support a maximum of 5 roles."
 RESOURCE_MGR_ID_MSG = ("The resource_mgr_id is mandatory if the group is mapped to "
-                       "kube_node or slurm_node roles.")
+                       "kube_node, slurm_node roles, service_kube_node, etcd, service_etcd roles.")
 GRP_EXIST_MSG = "A valid group must be provided."
 INVALID_SWITCH_IP_MSG = "Please provide a valid switch IPv4 address (example: 10.5.0.1)."
 GRP_ROLE_MSG = "Please associate this group with a role."
-PARENT_SERVICE_NODE_MSG = ("Group is associated with login, compiler_node, service_node, "
-                          "kube_control_plane, slurm_control_plane role(s).")
+PARENT_SERVICE_NODE_MSG = ("Group is associated with login, compiler_node,"
+                          "kube_control_plane, slurm_control_plane, service_kube_control_plane role(s).")
 # PARENT_SERVICE_ROLE_DNE_MSG = ("Parent field is only supported for the 'service_node' role,"
 #     "which is currently not supported and reserved for future use. Please remove the"
 #     " 'parent' field from this role's group definition.")
@@ -48,7 +48,6 @@ BMC_STATIC_RANGE_INVALID_MSG = ("Static range should be in the following format:
                                "IPv4Start-IPv4End (example: 10.5.0.1-10.5.0.200).")
 OVERLAPPING_STATIC_RANGE = "bmc_detail's static_range is overlapping with other static ranges."
 DUPLICATE_SWITCH_IP_PORT_MSG = "Please remove duplicate ports."
-
 SWITCH_DETAILS_INCOMPLETE_MSG = ("If providing switch details, please provide both the IP "
                                  "and Ports fields.")
 SWITCH_DETAILS_NO_BMC_DETAILS_MSG = ("If switch details are provided then bmc_detail's "

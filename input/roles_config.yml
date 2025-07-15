@@ -32,7 +32,7 @@
 #                         - And empty for other roles.
 #     parent:             - <Conditional Mandatory> list of service tag of associated active service node(s).
 #                         - This field will be empty for group of nodes which is associated with ‘login’, ‘compiler_node’, ‘service_node’,
-#                         - ‘auth_server’, ‘service_kube_control_plane’, 'service_etcd', ‘kube_control_plane’, ‘etcd’, 'slurm_control_node’, ‘slurm_dbd’.
+#                         - ‘auth_server’, ‘service_kube_control_plane’, 'service_etcd', ‘kube_control_plane’, ‘etcd’, 'slurm_control_node’.
 #                         - If ‘service’ role is not defined, then value will be empty for worker and default role.
 #     bmc_details:        - <Conditional Mandatory> BMC IP static range in the format 10.5.0.1-10.5.0.200
 #        static_range:    - <Mandatory> This field mandatory in case of BMC discovery of subset of nodes
@@ -94,7 +94,6 @@ Groups:
 # | kube_control_plane         | management      |     |                   |                |
 # | etcd                       | management      |     |                   |                |
 # | slurm_control_node         | management      |     |                   |                |
-# | slurm_dbd                  | management      |     |                   |                |
 # +---------------------------+------------------+     +-------------------+----------------+
 
 # Default Role:
@@ -266,23 +265,6 @@ Roles:
 #
 # Slurm Head Role: Slurm head groups to add into slurm_control_node role can be provided in this role
   # - name: "slurm_control_node"
-  #   groups:
-  #     - grp0
-  #     - grp1
-
-#
-# Slurm DB Daemon Role: Slurm DB Daemon node groups to add into Slurm role can be provided in this role
-# ----------------------------------------------------------------------------------------------------
-#
-# This role is used to configure the nodes for Slurm DB Daemon. It belongs to the management layer.
-#
-# The nodes included in this role will have the necessary tools and
-# configurations to run Slurm DB Daemon.
-#
-# The nodes in this role can be used to run Slurm DB Daemon.
-#
-# Slurm DB Daemon Role: Slurm DB Daemon groups to add into Slurm role can be provided in this role
-  # - name: "slurm_dbd"
   #   groups:
   #     - grp0
   #     - grp1

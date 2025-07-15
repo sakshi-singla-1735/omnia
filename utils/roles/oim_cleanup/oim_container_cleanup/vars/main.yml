@@ -19,12 +19,15 @@ telemetry_cleanup_directory:
   - "{{ omnia_nfs_share }}/telemetry"
   - "{{ omnia_nfs_share }}/.secrets"
   - "{{ omnia_nfs_share }}/log/telemetry"
+max_retries: 5
 
 # Usage: cleanup_pcs.yml
 pcs_container_name: "omnia_pcs"
 omnia_container_name: "omnia_core"
 pcs_directory_cleanup:
   - "{{ omnia_nfs_share }}/pcs"
+  - "{{ omnia_nfs_share }}/log/pcs/corosync"
+  - "{{ omnia_nfs_share }}/log/pcs/pacemaker"
   - "{{ omnia_nfs_share }}/log/pcs"
 pcs_service_file_path: "/etc/containers/systemd/{{ pcs_container_name }}.container"
 pcs_firewall_ports:
@@ -41,9 +44,9 @@ pulp_cleanup_directory:
   - "{{ omnia_nfs_share }}/pulp/settings"
   - "{{ omnia_nfs_share }}/pulp/nginx"
   - "{{ omnia_nfs_share }}/input/project_default/.local_repo_credentials_key"
-  - "{{ omnia_nfs_share }}/offline_repo/"
-  - "{{ omnia_nfs_share }}/log/local_repo/"
-  - "{{ omnia_nfs_share }}/k8s_dynamic_json/"
+  - "{{ omnia_nfs_share }}/offline_repo"
+  - "{{ omnia_nfs_share }}/log/local_repo"
+  - "{{ omnia_nfs_share }}/k8s_dynamic_json"
 track_file_path: "{{ omnia_nfs_share }}/pulp/pulp_crt_track.txt"
 
 # Usage: cleanup_provision.yml
@@ -54,6 +57,9 @@ provision_cleanup_directory:
   - "{{ omnia_nfs_share }}/.data/provision_metadata.yml"
   - "{{ omnia_nfs_share }}/.postgres"
   - "{{ omnia_nfs_share }}/service_nodes"
+  - "{{ omnia_nfs_share }}/services"
+  - "{{ omnia_nfs_share }}/images"
+  - "{{ omnia_nfs_share }}/omnia_inventory"
 xcat_firewall_ports:
   - "3001/tcp"
   - "3001/udp"
