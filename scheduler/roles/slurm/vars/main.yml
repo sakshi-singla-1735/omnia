@@ -93,9 +93,9 @@ hosts_file_mode: "0644"
 
 # messages
 hosts_update_fail_msg: "Failed to update hosts file with node details.
- Remove unreachable IP addresses from slurm_node or login group of inventory and re-run the playbook."
+ Remove unreachable IP addresses from slurm_node or login_node group of inventory and re-run the playbook."
 inv_validation_fail_msg: "Failed. slurm_control_node and slurm_node groups should be defined in inventory and should have at least one node provided."
-intersect_validation_fail_msg: "Failed. Node mentioned in slurm_control_node group should not be part of slurm_node or login group"
+intersect_validation_fail_msg: "Failed. Node mentioned in slurm_control_node group should not be part of slurm_node or login_node group"
 
 # Usage: install_utils_packages.yml
 utils_support: "{{ hostvars['localhost']['utils_support'] }}"

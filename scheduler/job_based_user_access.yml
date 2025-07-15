@@ -36,7 +36,7 @@
         tasks_from: fetch_omnia_inputs.yml
 
 - name: Setup slurm pam authentication
-  hosts: slurm_control_node, slurm_node, login
+  hosts: slurm_control_node, slurm_node, login_node
   gather_facts: true
   roles:
     - slurm_pam

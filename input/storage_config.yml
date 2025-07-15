@@ -20,7 +20,7 @@
 
 # -----------------------------NFS------------------------------------------------
 
-# This variable is used for mounting NFS share on slurm_control_node, slurm_node, kube_control_plane, kube_node, auth_server, login, etcd nodes
+# This variable is used for mounting NFS share on slurm_control_node, slurm_node, kube_control_plane, kube_node, auth_server, login_node, etcd nodes
 # This takes a list of dicts with possible keys server_ip, server_share_path, client_share_path, client_mount_options, nfs_server, slurm_share, k8s_share
 # When 'nfs_server' value is true, Omnia will setup NFS server and mount NFS client, provided ansible has SSH access to the server.
 # When 'nfs_server' value is false, USER will have to Setup EXTERNAL NFS server with all the necessary permissions and access to the nodes, whereever the NFS share will be mounted.
