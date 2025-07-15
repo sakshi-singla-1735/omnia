@@ -209,6 +209,23 @@ def validate_service_node_in_software_config(input_file_path):
         return True
     return False
 
+# Below function will be used to validate service_k8s entry in software_config
+def validate_service_k8s_in_software_config(input_file_path):
+    """
+    verifies service_k8s entry present in sofwate config.json
+
+    Returns:
+        True if service_k8s entry is present
+        False if no entry
+    """
+    # verify service_k8s  with sofwate config json
+    software_config_file_path = create_file_path(input_file_path, file_names["software_config"])
+    software_config_json = json.load(open(software_config_file_path, "r"))
+    softwares = software_config_json["softwares"]
+    if validation_utils.contains_software(softwares, "service_k8s"):
+        return True
+    return False
+
 # Validate that service cluster K8s roles do not overlap with non-service k8s roles
 def validate_cluster_name_overlap(roles, groups):
     """
@@ -246,6 +263,54 @@ def validate_cluster_name_overlap(roles, groups):
                 en_us_validation_msg.CLUSTER_NAME_OVERLAP_MSG.format(cluster)
             )
         )
+    return errors
+
+# Validate that service and non-service K8s roles use consistent cluster_name values
+def validate_k8s_cluster_name_consistency(roles, groups):
+    """
+    Ensures that all service and non-service k8s roles share consistent cluster_name values.
+    Returns a list of validation errors if inconsistency is found.
+    """
+    errors = []
+    role_sets = {
+        "service": {"service_kube_control_plane", "service_kube_node", "service_etcd"},
+        "compute": {"kube_control_plane", "kube_node", "etcd"}
+    }
+
+    for role_type, role_names in role_sets.items():
+        cluster_role_map = {}
+
+        for role in roles:
+            role_name = role.get("name", "")
+            if role_name in role_names:
+                for group in role.get("groups", []):
+                    cluster_name = groups.get(group, {}).get("cluster_name", "").strip()
+                    if cluster_name:
+                        cluster_role_map.setdefault(cluster_name, set()).add(role_name)
+
+        if len(cluster_role_map) > 1:
+            cluster_names = list(cluster_role_map.keys())
+            errors.append(
+                create_error_msg(
+                    "cluster_name",
+                    ", ".join(cluster_names),
+                    en_us_validation_msg.CLUSTER_NAME_INCONSISTENT_MSG
+                )
+            )
+
+        for cluster_name, roles_present in cluster_role_map.items():
+            missing_roles = role_names - roles_present
+            if missing_roles:
+                errors.append(
+                    create_error_msg(
+                        "cluster_name",
+                        cluster_name,
+                        en_us_validation_msg.CLUSTER_ROLE_MISSING_MSG.format(
+                            cluster_name, ", ".join(sorted(missing_roles))
+                        )
+                    )
+                )
+
     return errors
 
 def validate_roles_config(
@@ -315,6 +380,11 @@ def validate_roles_config(
     if errors:
         return errors
 
+    # Validate cluster name consistency
+    errors.extend(validate_k8s_cluster_name_consistency(roles, groups))
+    if errors:
+        return errors
+
     # Check for duplicate groups if groups section exists
     if groups is not None:
         errors.extend(validate_group_duplicates(input_file_path))
@@ -367,7 +437,7 @@ def validate_roles_config(
         "service_cluster_roles": {"service_kube_control_plane", "service_etcd",
                                   "service_kube_node"},
         "k8s_cluster_roles": {"kube_control_plane", "kube_node", "etcd"},
-        "slurm_cluster_roles": {"slurm_control_plane", "slurm_node"},
+        "slurm_cluster_roles": {"slurm_control_node", "slurm_node"},
     }
     for role_type, service_cluster_roles in role_sets.items():
         defined_service_roles = role_name_set.intersection(service_cluster_roles)
@@ -404,6 +474,27 @@ def validate_roles_config(
                                     None,
                                     f"An error occurred while validating software_config.json: {str(e)}"))
 
+    # Role service_kube_control_plane is defined in roles_config.yml,
+    # verify service_k8s package entry is present in software_config.json
+    # If no entry is present, then fail the input validator
+    if validation_utils.key_value_exists(roles, name, "service_kube_control_plane"):
+        try:
+            if not validate_service_k8s_in_software_config(input_file_path):
+                errors.append(
+                    create_error_msg(
+                        "software_config.json",
+                        None,
+                        en_us_validation_msg.SERVICE_K8S_ENTRY_MISSING_SOFTWARE_CONFIG_MSG
+                    )
+                )
+        except Exception as e:
+            errors.append(
+                create_error_msg(
+                    "software_config.json",
+                    None,
+                    f"An error occurred while validating software_config.json: {str(e)}"
+                )
+            )
 
     if len(errors) <= 0:
         # List of groups which need to have their resource_mgr_id set
@@ -618,20 +709,20 @@ def validate_roles_config(
                 elif group not in static_range_mapping:
                     # A valid static range was provided,
                     # now a check is performed to ensure static ranges do not overlap
-                    static_range = groups[group][bmc_details][static_range]
+                    static_range_value = groups[group][bmc_details][static_range]
                     grp_overlaps = validation_utils.check_bmc_static_range_overlap(
-                        static_range, static_range_mapping
+                        static_range_value, static_range_mapping
                     )
                     if len(grp_overlaps) > 0:
                         errors.append(
                             create_error_msg(
                                 group,
-                                f"Static range {static_range} "
+                                f"Static range {static_range_value} "
                                 f"overlaps with the following group(s): {grp_overlaps}.",
                                 en_us_validation_msg.OVERLAPPING_STATIC_RANGE
                             )
                         )
-                    static_range_mapping[group] = static_range
+                    static_range_mapping[group] = static_range_value
 
             # Validate resource_mgr_id is set for groups that belong
             #  to kube_node, service_kube_node, slurm_node roles

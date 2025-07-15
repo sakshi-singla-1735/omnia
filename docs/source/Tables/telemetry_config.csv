@@ -8,7 +8,7 @@ Mandatory	","* If you want iDRAC telemetry support on your cluster, set this var
 * **Accepted values**: ``true`` or ``false``
 * **Default value**: ``false``
 
-.. note:: If ``idrac_telemetry_support`` is se to ``true``, ``mysqldb_user``, ``mysqldb_password``, and ``mysqldb_root_password`` parameters in the ``omnia_config_credentials.yml`` file becomes mandatory. "
+.. note:: If ``idrac_telemetry_support`` is set to ``true``, ``mysqldb_user``, ``mysqldb_password``, and ``mysqldb_root_password`` parameters in the ``omnia_config_credentials.yml`` file becomes mandatory. "
 "**idrac_telemetry_collection_type**
 
 ``string``

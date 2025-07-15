@@ -348,6 +348,7 @@ class InventoryManager:
             if inventory_file_name:
                 self.add_hostname_inventory(inventory_file_name, hostname)
         if roles_name:
+            cluster_name = cluster_name.strip()    
             if cluster_name == "":  # Add a check for empty cluster name
                 inventory_file_name = "/opt/omnia/omnia_inventory/cluster_layout"
                 self.add_hostname_to_cluster_layout(inventory_file_name, hostname, roles_name)

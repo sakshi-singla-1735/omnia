@@ -7,18 +7,10 @@ Prerequisites
 
 3. Enable the **AppStream** and **BaseOS** repositories via the RHEL subscription manager.
 
-4. Ensure that the OIM needs is internet-capable with Git installed. If Git is not installed, use the below commands to install it. ::
+4. Ensure that the OIM has internet access and Git installed. If Git is not installed, use the below commands to install it. ::
 
     dnf install git -y
 
 .. note:: If the OIM server has an Infiniband NIC installed, run the below command to install the hardware drivers and Infiniband-related packages:
     ::
         yum groupinstall "Infiniband Support" -y
-
-5. Clone the Omnia repository from GitHub on to the OIM server using the following command: ::
-
-    git clone https://github.com/dell/omnia.git
-
-.. note:: If you do not specify a branch while cloning the repository, the ``omnia/main`` branch is cloned by default. To clone a specific branch, add ``-b <branch name>`` at the end of the git clone command. For example:
-    ::
-        git clone https://github.com/dell/omnia.git -b v2.0.0.0

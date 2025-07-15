@@ -20,6 +20,13 @@ These messages are used to provide user-friendly error messages during configura
 
 MISSING_CLUSTER_NAME_MSG = "Cluster name is mandatory for all kubernetes roles."
 CLUSTER_NAME_OVERLAP_MSG = "The cluster name '{0}' cannot be shared between service and compute Kubernetes roles."
+CLUSTER_NAME_INCONSISTENT_MSG = (
+    "Inconsistent 'cluster_name' values found across Service or Compute Kubernetes roles. "
+    "Each of the following role sets must use the same 'cluster_name': "
+    "[service_kube_control_plane, service_kube_node, service_etcd] and "
+    "[kube_control_plane, kube_node, etcd].")
+CLUSTER_ROLE_MISSING_MSG = (
+    "Cluster '{0}' is missing the following required Kubernetes roles: {1}.")
 MAX_NUMBER_OF_ROLES_MSG = "A max of 100 roles can be supported."
 MIN_NUMBER_OF_GROUPS_MSG = "At least 1 group is required."
 MIN_NUMBER_OF_ROLES_MSG = "At least 1 role is required."
@@ -66,9 +73,13 @@ SERVICE_NODE_ENTRY_MISSING_ROLES_CONFIG_MSG = ("The role service_node defined in
     " but service_node entry missing in sofware_config.json, "
     "Please rerun local repo with service_node entry in software_config.json "
     "to deploy service nodes successfully")
+SERVICE_K8S_ENTRY_MISSING_SOFTWARE_CONFIG_MSG = ("The role service_kube_control_plane is defined in roles_config.yml, "
+    "but the service_k8s package entry is missing in software_config.json. "
+    "To deploy Kubernetes in the service_k8s cluster, the package must be added to software_config.json.")
 SERVICE_NODE_ENTRY_INVALID_ROLES_CONFIG_MSG = ("The 'service_node' role defined in roles_config.yml"
     " is not currently supported and is reserved for future use. Please remove or update this role"
     " to avoid configuration errors.")
+
 # provision_config.yml
 DEFAULT_LEASE_TIME_FAIL_MSG = "Please provide a valid default_lease_time."
 TIMEZONE_FAIL_MSG = ("Unsupported Timezone. Please check the timezone.txt file "

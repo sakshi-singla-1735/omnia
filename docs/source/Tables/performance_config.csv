@@ -24,7 +24,7 @@ Optional","If you want to customise the default performance profiles, you can do
 
 String
 
-Required","The value provided for this field denotes if the device should be rebooted after peformance profile configuration.
+Required","The value provided for this field denotes if the device should be rebooted after performance profile configuration.
 
 **Choices**:
 
