@@ -5,9 +5,8 @@ on:
     branches:
       - staging
       - release_1.7.1
-      - pub/service_k8s_telemetry
-      - pub/local_repo
-      - pub/new_arch_pylint
+      - pub/service_cluster_telemetry
+      - pub/multiple_login_node
 
 jobs:
   build:
