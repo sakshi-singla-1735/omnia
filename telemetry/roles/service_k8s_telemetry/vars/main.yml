@@ -20,15 +20,6 @@ k8s_not_installed_fail_msg: "Failed. Kubernetes installation required.
 storage_class_missing_fail_msg: "Failed. StorageClass {{ storage_class_name }} is not present in the cluster.
   To resolve this, create the StorageClass by running scheduler/service_k8s_cluster.yml playbook."
 
-# Usage: mysqldb_deployment.yml
-mysqldb_storage: 1Gi
-mysqldb_pvc_name: mysqldb-storage-claim
-mysqldb_k8s_name: mysqldb
-mysqldb_name: "idrac_telemetrydb"
-mysqldb_container_port1: 3306
-mysqldb_container_port2: 33060
-mysql_image: "docker.io/library/mysql:9.3.0"
-
 # Usage: k8s_secrets.yml
 mysqldb_secrets_name: mysqldb-credentials
 
@@ -58,6 +49,15 @@ activemq_http_port_1: 8161
 activemq_http_port_2: 61616
 messagebus_http_port: 61613
 configui_http_port: 8082
+mysqldb_storage: 1Gi
+mysqldb_pvc_name: mysqldb-storage-claim
+mysqldb_k8s_name: mysqldb
+mysqldb_name: "idrac_telemetrydb"
+idrac_telemetry_service_name: "idrac_telemetry_service"
+mysqldb_container_port1: 3306
+mysqldb_container_port2: 33060
+prometheus_pump_port: 2112
+mysql_image: "docker.io/library/mysql:9.3.0"
 
 # Usage: prometheus_deployment.yml
 prometheus_pvc_name: "prometheus-pvc"

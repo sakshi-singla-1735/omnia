@@ -73,7 +73,6 @@
   when:
     - enable_oim_ha
 
-
 - name: Create telemetry group
   ansible.builtin.add_host:
     hostname: "{{ item }}"
