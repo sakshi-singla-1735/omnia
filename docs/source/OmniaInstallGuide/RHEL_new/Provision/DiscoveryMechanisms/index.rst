@@ -1,7 +1,7 @@
 Discovery Mechanisms
 =====================
 
-Depending on the values provided in ``input/provision_config.yml``, target nodes can be discovered in one of three ways:
+Depending on the values provided in ``/opt/omnia/input/project_default/provision_config.yml``, target nodes can be discovered in one of three ways:
 
 .. toctree::
     :hidden:

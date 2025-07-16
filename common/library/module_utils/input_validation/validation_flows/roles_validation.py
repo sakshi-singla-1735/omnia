@@ -447,25 +447,33 @@ def validate_roles_config(
 
     # TODO: Role names based on tags
     role_name_set = {role["name"] for role in roles}
-    # Validate all service cluster roles should be deined in roles_config.yml
+
+    # Define expected role groups
     role_sets = {
-        "service_cluster_roles": {"service_kube_control_plane", "service_etcd",
-                                  "service_kube_node"},
+        "service_cluster_roles": {"service_kube_control_plane", "service_etcd", "service_kube_node"},
         "k8s_cluster_roles": {"kube_control_plane", "kube_node", "etcd"},
         "slurm_cluster_roles": {"slurm_control_node", "slurm_node"},
     }
-    for role_type, service_cluster_roles in role_sets.items():
-        defined_service_roles = role_name_set.intersection(service_cluster_roles)
-        if 0 < len(defined_service_roles) < len(service_cluster_roles):
-            service_cluster_str = ', '.join(defined_service_roles)
+
+    for role_type, expected_roles in role_sets.items():
+        defined_roles = role_name_set.intersection(expected_roles)
+        missing_roles = expected_roles - defined_roles
+
+        if 0 < len(defined_roles) < len(expected_roles):
             errors.append(
                 create_error_msg(
-                    "Roles", service_cluster_str,
-                    f"{role_type} Required role types should be defined in roles_config.yml"))
+                    "Roles",
+                    ', '.join(sorted(defined_roles)) or "None",
+                    f"{role_type} incomplete. Expected all roles: {', '.join(sorted(expected_roles))}. "
+                    f"Missing roles: {', '.join(sorted(missing_roles))}."
+                )
+            )
+
+    # These are mandatory roles that must be defined
     cluster_name_mandatory_roles = {
-                    "service_kube_control_plane", "service_etcd", "service_kube_node",
-                    "kube_control_plane", "etcd", "kube_node"
-                }
+        "service_kube_control_plane", "service_etcd", "service_kube_node",
+        "kube_control_plane", "etcd", "kube_node"
+    }
     # Fail if Role Service_node is defined in roles_config.yml,
     # it is not supported now, for future use
     service_role_defined = False

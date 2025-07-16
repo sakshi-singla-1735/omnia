@@ -28,16 +28,44 @@ Kubernetes worker node - ``kube_node``,Compute,"* This role is used to configure
     groups:
       - grp0
       - grp1"
-Service - ``service_node``,Management,"* This role is used to configure the service nodes. The nodes included in this role will have the necessary tools and configurations to configure the service nodes. 
-* The ``service_node`` role is used to set up and manage a hierarchical cluster. When set up, the service nodes will provision and manage a set of compute nodes assigned to them. This is essential for distributed management in large clusters. To know more, `click here <xcat_hierarchical.html>`_.
+Service cluster Kubernetes head node- ``service_kube_control_plane``,Management,"* This role is used to configure kubernetes master on the service cluster. This role should not contain same group as of ``kube_control_plane``.
 
-**Example**:
-::
-    Roles:
-  - name: ""service_node""
-    groups:
-      - grp0
-      - grp1"
+*  The nodes included in this role will have the necessary tools and configurations to configure and run kubernetes master on service cluster.
+
+* ``service_kube_control_plane``: Service Cluster Kubernetes master node groups can be provided in this role. 
+      
+         ::
+         
+               - name: ""service_kube_control_plane""
+                 groups:
+                        - grp0
+                        - grp1"
+Service Cluster Kubernetes etcd node- ``service_etcd``,Management,"* This role is used to configure the nodes for Kubernetes etcd on service cluster.
+
+* This role should not have same group as ``etcd`` role.
+
+* The nodes included in this role will have the necessary tools and configurations to configure and run Kubernetes etcd on service cluster.
+
+* ``service_etcd`` role: Service Cluster Kubernetes etcd node groups can be provided in this role. 
+     
+      ::
+  
+               - name: ""service_etcd""
+                 groups:
+                      - grp0
+                      - grp1"
+Service Cluster Kubernetes worker node- ``service_kube_node``,Management,"* This role is used to configure the Kubernetes worker nodes on service cluster. This role should not have same group as ``kube_node`` role.
+
+* The nodes included in this role will have the necessary tools and configurations to configure and run Kubernetes worker on service cluster.
+
+* ``service_kube_node`` role: Service Cluster Kubernetes worker node groups can be provided in this role.
+    
+     ::
+
+          - name: ""service_kube_node""
+             groups:
+                - grp0
+                - grp1"
 Authentication server - ``auth_server``,Management,"* This role is used to configure the nodes for authentication. The nodes included in this role will have the necessary tools and configurations to support authentication activities.
 
 **Example**:

@@ -31,3 +31,10 @@ Local Repositories
     - If none of the packages are dependent on the Epel repository, users can remove the Epel repository URL from ``omnia_repo_url_rhel``.
 
     - If any package required from the Epel repository is listed in the ``software_config.json`` file, it's advisable to either wait for the Epel repository to stabilize or host those Epel repository packages locally. Afterward, remove the Epel repository link from ``omnia_repo_url_rhel`` and provide the locally hosted URL for the Epel repository packages via the ``user_repo_url`` variable.
+
+
+⦾ **The** ``local_repo.yml`` **playbook fails at** ``TASK: [parse_and_download : Process URL mirrors from local_repo_config]`` **if it is run multiple times.**
+
+**Potential cause**: This occurs due to resource saturation on the Pulp container.
+
+**Resolution**: If you're running ``local_repo.yml`` playbook multiple times and encounter a failure at the task ``Process URL mirrors from local_repo config``, it is recommended to let the system remain idle for approximately one hour before re-running the ``local_repo.yml`` playbook.

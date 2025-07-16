@@ -1,6 +1,6 @@
-=============================
-Execute local repo playbook
-=============================
+================================
+Execute the local repo playbook
+================================
 
 The local repository playbook (``local_repo.yml``) downloads and saves the software packages/images to the **Pulp container**, which all the cluster nodes can access.
 
@@ -9,7 +9,7 @@ Configurations made by the playbook
 
     * With ``repo_config`` set to ``always`` in ``/opt/omnia/input/project_default/config/software_config.json``, all images and artifacts will be downloaded to the Pulp container present on the NFS share.
 
-    * If  ``repo_config`` in is set to ``always``, the OIM serves as the default Pulp registry.
+    * If  ``repo_config`` is set to ``always``, the OIM serves as the default Pulp registry.
 
 Playbook execution
 =====================
@@ -29,7 +29,7 @@ If the ``local_repo.yml`` playbook is re-run, it compares the current repository
 
     * If a change in policy is detected, you will be prompted to confirm whether to proceed with the updated configuration or not.
 
-        * If you agree, the playbook continues with the updated policy and after successful execution it updates the metadata file with the new repository policy.
+        * If you agree, the playbook continues with the updated policy and after successful execution, it updates the metadata file with the new repository policy.
         * If you decline, the playbook execution is aborted and the metadata file remains unchanged.
 
     * If there is no change in policy, the playbook execution proceeds without prompting. The metadata file remains unchanged.
@@ -74,7 +74,7 @@ Updating local repositories after modifying JSON files
 After the execution of the ``local_repo.yml`` playbook is complete, any modifications made to a ``<software_name>.json`` file (for example, ``k8s.json``, ``slurm.json``, ``additional_software.json``) will **not** be reflected in the local repositories automatically.
 To apply the changes, you must **re-run the** ``local_repo.yml`` **playbook** while explicitly specifying the updated software names using the ``softwares`` argument.
 
-Command Format
+Command format
 --------------
 
 ::
@@ -92,7 +92,7 @@ Examples
 
     ansible-playbook local_repo.yml -e "softwares=k8s,slurm"
 
-* If you updated ``additional_software.json`` with few additional packages of your choice: ::
+* If you updated ``additional_software.json`` with a few additional packages of your choice: ::
 
     ansible-playbook local_repo.yml -e "softwares=additional_software"
 
