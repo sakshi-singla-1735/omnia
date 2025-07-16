@@ -65,6 +65,6 @@ prometheus_k8s_name: "prometheus"
 prometheus_configmap_name: "prometheus-config"
 prometheus_image: "docker.io/prom/prometheus:v3.4.1"
 prometheus_container_port: 9090
-statefulset_replicas: 1
+statefulset_replicas: "{{ node_count.resources | length + 1 }}"
 prometheus_storage: 1Gi
 prometheus_service_port: 30090
