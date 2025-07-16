@@ -196,7 +196,7 @@
               accessModes: ["ReadWriteOnce"]
               resources:
                 requests:
-                  storage: "{{ mysqldb_storage_size | default('10Gi') }}"
+                  storage: "{{ mysqldb_storage }}"
 
 - name: Service for idrac telemetry
   kubernetes.core.k8s:
