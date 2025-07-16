@@ -55,11 +55,11 @@ Once all the details are provided to the input files and the Kubespray container
 
 ::
 
-    ansible-playbook omnia.yml -i <inventory filepath>
+    ansible-playbook omnia.yml -i <inventory_file_path>
 
 ::
 
-    ansible-playbook scheduler.yml -i <inventory filepath>
+    ansible-playbook scheduler.yml -i <inventory_file_path>
 
 
 

@@ -175,10 +175,6 @@ def add_details_to_db(node_details):
             parse_syslog.generate_inventory_for_node(
                 node_info_db
             )  # Updates group inventory /opt/omnia/omnia_inventory/cluster_layout with latest info.
-            parse_syslog.generate_inventory_per_cluster(
-                cursor
-            )  # Updates cluster inventory /opt/omnia/omnia_inventory/<cluster_name>_layout with latest info.
-
         if xcat_status is not db_status:
             sql_update_status = (
                 "Update cluster.nodeinfo set status = %s where node = %s"

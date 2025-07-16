@@ -32,5 +32,7 @@ Optional	","* Enables visualizations for the iDRAC telemtry data via Grafana das
 ``boolean``
 
 Optional	","* Enables federated telemetry data collection using the iDRAC telemetry container. 
-* **Accepted values**: ``true`` or ``false``
-* **Default value**: ``false``"
+* **Default values**: ``false``
+
+.. note:: Currently, Omnia does not support setting the value of this variable to ``true``. Do not change the value as this can cause unexpected failures.
+"
