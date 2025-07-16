@@ -63,12 +63,12 @@
           "csi_powerscale_driver_secret_file_path": {
             "description": "Absolute file path for the secret.yaml file.",
             "type": "string",
-            "pattern": "^$|^/?([a-zA-Z0-9_-]+(/?[a-zA-Z0-9_-]+)*)$"
+            "pattern": "^/?([a-zA-Z0-9._-]+/)*[a-zA-Z0-9._-]+\\.yaml$"
           },
           "csi_powerscale_driver_values_file_path": {
             "description": "File path for the values.yaml file.",
             "type": "string",
-            "pattern": "^$|^/?([a-zA-Z0-9_-]+(/?[a-zA-Z0-9_-]+)*)$"
+            "pattern": "^/?([a-zA-Z0-9._-]+/)*[a-zA-Z0-9._-]+\\.yaml$"
           }
         },
         "required": [
@@ -150,12 +150,12 @@
           "csi_powerscale_driver_secret_file_path": {
             "description": "Absolute file path for the secret.yaml file.",
             "type": "string",
-            "pattern": "^$|^/?([a-zA-Z0-9_-]+(/?[a-zA-Z0-9_-]+)*)$"
+            "pattern": "^/?([a-zA-Z0-9._-]+/)*[a-zA-Z0-9._-]+\\.yaml$"
           },
           "csi_powerscale_driver_values_file_path": {
             "description": "File path for the values.yaml file.",
             "type": "string",
-            "pattern": "^$|^/?([a-zA-Z0-9_-]+(/?[a-zA-Z0-9_-]+)*)$"
+            "pattern": "^/?([a-zA-Z0-9._-]+/)*[a-zA-Z0-9._-]+\\.yaml$"
           }
         },
         "required": [

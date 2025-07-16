@@ -19,11 +19,10 @@ import json
 import os
 import ipaddress
 import yaml
+import subprocess
 from ast import literal_eval
 import ansible.module_utils.input_validation.common_utils.data_fetch as get
 import ansible.module_utils.input_validation.common_utils.data_validation as validate
-from ansible.modules.validate_input import generate_log_failure_message
-
 from ansible.module_utils.input_validation.common_utils import (
     validation_utils,
     config,
@@ -32,9 +31,6 @@ from ansible.module_utils.input_validation.common_utils import (
 )
 
 from ansible.module_utils.input_validation.validation_flows import scheduler_validation
-from ansible.module_utils.local_repo.common_functions import (
-    load_yaml_file
-)
 from ansible.module_utils.local_repo.software_utils import (
     load_json,
     set_version_variables,
@@ -1074,25 +1070,78 @@ def validate_value_file_inputs(values_data):
 
     return value_errors
 
-def validate_powerscale_secret_and_values_file(secret_file_path, values_file_path):
+def encrypt_file(secret_file_path, vault_secret_file_path):
+    cmd = [
+        "ansible-vault",
+        "encrypt",
+        secret_file_path,
+        "--vault-password-file",
+        vault_secret_file_path,
+    ]
+    return validation_utils.run_subprocess(cmd)
+
+def decrypt_file(secret_file_path, vault_secret_file_path):
+    cmd = [
+        "ansible-vault",
+        "decrypt",
+        secret_file_path,
+        "--vault-password-file",
+        vault_secret_file_path,
+    ]
+    return validation_utils.run_subprocess(cmd)
+
+def process_encrypted_file(secret_file_path,vault_secret_file_path,errors):
+    decrypted_file = decrypt_file(secret_file_path, vault_secret_file_path,)
+
+    if decrypted_file:
+        try:
+            with open(secret_file_path, "r") as f:
+                data = yaml.safe_load(f)
+                encrypt_file(secret_file_path, vault_secret_file_path)
+                return data
+        except FileNotFoundError:
+            errors.append(create_error_msg("File not found",
+                            secret_file_path, "Please check the associated file exists"))
+        except yaml.YAMLError as e:
+            errors.append(create_error_msg("Error loading yaml file",
+                            secret_file_path, "Please check the associated file syntax"))
+    else:
+        errors.append(create_error_msg("Error occured when attempting to decrypt file.",
+                            secret_file_path, "Please check that the assoicated vault file exists"))
+    return decrypted_file
+
+def validate_powerscale_secret_and_values_file(secret_file_path, values_file_path,errors):
     #valiadte secret file inputs
-    secret_filename = os.path.basename(secret_file_path)
-    secret_data = load_yaml_file(secret_file_path.strip())
-    secret_validation_errors = validate_secret_isilon_clusters(secret_data)
-    if secret_validation_errors:
-        for err in secret_validation_errors:
-            errors.append(create_error_msg(f"Powerscale Secret File Validation Error: {err}"))
-    
+    secrets_file_encrypted = validation_utils.is_file_encrypted(secret_file_path)
+    vault_secret_file_path= "/root/omnia/scheduler/roles/k8s_csi_powerscale_plugin/files/.csi_powerscale_secret_vault"
+    #check if secret file exists
+    file_exists = os.path.exists(vault_secret_file_path.strip())
+
+    if secrets_file_encrypted:
+        secret_data = process_encrypted_file(secret_file_path, vault_secret_file_path,errors)
+        if secret_data is None or secret_data is False:
+               errors.append(create_error_msg(
+                 "Secret File Load",
+                    secret_file_path,
+                   "Failed to load or parse secret.yaml file. It may be invalid or empty."
+                ))
+        else:
+            secret_validation_errors = validate_secret_isilon_clusters(secret_data)
+            if secret_validation_errors:
+               for err in secret_validation_errors:
+                    errors.append(create_error_msg("Powerscale Secret File Validation Error:", err, None))
+                
     #validate values file input
-    values_filename= os.path.basename(values_file_path)
-    values_data = load_yaml_file(values_file_path.strip())
+    with open(values_file_path, "r") as f:
+                values_data = yaml.safe_load(f)
     values_validation_errros = validate_value_file_inputs(values_data)
     if values_validation_errros:
         for value_err in values_validation_errros:
-            errors.append(create_error_msg(f"Powerscale Secret File Validation Error: {value_err}"))
+           errors.append(create_error_msg(f"Powerscale Value File Validation Error: ",value_err, None))
     
 
-def validate_k8s(data, admin_bmc_networks, softwares, ha_config, tag_names, errors):
+def validate_k8s(data, admin_bmc_networks, softwares, ha_config, tag_names, errors, 
+                 omnia_base_dir, project_name, logger, module):
     """
     Validates Kubernetes cluster configurations.
 
@@ -1142,7 +1191,7 @@ def validate_k8s(data, admin_bmc_networks, softwares, ha_config, tag_names, erro
                             f"{cluster_name} not found in high_availability_config.yml"
                         ))
                 pod_external_ip_range = kluster.get("pod_external_ip_range")
-                if not pod_external_ip_range:
+                if not pod_external_ip_range or str(pod_external_ip_range).strip() == "":
                     errors.append(
                         create_error_msg(
                             "Pod External IP Range -",
@@ -1183,33 +1232,33 @@ def validate_k8s(data, admin_bmc_networks, softwares, ha_config, tag_names, erro
                       and ("k8s" in softwares or "service_k8s" in softwares)
                     ):
 
-                    csi_powerscale_driver_secret_file_path = kluster.get("csi_powerscale_driver_secret_file_path")
-                    csi_powerscale_driver_values_file_path = kluster.get("csi_powerscale_driver_values_file_path")
+                    csi_secret_file_path = kluster.get("csi_powerscale_driver_secret_file_path")
+                    csi_values_file_path = kluster.get("csi_powerscale_driver_values_file_path")
                     
                     # Validate secret file path
-                    if not csi_powerscale_driver_secret_file_path or \
-                    not csi_powerscale_driver_secret_file_path.strip() or \
-                    not os.path.exists(csi_powerscale_driver_secret_file_path.strip()):
+                    if not csi_secret_file_path or \
+                    not csi_secret_file_path.strip() or \
+                    not os.path.exists(csi_secret_file_path.strip()):
                         errors.append(
                             create_error_msg(
                                 "csi_powerscale_driver_secret_file_path",
-                                csi_powerscale_driver_secret_file_path,
+                                csi_secret_file_path,
                                 en_us_validation_msg.CSI_DRIVER_SECRET_FAIL_MSG,
                             )
                         )
                     else:
                         # If secret path is valid, ensure values path is also valid
-                        if not csi_powerscale_driver_values_file_path or \
-                        not csi_powerscale_driver_values_file_path.strip() or \
-                        not os.path.exists(csi_powerscale_driver_values_file_path.strip()):
+                        if not csi_values_file_path or \
+                        not csi_values_file_path.strip() or \
+                        not os.path.exists(csi_values_file_path.strip()):
                             errors.append(
                                 create_error_msg(
                                     "csi_powerscale_driver_values_file_path",
-                                    csi_powerscale_driver_values_file_path,
+                                    csi_values_file_path,
                                     en_us_validation_msg.CSI_DRIVER_VALUES_FAIL_MSG,
                                 )
                             )
-                    validate_powerscale_secret_and_values_file(csi_powerscale_driver_secret_file_path,csi_powerscale_driver_values_file_path)
+                        validate_powerscale_secret_and_values_file(csi_secret_file_path,csi_values_file_path, errors)
 
 
 def validate_omnia_config(
@@ -1266,7 +1315,8 @@ def validate_omnia_config(
             ha_config = yaml.safe_load(f)
         for k in ["service_k8s_cluster_ha", "compute_k8s_cluster_ha"]:
             ha_config[k] = [xha["cluster_name"] for xha in ha_config.get(k, [])]
-        validate_k8s(data, admin_bmc_networks, sw_list, ha_config, tag_names, errors)
+        validate_k8s(data, admin_bmc_networks, sw_list, ha_config, tag_names,
+                        errors, omnia_base_dir, project_name, logger, module)
     return errors
 
 def validate_telemetry_config(

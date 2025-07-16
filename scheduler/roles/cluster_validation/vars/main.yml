@@ -135,16 +135,6 @@ csi_driver_values_file_path_fail_msg: "Failed. csi_driver_values_file_path is no
 
 # Usage: csi_powerscale_driver_input_validation.yml
 csi_powerscale_secret_vaultname: ".csi_powerscale_secret_vault"
-fail_msg_isilon_clusters: "isilonClusters must be a valid list of powerscale details in secret.yaml file."
-fail_msg_cluster_name: "clusterName is not valid. Provide powerscale cluster name in secret.yaml file."
-fail_msg_user_name: "userName is not valid. Provide powerscale user name in secret.yaml file."
-fail_msg_password: "Password is not valid. Provide powerscale password in secret.yaml file."
-fail_msg_endpoint: "Endpoint is not valid. Provide powerscale IP or hostname in secret.yaml file."
-fail_msg_endpoint_port: "endpointPort is not valid. Provide valid port number in secret.yaml file."
-fail_msg_isdefault: "isDefault value should be true or false in secret.yaml file."
-fail_msg_skip_certificate_validation: "skipCertificateValidation must be true in secret.yaml file."
-fail_msg_isipath: "isiPath must be a valid Unix absolute path in secret.yaml file."
-fail_msg_isi_volume_path_permissions: "isiVolumePathPermissions must be a valid directory permission (example: 0777) in secret.yaml file."
 fail_msg_api_call: "Please recheck powerscale username, password, endpoint and endpointPort details provided in secret.yaml and
   values.yaml (if endpointPort is provided only in values.yaml) file. API call to powerscale was not successful"
 vault_key_permission: "0644"
