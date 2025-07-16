@@ -559,7 +559,7 @@ def validate_roles_config(
                 #     ):
                 #         # If parent is not empty and group is associated with login_node,
                 #         #  compiler_node, service_node, kube_control_plane,
-                #         # or slurm_control_plane
+                #         # or slurm_control_node
                 #         errors.append(
                 #             create_error_msg(
                 #                 group,
