@@ -62,7 +62,7 @@
         msg: "{{ idrac_script_git_clone_error_msg.splitlines() | join(' ') }}"
       when: clone_idrac_script is failed
 
-- name: idrac-telemetry StatefulSet
+- name: Deployment definition for idrac-telemetry StatefulSet
   kubernetes.core.k8s:
     state: present
     definition:
@@ -193,7 +193,7 @@
           - metadata:
               name: mysqldb-pvc
             spec:
-              accessModes: [ "ReadWriteOnce" ]
+              accessModes: ["ReadWriteOnce"]
               resources:
                 requests:
                   storage: "{{ mysqldb_storage_size | default('10Gi') }}"
