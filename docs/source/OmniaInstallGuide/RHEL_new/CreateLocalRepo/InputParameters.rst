@@ -29,11 +29,11 @@ Here's a sample of the ``software_config.json`` for RHEL clusters:
         "softwares": [
             {"name": "amdgpu", "version": "6.3.1"},
             {"name": "cuda", "version": "12.8.0"},
-            {"name": "ofed", "version": "24.10-1.1.4.0"},
-            {"name": "service_node" },
+            {"name": "ofed", "version": "24.10-3.2.5.0"},
             {"name": "openldap"},
             {"name": "nfs"},
-            {"name": "k8s", "version":"1.31.4"},
+            {"name": "k8s", "version": "1.31.4"},
+            {"name": "service_k8s", "version": "1.31.4"},
             {"name": "slurm"}
         ],
         "amdgpu": [
@@ -48,7 +48,7 @@ Here's a sample of the ``software_config.json`` for RHEL clusters:
 
 .. note::
 
-    * For a list of accepted ``softwares``, go to the ``/opt/omnia/input/project_default/config/<cluster_os_type>/<cluster_os_version>`` and view the list of JSON files available. The filenames present in this location are the list of accepted softwares. For example, for a cluster running RHEL 9.6, go to ``/opt/omnia/input/project_default/config/rhel/9.6/`` and view the file list for accepted softwares.
+    * For a list of accepted ``softwares``, go to the ``/opt/omnia/input/project_default/config/<cluster_os_type>/<cluster_os_version>`` and view the list of JSON files available. The filenames present in this location are the list of accepted softwares. For a cluster running RHEL 9.6, go to ``/opt/omnia/input/project_default/config/rhel/9.6/`` and view the file list for accepted softwares.
     * Omnia supports a single version of any software packages in the ``software_config.json`` file. Ensure that multiple versions of the same package is not mentioned.
     * For software packages that do not have a pre-defined json file in ``/opt/omnia/input/project_default/config/<cluster_os_type>/<cluster_os_version>``, you need to create a ``custom.json`` file with the package details. For more information, `click here <../../AdvancedConfigurations/CustomLocalRepo.html>`_.
 

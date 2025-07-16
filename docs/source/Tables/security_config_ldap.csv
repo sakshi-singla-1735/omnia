@@ -43,7 +43,7 @@
      Required ","LDAP server is configured using organizations. They are necessary for user creation and group mapping. 
  
     **Default value**: ``""omnia""``"
-"openldap_organizationational_unit
+"openldap_organizational_unit
      ``string``
      Required ","LDAP server is configured using organizations. They are necessary for user creation and group mapping. 
  

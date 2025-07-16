@@ -4,7 +4,7 @@ Product and Subsystem Security
 Security controls map
 ----------------------
 
-.. image:: ../images/SecurityControlsMap.png
+.. image:: ../images/SecurityControlMap.jpg
 
 Omnia performs bare metal configuration to enable AI/HPC workloads. It uses Ansible playbooks to perform installations and configurations. iDRAC is supported for provisioning bare metal servers. Omnia installs xCAT to enable provisioning of clusters via PXE in different ways:
 
@@ -20,17 +20,17 @@ Omnia can be installed via CLI only. Slurm and Kubernetes are deployed and confi
 
 To perform these configurations and installations, a secure SSH channel is established between the management node and the following entities:
 
-* slurm_control_node
+* ``slurm_control_node``
 
-* slurm_node
+* ``slurm_node``
 
-* kube_control_plane
+* ``kube_control_plane``
 
-* kube_node
+* ``kube_node``
 
-* auth_server
+* ``auth_server``
 
-* login
+* ``login``
 
 Authentication
 ---------------
@@ -42,7 +42,7 @@ Omnia does not have its own authentication mechanism because bare metal installa
 Cluster authentication tool
 ----------------------------
 
-In order to enable authentication to the cluster, Omnia installs FreeIPA: an open source tool providing integrated identity and authentication for Linux/UNIX networked environments. As part of the HPC cluster, the login node is responsible for configuring users and managing a limited number of administrative tasks. Access to the manager/head node is restricted to administrators with the root password. Omnia installs either FreeIPA or OpenLDAP based on user's preference.
+In order to enable authentication to the cluster, Omnia installs FreeIPA: an open source tool providing integrated identity and authentication for Linux networked environments. As part of the HPC cluster, the login node is responsible for configuring users and managing a limited number of administrative tasks. Access to the manager/head node is restricted to cluster administrators only. Omnia installs either FreeIPA or OpenLDAP based on user's preference.
 
 .. note::  Omnia does not configure OpenLDAP users or groups.
 
@@ -59,8 +59,7 @@ A password-less channel is created between the management station and compute no
 Login security settings
 ------------------------
 
-
-The following credentials have to be entered to enable different tools on the management station:
+User needs to provide the following credentials during cluster configuration. Once these credentials are provided, Omnia stores them in an encrypted Ansible Vault in ``input/omnia_config_credentials.yml``. They are hidden from external visibility and access.
 
     1. iDRAC (Username/ Password)
 
@@ -72,21 +71,21 @@ The following credentials have to be entered to enable different tools on the ma
 
     5. Provisioning OS (Password)
 
-    6. SNMPv3 PXE switch (Non-admin username/ password)
+    6. SNMPv3 PXE switch (Non-admin username/ Password)
 
-Similarly, passwords for the following tools have to be provided in ``input/omnia_config.yml`` and ``input/provision_config_credentials.yml`` to configure the cluster:
+    7. postgresDB (Password)
 
-    1. maria_db (Password)
+    8. slurmdb_password (Password)
 
-    2. DockerHub (Username/ Password)
+    9. DockerHub (Username/Password)
 
-For setting up authentication on the cluster, the following credentials have to be provided in ``input/security_config.yml``:
+    10. FreeIPA (``directory_manager_password``, ``kerberos_admin_password``)
 
-    1. FreeIPA (directory_manager_password, ipa_admin_password)
+    11. OpenLDAP (``openldap_db_username``, ``openldap_db_password``, ``openldap_config_username``, ``openldap_config_password``, ``openldap_monitor_password``)
 
-    2. OpenLDAP (openldap_db_username, openldap_db_password, openldap_config_username, openldap_config_password)
+    12. Telemetry (``mysql_user``, ``mysql_password``, ``mysql_root_password``)
 
-Once Omnia is invoked, these files are validated and encrypted using Ansible Vault. They are hidden from external visibility and access.
+    13. Visualization (``grafana_username``, ``grafana_password``)
 
 Authentication to external systems
 ==================================
@@ -99,8 +98,8 @@ Configuring remote connections
 When setting up BeeGFS client services on the cluster, a connection authentication file is used to maintain the security of the communications between server and client.
 
     1. 	Generate the connection authentication file (connAuth) and use it to set up BeeGFS meta, server and storage services.
-    2. 	Copy the connAuth file to the OIM and note the filepath.
-    3. 	Populate the value of ``beegfs_secret_storage_filepath`` in ``input/storage_config.yml`` with the filepath from the previous step.
+    2. 	Copy the connAuth file to the OIM and note the file path.
+    3. 	Populate the value of ``beegfs_secret_storage_filepath`` in ``input/storage_config.yml`` with the file path from the previous step.
 
 Omnia will configure the BeeGFS clients on th cluster using the provided file. BeeGFS is responsible for maintaining and securing connAuthFile. For more information, `click here <https://doc.beegfs.io/latest/advanced_topics/authentication.html>`_.
 
@@ -122,6 +121,26 @@ Firewall settings
 ------------------
 
 Omnia configures the following ports for use by third-party tools installed by Omnia.
+
+**Ports used by Podman container and services**
+
+        +------------+----------+------------------------+
+        | Port       | Protocol | Container Name/Service |
+        +============+==========+========================+
+        | 2222       | TCP      | omnia_core             |
+        +------------+----------+------------------------+
+        | 2223       | TCP      | omnia_provision        |
+        +------------+----------+------------------------+
+        | 2225       | TCP      | pulp                   |
+        +------------+----------+------------------------+
+        | 3128       | TCP      | squid proxy            |
+        +------------+----------+------------------------+
+        | 5404-5405  | UDP      | PCS                    |
+        +------------+----------+------------------------+
+        | 3121, 2224 | TCP      | PCS                    |
+        +------------+----------+------------------------+
+        | 5001       | TCP      | Omnia nerdctl registry |
+        +------------+----------+------------------------+
 
 **Kubernetes ports requirements**
 
@@ -267,6 +286,8 @@ Omnia configures the following ports for use by third-party tools installed by O
         +---------------+----------+--------------+
         | 2049          | udp      | nfsd-udp     |
         +---------------+----------+--------------+
+        | 2240          | tcp      | xcat service |
+        +---------------+----------+--------------+
         | 4011          | tcp      | pxe          |
         +---------------+----------+--------------+
         | 300           | tcp      | awk          |
@@ -284,6 +305,8 @@ Omnia configures the following ports for use by third-party tools installed by O
         | 162           | udp      | snmptrap     |
         +---------------+----------+--------------+
         | 5432          | tcp      | postgresDB   |
+        +---------------+----------+--------------+
+        | 5432          | udp      | postgresDB   |
         +---------------+----------+--------------+
 
 .. note:: For more information, check out the `xCAT website. <https://xcat-docs.readthedocs.io/en/stable/advanced/ports/xcat_ports.html>`_
@@ -328,6 +351,29 @@ Omnia configures the following ports for use by third-party tools installed by O
 
 .. note:: To avoid security vulnerabilities, protocols can be restricted on the network using the parameters ``restrict_program_support`` and ``restrict_softwares`` in ``input/login_node_security_config.yml``. However, certain protocols are essential to Omnia's functioning and cannot be disabled. These protocols are: ftp, smbd, nmbd, automount, portmap.
 
+**Telemetry and Visualization ports**
+
+        +---------------+---------+-------------------------+
+        | Port Number   | Protocol| Service                 |
+        +===============+=========+=========================+
+        | 5000          | TCP     | Grafana plugin          |
+        +---------------+---------+-------------------------+
+        | 8161          | TCP     | Activemq console        |
+        +---------------+---------+-------------------------+
+        | 61613         | TCP     | Activemq message broker |
+        +---------------+---------+-------------------------+
+        | 3306, 33060   | TCP     | Mysql                   |
+        +---------------+---------+-------------------------+
+        | 3100          | TCP     | Loki                    |
+        +---------------+---------+-------------------------+
+        | 3000-3001     | TCP     | Grafana                 |
+        +---------------+---------+-------------------------+
+        | 2112          | TCP     | Prometheus exporter     |
+        +---------------+---------+-------------------------+
+        | 9090          | TCP     | Prometheus server       |
+        +---------------+---------+-------------------------+
+       
+
 Data security
 -------------
 
@@ -343,7 +389,7 @@ For more information on the passwords used by Omnia, see `Login Security Setting
 Auditing and logging
 --------------------
 
-Omnia creates a log file at ``/var/log/omnia`` on the management station. The events during the installation of Omnia are captured as logs. For different roles called by Omnia, separate log files are created as listed below:
+Omnia creates and stores log files related to containers at ``<nfs_share_path>/omnia/log/``. The events during the installation of Omnia are captured as logs. For different roles called by Omnia, separate log files are created as listed below:
 
     * monitor.log
     * network.log
@@ -402,10 +448,10 @@ The format is described in the following table.
 | Name of the process executing    | n=xxxx                           | n=ansible                                |
 +----------------------------------+----------------------------------+------------------------------------------+
 | The task being executed/ invoked | PLAY/TASK                        | PLAY [Executing omnia roles]   TASK      |
-|                                  |                                  |[Gathering Facts]                         |
+|                                  |                                  | [Gathering Facts]                        |
 +----------------------------------+----------------------------------+------------------------------------------+
 | Error                            | fatal: [hostname]: Error Message | fatal: [localhost]: FAILED! =>   {"msg": |
-|                                  |                                  |"lookup_plugin.lines}                     |
+|                                  |                                  | "lookup_plugin.lines}                    |
 +----------------------------------+----------------------------------+------------------------------------------+
 | Warning                          | [WARNING]: warning message       | [WARNING]: provided hosts list is empty  |
 +----------------------------------+----------------------------------+------------------------------------------+

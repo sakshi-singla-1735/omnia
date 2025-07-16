@@ -54,6 +54,9 @@
         path: "{{ item }}"
         state: absent
         force: true
+      register: directory_deletion
+      until: directory_deletion is not failed
+      retries: "{{ max_retries }}"
       loop:
         - "{{ grafana_data_dir }}"
         - "{{ grafana_logs_dir }}"

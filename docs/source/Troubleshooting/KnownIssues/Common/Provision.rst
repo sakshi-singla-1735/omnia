@@ -87,15 +87,3 @@ Provision
 **Potential Cause**: The ``omnia_provision`` container is not up and running.
 
 **Resolution**: Perform a cleanup using ``oim_cleanup.yml`` and re-run the ``prepare_oim.yml`` playbook to bring up the ``omnia_provision`` container. After ``prepare_oim.yml`` playbook has been executed successfully, re-deploy the cluster using the steps mentioned in the `Omnia deployment guide <../../../OmniaInstallGuide/RHEL_new/index.html>`.
-
-
-⦾ **While executing** ``discovery_provision.yml`` **playbook from the from the** ``omnia_core`` **container, some of the cluster nodes fail to boot up and omniadb captures the node status as** ``failed``.
-
-.. image:: ../../../images/waco_node_boot_failure.png
-
-**Potential Cause**: This issue is encountered due to any configuration failure during node provisioning.
-
-**Resolution**: Perform the following steps:
-
-    1. Delete the failed node from using ``delete_node.yml`` playbook utility. For more information, `click here <../../../OmniaInstallGuide/Maintenance/deletenode.html>`_.
-    2. Re-provision the node by re-running the ``discovery_provision.yml`` playbook.

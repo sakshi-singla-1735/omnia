@@ -75,4 +75,4 @@
       ansible.builtin.include_tasks: firewall_settings.yml
 
     - name: Include tasks for podman images
-      ansible.builtin.include_tasks: "{{ service_node_config_role_path }}/pull_podman_images.yml"
+      ansible.builtin.include_tasks: pull_podman_images.yml

@@ -11,7 +11,6 @@ Follow the below steps to deploy the Omnia container on RHEL-based platforms:
     omnia_ports
     omnia_startup
     composable_roles
-    xcat_hierarchical
     credentials_utility
     input_validator
     prepare_oim

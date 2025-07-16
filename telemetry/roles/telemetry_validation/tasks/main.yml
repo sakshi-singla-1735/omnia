@@ -25,9 +25,9 @@
     - name: Include high_availability_config variables
       ansible.builtin.include_tasks: include_high_availability_config.yml
 
-    # - name: Validate image tars exists
-    #   ansible.builtin.include_tasks: "{{ role_path }}/../../../common/tasks/common/validate_image_tars.yml"
-    #   when: federated_idrac_telemetry_collection
+    - name: Validate image tars exists
+      ansible.builtin.include_tasks: "{{ role_path }}/../../../common/tasks/common/validate_image_tars.yml"
+      when: enable_oim_ha
 
     - name: Include network_spec variables
       ansible.builtin.include_tasks: include_network_spec.yml
