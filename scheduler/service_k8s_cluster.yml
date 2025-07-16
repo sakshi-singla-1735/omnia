@@ -124,3 +124,20 @@
   gather_facts: false
   roles:
     - update_containerd_config
+
+- name: CSI powerscale image pulling
+  hosts: kube_node, kube_control_plane
+  tasks:
+    - name: Pull images
+      ansible.builtin.include_role:
+        name: k8s_csi_powerscale_plugin
+        tasks_from: csi_powerscale_image_pull.yml
+      when:
+        - hostvars['127.0.0.1']['csi_driver_powerscale_precheck_pass'] | default(false) | bool
+        - hostvars['127.0.0.1']['omnia_config']['k8s_offline_install']
+
+- name: Install CSI powerscale plugin on kube control nodes
+  hosts: kube_control_plane
+  gather_facts: false
+  roles:
+    - k8s_csi_powerscale_plugin
