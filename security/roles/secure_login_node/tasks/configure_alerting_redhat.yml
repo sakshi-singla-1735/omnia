@@ -45,7 +45,7 @@
         extra_args: >
           --find-links={{ hostvars['localhost']['offline_pip_module_path'] }}/{{ item }}/
           --no-index
-      loop: "{{ secure_login_pip_packages }}" 
+      loop: "{{ secure_login_pip_packages }}"
 
 - name: Check current environment variables
   ansible.builtin.shell: echo $PATH

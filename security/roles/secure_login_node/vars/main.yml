@@ -27,15 +27,6 @@ mail_packages_ubuntu:
 alerting_file_path: /root/auth_failure_check.yml
 hosts_file_mode: "0644"
 local_repo_access_path: "/opt/omnia/provision/local_repo_access.yml"
-ansible_name: "ansible"
-secure_ansible_version: "7.7.0"
-cryptography_name: "cryptography"
-cryptography_version: "44.0.0"
-jinja_name: "jinja2"
-jinja_version: "3.1.5"
-ansible_galaxy_path: "community.general"
-ansible_galaxy_tar_file: "community.general.tar.gz"
-file_mode: "0644"
 repo_retries: 5
 repo_delay: 10
 update_repos_fail_msg: "Failed to update repos. Verify internet availability on Omnia Infrastructure Manager."

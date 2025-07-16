@@ -81,8 +81,8 @@
 # Extract python version from json file
 - name: Extract python version from software_config.json
   ansible.builtin.set_fact:
-    python_version: "{{ secure_login_node_json['secure_login_node']['cluster'] | selectattr('type', 'in', ['deb', 'rpm']) | selectattr('package', 'search', 'python') | map(attribute='package') | first }}"
-    secure_login_pip_packages: "{{ secure_login_node_json['secure_login_node']['cluster'] | selectattr('type', 'equalto', 'pip_module') | map(attribute='package') | list }}"
+    python_version: "{{ secure_login_node_json['secure_login_node']['cluster'] | selectattr('type', 'in', ['deb', 'rpm']) | selectattr('package', 'search', 'python') | map(attribute='package') | first }}"  # noqa: yaml[line-length]
+    secure_login_pip_packages: "{{ secure_login_node_json['secure_login_node']['cluster'] | selectattr('type', 'equalto', 'pip_module') | map(attribute='package') | list }}"   # noqa: yaml[line-length]
 
 - name: Install packages for os
   ansible.builtin.include_tasks: configure_alerting_{{ ansible_distribution | lower }}.yml
