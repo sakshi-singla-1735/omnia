@@ -118,7 +118,6 @@ def validate_layer_group_separation(logger, roles):
         "kube_control_plane",
         "etcd",
         "slurm_control_node",
-        "slurm_dbd",
         "service_kube_control_plane",
         "service_etcd",
         "service_kube_node"
@@ -341,6 +340,23 @@ def validate_roles_config(
     max_roles_per_group = 5
     max_roles = 100
 
+    # Extract admin network details from network_spec
+    network_spec_file_path = create_file_path(input_file_path, file_names["network_spec"])
+    network_spec_json = validation_utils.load_yaml_as_json(
+        network_spec_file_path, _omnia_base_dir, _project_name, logger, _module
+    )
+
+    admin_network = {}
+    for network in network_spec_json.get("Networks", []):
+        if "admin_network" in network:
+            admin_network = network["admin_network"]
+            break  # Found the section; no need to keep looping
+
+    admin_static_range = admin_network.get("static_range", "")
+    admin_dynamic_range = admin_network.get("dynamic_range", "")
+    primary_oim_admin_ip = admin_network.get("primary_oim_admin_ip", "")
+
+
     roles_per_group = {}
     empty_parent_roles = {
         "login",
@@ -351,7 +367,6 @@ def validate_roles_config(
         "kube_control_plane",
         "etcd",
         "slurm_control_plane",
-        "slurm_dbd",
         "auth_server"
     }
 
@@ -723,6 +738,17 @@ def validate_roles_config(
                             )
                         )
                     static_range_mapping[group] = static_range_value
+                
+                # Check overlap with admin network from network_spec
+                bmc_range = groups[group].get("bmc_details", {}).get("static_range", "")
+                overlap_errors = validation_utils.check_bmc_range_against_admin_network(
+                    bmc_range, admin_static_range, admin_dynamic_range, primary_oim_admin_ip
+                )
+                for error in overlap_errors:
+                    errors.append(
+                        create_error_msg(f"{group}.bmc_details.static_range", bmc_range, error)
+                    )
+
 
             # Validate resource_mgr_id is set for groups that belong
             #  to kube_node, service_kube_node, slurm_node roles
