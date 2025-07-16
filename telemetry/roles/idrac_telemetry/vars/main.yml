@@ -87,12 +87,3 @@ telemetry_report_sn: |
   {% for item in failed_idrac + invalid_idrac_list %}
     - {{ item }}
   {% endfor %}
-
-# Usage: fetch_pods_details.yml
-telemetry_namespace: "telemetry"
-idrac_telemetry_k8s_name: idrac-telemetry
-mysqldb_k8s_name: mysqldb
-idrac_telemetry_pod_wait_fail_msg: "Execution failed as the idrac-telemetry pods did not start within the expected time.
- Please re-run the playbook after verifying that the idrac-telemetry pods are in running state by executing the command 'kubectl get pods -A.'"
-mysqldb_pod_wait_fail_msg: "Execution failed as the mysqldb pods did not start within the expected time.
- Please re-run the playbook after verifying that the mysqldb pods are in running state by executing the command 'kubectl get pods -A.'"
