@@ -5,7 +5,7 @@ This playbook sets up the `AMD ROCm <https://rocm.docs.amd.com/projects/install-
 
 Ensure that the ROCm local repositories are configured using the `local_repo.yml <../../CreateLocalRepo/localrepos.html#configure-specific-local-repositories>`_ script.
 
-Ensure that the ``input/software_config.json`` contains valid amdgpu and rocm version. See `input parameters <../../CreateLocalRepo/InputParameters.html>`_ for more information.
+Ensure that the ``/opt/omnia/input/project_default/software_config.json`` contains valid amdgpu and rocm version. See `input parameters <../../CreateLocalRepo/InputParameters.html>`_ for more information.
 
 To install all the latest AMD GPU drivers and toolkits, run the ``omnia.yml`` playbook using the following command: ::
 
@@ -29,7 +29,7 @@ User permissions for ROCm platforms
         * This command must be run with ``root`` permissions.
         * If the root user wants to provide access to other users and their individual GPU nodes, the previous command needs to be run on all of them separately. ::
 
-* To enable users to use rocm tools, use the following command as shown in the below added sample file: ::
+* To enable users to use ROCm tools, use the following command as shown in the sample file below: ::
 
         /opt/rocm/bin/<rocm command>
 

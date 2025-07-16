@@ -1,4 +1,7 @@
 ﻿Parameter,Mandatory/Optional,Details
+**pulp_protocol**,Mandatory,"* **Type**: Boolean
+* By default, set to ``false`` to enable secure (HTTP) connection to the Pulp server.
+* Set to ``true`` if you want to connect to the Pulp server using HTTPS."
 **user_repo_url**,Optional,"* **Type**: JSON list
 * This variable accepts the repository urls from which the software packages/images will be downloaded and accessed by the cluster.
 * Omnia downloads the software packages from the given list of URLs and stores them into a local Pulp container. These packages are then accessed by the cluster nodes from that Pulp container.
@@ -6,11 +9,11 @@
 * ``gpgkey`` defines gpgkey for the repository. If ``gpgkey`` is omitted then ``gpgcheck=0`` is set for that repository.
 * ``name`` defines the name of the software ``.rpm`` package.
 * If you are using SSL certificates for encryption, include the ``sslcacert``, ``sslclientkey``, and ``sslclientcert`` fields, and ensure each is populated with the correct certificate or key data. Omit these fields entirely if SSL is not in use.
-* Irresprective of the value set to ``repo_config`` in ``/opt/omnia/input/project_default/software_config.json``, you can set policies (``always``, ``partial``, ``never``) for each user repository individually. To do so, add the ``policy`` key and provide the desired value while providing the repository URLs.
+* Irrespective of the value set to ``repo_config`` in ``/opt/omnia/input/project_default/software_config.json``, you can set policies (``always``, ``partial``, ``never``) for each user repository individually. To do so, add the ``policy`` key and provide the desired value while providing the repository URLs.
 
 * **Example**: ``- { url: ""https://download.docker.com/linux/centos/9/x86_64/stable"", gpgkey: ""https://download.docker.com/linux/centos/gpg"", name: ""docker-ce-repo"", sslcacert: """", sslclientkey: """", sslclientcert: """", policy: """" }``
 
-.. note:: All SSL related certificates must be kept in ``/opt/omnia/user-repo-certs/<user_repo_name>``. The certificate files are encypted post ``local_repo.yml`` playbook execution. Execute the ``ansible-vault decrypt <certificate_file> --vault-password-file /opt/omnia/input/project_default/.local_repo_credentials_key`` command to decrypt the files. "
+.. note:: All SSL related certificates must be kept in ``/opt/omnia/user-repo-certs/<user_repo_name>``. The certificate files are encrypted post ``local_repo.yml`` playbook execution. Execute the ``ansible-vault decrypt <certificate_file> --vault-password-file /opt/omnia/input/project_default/.local_repo_credentials_key`` command to decrypt the files. "
 **user_registry**,Optional,"* **Type**: JSON list
 * This variable accepts the URL and port of the user's own software image registry. 
 * If you have your own registry and want Omnia to use it, you can specify its URL and port using this variable. If the package is available there, Omnia will pull the image from the ``user_registry`` instead of the Internet.
@@ -39,7 +42,7 @@
                       user_registry_credential:
                              - {name: """", username: """", password: """"}
 
-.. note:: The ``user_registry_credential.yml``file  will get encrypted once ``local_repo.yml`` playbook has been executed. To edit or modify any fields, use the following command: 
+.. note:: The ``user_registry_credential.yml`` file  will get encrypted once ``local_repo.yml`` playbook has been executed. To edit or modify any fields, use the following command: 
      
       ::
               
@@ -47,11 +50,11 @@
 **rhel_os_url**,Mandatory,"* **Type**: string
 * Mandatory when ``cluster_os_type`` is ``rhel`` in ``/opt/omnia/input/project_default/software_config.json``.
 * Only CodeReady Linux Builder (crb) repository URLs are supported. This repository contains additional packages for the RHEL OS, generally used by developers.
-* Additional packages requied for the cluster are downloaded from the provided ``rhel_os_url`` and stored in the Pulp container.
+* Additional packages required for the cluster are downloaded from the provided ``rhel_os_url`` and stored in the Pulp container.
 * ``url`` defines the baseurl for the repository where the OS package is hosted.
 * ``gpgkey`` defines the gpgkey for the repository. If ``gpgkey`` is omitted, then ``gpgcheck=0`` is set for that repository.
 * ``name`` defines the name of the OS package.
-* Irresprective of the value set to ``repo_config`` in ``/opt/omnia/input/project_default/software_config.json``, you can set  an individual policy (``always``, ``partial``, ``never``) for the ``rhel_os_url``. To do so, add the ``policy`` key and provide the desired value while providing the repository URLs.
+* Irrespective of the value set to ``repo_config`` in ``/opt/omnia/input/project_default/software_config.json``, you can set  an individual policy (``always``, ``partial``, ``never``) for the ``rhel_os_url``. To do so, add the ``policy`` key and provide the desired value while providing the repository URLs.
 * **Example**: If ``cluster_os_type`` is rhel, ``rhel_os_url`` might be ``- {url: ""http://crb.com/CRB/x86_64/os/"", gpgkey: ""http://crb.com/CRB/x86_64/os/RPM-GPG-KEY"", name: """", policy: """"}``
 
 .. note:: The ``rhel_os_url`` is configured via proxy in compute nodes.
@@ -62,7 +65,7 @@
 * ``url`` defines the baseurl for the repository where the package is hosted.
 * ``gpgkey`` defines the gpgkey for the repository. If ``gpgkey`` is omitted, then ``gpgcheck=0`` is set for that repository.
 * ``name`` defines the name of the software ``.rpm`` package.
-* Irresprective of the value set to ``repo_config`` in ``/opt/omnia/input/project_default/software_config.json``, you can set individual policies (``always``, ``partial``, ``never``) for the repository URLs. To do so, add the ``policy`` key and provide the desired value while providing the repository URLs.
+* Irrespective of the value set to ``repo_config`` in ``/opt/omnia/input/project_default/software_config.json``, you can set individual policies (``always``, ``partial``, ``never``) for the repository URLs. To do so, add the ``policy`` key and provide the desired value while providing the repository URLs.
 * **Default value**: ::
 
        - { url: ""https://download.docker.com/linux/centos/9/x86_64/stable"", gpgkey: ""https://download.docker.com/linux/centos/gpg"", name: ""docker-ce-repo"", policy: """" }

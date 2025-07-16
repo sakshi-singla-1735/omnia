@@ -4,7 +4,7 @@
 
 
 
-.. note:: This name cannot be modified. This is mandatory for discovery and provisioning of the cluster nodes.","**nic_name**
+.. note:: This name cannot be modified. This is mandatory for discovery and provisioning of the cluster nodes.","**oim_nic_name**
 
 ``string``
 
@@ -14,6 +14,18 @@ Mandatory",The name of the NIC on which the administrative network is accessible
 ``integer``
 
 Mandatory",The 32-bit “mask” used to divide an IP address into subnets and specify the network’s available hosts.
+,"**primary_oim_admin_ip**
+
+``IP address``
+
+Mandatory",The admin IP address of the OIM server
+,"**primary_oim_bmc_ip**
+
+``IP address``
+
+Conditional mandatory","* The iDRAC  IP address of the OIM server
+* Mandatory only if ``idrac_telemetry`` is set to ``true`` and telemetry data needs to be collected.
+* This field can be omitted if iDRAC telemetry is not required."
 ,"**static_range**
 
 ``IP address range``
@@ -45,12 +57,7 @@ Mandatory",The network gateway IP is the assigned IP address of the NIC that con
 
 ``IP address``
 
-Optional","The IP of the extrernal DNS server. A DNS server, or Domain Name System server, translates domain names into IP addresses that computers use to identify each other on the network."
-,"**primary_oim_admin_ip**
-
-``IP address``
-
-Mandatory",The IP of the primary NIC connected to the OIM.
+Optional","The IP of the external DNS server. A DNS server, or Domain Name System server, translates domain names into IP addresses that computers use to identify each other on the network."
 ,"**MTU**
 
 ``integer``
@@ -60,7 +67,7 @@ Mandatory",Maximum transmission unit (MTU) is a measurement in bytes of the larg
 
 
 
-.. note:: This name cannot be modified. This is mandatory while using the BMC discovery mechanism.","**nic_name**
+.. note:: This name cannot be modified. This is mandatory while using the BMC discovery mechanism.","**oim_nic_name**
 
 ``string``
 
@@ -70,30 +77,23 @@ Mandatory",The name of the NIC on which the administrative network is accessible
 ``integer``
 
 Mandatory",The 32-bit “mask” used to divide an IP address into subnets and specify the network’s available hosts.
-,"**static_range**
-
-``IP address range``
-
-Mandatory",The static range of IPs to be provisioned on target nodes.
 ,"**dynamic_range**
 
 ``IP address range``
 
 Mandatory",The dynamic range of IPs to be provisioned on target nodes.
+,"**dynamic_conversion_static_range**
+
+``IP address range``
+
+Conditional mandatory","* The range of static IP addresses that can be converted from dynamic IP addresses on the BMC network.
+* This attribute is mandatory if ``reassignment_to_static`` is set to ``true``."
 ,"**reassignment_to_static**
 
 ``boolean``
 
 Optional","* If iDRACs are set to DHCP mode and Omnia has assigned the IPs, then the user can reassign the IP within the ``bmc_network`` static range by setting this value to ``true``.
 * If this value is not provided or set to ``false`` while the iDRACs are in DHCP mode, they will obtain IPs from the ``bmc_network`` dynamic range, and these IPs will then be converted to static IPs for the iDRACs."
-,"**discover_ranges**
-
-``IP address range``
-
-Mandatory","* If some iDRACs IP ranges are reachable from OIM but is not in ``bmc_network``, then user can provide those IP ranges here.
-* Discovery of a single IP is not possible. User must provide a range.
-* User can also provide comma-separated ranges.
-.. note:: This is an optional field. User must not remove any of the fields even though it is optional."
 ,"**network_gateway**
 
 ``IP address``

@@ -64,6 +64,9 @@
     path: "{{ item }}"
     state: absent
     force: true
+  register: directory_deletion
+  until: directory_deletion is not failed
+  retries: "{{ max_retries }}"
   failed_when: false
   with_items:
     - "{{ telemetry_cleanup_directory }}"

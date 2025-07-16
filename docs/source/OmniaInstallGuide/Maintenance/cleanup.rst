@@ -12,17 +12,6 @@ The ``oim_cleanup.yml`` playbook performs the following tasks:
 * Clean up all containers, log files, and metadata on the OIM node.
 * Rollback the firewall ports on the OIM node to its default setting.
 
-Behavior based on cluster configuration
-=========================================
-
-Apart from the common tasks mentioned above, the ``oim_cleanup.yml`` playbook also performs few additional tasks based on the cluster configuration — specifically, whether the cluster is hierarchical and if High Availability (HA) is enabled or not.
-Check out the table below for more information.
-
-.. csv-table:: 
-    :file: ../../Tables/oim_cleanup.csv
-    :header-rows: 1
-    :keepspace:
-
 Playbook execution
 =====================
 

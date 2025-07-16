@@ -40,6 +40,9 @@
         path: "{{ item }}"
         state: absent
         force: true
+      register: directory_deletion
+      until: directory_deletion is not failed
+      retries: "{{ max_retries }}"
       with_items:
         - "{{ prometheus_pump_cleanup_directory }}"
 

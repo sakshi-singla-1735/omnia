@@ -62,7 +62,7 @@ Choices:
 "**beegfs_secret_storage_filepath**
      ``string``
      Required
-","* The filepath (including the filename) where the ``connauthfile`` is   placed.
+","* The file path (including the filename) where the ``connauthfile`` is   placed.
 * Required for Beegfs version >= 7.2.7
 
 

@@ -50,7 +50,7 @@ Perform the following steps to configure OpenLDAP as a proxy server:
         TLSCertificateFile      /etc/openldap/certs/ldapserver.crt
         TLSCertificateKeyFile   /etc/pki/tls/certs/ldapserver.key
 
-Change the **<paramater>** values in the config file, as described below:
+Change the **<parameter>** values in the config file, as described below:
 
 * **database**: Database used in the ``slapd.conf`` file, that captures the details of the external LDAP server to be used. For example, ``meta``.
 * **suffix**: Captures the domain name of internal OpenLDAP user, to refine the user search while attempting to authenticate the user. For example, ``"dc=omnia,dc=test"``.
