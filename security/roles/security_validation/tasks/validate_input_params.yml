@@ -13,6 +13,10 @@
 #  limitations under the License.
 ---
 
+- name: Check if login group is present in the inventory
+  ansible.builtin.set_fact:
+    login_node_present: "{{ 'login' in groups }}"
+
 - name: Set authentication_system, enable_secure_login_node required value
   ansible.builtin.set_fact:
     authentication_system: "{{ authentication_system | lower }}"
@@ -31,7 +35,7 @@
     prompt: "{{ secure_login_node_warning_msg }}"
   when:
     - enable_secure_login_node
-    - not login_node_required
+    - not login_node_present
 
 # - name: Validate http_proxy, https_proxy and no_proxy configured as environment variables
 #   ansible.builtin.assert:

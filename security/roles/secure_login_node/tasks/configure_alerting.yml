@@ -27,7 +27,7 @@
     msg: "{{ smtp_server_reach_msg }}"
   when: ping_msg in smtp_server_reachability.stdout
 
-- name: Install mailx and postfix for RHEL/Rocky
+- name: Install s-nail and postfix for RHEL/Rocky
   ansible.builtin.package:
     name: "{{ mail_packages_redhat }}"
     state: present
@@ -82,6 +82,7 @@
 - name: Extract python version from software_config.json
   ansible.builtin.set_fact:
     python_version: "{{ secure_login_node_json['secure_login_node']['cluster'] | selectattr('type', 'in', ['deb', 'rpm']) | selectattr('package', 'search', 'python') | map(attribute='package') | first }}"  # noqa: yaml[line-length]
+    secure_login_pip_packages: "{{ secure_login_node_json['secure_login_node']['cluster'] | selectattr('type', 'equalto', 'pip_module') | map(attribute='package') | list }}"   # noqa: yaml[line-length]
 
 - name: Install packages for os
   ansible.builtin.include_tasks: configure_alerting_{{ ansible_distribution | lower }}.yml
