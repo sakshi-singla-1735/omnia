@@ -43,7 +43,7 @@
      login_node_required: true
   when:
      - groups['login_node'] is defined
-     - "groups['login_node'] | length | int == 1"
+     - "groups['login_node'] | length | int >= 1"
 
 - name: Warning when login_node not provided
   ansible.builtin.pause:
