@@ -205,19 +205,15 @@ def get_arch_from_sw_config(software_name, sw_config_data, roles_config_data):
             arch = software.get("arch")
 
             if arch is None:
-                logger.info(f"'arch' field not found for '{software_name}' in software_config.json")
-                logger.info(f"Reading arch from Groups defined in roles_config.yml")
+                # if arch is not defined for given software, fallback to roles_config.yml
                 return get_arch_from_roles_config(software_name, roles_config_data)
 
             if isinstance(arch, list) and arch:
                 arch_list = [a.strip() for a in arch]
                 return {software_name: arch_list}
-            break
-
-            error_msg = f"'arch' field for '{software_name}' should not be an empty list"
-            logger.error(error_msg)
-            raise ValueError(error_msg)
-
+            else:
+                error_msg = f"'arch' field for '{software_name}' should not be an empty list"
+                raise ValueError(error_msg)
 
 def get_arch_from_roles_config(software_name, roles_config_data):
     """
@@ -230,7 +226,6 @@ def get_arch_from_roles_config(software_name, roles_config_data):
 
     if not groups:
         error_msg = "No groups defined in roles_config.yml under 'Groups'"
-        logger.error(error_msg)
         raise ValueError(error_msg)
 
     for group_name, group_data in groups.items():
@@ -239,7 +234,7 @@ def get_arch_from_roles_config(software_name, roles_config_data):
             archs.append(architecture.strip())
         else:
             error_msg = f"No architecture defined for group '{group_name}' in roles_config.yml"
-            logger.error(error_msg)
             raise ValueError(error_msg)
 
     return {software_name: archs}
+
