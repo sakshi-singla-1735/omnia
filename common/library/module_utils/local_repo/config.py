@@ -39,6 +39,7 @@ USER_REG_KEY_PATH = "/opt/omnia/input/project_default/.local_repo_credentials_ke
 # Used by prepare_tasklist.py
 # ----------------------------
 LOCAL_REPO_CONFIG_PATH_DEFAULT = "/opt/omnia/input/project_default/local_repo_config.yml"
+ROLES_CONFIG_PATH_DEFAULT = "/opt/omnia/input/project_default/roles_config.yml"
 SOFTWARE_CSV_FILENAME = "software.csv"
 FRESH_INSTALLATION_STATUS = True
 
