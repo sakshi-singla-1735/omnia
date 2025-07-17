@@ -1,4 +1,4 @@
-#  Copyright 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+#  Copyright 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -13,12 +13,7 @@
 #  limitations under the License.
 ---
 
-# Used: install_rocm.yml
-local_repo_access_path: "/opt/omnia/offline/local_repo_access.yml"
-rocm_prefrence_dst: "/etc/apt/preferences.d/rocm-pin-600"
-rocm_prefrence_src: "rocm_preferences_ubuntu.j2"
-ubuntu_os: "ubuntu"
-prefrence_file_mode: '0644'
+# Usage: install_rocm.yml
 rocm_packages:
   - "rocm"
   - "rocm-validation-suite"
