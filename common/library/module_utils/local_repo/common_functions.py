@@ -19,7 +19,6 @@ import toml
 import stat
 import string
 import secrets
-from ansible.module_utils.local_repo.standard_logger import setup_standard_logger
 
 def load_yaml_file(path):
     """
