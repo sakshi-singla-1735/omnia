@@ -1,0 +1,66 @@
+# Copyright 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+---
+
+- name: Include roles_config.yml
+  block:
+    - name: Include roles_config.yml
+      ansible.builtin.include_vars: "{{ roles_config_path }}"
+      register: include_roles_config
+      tags: init
+  rescue:
+    - name: Failed to include  roles_config.yml
+      ansible.builtin.fail:
+        msg: "{{ roles_config_syntax_fail_msg }} Error: {{ include_roles_config.message }}"
+
+- name: Determine layer
+  ansible.builtin.set_fact:
+    layer: "{{ 'first' if 'management_layer' in omnia_run_tags else 'default' }}"
+
+- name: Fetch composable roles data
+  fetch_roles_config:
+    roles_data: "{{ Roles }}"
+    groups_data: "{{ Groups }}"
+    layer: "{{ layer }}"
+  register: composable_roles_output
+
+- name: Set Facts for composable roles data
+  ansible.builtin.set_fact:
+    roles_data: "{{ composable_roles_output.roles_data }}"
+    groups_data: "{{ composable_roles_output.groups_data }}"
+    roles_groups_data: "{{ composable_roles_output.roles_groups_data }}"
+    bmc_static_status: "{{ composable_roles_output.bmc_static_status }}"
+    switch_status: "{{ composable_roles_output.switch_status }}"
+    groups_roles_info: "{{ composable_roles_output.groups_roles_info }}"
+
+- name: Fetch hierarchical data
+  get_service_cluster_info:
+    groups_roles_info: "{{ groups_roles_info }}"
+    service_node_ha_data: "{{ service_node_ha_data }}"
+  register: hierarchical_output
+
+- name: Set fact for service_node role required and other facts
+  ansible.builtin.set_fact:
+    service_role_required: "{{ 'true' if 'service_node' in roles_groups_data else 'false' }}"
+    oim_ha_role_required: "{{ 'true' if 'oim_ha_node' in roles_groups_data else 'false' }}"
+    booted_service_nodes_data: "{{ hierarchical_output.booted_service_nodes_data | default({}) }}"
+    hierarchical_provision_status: "{{ hierarchical_output.hierarchical_provision_status | default(false) }}"
+    groups_roles_info: "{{ hierarchical_output.groups_roles_info | default(groups_roles_info) }}"
+
+- name: Create and update service node metadata file
+  ansible.builtin.copy:
+    dest: "{{ service_node_metadata_path }}"
+    content: "{{ {'service_nodes_metadata': booted_service_nodes_data} | to_yaml }}"
+    mode: "{{ metadata_perm }}"
+    force: true
