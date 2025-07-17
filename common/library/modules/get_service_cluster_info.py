@@ -29,7 +29,7 @@ def get_booted_service_nodes_data():
     """
     query_result = get_data_from_db(
         table_name='cluster.nodeinfo',
-        filter_dict={'role': "service_node"},
+        filter_dict = {'role': ['service_kube_node', 'service_etcd', 'service_kube_control_plane']}
     )
 
     data = {}

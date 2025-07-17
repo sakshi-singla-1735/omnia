@@ -26,7 +26,7 @@
 
 - name: Determine layer
   ansible.builtin.set_fact:
-    layer: "{{ 'first' if 'management_layer' in omnia_run_tags else 'default' }}"
+    layer: "default"
 
 - name: Fetch composable roles data
   fetch_roles_config:
