@@ -124,10 +124,10 @@ def main():
             logger.info(f"csv_file_path for software: {complete_csv_file_path}")
             
             sw_arch_map.update(get_arch_from_sw_config(software, user_data, roles_config_data))
-            logger.info(f"Softwares mapped to architecture: {sw_arch_map}") #Softwares mapped to architecture: {'amdgpu': ['x86'], 'k8s': ['aarch64', 'x86']}
+            logger.info(f"Softwares mapped to architecture: {sw_arch_map}") #Softwares mapped to architecture: {'amdgpu': ['x86_64'], 'k8s': ['aarch64', 'x86_64']}
             json_paths = get_json_file_path(software, cluster_os_type, cluster_os_version, user_json_file, sw_arch_map)
             csv_paths = get_csv_file_path(software, log_dir, sw_arch_map)
-            logger.info(f"csv_path(s): {csv_paths}") #csv_path(s): ['/opt/omnia/log/local_repo/x86/amdgpu/status.csv']
+            logger.info(f"csv_path(s): {csv_paths}")
             
             for json_path, csv_path in zip(json_paths, csv_paths):
                 repo_validation_result = validate_repo_mappings(repo_config_data, json_path)

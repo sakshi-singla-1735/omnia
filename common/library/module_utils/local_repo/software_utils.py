@@ -218,10 +218,10 @@ def transform_package_dict(data, sw_arch_map):
         data (dict): Dictionary of packages where each key is a software name,
                      and each value is a list of package dicts.
         sw_arch_map (dict): Dictionary where keys are software names, and values
-                            are lists of architectures (e.g., ['x86', 'arm']).
+                            are lists of architectures (e.g., ['x86_64', 'aarch64']).
 
     Returns:
-        dict: A dictionary where each key is an architecture (e.g., 'x86', 'arm'),
+        dict: A dictionary where each key is an architecture (e.g., 'x86_64', 'aarch64'),
               and each value is a dictionary of software mapped to their transformed task list.
     """
     result = defaultdict(dict)

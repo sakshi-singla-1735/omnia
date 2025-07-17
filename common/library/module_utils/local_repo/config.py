@@ -27,7 +27,7 @@ LOG_DIR_DEFAULT = "/tmp/thread_logs"
 DEFAULT_LOG_FILE = "/tmp/task_results_table.log"
 DEFAULT_SLOG_FILE = "/tmp/stask_results_table.log"
 CSV_FILE_PATH_DEFAULT = [
-    "/tmp/x86/status_results_table.csv",
+    "/tmp/x86_64/status_results_table.csv",
     "/tmp/aarch64/status_results_table.csv"
 ]
 DEFAULT_REPO_STORE_PATH = "/tmp/offline_repo"
