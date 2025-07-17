@@ -14,11 +14,11 @@
 ---
 
 # Usage: include_high_availability_config.yml
-high_availability_config_path: "{{ input_project_dir }}/high_availability_config.yml"
+high_availability_config_path: "{{ hostvars['localhost']['input_project_dir'] }}/high_availability_config.yml"
 high_availability_config_syntax_fail_msg: "Failed. Syntax errors present in high_availability_config.yml. Fix errors and re-run playbook again."
 
 # Usage: include_composable_roles_config.yml
-roles_config_path: "{{ input_project_dir }}/roles_config.yml"
+roles_config_path: "{{ hostvars['localhost']['input_project_dir'] }}/roles_config.yml"
 roles_config_syntax_fail_msg: "Failed. Syntax errors present in role_config.yml. Fix errors and re-run playbook again."
 service_node_metadata_path: "/opt/omnia/.data/service_node_metadata.yml"
 metadata_perm: "0644"
