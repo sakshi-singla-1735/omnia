@@ -111,7 +111,7 @@ def update_status_csv(csv_dir, software, overall_status):
         f.write("\n".join(final_lines))
 
 
-def determine_function(task, repo_store_path, csv_file_path, user_data, version_variables, user_registries, docker_username, docker_password):
+def determine_function(task, repo_store_path, csv_file_path, user_data, version_variables, arc, user_registries, docker_username, docker_password):
     """
     Determines the appropriate function and its arguments to process a given task.
 
@@ -121,6 +121,7 @@ def determine_function(task, repo_store_path, csv_file_path, user_data, version_
         csv_file_path (str): The path to the CSV file.
         user_data (dict): A dictionary containing user data.
         version_variables (dict): A dictionary containing version variables.
+        arc (str): Architecture of package to be downloaded
 
     Returns:
         tuple: A tuple containing the function to process the task and its arguments.
@@ -163,7 +164,7 @@ def determine_function(task, repo_store_path, csv_file_path, user_data, version_
             return process_image, [task, status_file, version_variables, user_registries, docker_username, docker_password]
         if task_type == "rpm":
             return process_rpm, [task, repo_store_path, status_file,
-                                 cluster_os_type, cluster_os_version, repo_config_value]
+                                 cluster_os_type, cluster_os_version, repo_config_value, arc]
 
         raise ValueError(f"Unknown task type: {task_type}")
     except Exception as e:
@@ -233,7 +234,8 @@ def main():
         "user_json_file": {"type": "str", "required": False, "default": USER_JSON_FILE_DEFAULT},
         "show_softwares_status": {"type": "bool", "required": False, "default": False},
         "overall_status_dict": {"type": "dict", "required": False, "default": {}},
-        "local_repo_config_path": {"type": "str", "required": False, "default": LOCAL_REPO_CONFIG_PATH_DEFAULT}
+        "local_repo_config_path": {"type": "str", "required": False, "default": LOCAL_REPO_CONFIG_PATH_DEFAULT},
+        "arch": {"type": "str", "required": True}
     }
     module = AnsibleModule(argument_spec=module_args, supports_check_mode=True)
     tasks = module.params["tasks"]
@@ -249,7 +251,7 @@ def main():
     show_softwares_status = module.params["show_softwares_status"]
     overall_status_dict = module.params['overall_status_dict']
     local_repo_config_path = module.params["local_repo_config_path"]
-
+    arc= module.params["arch"]
     # Initialize standard logger.
     slogger = setup_standard_logger(slog_file)
     result = {"changed": False, "task_results": []}
@@ -286,7 +288,7 @@ def main():
 
         overall_status, task_results = execute_parallel(
             tasks, determine_function, nthreads, repo_store_path, csv_file_path,
-            log_dir, user_data, version_variables, slogger, local_repo_config_path, timeout
+            log_dir, user_data, version_variables, arc, slogger, local_repo_config_path, timeout
         )
 
         if not is_encrypted(USER_REG_CRED_INPUT):

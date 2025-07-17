@@ -23,7 +23,7 @@ from ansible.module_utils.local_repo.parse_and_download import write_status_to_f
 file_lock = Lock()
 
 def process_rpm(package, repo_store_path, status_file_path, cluster_os_type,
-               cluster_os_version, repo_config_value, logger):
+               cluster_os_version, repo_config_value, arc, logger):
 
     """
     Downloads a list of RPM packages and writes the status of the download to a file.
@@ -34,6 +34,7 @@ def process_rpm(package, repo_store_path, status_file_path, cluster_os_type,
         status_file_path (str): The path to the status file.
         cluster_os_type (str): The type of the cluster operating system.
         cluster_os_version (str): The version of the cluster operating system.
+        arc (str): Architecture of package to be downloaded
         logger (logging.Logger): The logger object.
 
     Returns:
@@ -51,13 +52,32 @@ def process_rpm(package, repo_store_path, status_file_path, cluster_os_type,
                 f"{package['package']} - List of rpms is {rpm_list}"
             )
             rpm_directory = os.path.join(repo_store_path, 'offline_repo',
-                            'cluster', cluster_os_type, cluster_os_version, 'rpm')
+                            'cluster', arc.lower(), cluster_os_type, cluster_os_version, 'rpm')
             logger.info(f"rpm_dir {rpm_directory}")
             os.makedirs(rpm_directory, exist_ok=True)
-            dnf_download_command = ['dnf', 'download', '--resolve', '--alldeps', '--arch=x86_64,noarch',
-                f'--destdir={rpm_directory}'] + rpm_list
-            rpm_result = subprocess.run(dnf_download_command, check=False,
-                                       capture_output=True, text=True)
+
+            if arc.lower() in ("x86", "x86_64"):
+                dnf_download_command = [
+                    'dnf', 'download',
+                    '--resolve',
+                    '--alldeps',
+                    '--arch=x86_64,noarch',
+                    f'--destdir={rpm_directory}'
+                ] + rpm_list
+
+            elif arc.lower() in ("arm", "aarch64"):  # ARM architectures
+                dnf_download_command = [
+                    'dnf', 'download',
+                    '--arch', 'aarch64',
+                    '--forcearch', 'aarch64',
+                    '--best',
+                    '--resolve',
+                    '--alldeps',
+                    f'--destdir={rpm_directory}'
+                ] + rpm_list
+
+            rpm_result = subprocess.run(dnf_download_command,
+                                        check=False, capture_output=True, text=True)
             logger.info(f"RPM Download success stdout {rpm_result.stdout}")
             logger.info(f"Return code {rpm_result.returncode}")
             if rpm_result.returncode == 0:
