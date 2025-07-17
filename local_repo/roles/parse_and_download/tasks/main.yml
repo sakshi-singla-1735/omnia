@@ -29,18 +29,26 @@
     key_path: "{{ project_input_path }}"
   register: vault_result
 
-- name: Execute tasks for each group
-  ansible.builtin.include_tasks: execute_parallel_tasks.yml
+# - name: Execute tasks for each group
+#   ansible.builtin.include_tasks: execute_parallel_tasks.yml
+#   loop: "{{ result.software_dict | dict2items }}"
+#   loop_control:
+#     loop_var: item
+#   register: task_result
+
+- name: Execute tasks for each architecture
+  include_tasks: arch_component_loop.yml
   loop: "{{ result.software_dict | dict2items }}"
   loop_control:
-    loop_var: item
-  register: task_result
+    loop_var: arch_item
+  vars:
+    components: "{{ arch_item.value | dict2items }}"
 
-- name: Clear the rpm downloaded files
-  ansible.builtin.file:
-    path: "{{ repo_store_path }}/cluster/{{ cluster_os_type }}/{{ cluster_os_version }}/rpm"
-    state: absent
-  when: clean_rpms
+#- name: Clear the rpm downloaded files
+#  ansible.builtin.file:
+#    path: "{{ repo_store_path }}/cluster/x86/rhel/9.6/rpm"
+#    state: absent
+#  when: clean_rpms
 
 - name: Determine final repository status
   ansible.builtin.set_fact:
