@@ -14,15 +14,16 @@
 
 #!/usr/bin/python
 
-import json
 from ansible.module_utils.basic import AnsibleModule
-from ansible.module_utils.common_functions import(
+from ansible.module_utils.local_repo.common_functions import(
     get_arch_from_sw_config,
     get_arch_from_roles_config
 )
-
+from ansible.module_utils.local_repo.software_utils import(
+    load_json,
+    load_yaml
+)
 from ansible.module_utils.local_repo.config import (
-    USER_JSON_FILE_DEFAULT,
     ROLES_CONFIG_PATH_DEFAULT
 )
 
@@ -43,7 +44,7 @@ def main():
 
     module_args = {
         "software_name": {"type": "str", "required": True},
-        "user_json_file": {"type": "str", "required": True, "default": USER_JSON_FILE_DEFAULT},
+        "user_json_file": {"type": "str", "required": True},
         "roles_config_path": {"type": "str", "required": False, "default": ROLES_CONFIG_PATH_DEFAULT},
     }
 
@@ -64,3 +65,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
