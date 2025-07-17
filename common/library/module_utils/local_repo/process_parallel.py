@@ -323,7 +323,6 @@ def execute_parallel(
         docker_username, docker_password = load_docker_credentials(OMNIA_CREDENTIALS_YAML_PATH,
                                                                   OMNIA_CREDENTIALS_VAULT_PATH)
     except RuntimeError as e:
-        standard_logger.error(f"vrinda-{e}")
         raise
     # Create a pool of worker processes to handle the tasks
     with multiprocessing.Pool(processes=nthreads) as pool:
@@ -362,7 +361,6 @@ def execute_parallel(
     task_results_data = []
     while not result_queue.empty():
         task_results_data.append(result_queue.get())
-    standard_logger.info("after result queue empty")
     # Determine the overall status based on individual task results
     if tasks_are_not_completed:
         overall_status = "TIMEOUT"  # If timeout occurred before completion, set status as "TIMEOUT"
