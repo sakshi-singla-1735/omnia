@@ -91,7 +91,6 @@ unreachable_slurm_control_node_fail_msg: |
   Re-run playbook with reachable slurm_control_node."
 slurm_control_node_in_login_fail_msg: "Failed. Node mentioned in slurm_control_node group should not be present in login_node group"
 slurm_control_node_in_node_fail_msg: "Failed. Node mentioned in slurm_control_node group should not be present in slurm_node group"
-multiple_login_node_fail_msg: "Failed. Currently only one login node supported in inventory"
 login_node_warning_msg: |
   "[WARNING] login_node group with ip for login_node not present in the inventory.
   Proceeding execution with provided nodes"
