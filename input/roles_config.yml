@@ -31,7 +31,7 @@
 #                         - Set the value only for group of nodes belonging to kube_node and slurm_node roles,
 #                         - And empty for other roles.
 #     parent:             - <Conditional Mandatory> list of service tag of associated active service node(s).
-#                         - This field will be empty for group of nodes which is associated with ‘login’, ‘compiler_node’, ‘service_node’,
+#                         - This field will be empty for group of nodes which is associated with ‘login_node’, ‘compiler_node’, ‘service_node’,
 #                         - ‘auth_server’, ‘service_kube_control_plane’, 'service_etcd', ‘kube_control_plane’, ‘etcd’, 'slurm_control_node’.
 #                         - If ‘service’ role is not defined, then value will be empty for worker and default role.
 #     bmc_details:        - <Conditional Mandatory> BMC IP static range in the format 10.5.0.1-10.5.0.200
@@ -84,11 +84,11 @@ Groups:
 # | Role Name                  | Layer           |     | Role Name         | Layer          |
 # +---------------------------+------------------+     +-------------------+----------------+
 # | oim_ha_node                | management      |     | default           | compute        |
-# | service_kube_control_plane | management      |     | kube_node         | compute        | 
+# | service_kube_control_plane | management      |     | kube_node         | compute        |
 # | service_etcd               | management      |     | slurm_node        | compute        |
 # | service_kube_node          | management      |     |                   |                |
 # | service_node (future use)  | management      |     |                   |                |
-# | login                      | management      |     |                   |                |
+# | login_node                 | management      |     |                   |                |
 # | auth_server                | management      |     |                   |                |
 # | compiler_node              | management      |     |                   |                |
 # | kube_control_plane         | management      |     |                   |                |
@@ -130,7 +130,7 @@ Roles:
 #
 # Service k8s head Role: Service Cluster Kubernetes master node for groups to add into service_kube_control_plane role can be provided in this role
 # ----------------------------------------------------------------------------------------------------
-# 
+#
 # This role is used to configure kubernetes master on service cluster.
 #
 # This role should not have same group as of K8s head Role.
@@ -287,7 +287,7 @@ Roles:
   #     - grp1
 
 #
-# Login Role:
+# Login Node Role:
 # -----------
 #
 # This role is used to configure the nodes for user logins. It belongs to the management layer.
@@ -297,7 +297,7 @@ Roles:
 #
 # The user is not allowed to change the name of this role.
 #
-  # - name: "login"
+  # - name: "login_node"
   #   groups:
   #     - grp0
   #     - grp1
