@@ -1,24 +1,24 @@
 Centralized authentication on the cluster
 ==========================================
 
-The security feature allows cluster admin users to set up FreeIPA or OpenLDAP in order to allow or deny user access.
+The security feature allows cluster admin users to set up FreeIPA or OpenLDAP in order to allow or deny access to the user(s).
 
 Configuring FreeIPA/OpenLDAP security
 ______________________________________
 
 **Prerequisites**
 
-* To set up FreeIPA, ensure that the following entry is present in the ``input/software_config.json``: ::
+* To set up FreeIPA, ensure that the following entry is present in the ``/opt/omnia/input/project_default/software_config.json``: ::
 
     {"name": "freeipa"}
 
-* To set up OpenLDAP, ensure that the following entry is present in the ``input/software_config.json``: ::
+* To set up OpenLDAP, ensure that the following entry is present in the ``/opt/omnia/input/project_default/software_config.json``: ::
 
     {"name": "openldap"}
 
-* Run ``local_repo.yml`` to create offline repositories of FreeIPA or OpenLDAP. If both were downloaded, ensure that the non-required system is removed from ``input/software_config.json`` before running ``security.yml``. For more information, `click here <../../CreateLocalRepo/index.html>`_.
+* Run ``local_repo.yml`` to create offline repositories of FreeIPA or OpenLDAP. If both were downloaded, ensure that the non-required software is removed from ``/opt/omnia/input/project_default/software_config.json`` before running ``security.yml``. For more information, `click here <../../CreateLocalRepo/index.html>`_.
 
-* Enter the following parameters in ``input/security_config.yml``:
+* Enter the following parameters in ``/opt/omnia/input/project_default/security_config.yml``:
 
 .. csv-table:: Parameters for Authentication
    :file: ../../../../Tables/security_config.csv
@@ -47,8 +47,8 @@ The wrapper playbook ``omnia.yml`` handles execution of the security or authenti
 The provided inventory should contain ``auth_server`` and ``login`` [optional] groups. The inventory file is case-sensitive. Follow the format provided in the `sample files <../../../samplefiles.html#inventory-file>`_.
 
     * Do not include the IP of the OIM or local host in the ``auth_server`` group of the inventory file.
-    * For `secure login node functionality <Authentication.html#configuring-login-node-security>`_, ensure to add the ``login`` group in the provided inventory file. To customize the security features on the login node, update the desired parameters in ``input/login_node_security_config.yml``.
-    * If a subsequent run of ``security.yml`` fails, the ``security_config.yml`` file will be unencrypted.
+    * For `secure login node functionality <Authentication.html#configuring-login-node-security>`_, ensure to add the ``login`` group in the provided inventory file. To customize the security features on the login node, update the desired parameters in ``/opt/omnia/input/project_default/login_node_security_config.yml``.
+    * If a subsequent run of ``security.yml`` fails, the ``/opt/omnia/input/project_default/security_config.yml`` file will be unencrypted.
 
 .. note:: Installation of OpenLDAP server or FreeIPA server on OIM is not supported.
 
@@ -101,7 +101,7 @@ Once user accounts are created, admins can enable passwordless SSH for users to 
 
 .. note:: Once user accounts are created on the auth server, use the accounts to login to the cluster nodes to reset the password and create a corresponding home directory.
 
-To customize your setup of passwordless ssh, input custom parameters in ``input/passwordless_ssh_config.yml``:
+To customize your setup of passwordless ssh, input custom parameters in ``/opt/omnia/input/project_default/passwordless_ssh_config.yml``:
 
 +-----------------------+--------------------------------------------------------------------------------------------------------------------+
 | Parameter             | Details                                                                                                            |
@@ -133,7 +133,7 @@ ________________________________
 
 **Prerequisites**
 
-* Ensure that the following entry is present in the ``input/software_config.json``: ::
+* Ensure that the following entry is present in the ``/opt/omnia/input/project_default/software_config.json``: ::
 
       {"name": "secure_login_node"}
 
@@ -141,7 +141,7 @@ ________________________________
 
 * For secure login node functionality, ensure to add the ``login`` group in the provided inventory file.
 
-Enter the following parameters in ``input/login_node_security_config.yml``.
+Enter the following parameters in ``/opt/omnia/input/project_default/login_node_security_config.yml``.
 
 +-----------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Variable                    | Details                                                                                                                                                                        |

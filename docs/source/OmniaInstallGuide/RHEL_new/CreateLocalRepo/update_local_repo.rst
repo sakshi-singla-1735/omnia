@@ -16,6 +16,6 @@ To execute the playbook: ::
 
     ssh omnia_core
     cd /omnia/utils
-    ansible-playbook update_user_repo.yml -i <inventory_filepath>
+    ansible-playbook update_user_repo.yml -i <inventory_file_path>
  
-*<inventory_filepath> refers to the path of the Kubernetes or Slurm inventory.*
+*<inventory_file_path> refers to the path of the Kubernetes or Slurm inventory.*

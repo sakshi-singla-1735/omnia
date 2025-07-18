@@ -39,13 +39,13 @@ BeeGFS is a hardware-independent POSIX parallel file system (a.k.a. Software-def
 
     4. ``systemctl status firewalld``
 
-.. note:: BeeGFS services over RDMA is only supported on RHEL 8.3 and above due to limitations on BeeGFS. When setting up your cluster with RDMA support, check the BeeGFS documentation to provide appropriate values in ``input/storage_config.yml``.
+.. note:: BeeGFS services over RDMA is only supported on RHEL 8.3 and above due to limitations on BeeGFS. When setting up your cluster with RDMA support, check the BeeGFS documentation to provide appropriate values in ``/opt/omnia/input/project_default/storage_config.yml``.
 
 **Installing the BeeGFS client via Omnia**
 
-After the required parameters are filled in ``input/storage_config.yml``, Omnia installs BeeGFS on all nodes while executing the ``storage.yml`` playbook.
+After the required parameters are filled in ``/opt/omnia/input/project_default/storage_config.yml``, Omnia installs BeeGFS on all nodes while executing the ``storage.yml`` playbook.
 
-.. caution:: Do not remove or comment any lines in the ``input/storage_config.yml`` file.
+.. caution:: Do not remove or comment any lines in the ``/opt/omnia/input/project_default/storage_config.yml`` file.
 
 .. csv-table:: Parameters for storage
    :file: ../../../Tables/storage_config.csv
@@ -57,7 +57,7 @@ After the required parameters are filled in ``input/storage_config.yml``, Omnia 
     * For BeeGFS communication happening over RDMA, the ``beegfs_mgmt_server`` should be provided with the Infiniband IP of the management server.
     * The parameter inventory refers to the `inventory file <../../../../samplefiles.html>`_ listing all relevant nodes.
 
-If ``input/storage_config.yml`` is populated before running ``omnia.yml``, BeeGFS client will be set up during the execution of ``omnia.yml``.
+If ``/opt/omnia/input/project_default/storage_config.yml`` is populated before running ``omnia.yml``, BeeGFS client will be set up during the execution of ``omnia.yml``.
 
 If ``omnia.yml`` is not leveraged to set up BeeGFS, execute the ``storage.yml`` playbook : ::
 

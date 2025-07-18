@@ -14,3 +14,7 @@ Prerequisites
 .. note:: If the OIM server has an Infiniband NIC installed, run the below command to install the hardware drivers and Infiniband-related packages:
     ::
         yum groupinstall "Infiniband Support" -y
+
+5. Clone the `Omnia artifacts repository <https://github.com/dell/omnia-artifactory/tree/omnia-container>`_ and then run the following command to build the container images. For detailed information, `click here <https://github.com/dell/omnia-artifactory/blob/omnia-container/README.md>`_. ::
+
+    ./build_images.sh all

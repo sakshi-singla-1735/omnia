@@ -17,7 +17,8 @@ Roles offered by Omnia
     * At least one role is mandatory, and you must not change the name of the roles.
     * The roles are case-sensitive in nature.
     * Groups assigned to the **Management** layer roles should not be assigned to **Compute** layer roles.
-    * Omnia also supports HA functionality for the ``OIM`` and the ``service_node``. For more information, `click here <HighAvailability/index.html>`_.
+    * Omnia also supports HA functionality for the ``OIM`` and the ``service_cluster``. For more information, `click here <HighAvailability/index.html>`_.
+    * To set up a service cluster, all three roles (``service_kube_control_plane``, ``service_etcd``, ``service_kube_node``) must be present in the ``input/roles_config.yml``.
 
 .. csv-table:: Types of Roles
    :file: ../../Tables/omnia_roles.csv
@@ -29,7 +30,7 @@ Group attributes
 
 Nodes with similar roles or functionalities can be grouped together. To do so, fill up the ``roles_config.yml`` input file in the ``/opt/omnia/input/project_default`` directory which includes all necessary attributes for the nodes, based on their role within the cluster. Each group will have following attributes as indicated in the table below:
 
-.. note:: Groups associated with the ``service_node`` and ``oim_ha_node`` role should not be used to fulfill any other roles.
+.. note:: Groups associated with the ``service_kube_control_plane``, ``service_etcd``, ``service_kube_node``, and ``oim_ha_node`` roles should not be used to fulfill any other roles.
 
 .. csv-table:: Group attributes
    :file: ../../Tables/group_attributes.csv
@@ -52,6 +53,7 @@ Here's a sample (using mapping file) for your reference:
     Groups:
         grp0:
             location_id: SU-1.RACK-1
+            cluster_name: ""
             resource_mgr_id: ""
             parent: ""
             bmc_details:
@@ -63,6 +65,7 @@ Here's a sample (using mapping file) for your reference:
 
         grp1:
             location_id: SU-1.RACK-2
+            cluster_name: "service_cluster"
             resource_mgr_id: ""
             parent: ""
             bmc_details:
@@ -77,7 +80,7 @@ Here's a sample (using mapping file) for your reference:
           groups:
             - grp0
 
-        - name: "service_node"
+        - name: "service_kube_control_plane"
           groups:
             - grp1
 

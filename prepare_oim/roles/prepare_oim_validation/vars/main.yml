@@ -78,8 +78,8 @@ local_repo_config_syntax_fail_msg: "Failed. Syntax errors present in local_repo_
 omnia_metadata_file: "/opt/omnia/.data/oim_metadata.yml"
 high_availability_config_path: "{{ hostvars['localhost']['input_project_dir'] }}/high_availability_config.yml"
 high_availability_config_syntax_fail_msg: "Failed. Syntax errors present in high_availability_config.yml. Fix errors and re-run playbook again."
-nfs_not_configured: "When enabling OIM HA or Service Node HA an NFS external server must be configured.
-  Please run the OIM cleanup in utils and re-run the Omnia startup script using the NFS(external) option."
+nfs_not_configured: "When enabling OIM HA or K8s Service Cluster an NFS external server must be configured.
+  Please run the oim_cleanup.yml in utils and re-run the omnia_startup.sh script using the NFS(external) option."
 ha_nfs_error_msg: |
   ERROR: Internal NFS is not supported with HA OIM or Service HA.
   Please configure External NFS for HA capabilities.
@@ -91,3 +91,8 @@ roles_config_syntax_fail_msg: "Failed. Syntax errors present in role_config.yml.
 telemetry_config_file: "telemetry_config.yml"
 fail_msg_telemetry_config_file: "telemetry_config.yml file doesn't exist in the input folder."
 telemetry_config_syntax_fail_msg: "Failed. Syntax errors present in telemetry_config.yml. Fix errors and re-run playbook again. Common syntax Errors:"
+
+# Usage: check_service_role.yml
+service_cluster_nfs_error_msg: |
+  ERROR: Internal NFS is not supported for K8s Service Cluster, external NFS server must be configured.
+  Please run the oim_cleanup.yml in utils and re-run the omnia_startup.sh script using the NFS(external) option.

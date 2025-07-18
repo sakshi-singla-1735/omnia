@@ -8,14 +8,13 @@ The ``prepare_oim.yml`` playbook accomplishes the following tasks:
 * Sets up the Provision container: ``omnia_provision``
 * Sets up the Pulp container: ``pulp``
 * Sets up the Squid container (if ``enable_routed_internet`` is ``true`` in ``/opt/omnia/input/project_default/local_repo_config.yml``): ``squid``
-* Sets up the containers required for iDRAC telemetry service (if ``idrac_telemetry_support`` is ``true`` in ``opt/omnia/input/project/defaut/telemetry_config.yml``): ``idrac_telemetry_receiver``, ``mysqldb``, and ``activemq``
+* Sets up the containers required for iDRAC telemetry service (if ``idrac_telemetry_support`` is ``true`` in ``opt/omnia/input/project_default/telemetry_config.yml``): ``idrac_telemetry_receiver``, ``mysqldb``, and ``activemq``
 * Sets up the containers required for collecting iDRAC telemetry metrics using the Prometheus toolkit (If ``idrac_telemetry_service`` is set to ``true`` and ``idrac_telemetry_collection_type`` is ``prometheus``): ``prometheus`` and ``prometheus_pump`` 
 
-Prerequisites
+Prerequisite
 ----------------
 
-* Ensure that the system time is synchronized across all compute nodes and the OIM. Time mismatch can lead to certificate-related issues during or after the ``prepare_oim.yml`` playbook execution.
-* If you intend to set up a `hierarchical cluster <xcat_hierarchical.html>`_, ensure that the ``service_node`` role has been defined in the ``/opt/omnia/input/project_default/roles_config.yml`` input file before executing ``prepare_oim.yml`` playbook.
+Ensure that the system time is synchronized across all compute nodes and the OIM. Time mismatch can lead to certificate-related issues during or after the ``prepare_oim.yml`` playbook execution.
 
 Input files for the playbook
 ------------------------------
@@ -123,11 +122,11 @@ A sample of the ``software_config.json`` file for RHEL clusters is attached belo
         "softwares": [
             {"name": "amdgpu", "version": "6.3.1"},
             {"name": "cuda", "version": "12.8.0"},
-            {"name": "ofed", "version": "24.10-1.1.4.0"},
-            {"name": "service_node" },
+            {"name": "ofed", "version": "24.10-3.2.5.0"},
             {"name": "openldap"},
             {"name": "nfs"},
-            {"name": "k8s", "version":"1.31.4"},
+            {"name": "k8s", "version": "1.31.4"},
+            {"name": "service_k8s", "version": "1.31.4"},
             {"name": "slurm"}
         ],
         "amdgpu": [
