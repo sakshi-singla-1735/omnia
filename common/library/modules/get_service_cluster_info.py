@@ -40,6 +40,7 @@ def get_booted_service_nodes_data():
         status = sn.get('status', '')
         admin_ip = sn['admin_ip']
         service_tag = sn['service_tag']
+        cluster_name = sn['cluster_name']
 
         if status != 'booted':
             not_booted_nodes.append(service_tag)
@@ -48,7 +49,8 @@ def get_booted_service_nodes_data():
         data[service_tag] = {
             'admin_ip': admin_ip,
             'service_tag': service_tag,
-            'node': node
+            'node': node,
+            'cluster_name': cluster_name
         }
 
     if not_booted_nodes:
