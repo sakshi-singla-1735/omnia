@@ -73,7 +73,7 @@
         namespace: "{{ telemetry_namespace }}"
       spec:
         serviceName: "{{ idrac_telemetry_service_name }}"
-        replicas: "{{ statefulset_replicas }}"
+        replicas: 1 
         selector:
           matchLabels:
             app: "{{ idrac_telemetry_k8s_name }}"
@@ -92,9 +92,6 @@
               - ip: "127.0.0.1"
                 hostnames:
                   - "activemq"
-              # - ip: "{{ prometheus_svc_ip.stdout }}"
-              #   hostnames:
-              #     - "prometheus"
               - ip: "127.0.0.1"
                 hostnames:
                   - "mysqldb"
@@ -189,6 +186,47 @@
                   - "-c"
                 args: ["go run cmd/prometheuspump/prometheuspump.go"]
 
+              - name: kafka-pump
+                image: "{{ go_image }}"
+                imagePullPolicy: "IfNotPresent"
+                volumeMounts:
+                  - mountPath: /go/src/github.com/telemetry-reference-tools
+                    name: telemetry-reference-tools
+                workingDir: /go/src/github.com/telemetry-reference-tools
+                env:
+                  - name: MESSAGEBUS_HOST
+                    value: activemq
+                  - name: MESSAGEBUS_PORT
+                    value: "{{ messagebus_http_port | string }}"
+                  - name: KAFKA_BROKER
+                    value: "{{ kafka_broker }}"
+                  - name: KAFKA_TOPIC
+                    value: "{{ kafka_topic }}"
+                  - name: KAFKA_SKIP_VERIFY
+                    value: "{{ kafka_skip_verify | default('true') | lower }}"
+                  # - name: KAFKA_CACERT
+                  #   value: certs/ca.crt
+                  # - name: KAFKA_CLIENT_CERT
+                  #   value: certs/client.crt
+                  # - name: KAFKA_CLIENT_KEY
+                  #   value: certs/client.key
+                  # - name: KAFKA_SKIP_VERIFY
+                    # value: "{{ kafka_skip_verify | default('false') | lower }}"
+                # readinessProbe:
+                # tcpSocket:
+                #   port: 8082
+                # initialDelaySeconds: 15
+                # periodSeconds: 10
+                # livenessProbe:
+                #   tcpSocket:
+                #     port: 8082
+                #   initialDelaySeconds: 30
+                #   periodSeconds: 20
+                command: ["/bin/sh", "-c"]
+                args: ["go run cmd/kafkapump/kafkapump.go"]
+                command: ["/bin/sh", "-c"]
+                args: ["go run cmd/kafkapump/kafkapump.go"]
+
         volumeClaimTemplates:
           - metadata:
               name: mysqldb-pvc
@@ -216,7 +254,10 @@
             port: "{{ mysqldb_container_port1 }}"
           - name: mysql-port-2
             port: "{{ mysqldb_container_port2 }}"
-          - name: pump-port
+          - name: pump-port-prometheus
             port: "{{ prometheus_pump_port }}"
+          - name: pump-port-kafka
+            port: 8082
         selector:
           app: "{{ idrac_telemetry_k8s_name }}"
+
