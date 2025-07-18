@@ -46,7 +46,7 @@
 
 # Get k8s nfs_server_ip and nfs_server_path
 - name: Get nfs_server details when k8s_support is true
-  when: k8s_support
+  when: k8s_support and compute_k8s_playbook is defined
   block:
     - name: Set k8s_nfs_server_ip where k8s_share is true
       ansible.builtin.set_fact:

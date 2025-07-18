@@ -169,3 +169,7 @@ msg_version_mismatch: >-
   but you requested version {{ k8s_version }} for {{ software_stack }} deployment.
   Please rerun local_repo.yml with version {{ k8s_version }}.
 k8s_version_msg_success: "{{ software_stack }} version {{ k8s_version }} is valid and matches last_{{ software_stack }}_local_repo_version"
+
+# Usage: fetch_oim_metadata.yml
+omnia_metadata_file: "/opt/omnia/.data/oim_metadata.yml"
+pvc_data_folder: "/opt/omnia/k8s_pvc_data"
