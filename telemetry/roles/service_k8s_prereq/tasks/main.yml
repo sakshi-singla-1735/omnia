@@ -18,8 +18,5 @@
     - hostvars['localhost']['idrac_telemetry_support']
     - hostvars['localhost']['federated_idrac_telemetry_collection']
   block:
-    - name: Fetch HA config
-      ansible.builtin.include_tasks: include_high_availability_config.yml
-
     - name: Fetch composable roles and generate metadata
       ansible.builtin.include_tasks: include_composable_roles_config.yml
