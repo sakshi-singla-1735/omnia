@@ -138,6 +138,15 @@
 - name: Deploy plugins on kube control nodes
   hosts: kube_control_plane[0]
   gather_facts: false
+  vars:
+    common_plugin:
+      kubernetes_dashboard: true
+      habanalabs-device-plugin: false
+      mpi-operator: true
+      xilinx-device-plugin: true
+      nfs-subdir-external-provisioner: true
+      multus-device-plugin: true
+      whereabouts-device-plugin: true
   roles:
     - common_plugins
 

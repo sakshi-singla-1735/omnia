@@ -67,6 +67,16 @@
         - hostvars['localhost']['idrac_telemetry_support']
         - not hostvars['localhost']['federated_idrac_telemetry_collection']
 
+- name: Validate service k8s cluster
+  hosts: kube_control_plane[0]
+  gather_facts: false
+  any_errors_fatal: true
+  tasks:
+    - name: Validate service k8s cluster
+      ansible.builtin.include_role:
+        name: service_k8s_telemetry
+        tasks_from: prereq_checks.yml
+
 # - name: Update Repositories/Registries on nodes
 #   ansible.builtin.import_playbook: ../utils/update_user_repo.yml
 #   when: not ( hostvars['127.0.0.1']['update_user_repo_executed'] | default(false) | bool )
@@ -134,6 +144,15 @@
     - name: Deployment of telemetry pods
       ansible.builtin.include_role:
         name: service_k8s_telemetry
+
+- name: Deployment of kube prometheus in service cluster
+  hosts: kube_control_plane[0]
+  connection: ssh
+  gather_facts: false
+  tasks:
+    - name: Deployment of kube prometheus
+      ansible.builtin.include_role:
+        name: k8s_prometheus
 
 - name: Enable idrac telemetry in OIM
   hosts: localhost
