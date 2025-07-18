@@ -81,7 +81,7 @@
     groups_roles_info: "{{ groups_roles_info }}"
     service_node_ha_data: "{{ service_node_ha_data }}"
   register: hierarchical_output
-  when: 
+  when:
     - '"management_layer" not in ansible_run_tags'
     - "'service_node' in roles_data"
 
@@ -89,7 +89,7 @@
   ansible.builtin.set_fact:
     booted_service_nodes_data: "{{ hierarchical_output.booted_service_nodes_data | default({}) }}"
     hierarchical_provision_status: "{{ hierarchical_output.hierarchical_provision_status | default(false) }}"
-  when: 
+  when:
     - "'service_node' in roles_data"
 
 - name: Set fact for hierarchical_provision_status when service_node not defined
@@ -108,7 +108,7 @@
     content: "{{ {'service_nodes_metadata': booted_service_nodes_data} | to_yaml }}"
     mode: "{{ metadata_perm }}"
     force: true
-  when: 
+  when:
     - "'service_node' in roles_data"
 
 - name: Get the group(s) for OIM HA
