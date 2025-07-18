@@ -65,7 +65,7 @@ software_config_file: "{{ input_project_dir }}/software_config.json"
 #   and then execute telemetry.yml.
 local_repo_service_missing_msg: |
   [ERROR] It seems local_repo not executed with service_k8s/service_node entry in software_config.yml.
-  Kindly execute local_repo.yml with `service_k8s` or `service_node` entry in softwares list in software_config.yml
+  Kindly execute local_repo.yml with `service_k8s` or `service_node` entry in softwares list in software_config.json
   and then execute telemetry.yml.
 local_repo_access_path: "/opt/omnia/provision/local_repo_access.yml"
 # sn_packages_file: "{{ input_project_dir }}/config/{{ software_config.cluster_os_type }}/{{ software_config.cluster_os_version }}/service_node.json"
