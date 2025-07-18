@@ -42,7 +42,7 @@
 - name: Fetch hierarchical data
   get_service_cluster_info:
     groups_roles_info: "{{ groups_roles_info }}"
-    service_node_ha_data: "{{ service_node_ha_data }}"
+    service_node_ha_data: "{{ hostvars['localhost']['service_node_ha_data'] }}"
   register: hierarchical_output
 
 - name: Set fact for service_node role required and other facts
