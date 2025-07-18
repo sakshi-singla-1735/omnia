@@ -23,11 +23,11 @@
 
     - name: Create directory for storing data
       ansible.builtin.file:
-        path: "/opt/omnia/k8s_pvc_data"
+        path: "{{ pvc_data_folder }}"
         state: directory
-        mode: '0755'
+        mode: "{{ file_perm }}"
 
-    - name: Set facts
+    - name: Set fact for nfs server details
       ansible.builtin.set_fact:
         k8s_nfs_server_ip: "{{ nfs_server_ip }}"
         k8s_server_share_path: "{{ nfs_server_share_path }}/omnia/k8s_pvc_data"

@@ -172,3 +172,4 @@ k8s_version_msg_success: "{{ software_stack }} version {{ k8s_version }} is vali
 
 # Usage: fetch_oim_metadata.yml
 omnia_metadata_file: "/opt/omnia/.data/oim_metadata.yml"
+pvc_data_folder: "/opt/omnia/k8s_pvc_data"
