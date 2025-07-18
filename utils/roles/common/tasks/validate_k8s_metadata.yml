@@ -14,7 +14,7 @@
 ---
 
 - name: Validate input passed to playbook
-  when: k8s_support or service_k8s_support
+  when: compute_k8s_support or service_k8s_support
   block:
     - name: Fail if cluster_name is not passed as an argument to the playbook
       ansible.builtin.fail:
