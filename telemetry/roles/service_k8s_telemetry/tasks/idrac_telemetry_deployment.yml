@@ -73,7 +73,7 @@
         namespace: "{{ telemetry_namespace }}"
       spec:
         serviceName: "{{ idrac_telemetry_service_name }}"
-        replicas: "{{ statefulset_replicas }}"
+        replicas: "{{ idrac_telemetry_replicas }}"
         selector:
           matchLabels:
             app: "{{ idrac_telemetry_k8s_name }}"

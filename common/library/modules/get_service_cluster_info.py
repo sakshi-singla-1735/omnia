@@ -64,80 +64,6 @@ def get_booted_service_nodes_data():
         )
     return data
 
-def get_service_node_ha_dict(service_node_ha_data, booted_service_nodes_data):
-    """
-    Generate a dictionary containing the high availability (HA) configuration for service nodes.
-
-    Args:
-        service_node_ha_data (dict): Dictionary containing HA data for service nodes.
-        booted_service_nodes_data (dict): Dictionary containing data of booted service nodes.
-
-    Returns:
-        dict: A dictionary containing the computed HA configuration for service nodes.
-
-    Example:
-        {
-            'ABCD123': {
-                'virtual_ip_address': '10.5.0.111',
-                'active': True,
-                'passive_nodes': ['PQR1234']
-            },
-            'PQR1234': {
-                'virtual_ip_address': '10.5.0.111',
-                'active': False,
-                'active_service_tag': 'ABCD123'
-            }
-        }
-    """
-
-    sn_ha_data = {}
-    sn_vip_list = []
-    invalid_tags = []
-    if not service_node_ha_data.get('enable_service_ha', False):
-        return sn_ha_data
-    ha_service_nodes = service_node_ha_data.get('service_nodes', [])
-    for service_node in ha_service_nodes:
-        active_sn_tag = service_node.get('active_node_service_tag')
-        sn_vip = service_node.get('virtual_ip_address')
-        if not active_sn_tag or not sn_vip:
-            continue
-        if active_sn_tag in sn_ha_data:
-            raise ValueError('Duplicate entries found for active_node_service_tag field.')
-        if sn_vip in sn_vip_list:
-            raise ValueError('Duplicate entries found for service nodes virtual_ip_address field.')
-        if active_sn_tag not in booted_service_nodes_data:
-            invalid_tags.append(active_sn_tag)
-
-        sn_ha_data[active_sn_tag] = {'virtual_ip_address': sn_vip, 'active': True}
-        sn_vip_list.append(sn_vip)
-        passive_nodes_tags_list = []
-        for passive_nodes in service_node.get('passive_nodes', []):
-            passive_nodes_tags = passive_nodes.get('node_service_tags', [])
-            if not passive_nodes_tags:
-                continue
-            for passive_node_tag in passive_nodes_tags:
-                if not passive_node_tag:
-                    continue
-                if passive_node_tag in sn_ha_data:
-                    raise ValueError('Duplicate entries found for passive_node_service_tags field.')
-                sn_ha_data[passive_node_tag] = {'virtual_ip_address': sn_vip,
-                                                'active': False,
-                                                'active_service_tag': active_sn_tag }
-                if passive_node_tag not in booted_service_nodes_data:
-                    invalid_tags.append(passive_node_tag)
-                passive_nodes_tags_list.append(passive_node_tag)
-        sn_ha_data[active_sn_tag]['passive_nodes'] = passive_nodes_tags_list
-    if invalid_tags:
-        raise ValueError(
-            f"ERROR: These service tags '{invalid_tags}' mentioned in 'high_availability_config.yml' "
-            "for service node HA may be incorrect, or the node might not have been provisioned.\n"
-            "  * If service_node is not provisioned, verify the input in roles_config.yml and execute "
-            "discovery_provision.yml playbook with the 'management_layer' tag.\n"
-            "  * If the service_node is already provisioned with management layer nodes, verify the input "
-            "in high_availability_config.yml and execute discovery_provision.yml."
-        )
-    return sn_ha_data
-
 def check_hierarchical_provision(group, parent, booted_service_nodes_data):
     """Check if hierarchical provisioning is required."""
 
@@ -151,62 +77,6 @@ def check_hierarchical_provision(group, parent, booted_service_nodes_data):
             "Please verify the input in roles_config.yml and execute discovery_provision.yml playbook "
             "with the 'management_layer' tag to provision service nodes."
         )
-
-
-def combine_booted_service_with_ha_data(booted_service_nodes_data, service_node_ha_data):
-    """
-    Combines booted service nodes data with service node HA data.
-
-    Parameters:
-    booted_service_nodes_data (dict): A dictionary containing booted service nodes data.
-    service_node_ha_data (dict): A dictionary containing service node HA data.
-
-    Returns:
-    dict: A dict containing the combined data of booted service nodes and service node HA data.
-         Example:
-         {
-             'ABCD123': {
-                 'admin_ip': '10.5.0.10',
-                 'service_tag': 'ABCD123',
-                 'node': 'servicenode1',
-                 'child_groups': []
-                 'enable_service_ha': True,
-                 'virtual_ip_address': '10.5.0.111',
-                 'active': True,
-                 'passive_nodes': ['PQR123']
-             },
-             'PQR123': {
-                 'admin_ip': '10.5.0.11',
-                 'service_tag': 'PQR123',
-                 'node': 'servicenode1ha',
-                 'child_groups': []
-                 'enable_service_ha': True,
-                 'virtual_ip_address': '10.5.0.111',
-                 'active': False,
-                 'active_service_tag': 'ABCD123'
-             },
-             'XYZ321': {
-                 'admin_ip': '10.5.0.12',
-                 'service_tag': 'XYZ321',
-                 'node': 'servicenode3',
-                 'child_groups': []
-                 'enable_service_ha': False
-             },
-
-         }
-    """
-    combined_data = {**booted_service_nodes_data}
-    for sn_tag, sn_ha_data in service_node_ha_data.items():
-        combined_data[sn_tag].update(**sn_ha_data)
-
-    for sn_tag in booted_service_nodes_data:
-        if sn_tag in service_node_ha_data:
-            combined_data[sn_tag].update({'enable_service_ha': True})
-        else:
-            combined_data[sn_tag].update({'enable_service_ha': False})
-        combined_data[sn_tag].update({'child_groups': []})
-
-    return combined_data
 
 def get_hierarchical_data(groups_roles_info, booted_service_nodes_data):
     """
@@ -251,21 +121,14 @@ def main():
         Main function to execute the check_hierarchical_provision custom module.
     """
     module_args = {
-        'groups_roles_info': {'type':"dict", 'required':True},
-        'service_node_ha_data': {'type':"dict", 'required':True}
+        'groups_roles_info': {'type':"dict", 'required':True}
     }
 
     module = AnsibleModule(argument_spec=module_args, supports_check_mode=True)
 
     try:
         groups_roles_info = module.params["groups_roles_info"]
-        service_node_ha_data = module.params["service_node_ha_data"]
         booted_service_nodes_data = get_booted_service_nodes_data()
-        service_node_ha_data = get_service_node_ha_dict(service_node_ha_data,
-                                                        booted_service_nodes_data)
-        booted_service_nodes_data = combine_booted_service_with_ha_data(booted_service_nodes_data,
-                                                                        service_node_ha_data)
-
         groups_roles_info, booted_service_nodes_data, hierarchical_provision_status  = \
             get_hierarchical_data(groups_roles_info, booted_service_nodes_data)
 
@@ -273,8 +136,7 @@ def main():
             changed=False,
             hierarchical_provision_status = hierarchical_provision_status,
             booted_service_nodes_data = booted_service_nodes_data,
-            groups_roles_info = groups_roles_info,
-            service_node_ha_dict = service_node_ha_data
+            groups_roles_info = groups_roles_info
         )
     except ValueError as e:
         module.fail_json(msg=str(e).replace('\n', ' '))
