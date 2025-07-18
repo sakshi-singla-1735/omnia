@@ -90,7 +90,6 @@
               "etcd",
               "slurm_control_node",
               "slurm_node",
-              "slurm_dbd",
               "login",
               "auth_server",
               "compiler_node"

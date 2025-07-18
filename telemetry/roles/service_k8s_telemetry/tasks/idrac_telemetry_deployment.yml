@@ -13,16 +13,6 @@
 #  limitations under the License.
 ---
 
-- name: Get prometheus svc IP
-  ansible.builtin.command: kubectl get svc "{{ prometheus_k8s_name }}" -n "{{ telemetry_namespace }}" -o=jsonpath='{.spec.clusterIP}'
-  changed_when: false
-  register: prometheus_svc_ip
-
-- name: Get mysqldb svc IP
-  ansible.builtin.command: kubectl get svc "{{ mysqldb_k8s_name }}" -n "{{ telemetry_namespace }}" -o=jsonpath='{.spec.clusterIP}'
-  changed_when: false
-  register: mysql_svc_ip
-
 - name: Create directory for iDRAC telemetry
   ansible.builtin.file:
     path: "{{ service_cluster_idrac_telemetry_dir_path }}"
@@ -72,24 +62,21 @@
         msg: "{{ idrac_script_git_clone_error_msg.splitlines() | join(' ') }}"
       when: clone_idrac_script is failed
 
-- name: Deploy idrac-telemetry pod
+- name: Deployment definition for idrac-telemetry StatefulSet
   kubernetes.core.k8s:
     state: present
     definition:
       apiVersion: apps/v1
-      kind: Deployment
+      kind: StatefulSet
       metadata:
         name: "{{ idrac_telemetry_k8s_name }}"
         namespace: "{{ telemetry_namespace }}"
-        labels:
-          app: "{{ idrac_telemetry_k8s_name }}"
       spec:
+        serviceName: "{{ idrac_telemetry_service_name }}"
+        replicas: "{{ statefulset_replicas }}"
         selector:
           matchLabels:
             app: "{{ idrac_telemetry_k8s_name }}"
-        replicas: 1
-        strategy:
-          type: RollingUpdate
         template:
           metadata:
             labels:
@@ -105,14 +92,42 @@
               - ip: "127.0.0.1"
                 hostnames:
                   - "activemq"
-              - ip: "{{ prometheus_svc_ip.stdout }}"
-                hostnames:
-                  - "prometheus"
-              - ip: "{{ mysql_svc_ip.stdout }}"
+              # - ip: "{{ prometheus_svc_ip.stdout }}"
+              #   hostnames:
+              #     - "prometheus"
+              - ip: "127.0.0.1"
                 hostnames:
                   - "mysqldb"
 
             containers:
+              - name: mysqldb
+                image: "{{ mysql_image }}"
+                imagePullPolicy: IfNotPresent
+                volumeMounts:
+                  - name: mysqldb-pvc
+                    mountPath: /var/lib/mysql/
+                env:
+                  - name: MYSQL_DATABASE
+                    value: "{{ mysqldb_name }}"
+                  - name: MYSQL_USER
+                    valueFrom:
+                      secretKeyRef:
+                        name: "{{ mysqldb_secrets_name }}"
+                        key: mysqldb_user
+                  - name: MYSQL_PASSWORD
+                    valueFrom:
+                      secretKeyRef:
+                        name: "{{ mysqldb_secrets_name }}"
+                        key: mysqldb_password
+                  - name: MYSQL_ROOT_PASSWORD
+                    valueFrom:
+                      secretKeyRef:
+                        name: "{{ mysqldb_secrets_name }}"
+                        key: mysqldb_root_password
+                ports:
+                  - containerPort: "{{ mysqldb_container_port1 }}"
+                  - containerPort: "{{ mysqldb_container_port2 }}"
+
               - name: activemq
                 image: "{{ activemq_image }}"
                 imagePullPolicy: "IfNotPresent"
@@ -173,3 +188,35 @@
                   - "/bin/sh"
                   - "-c"
                 args: ["go run cmd/prometheuspump/prometheuspump.go"]
+
+        volumeClaimTemplates:
+          - metadata:
+              name: mysqldb-pvc
+            spec:
+              accessModes: ["ReadWriteOnce"]
+              resources:
+                requests:
+                  storage: "{{ mysqldb_storage }}"
+
+- name: Service for idrac telemetry
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: "{{ idrac_telemetry_service_name }}"
+        namespace: "{{ telemetry_namespace }}"
+        labels:
+          app: "{{ idrac_telemetry_service_name }}"
+      spec:
+        clusterIP: None
+        ports:
+          - name: mysql-port-1
+            port: "{{ mysqldb_container_port1 }}"
+          - name: mysql-port-2
+            port: "{{ mysqldb_container_port2 }}"
+          - name: pump-port
+            port: "{{ prometheus_pump_port }}"
+        selector:
+          app: "{{ idrac_telemetry_k8s_name }}"

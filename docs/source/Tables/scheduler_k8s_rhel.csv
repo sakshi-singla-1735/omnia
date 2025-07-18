@@ -1,4 +1,16 @@
 ﻿Variables,Details
+"**cluster_name**
+
+     ``string``
+
+     Required  ","* Name of the cluster on which you want to deploy Kubernetes.
+* This input is case-sensitive. Do not add any special characters except ``_`` (underscore) for the cluster name."
+"**deployment**
+
+     ``boolean``
+
+     Required  ","* Indicates if Kubernetes will be deployed or not.
+* **Accepted values**: ``true`` or ``false``"
 "**k8s_cni**
 
      ``string``

@@ -5,8 +5,8 @@ The accelerator role allows users to  set up the `AMD ROCm <https://rocm.docs.am
 
 **Prerequisites**
 
-* Ensure that the ROCm local repositories are configured using the `local_repo.yml <../CreateLocalRepo/index.html>`_ script.
-* Ensure that the ``input/software_config.json`` contains valid amdgpu and rocm version. See `input parameters <../CreateLocalRepo/InputParameters.html>`_ for more information.
+* Ensure that the ROCm local repositories are configured using the `local_repo.yml <../RHEL_new/CreateLocalRepo/index.html>`_ script.
+* Ensure that the ``input/software_config.json`` contains valid amdgpu and rocm version. See `input parameters <../RHEL_new/CreateLocalRepo/InputParameters.html>`_ for more information.
 
 .. note::
 	* Nodes provisioned using the Omnia provision tool do not require a RedHat subscription to run ``accelerator.yml`` on RHEL target nodes.
@@ -42,6 +42,6 @@ User permissions for ROCm platforms
 
         /opt/rocm/bin/<rocm command>
 
-.. image:: ../../../images/ROCm_user_permissions.png
+.. image:: ../../images/ROCm_user_permissions.png
 
 For any configuration changes, check out ROCm's official documentation `here. <https://rocm.docs.amd.com/projects/install-on-linux/en/latest/how-to/prerequisites.html>`_

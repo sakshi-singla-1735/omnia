@@ -26,3 +26,11 @@
 - name: Set has_service_role to true if 'service_node' role is present
   ansible.builtin.set_fact:
     has_service_role: "{{ roles_config_data.ansible_facts.Roles | selectattr('name', 'equalto', 'service_node') | list | length > 0 }}"
+
+- name: Fail if service k8s cluster role is defined but external NFS is not configured
+  when: >
+    (roles_config_data.ansible_facts.Roles | selectattr('name', 'equalto', 'service_kube_control_plane') | list | length > 0) and
+    (not nfs_used or (nfs_type | default('') != 'external'))
+  ansible.builtin.fail:
+    msg: >-
+      {{ nfs_not_configured if not nfs_used else service_cluster_nfs_error_msg }}

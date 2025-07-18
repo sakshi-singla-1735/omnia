@@ -1,14 +1,14 @@
 Cluster formation
 =====================
 
-1. In the ``input/omnia_config.yml``, ``input/security_config.yml``, and ``input/storage_config.yml`` files, provide the `required details <../schedulerinputparams.html>`_. For ``input/telemetry_config.yml``, the details can be found `here <../../../../Telemetry/index.html#id13>`_.
+1. In the ``/opt/omnia/input/project_default/omnia_config.yml``, ``/opt/omnia/input/project_default/security_config.yml``, and ``/opt/omnia/input/project_default/storage_config.yml`` files, provide the `required details <../schedulerinputparams.html>`_. For ``/opt/omnia/input/project_default/telemetry_config.yml``, the details can be found `here <../../../../Telemetry/index.html#id13>`_.
 
 2. Create an inventory file in the *omnia* folder. Check out the `sample inventory <../../../samplefiles.html>`_ for more information. If a hostname is used to refer to the target nodes, ensure that the domain name is included in the entry. IP addresses are also accepted in the inventory file.
 
 .. include:: ../../Appendices/hostnamereqs.rst
 
 .. note::
-     * Omnia creates a log file which is available at: ``/var/log/omnia.log``.
+     * Omnia creates log files, available at: ``/opt/omnia/log/``.
      * If only Slurm is being installed on the cluster, docker credentials are not required.
 
 
@@ -24,7 +24,7 @@ To run ``omnia.yml``: ::
 
         ssh omnia_core
         cd /omnia
-        ansible-playbook omnia.yml -i <inventory filepath>
+        ansible-playbook omnia.yml -i <inventory_file_path>
 
 
 .. note::
@@ -36,5 +36,4 @@ To run ``omnia.yml``: ::
 
     * Use the ansible-vault view or edit commands and not the ansible-vault decrypt or encrypt commands. If you have used the ansible-vault decrypt or encrypt commands, provide 644 permission to the parameter files.
 
-4. Once ``omnia.yml`` playbook is successfully executed, the cluster is up and running with the required application stack. Now you can install `AI tools <../InstallAITools/index.html>`_ or utilize the cluster for job execution.
-
+4. Once ``omnia.yml`` playbook is successfully executed, the cluster is up and running with the required application stack.

@@ -59,12 +59,9 @@ Run either of the following commands:
 
     1. ::
 
-            ansible-playbook omnia/omnia.yml -i <inventory filepath>
+            ansible-playbook omnia/omnia.yml -i <inventory_file_path>
 
     2. ::
 
-            ansible-playbook scheduler/scheduler.yml -i <inventory filepath>
+            ansible-playbook scheduler/scheduler.yml -i <inventory_file_path>
     
-.. caution:: The ``scheduler.yml`` playbook can be run only after executing ``omnia.yml`` at least once.
-
-.. note:: To add new nodes to an existing cluster, click `here. <../../../Maintenance/addnode.html>`_
