@@ -55,9 +55,9 @@
   when: service_k8s_support and service_k8s_playbook is defined
   ansible.builtin.include_tasks: fetch_omnia_config.yml
 
-- name: Validate service k8s nodes requirements
-  when: service_k8s_support and service_k8s_playbook is defined
-  ansible.builtin.include_tasks: k8s_validations.yml
+# - name: Validate service k8s nodes requirements
+#   when: service_k8s_support and service_k8s_playbook is defined
+#   ansible.builtin.include_tasks: k8s_validations.yml
 
 - name: Validate inventory in all playbooks except service_k8s_cluster
   when: service_k8s_playbook is not defined

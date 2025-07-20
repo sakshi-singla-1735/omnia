@@ -77,9 +77,9 @@
           {{ vars[cluster_ha_var_name]
               | selectattr('cluster_name', 'equalto', cluster_name)
               | list
-              | first }}
+              | default([]) }}
 
     - name: Set HA-related facts
       when: selected_cluster_ha is defined
       ansible.builtin.set_fact:
-        enable_k8s_ha: "{{ selected_cluster_ha.enable_k8s_ha | default(false) }}"
+        enable_k8s_ha: "{{ selected_cluster_ha[0].enable_k8s_ha | default(false) }}"
