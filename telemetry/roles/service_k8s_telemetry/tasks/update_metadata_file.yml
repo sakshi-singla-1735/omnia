@@ -25,7 +25,7 @@
 - name: Wait for each iDRAC telemetry pod to be ready
   ansible.builtin.command: >
     kubectl wait --for=condition=ready pod/{{ item }}
-    -n {{ telemetry_namespace }} --timeout=10m
+    -n {{ telemetry_namespace }} --timeout={{ pod_wait_timeout }}
   loop: "{{ idrac_telemetry_pods }}"
   changed_when: false
 

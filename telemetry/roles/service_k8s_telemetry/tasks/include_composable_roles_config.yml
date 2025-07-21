@@ -48,7 +48,7 @@
       ansible.builtin.include_vars: "{{ service_cluster_metadata_path }}"
       register: exisiting_metadata
       no_log: true
-      ignore_errors: true
+      failed_when: false
 
     - name: Fetch service_cluster info
       get_service_cluster_info:

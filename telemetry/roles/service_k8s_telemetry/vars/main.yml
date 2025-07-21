@@ -58,6 +58,7 @@ mysqldb_container_port1: 3306
 mysqldb_container_port2: 33060
 prometheus_pump_port: 2112
 mysql_image: "docker.io/library/mysql:9.3.0"
+pod_wait_timeout: "10m"
 
 # Usage: prometheus_deployment.yml
 prometheus_pvc_name: "prometheus-pvc"
