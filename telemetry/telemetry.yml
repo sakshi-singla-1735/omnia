@@ -36,6 +36,8 @@
   ansible.builtin.import_playbook: ../utils/create_container_group.yml
   vars:
     oim_group: true
+    omnia_provision_group: true
+    omnia_provision_validation: true
 
 - name: Validate telemetry input parameters
   hosts: localhost
@@ -74,7 +76,29 @@
       ansible.builtin.include_role:
         name: service_k8s_telemetry
         tasks_from: prereq_checks.yml
-      when: hostvars['localhost']['kube_prometheus_support'] or hostvars['localhost']['federated_idrac_telemetry_collection']
+
+# service_k8s_prereq
+- name: Initiate pre-requisites for service cluster
+  hosts: omnia_provision
+  connection: ssh
+  gather_facts: false
+  tasks:
+    - name: Initiate pre-requisites
+      ansible.builtin.include_role:
+        name: service_k8s_telemetry
+        tasks_from: include_composable_roles_config.yml
+
+- name: Add telemetry hosts in inventory
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Add telemetry hosts in inventory
+      ansible.builtin.include_role:
+        name: telemetry_validation
+        tasks_from: add_host_goups
+      when:
+        - idrac_telemetry_support
 
 # - name: Update Repositories/Registries on nodes
 #   ansible.builtin.import_playbook: ../utils/update_user_repo.yml
