@@ -49,3 +49,11 @@
           'docker.io/grafana/loki:' + loki_image_tag,
           'docker.io/grafana/promtail:' + promtail_image_tag
         ] }}
+
+- name: Set container_images_dict fact
+  ansible.builtin.set_fact:
+    container_images_dict: "{{ dict(container_images
+        | map('regex_replace', '[:/]', '_')
+        | map('regex_replace', '$', '.tar')
+        | zip(container_images))
+      }}"

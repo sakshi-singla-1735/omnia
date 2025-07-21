@@ -46,6 +46,7 @@
         msg: "{{ task_results.table_output.split('\n') if task_results.table_output is defined else 'No table output available.' }}"
 
     - name: Handle overall status
+      when: task_results.overall_status is defined
       block:
         - name: Confirm all tasks Success
           ansible.builtin.debug:

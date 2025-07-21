@@ -12,12 +12,12 @@ Slurm
 
 **Resolution**:
 
-* Manually restart the slurmd services on the kube_control_plane by running the following commands: ::
+* Manually restart the slurmd services on the ``slurm_control_node`` by running the following commands: ::
 
     systemctl restart slurmdbd
     systemctl restart slurmctld
 
-* Run ``systemctl status slurmd`` to manually restart the following service on all the cluster nodes.
+* Run ``systemctl status slurmd`` to check if the services have started on all the cluster nodes.
 
 
 ⦾ **What to do if new slurm node is not added to sinfo output of slurm control node when** ``restart_slurm_services`` **in the** ``omnia_config.yml`` **is set to** ``false`` **?**

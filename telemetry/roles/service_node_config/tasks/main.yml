@@ -50,4 +50,4 @@
         podman_container_name: "{{ prometheus_container_name }}"
 
     - name: Include tasks for podman images
-      ansible.builtin.include_tasks: pull_podman_images.yml
+      ansible.builtin.include_tasks: "{{ role_path }}/../oim_ha_node_config/tasks/pull_podman_images.yml"

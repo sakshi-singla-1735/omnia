@@ -70,6 +70,40 @@ def load_yaml_as_json(yaml_file, omnia_base_dir, project_name, logger, module):
         # Instead of raising exception immediately, return None to indicate
         # validation failure, in case there are other validations to perform
         return None
+    
+def check_bmc_range_against_admin_network(bmc_range, admin_static_range, admin_dynamic_range, admin_ip):
+    """
+    Validates that the BMC static range does not overlap with:
+    - Admin static range
+    - Admin dynamic range
+    - Primary OIM admin IP
+
+    Args:
+        bmc_range (str): BMC static range (start-end format)
+        admin_static_range (str): Admin static range (start-end format)
+        admin_dynamic_range (str): Admin dynamic range (start-end format)
+        admin_ip (str): Primary OIM admin IP (single IP)
+
+    Returns:
+        list: A list of error strings if overlaps are found.
+    """
+    errors = []
+
+    if not bmc_range or bmc_range in ["", "N/A"]:
+        return errors  # Skip empty or N/A values
+
+    # Check overlap with admin static and dynamic ranges
+    for field_name, admin_range in [("admin static_range", admin_static_range), ("admin dynamic_range", admin_dynamic_range)]:
+        if admin_range and admin_range not in ["", "N/A"]:
+            has_overlap, _ = check_overlap([bmc_range, admin_range])
+            if has_overlap:
+                errors.append(f"BMC range {bmc_range} overlaps with {field_name}: {admin_range}")
+
+    # Check containment of primary_oim_admin_ip
+    if admin_ip and is_ip_within_range(bmc_range, admin_ip):
+        errors.append(f"BMC range {bmc_range} contains primary_oim_admin_ip: {admin_ip}")
+
+    return errors
 
 def create_error_msg(key, value, msg):
     """
@@ -321,7 +355,7 @@ def verify_iso_file(iso_file_path, provision_os, provision_os_version):
     version_matches = provision_os_version in iso_path_lower
 
     if not (os_name_matches and version_matches):
-        return en_us_validation_msg.iso_file_path_not_contain_os_msg(
+        return en_us_validation_msg.iso_file_path_invalid_os_msg(
             iso_file_path, provision_os, provision_os_version
         )
 
