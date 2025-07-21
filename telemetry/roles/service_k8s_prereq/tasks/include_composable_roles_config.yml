@@ -37,20 +37,20 @@
 
 - name: Set Facts for composable roles data
   ansible.builtin.set_fact:
-    groups_roles_info: "{{ composable_roles_output.groups_roles_info }}"
+    groups_info: "{{ composable_roles_output.groups_roles_info }}"
 
-- name: Fetch hierarchical data
+- name: Fetch service_cluster info
   get_service_cluster_info:
-    groups_roles_info: "{{ groups_roles_info }}"
-  register: hierarchical_output
+    groups_info: "{{ groups_info }}"
+  register: service_cluster_info_output
 
-- name: Set fact for service_node role required and other facts
+- name: Set fact for service_cluster role required and other facts
   ansible.builtin.set_fact:
-    booted_service_nodes_data: "{{ hierarchical_output.booted_service_nodes_data | default({}) }}"
+    service_cluster_node_details: "{{ service_cluster_info_output.service_cluster_node_details | default({}) }}"
 
 - name: Create and update service node metadata file
   ansible.builtin.copy:
     dest: "{{ service_node_metadata_path }}"
-    content: "{{ {'service_nodes_metadata': booted_service_nodes_data} | to_yaml }}"
+    content: "{{ {'service_cluster_metadata': service_cluster_node_details} | to_nice_yaml }}"
     mode: "{{ metadata_perm }}"
     force: true

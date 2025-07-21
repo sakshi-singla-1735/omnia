@@ -77,6 +77,28 @@
         name: service_k8s_telemetry
         tasks_from: prereq_checks.yml
 
+# service_k8s_prereq
+- name: Initiate pre-requisites for service cluster
+  hosts: omnia_provision
+  connection: ssh
+  gather_facts: false
+  tasks:
+    - name: Initiate pre-requisites
+      ansible.builtin.include_role:
+        name: service_k8s_prereq
+
+- name: Add telemetry hosts in inventory
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Add telemetry hosts in inventory
+      ansible.builtin.include_role:
+        name: telemetry_validation
+        tasks_from: add_host_goups
+      when: 
+        - idrac_telemetry_support
+
 # - name: Update Repositories/Registries on nodes
 #   ansible.builtin.import_playbook: ../utils/update_user_repo.yml
 #   when: not ( hostvars['127.0.0.1']['update_user_repo_executed'] | default(false) | bool )
@@ -125,16 +147,6 @@
 #       ansible.builtin.include_role:
 #         name: service_node_config
 #         tasks_from: prometheus_config_update.yml
-
-# service_k8s_prereq
-- name: Initiate pre-requisites for service cluster
-  hosts: omnia_provision
-  connection: ssh
-  gather_facts: false
-  tasks:
-    - name: Initiate pre-requisites
-      ansible.builtin.include_role:
-        name: service_k8s_prereq
 
 - name: Deployment of telemetry pods in service cluster
   hosts: kube_control_plane

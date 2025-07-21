@@ -16,16 +16,15 @@
 
 #!/usr/bin/python
 
-"""Ansible module to check hierarchical provisioning status and service node HA configuration."""
+"""Ansible module to check telemetry service cluster node details."""
 
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.discovery.omniadb_connection import get_data_from_db # type: ignore
 
-def get_booted_service_nodes_data():
+def get_service_cluster_node_details():
     """
-    This function retrieves all service node data from the database
-    and ensures they are all in 'booted' state. If not, it raises an error.
-    Returns a dictionary of booted service node data.
+    This function retrieves all service cluster node data from the database.
+    Returns a dictionary of service cluster node data.
     """
     query_result = get_data_from_db(
         table_name='cluster.nodeinfo',
@@ -33,7 +32,7 @@ def get_booted_service_nodes_data():
     )
 
     data = {}
-    not_booted_nodes = []
+    not_available_nodes = []
 
     for sn in query_result:
         node = sn['node']
@@ -43,7 +42,7 @@ def get_booted_service_nodes_data():
         cluster_name = sn['cluster_name']
 
         if status != 'booted':
-            not_booted_nodes.append(service_tag)
+            not_available_nodes.append(service_tag)
             continue
 
         data[service_tag] = {
@@ -53,90 +52,90 @@ def get_booted_service_nodes_data():
             'cluster_name': cluster_name
         }
 
-    if not_booted_nodes:
+    if not_available_nodes:
         raise ValueError(
-            f"The following service nodes are not in the 'booted' state: "
-            f"{', '.join(not_booted_nodes)}. "
-            "For hierarchical provisioning of compute nodes or adding new management layer nodes, "
-            "all service nodes initiated for provisioning must be in the 'booted' state. "
-            "Please wait until all service nodes are booted, or remove the nodes experiencing "
+            f"The following service cluster nodes are not in 'booted' state: "
+            f"{', '.join(not_available_nodes)}. "
+            "Please verify the node status and try again."
+            "For federated telemetry colelction of compute nodes, "
+            "service cluster nodes must be available and in the 'booted' state. "
+            "Please wait until all service cluster nodes are booted, or remove the nodes experiencing "
             "provisioning failures using the utils/delete_node.yml playbook."
         )
     return data
 
-def check_hierarchical_provision(group, parent, booted_service_nodes_data):
-    """Check if hierarchical provisioning is required."""
+def check_service_cluster_node_details(group, parent, service_cluster_node_details):
+    """Check if service cluster node details are available."""
 
     if not parent:
         return False
-    if parent in booted_service_nodes_data:
+    if parent in service_cluster_node_details:
         return True
     raise ValueError(
             f"Error: The service tag '{parent}' specified in the 'parent' field for group '{group}' "
-            "in roles_config.yml may be incorrect, or the node might not have been provisioned. "
-            "Please verify the input in roles_config.yml and execute discovery_provision.yml playbook "
-            "with the 'management_layer' tag to provision service nodes."
+            "may be incorrect, or the node might not be available. "
+            "Please verify the input and try again."
         )
 
-def get_hierarchical_data(groups_roles_info, booted_service_nodes_data):
+def get_service_cluster_data(groups_info, service_cluster_node_details):
     """
-    Generate hierarchical data from groups_roles_info and booted_service_nodes_data.
+    Generate service cluster data from groups_info and service_cluster_node_details.
 
-    This function checks the hierarchical provisioning status for each group,
-    updates the groups_roles_info with the status, and adds child group data
-    to booted_service_nodes_data.
+    This function checks the service cluster node details for each group,
+    updates the groups_info with the details, and adds child group data
+    to service_cluster_node_details.
 
     Args:
-        groups_roles_info (dict): Dictionary containing group information.
-        booted_service_nodes_data (dict): Dictionary containing booted service node information.
+        groups_info (dict): Dictionary containing group information.
+        service_cluster_node_details (dict): Dictionary containing service cluster node information.
 
     Returns:
         tuple: A tuple containing:
-            - updated groups_roles_info (dict)
-            - updated booted_service_nodes_data (dict)
-            - hierarchical_provision_status (dict)
+            - updated groups_info (dict)
+            - updated service_cluster_node_details (dict)
+            - service_cluster_node_details_status (dict)
     """
 
 
-    hierarchical_provision_status = False
+    service_cluster_node_details_status = False
 
-    for group, group_data in groups_roles_info.items():
+    for group, group_data in groups_info.items():
         parent = group_data.get('parent', '')
-        status = check_hierarchical_provision(group, parent, booted_service_nodes_data)
-        hierarchical_provision_status = hierarchical_provision_status or status
+        status = check_service_cluster_node_details(group, parent, service_cluster_node_details)
+        service_cluster_node_details_status = service_cluster_node_details_status or status
 
         if not status:
-            groups_roles_info[group]['hierarchical_provision_status'] = False
+            groups_info[group]['service_cluster_node_details_status'] = False
             continue
 
-        parent_data = booted_service_nodes_data.get(parent, {})
+        parent_data = service_cluster_node_details.get(parent, {})
         parent_data.setdefault('child_groups', []).append(group)
-        booted_service_nodes_data[parent] = parent_data
-        groups_roles_info[group]['hierarchical_provision_status'] = hierarchical_provision_status
+        service_cluster_node_details[parent] = parent_data
+        groups_info[group]['service_cluster_node_details_status'] = service_cluster_node_details_status
 
-    return groups_roles_info, booted_service_nodes_data, hierarchical_provision_status
+    return groups_info, service_cluster_node_details, service_cluster_node_details_status
 
 def main():
     """
-        Main function to execute the check_hierarchical_provision custom module.
+        Main function to execute the check_service_cluster_node_details custom module.
     """
     module_args = {
-        'groups_roles_info': {'type':"dict", 'required':True}
+        'groups_info': {'type':"dict", 'required':True}
     }
 
     module = AnsibleModule(argument_spec=module_args, supports_check_mode=True)
 
     try:
-        groups_roles_info = module.params["groups_roles_info"]
-        booted_service_nodes_data = get_booted_service_nodes_data()
-        groups_roles_info, booted_service_nodes_data, hierarchical_provision_status  = \
-            get_hierarchical_data(groups_roles_info, booted_service_nodes_data)
+        groups_info = module.params["groups_info"]
+        service_cluster_node_details = get_service_cluster_node_details()
+        groups_info, service_cluster_node_details, service_cluster_node_details_status  = \
+            get_service_cluster_data(groups_info, service_cluster_node_details)
 
         module.exit_json(
             changed=False,
-            hierarchical_provision_status = hierarchical_provision_status,
-            booted_service_nodes_data = booted_service_nodes_data,
-            groups_roles_info = groups_roles_info
+            service_cluster_node_details_status = service_cluster_node_details_status,
+            service_cluster_node_details = service_cluster_node_details,
+            groups_info = groups_info
         )
     except ValueError as e:
         module.fail_json(msg=str(e).replace('\n', ' '))
