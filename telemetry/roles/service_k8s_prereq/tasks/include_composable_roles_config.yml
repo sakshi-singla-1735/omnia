@@ -50,7 +50,7 @@
 
 - name: Create and update service node metadata file
   ansible.builtin.copy:
-    dest: "{{ service_node_metadata_path }}"
+    dest: "{{ service_cluster_metadata_path }}"
     content: "{{ {'service_cluster_metadata': service_cluster_node_details} | to_nice_yaml }}"
     mode: "{{ metadata_perm }}"
     force: true
