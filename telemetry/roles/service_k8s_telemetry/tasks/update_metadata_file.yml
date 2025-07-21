@@ -1,0 +1,58 @@
+#  Copyright 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+---
+
+- name: Fetch pods details in "{{ telemetry_namespace }}" namespace
+  kubernetes.core.k8s_info:
+    api_version: v1
+    kind: Pod
+    namespace: "{{ telemetry_namespace }}"
+  register: telemetry_pod_info
+
+- name: Filter running iDRAC telemetry pods
+  set_fact:
+    idrac_telemetry_pod_info: >-
+      {{
+        telemetry_pod_info.resources
+        | selectattr('metadata.name', 'search', '^' ~ idrac_telemetry_k8s_name)
+        | selectattr('status.phase', 'equalto', 'Running')
+        | list
+      }}
+
+- name: Extract names of running iDRAC telemetry pods
+  set_fact:
+    idrac_telemetry_pods: "{{ idrac_telemetry_pod_info | map(attribute='metadata.name') | list }}"
+
+- name: Get service cluster node details
+  set_fact:
+    kube_cp_node: "{{ service_cluster_metadata | dict2items | selectattr('value.child_groups', 'undefined') | list }}"
+    kube_compute_nodes: "{{ service_cluster_metadata | dict2items | selectattr('value.child_groups', 'defined') | list }}"
+
+- name: Build updated metadata with idrac telemetry pods
+  set_fact:
+    updated_metadata_items: "{{ updated_metadata_items | default([]) + [ { item.0.key: item.0.value | combine({ 'idrac_podname': item.1 }) } ] }}"
+  loop: "{{ (kube_cp_node + kube_compute_nodes) | zip(idrac_telemetry_pods) | list }}"
+
+- name: Append pod details in service_cluster metadata
+  set_fact:
+    service_cluster_metadata: "{{ service_cluster_metadata | combine(updated_metadata_items | combine, recursive=True) }}"
+
+- name: Update service_cluster metadata file
+  copy:
+    content: "{{ {'service_cluster_metadata': service_cluster_metadata} | to_nice_yaml }}"
+    dest: "{{ service_cluster_metadata_path }}"
+  delegate_to: localhost
+  connection: local
+  mode: "{{ metadata_perm }}"
+  force: true

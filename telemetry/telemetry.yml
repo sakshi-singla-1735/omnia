@@ -86,7 +86,11 @@
   tasks:
     - name: Initiate pre-requisites
       ansible.builtin.include_role:
-        name: service_k8s_prereq
+        name: service_k8s_telemetry
+        tasks_from: include_composable_roles_config.yml
+      when:
+        - hostvars['localhost']['idrac_telemetry_support']
+        - hostvars['localhost']['federated_idrac_telemetry_collection']
 
 - name: Add telemetry hosts in inventory
   hosts: localhost
@@ -168,8 +172,8 @@
         name: k8s_prometheus
 
 - name: Enable idrac telemetry in OIM
-  hosts: telemetry_group
-  connection: ssh
+  hosts: localhost
+  connection: local
   gather_facts: false
   tasks:
     - name: Enable idrac telemetry

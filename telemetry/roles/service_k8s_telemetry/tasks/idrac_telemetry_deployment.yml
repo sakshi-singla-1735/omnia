@@ -62,6 +62,10 @@
         msg: "{{ idrac_script_git_clone_error_msg.splitlines() | join(' ') }}"
       when: clone_idrac_script is failed
 
+- name: Set idrac-telemetry replica count
+  ansible.builtin.set_fact:
+    idrac_telemetry_replicas: "{{ service_cluster_metadata | dict2items | length }}"
+
 - name: Render and apply idrac-telemetry StatefulSet
   kubernetes.core.k8s:
     state: present

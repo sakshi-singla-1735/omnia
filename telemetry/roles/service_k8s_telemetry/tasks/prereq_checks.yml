@@ -57,9 +57,3 @@
   ansible.builtin.fail:
     msg: "{{ storage_class_missing_fail_msg }}"
   when: storage_class_name not in (sc_info.resources | map(attribute='metadata.name') | list)
-
-- name: Get Kubernetes service cluster node count
-  kubernetes.core.k8s_info:
-    api_version: v1
-    kind: Node
-  register: node_count
