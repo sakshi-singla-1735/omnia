@@ -108,7 +108,7 @@ prepare_oim_telemetry_not_executed_msg: "Telemetry container {{ telemetry_contai
  Please execute prepare_oim.yml to deploy all required containers."
 
 # Usage: add_host_goups.yml
-service_node_metadata_path: "/opt/omnia/.data/service_node_metadata.yml"
+service_cluster_metadata_path: "/opt/omnia/.data/service_cluster_metadata.yml"
 cluster_layout_path: "/opt/omnia/omnia_inventory/cluster_layout"
 invalid_parent_tags_message: |
   [ERROR] Invalid parent tags : {{ host_inventory.invalid_parent_tags }}.
