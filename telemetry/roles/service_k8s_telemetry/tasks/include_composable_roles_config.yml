@@ -60,7 +60,7 @@
         service_cluster_node_details: "{{ service_cluster_info_output.service_cluster_node_details | default({}) }}"
 
     - name: Merge existing and new service node details
-      set_fact:
+      ansible.builtin.set_fact:
         service_cluster_details: >-
           {{
             exisiting_metadata.service_cluster_metadata | default({}) |
@@ -70,6 +70,6 @@
     - name: Create and update service node metadata file
       ansible.builtin.copy:
         dest: "{{ service_cluster_metadata_path }}"
-        content: "{{ {'service_cluster_metadata': service_cluster_details } | to_nice_yaml }}"
+        content: "{{ {'service_cluster_metadata': service_cluster_details} | to_nice_yaml }}"
         mode: "{{ metadata_perm }}"
         force: true

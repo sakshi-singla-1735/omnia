@@ -14,7 +14,7 @@
 ---
 
 - name: Generating iDRAC telemetry pods names
-  set_fact:
+  ansible.builtin.set_fact:
     idrac_telemetry_pods: >-
       {{
         range(0, idrac_telemetry_replicas | int)
