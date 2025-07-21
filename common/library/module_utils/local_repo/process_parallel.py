@@ -221,13 +221,18 @@ def worker_process(task, determine_function, user_data, version_variables, arc, 
         task (dict): The task to be processed, containing details like the package to be processed.
         determine_function (function): A function that determines the function to call
         and its arguments for the task.
+        user_data: content from software_config.json
+        version_variables: softwarename_version for versioned softwares
+        arc: Architecture of software
         repo_store_path (str): Path to the repository where task-related files are stored.
         csv_file_path (str): Path to a CSV file that may be needed for processing the task.
         log_dir (str): Directory where log files for the worker process should be saved.
         result_queue (multiprocessing.Queue): Queue for putting the result of the 
         task execution (used for inter-process communication).
-        timeout (float): The maximum allowed time for the task execution.
+        docker_username: Docker username provided by the user
+        docker_password: Docker password for the provided username
         user_registries (str): List of user registries
+        timeout (float): The maximum allowed time for the task execution.
     Returns:
         None: The result is placed into the `result_queue`, so no return value is needed.
     """
