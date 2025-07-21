@@ -74,6 +74,7 @@
       ansible.builtin.include_role:
         name: service_k8s_telemetry
         tasks_from: prereq_checks.yml
+      when: hostvars['localhost']['kube_prometheus_support'] or hostvars['localhost']['federated_idrac_telemetry_collection']
 
 # - name: Update Repositories/Registries on nodes
 #   ansible.builtin.import_playbook: ../utils/update_user_repo.yml
