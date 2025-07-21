@@ -13,7 +13,7 @@
 #  limitations under the License.
 ---
 
-- name: Fetch pods details in "{{ telemetry_namespace }}" namespace
+- name: Fetch pods details in "{{ telemetry_namespace }}" namespace # noqa: name[template]
   kubernetes.core.k8s_info:
     api_version: v1
     kind: Pod
@@ -21,7 +21,7 @@
   register: telemetry_pod_info
 
 - name: Filter running iDRAC telemetry pods
-  set_fact:
+  ansible.builtin.set_fact:
     idrac_telemetry_pod_info: >-
       {{
         telemetry_pod_info.resources
@@ -31,27 +31,28 @@
       }}
 
 - name: Extract names of running iDRAC telemetry pods
-  set_fact:
+  ansible.builtin.set_fact:
     idrac_telemetry_pods: "{{ idrac_telemetry_pod_info | map(attribute='metadata.name') | list }}"
 
 - name: Get service cluster node details
-  set_fact:
+  ansible.builtin.set_fact:
     kube_cp_node: "{{ service_cluster_metadata | dict2items | selectattr('value.child_groups', 'undefined') | list }}"
     kube_compute_nodes: "{{ service_cluster_metadata | dict2items | selectattr('value.child_groups', 'defined') | list }}"
 
 - name: Build updated metadata with idrac telemetry pods
-  set_fact:
+  ansible.builtin.set_fact:
     updated_metadata_items: "{{ updated_metadata_items | default([]) + [ { item.0.key: item.0.value | combine({ 'idrac_podname': item.1 }) } ] }}"
   loop: "{{ (kube_cp_node + kube_compute_nodes) | zip(idrac_telemetry_pods) | list }}"
 
 - name: Append pod details in service_cluster metadata
-  set_fact:
+  ansible.builtin.set_fact:
     service_cluster_metadata: "{{ service_cluster_metadata | combine(updated_metadata_items | combine, recursive=True) }}"
 
 - name: Update service_cluster metadata file
-  copy:
+  ansible.builtin.copy:
     content: "{{ {'service_cluster_metadata': service_cluster_metadata} | to_nice_yaml }}"
     dest: "{{ service_cluster_metadata_path }}"
     force: true
+    mode: "{{ metadata_perm }}"
   delegate_to: localhost
   connection: local
