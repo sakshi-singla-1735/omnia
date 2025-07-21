@@ -170,12 +170,6 @@
   roles:
     - k8s_csi_powerscale_plugin
 
-- name: Install CSI powerscale plugin on kube control nodes
-  hosts: kube_control_plane
-  gather_facts: false
-  roles:
-    - k8s_csi_powerscale_plugin
-
 - name: Install Slurm
   hosts: slurm_control_node, slurm_node, login
   any_errors_fatal: true
