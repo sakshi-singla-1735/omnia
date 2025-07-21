@@ -54,5 +54,4 @@
     dest: "{{ service_cluster_metadata_path }}"
   delegate_to: localhost
   connection: local
-  mode: "{{ metadata_perm }}"
   force: true
