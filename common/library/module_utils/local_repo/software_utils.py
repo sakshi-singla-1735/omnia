@@ -32,7 +32,8 @@ from ansible.module_utils.local_repo.config import (
     RHEL_OS_URL,
     SOFTWARES_KEY,
     USER_REPO_URL,
-    REPO_CONFIG
+    REPO_CONFIG,
+    ARCH_SUFFIXES
 )
 
 
@@ -251,7 +252,7 @@ def transform_package_dict(data, sw_arch_map):
     return dict(result)
 
 
-def parse_repo_urls(repo_config, local_repo_config_path, version_variables, vault_key_path):
+def parse_repo_urls(repo_config, local_repo_config_path, version_variables, vault_key_path, sw_arch_dict):
     """
     Parses the repository URLs from the given local repository configuration file.
     Args:
@@ -259,6 +260,7 @@ def parse_repo_urls(repo_config, local_repo_config_path, version_variables, vaul
         local_repo_config_path (str): The path to the local repository configuration file.
         version_variables (dict): A dictionary of version variables.
         vault_key_path: Ansible vault key path
+        sw_arch_dict: dictionary mapping between software and architectures
     Returns:
         tuple: A tuple where the first element is either the parsed repository URLs as a JSON string
                (on success) or the rendered URL (if unreachable),
@@ -324,21 +326,25 @@ def parse_repo_urls(repo_config, local_repo_config_path, version_variables, vaul
 
     for repo in repo_entries:
         name = repo.get("name", "unknown")
+        parts = name.split("-")
+        sw_name = name
+        if parts[-1] in ARCH_SUFFIXES:
+           sw_name = "-".join(parts[:-1])
         url = repo.get("url", "")
         gpgkey = repo.get("gpgkey")
-        version = version_variables.get(f"{name}_version")
+        version = version_variables.get(f"{sw_name}_version")
         policy_given = repo.get("policy", repo_config)
         policy = REPO_CONFIG.get(policy_given)
         try:
             rendered_url = Template(url).render(version_variables)
         except Exception as e:
-            print(f"Warning: Error rendering URL {url} - {str(e)}")
             rendered_url = url  # Fallback to original URL
 
         # To handle special case when software_config.json does not contain these
-        if name in ["amdgpu", "rocm", "beegfs"] and (version is None or version == "null"):
-            continue
-
+        with open('/root/log.txt', "w") as f:
+             f.write(sw_name + "\n")
+        if sw_name in ["amdgpu", "rocm", "beegfs"] and (version is None or version == "null"):
+           continue 
         # Edge case for oneapi, snoopy, nvidia-repo
         elif not is_remote_url_reachable(rendered_url) and name not in ["oneapi", "snoopy", "nvidia-repo"]:
             return rendered_url, False

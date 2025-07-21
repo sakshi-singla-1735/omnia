@@ -167,7 +167,7 @@ def main():
                 software_dict[software] = tasks
 
         software_dict=transform_package_dict(software_dict, sw_arch_map)
-        local_config, url_result = parse_repo_urls(repo_config, local_repo_config_path , version_variables, vault_key_path)
+        local_config, url_result = parse_repo_urls(repo_config, local_repo_config_path , version_variables, vault_key_path, sw_arch_map)
         if not url_result:
             module.fail_json(f"{local_config} is not reachable or invalid, please check and provide correct URL")
 

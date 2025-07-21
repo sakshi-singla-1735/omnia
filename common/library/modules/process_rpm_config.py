@@ -57,23 +57,6 @@ def execute_command(cmd_string, log,type_json=None, seconds=None):
         log.error("Exception while executing command: %s", str(e))
         return False
 
-def skip_config(package_name, version, log):
-    """
-    Check if the distribution should be skipped based on package name and version.
-
-    Args:
-        package_name (str): The name of the package.
-        version (str): The version of the package.
-        log (logging.Logger): Logger instance for logging the process.
-
-    Returns:
-        bool: True if the repository should be skipped, False otherwise.
-    """
-    if package_name in ["beegfs", "rocm", "amdgpu"] and version == "null":
-        log.info(f"Skipping repository {package_name} due to missing version in software_config.json.")
-        return True
-    return False
-
 def check_packages_and_get_url(distribution_name,log):
     """
     Check if packages exist in the distribution and return the base URL.
@@ -121,9 +104,6 @@ def create_rpm_repository(repo,log):
     repo_name = repo["package"]
     version = repo.get("version")
 
-    if skip_config(repo_name, version, log):
-        return True, repo_name
-
     if version != "null":
         repo_name = f"{repo_name}_{version}"
     if not show_rpm_repository(repo_name,log):
@@ -168,8 +148,6 @@ def create_rpm_remote(repo,log):
     repo_name = repo["package"]
     result = None
 
-    if skip_config(repo_name, version, log):
-        return True, repo_name
     if version != "null":
         repo_name = f"{repo_name}_{version}"
 
@@ -228,9 +206,6 @@ def sync_rpm_repository(repo,log):
     repo_name = repo["package"]
     version = repo.get("version")
 
-    if skip_config(repo_name, version, log):
-        return True, repo_name
-
     if version != "null":
         repo_name = f"{repo_name}_{version}"
 
@@ -258,9 +233,6 @@ def create_publication(repo,log):
     repo_name = repo["package"]
     version = repo.get("version")
 
-    if skip_config(repo_name, version, log):
-        return True, repo_name
-
     if version != "null":
         repo_name = f"{repo_name}_{version}"
 
@@ -284,9 +256,6 @@ def create_distribution(repo, log):
     package_name = repo["package"]
     repo_name = package_name
     version = repo.get("version")
-
-    if skip_config(repo_name, version, log):
-        return True, repo_name
 
     if version != "null":
         base_path = f" opt/omnia/offline_repo/cluster/rhel/rpms/{package_name}/{version}"
