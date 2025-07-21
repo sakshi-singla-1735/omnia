@@ -64,7 +64,15 @@
 
 - name: Set idrac-telemetry replica count
   ansible.builtin.set_fact:
-    idrac_telemetry_replicas: "{{ service_cluster_metadata | dict2items | length }}"
+    idrac_telemetry_replicas: >-
+      {{
+        service_cluster_metadata
+        | dict2items
+        | selectattr('value.parent_status', 'defined')
+        | selectattr('value.parent_status', 'equalto', true)
+        | list
+        | length
+      }}
 
 - name: Render and apply idrac-telemetry StatefulSet
   kubernetes.core.k8s:
