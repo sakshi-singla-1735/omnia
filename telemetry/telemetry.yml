@@ -96,7 +96,7 @@
       ansible.builtin.include_role:
         name: telemetry_validation
         tasks_from: add_host_goups
-      when: 
+      when:
         - idrac_telemetry_support
 
 # - name: Update Repositories/Registries on nodes
@@ -167,8 +167,8 @@
         name: k8s_prometheus
 
 - name: Enable idrac telemetry in OIM
-  hosts: localhost
-  connection: local
+  hosts: telemetry_group
+  connection: ssh
   gather_facts: false
   tasks:
     - name: Enable idrac telemetry
