@@ -63,7 +63,7 @@
 
     - name: Set software as compute_k8s
       ansible.builtin.set_fact:
-        software_stack: "k8s"
+        software_stack: "compute_k8s"
       when: compute_k8s_support
 
 - name: Check if slurm support is true

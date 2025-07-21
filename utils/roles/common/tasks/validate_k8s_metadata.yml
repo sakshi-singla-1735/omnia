@@ -75,6 +75,12 @@
         msg: "{{ confirmation_fail_msg }}"
       when: pause_result.user_input | default('yes') != 'yes'
 
+    - name: Set facts when compute_k8s_cluster
+      ansible.builtin.set_fact:
+        k8s_version: "{{ compute_k8s_version }}"
+        k8s_support: "{{ compute_k8s_support }}"
+      when: cluster_var_name == "compute_k8s_cluster"
+
     - name: Set facts when service_k8s_cluster
       ansible.builtin.set_fact:
         k8s_version: "{{ service_k8s_version }}"
@@ -94,7 +100,7 @@
         k8s_service_addresses: "{{ selected_cluster.k8s_service_addresses }}"
         k8s_pod_network_cidr: "{{ selected_cluster.k8s_pod_network_cidr }}"
 
-- name: Validate k8s metadata
+- name: Validate compute k8s and service k8s metadata
   when: k8s_support
   block:
     - name: Check if the k8s metadata file exists
@@ -117,12 +123,12 @@
       ansible.builtin.set_fact:
         metadata_dict: "{{ metadata_content.content | b64decode | from_yaml }}"
 
-    - name: Check if the given k8s version exists in metadata
+    - name: Check if the given compute k8s or service k8s version exists in metadata
       ansible.builtin.set_fact:
         matched_kubespray_version: "{{ metadata_dict.k8s_kubespray_versions[k8s_version] }}"
       when: k8s_version in metadata_dict.k8s_kubespray_versions
 
-    - name: Fail if k8s version is not found in metadata
+    - name: Fail if compute k8s or service k8s is not found in metadata
       ansible.builtin.fail:
         msg: "{{ k8s_version_failed_msg }}"
       when: k8s_version not in metadata_dict.k8s_kubespray_versions

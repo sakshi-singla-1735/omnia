@@ -15,6 +15,7 @@
 
 - name: Initialise variables
   ansible.builtin.set_fact:
+    k8s_support: false
     compute_k8s_support: false
     service_k8s_support: false
     slurm_support: false
