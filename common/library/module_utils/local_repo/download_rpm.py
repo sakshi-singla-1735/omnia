@@ -57,25 +57,10 @@ def process_rpm(package, repo_store_path, status_file_path, cluster_os_type,
             os.makedirs(rpm_directory, exist_ok=True)
 
             if arc.lower() in ("x86", "x86_64"):
-                dnf_download_command = [
-                    'dnf', 'download',
-                    '--resolve',
-                    '--alldeps',
-                    '--arch=x86_64,noarch',
-                    f'--destdir={rpm_directory}'
-                ] + rpm_list
+                dnf_download_command = (dnf_download_command_x86_64 + [f'--destdir={rpm_directory}'] + rpm_list)
 
             elif arc.lower() in ("arm", "aarch64"):  # ARM architectures
-                dnf_download_command = [
-                    'dnf', 'download',
-                    '--arch', 'aarch64',
-                    '--forcearch', 'aarch64',
-                    '--best',
-                    '--resolve',
-                    '--alldeps',
-                    f'--destdir={rpm_directory}'
-                ] + rpm_list
-
+                dnf_download_command = (dnf_download_command_aarch64 + [f'--destdir={rpm_directory}'] + rpm_list)
             rpm_result = subprocess.run(dnf_download_command,
                                         check=False, capture_output=True, text=True)
             logger.info(f"RPM Download success stdout {rpm_result.stdout}")

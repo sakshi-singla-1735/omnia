@@ -60,6 +60,7 @@ RHEL_OS_URL = "rhel_os_url"
 SOFTWARES_KEY = "softwares"
 USER_REPO_URL = "user_repo_url"
 REPO_CONFIG = { "always": "on_demand", "partial": "on_demand", "never": "streamed" }
+ARCH_SUFFIXES = {"x86", "x86_64", "aarch64"}
 
 # ----------------------------
 # Used by download_common.py
@@ -140,3 +141,6 @@ CERT_KEYS = ["sslcacert", "sslclientkey", "sslclientcert"]
 # Used by process_metadata.py
 # ----------------------------
 metadata_rerun_file_path = "/opt/omnia/offline_repo/.data/localrepo_rerun_metadata.yml"
+
+dnf_download_command_x86_64 = ["dnf", "download", "--resolve", "--alldeps", "--arch=x86_64,noarch"]
+dnf_download_command_aarch64 = ["dnf", "download", "--arch", "aarch64", "--forcearch", "aarch64", "--best", "--resolve", "--alldeps"] 
