@@ -18,22 +18,22 @@
   block:
     - name: Load compute_k8s.json
       ansible.builtin.set_fact:
-        k8s_packages_json: "{{ lookup('file', base_k8s_json_file) | from_json }}"
+        compute_k8s_packages_json: "{{ lookup('file', base_compute_k8s_json_file) | from_json }}"
 
     - name: Extract and set facts for tarball URLs
       ansible.builtin.set_fact:
-        kubeadm_package: "{{ k8s_packages_json['compute_k8s']['cluster'] | selectattr('type', 'equalto', 'tarball') | selectattr('package', 'search', 'kubeadm') | map(attribute='package') | join }}" # noqa: yaml[line-length]
+        kubeadm_package: "{{ compute_k8s_packages_json['compute_k8s']['cluster'] | selectattr('type', 'equalto', 'tarball') | selectattr('package', 'search', 'kubeadm') | map(attribute='package') | join }}" # noqa: yaml[line-length]
 
-    - name: Set default fact for dynamic k8s generation
+    - name: Set default fact for dynamic compute k8s generation
       ansible.builtin.set_fact:
         dynamic_compute_k8s_generation: false
 
-    - name: Set fact for dynamic genaration when kubeadm package is not kubeadm-1.31.4
+    - name: Set fact for compute k8s dynamic genaration when kubeadm package is not kubeadm-1.31.4
       ansible.builtin.set_fact:
         dynamic_compute_k8s_generation: true
       when: kubeadm_package != kubeadm_package_name
 
-    - name: Set fact for dynamic genaration when k8s version is not equal to 1.31.4
+    - name: Set fact for dynamic genaration when compute k8s version is not equal to 1.31.4
       ansible.builtin.set_fact:
         dynamic_compute_k8s_generation: true
       when: compute_k8s_version != "1.31.4"
