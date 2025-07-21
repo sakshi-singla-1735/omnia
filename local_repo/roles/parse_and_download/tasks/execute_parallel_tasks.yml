@@ -39,8 +39,8 @@
       ansible.builtin.debug:
         msg:
           - "Parallel tasks encountered an error. Check the logs for details:"
-          - "Log directory: {{ base_path }}/{{ item.key }}/logs"
-          - "Log file: {{ base_path }}/{{ item.key }}_task_results.log"
+          - "Log directory: {{ base_path }}/{{ item.arch }}/{{ item.key }}/logs"
+          - "Log file: {{ base_path }}/{{ item.arch }}/{{ item.key }}_task_results.log"
   always:
     - name: Display the output table
       ansible.builtin.debug:
