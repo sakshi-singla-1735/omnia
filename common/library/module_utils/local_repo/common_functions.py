@@ -195,6 +195,10 @@ def get_arch_from_sw_config(software_name, sw_config_data, roles_config_data):
     """
     For a given software, extract architecture list from software_config.json.
     If not found, fallback to arch defined in Groups in roles_config.yml.
+    Parameters
+       software_name: name of the software
+       sw_config_data: json content of software_config.json
+       roles_config_data: content of roles_config.yml
 
     Returns:
         dict: {software_name: [arch list]}
@@ -217,6 +221,10 @@ def get_arch_from_sw_config(software_name, sw_config_data, roles_config_data):
 def get_arch_from_roles_config(software_name, roles_config_data):
     """
     Extract architecture values under each group defined in roles_config.yml
+    Parameters
+       software_name: name of the software
+       roles_config_data: content of roles_config.yml
+
     Returns:
         dict: {software_name: [archs]}
     """

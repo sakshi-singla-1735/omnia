@@ -341,8 +341,6 @@ def parse_repo_urls(repo_config, local_repo_config_path, version_variables, vaul
             rendered_url = url  # Fallback to original URL
 
         # To handle special case when software_config.json does not contain these
-        with open('/root/log.txt', "w") as f:
-             f.write(sw_name + "\n")
         if sw_name in ["amdgpu", "rocm", "beegfs"] and (version is None or version == "null"):
            continue 
         # Edge case for oneapi, snoopy, nvidia-repo
