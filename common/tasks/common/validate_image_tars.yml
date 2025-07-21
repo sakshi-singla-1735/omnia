@@ -35,7 +35,7 @@
 
 - name: Set missing tarballs
   ansible.builtin.set_fact:
-    missing_tars: "{{ container_images | list | difference(actual_tarballs) }}"
+    missing_tars: "{{ container_images_dict | list | difference(actual_tarballs) }}"
 
 - name: Show missing omnia image tarballs
   ansible.builtin.debug:

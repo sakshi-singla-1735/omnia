@@ -75,12 +75,10 @@ rocm,MIT license,AMD ROCm™ Software,6.3.1
 beegfs,BeeGFS (formerly known as FhGFS) END USER LICENSE,Public repository for the BeeGFS Parallel File System,7.4.5
 CUDA ,NVIDIA Software License,"The NVIDIA® CUDA® Toolkit provides a development environment for creating high-performance, GPU-accelerated applications.",12.8
 dkms,GPL 2.0,Dynamic Kernel Module Support,3.2.1
-Intel Gaudi3 driver,MIT license,Intel Gaudi3 drivers,1.19.2
 FreeIPA,GNU-General Public License v3.0," FreeIPA, an integrated security information management solution",4.12.2
-NVIDIA device plugin,Apache License 2.0,NVIDIA device plugin for Kubernetes,0.14.4
 rocm device plugin,Apache License 2.0,Kubernetes (k8s) device plugin to enable registration of AMD GPU to a container cluster,0.19.0
 xilinx-device-plugin,Apache License 2.0,The AMD-Xilinx device plugin for Kubernetes is a Daemonset deployed on the Kubernetes(k8s) cluster,1.2.0
-OFED,NVIDIA Software License,OFED driver,24.10-1.1.4.0
+OFED,NVIDIA Software License,OFED driver,24.10-3.2.5.0
 OpenLDAP,The OpenLDAP Public License version 2.8,"OpenLDAP is a free, open-source implementation of the Lightweight Directory Access Protocol (LDAP) developed by the OpenLDAP Project",2.6.0
 LDAP ToolBox,GNU General Public License v3.0 ,OpenLDAP server installation,commit :a8e5b8fdbf3e5885f4c412945c8fe51d03dd01c9
 libsodium,ISC License,"A modern, portable, easy to use crypto library.",1.0.18
@@ -128,8 +126,6 @@ gcc-c++,GPL-3.0,"This package adds C++ support to the GNU Compiler Collection. I
 clang,Apache-2.0 WITH LLVM-exception OR NCSA,"The goal of the Clang project is to create a new C, C++, Objective C and Objective C++ front-end for the LLVM compiler.",19.1.7
 openmpi, 3-clause BSD license,Open MPI main development repository,4.1.6
 nfs-subdir-external-provisioner,Apache License 2.0,Dynamic sub-dir volume provisioner on a remote NFS server.,4.0.18
-NCCL,Apache-2.0 license,Optimized primitives for collective multi-GPU communication,2.25.1
-RCCL,Apache-2.0 license,ROCm Communication Collectives Library (RCCL),2.21.5
 mysql,MIT license,MySQL is an open-source relational database management system.,9.3
 commented.configparser,MIT license,Custom ConfigParser class that preserves comments in file when writing,2.1.0
 pyyaml,MIT license,Canonical source repository for PyYAML,6.0.2

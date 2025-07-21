@@ -1,7 +1,7 @@
 Input parameters for the provision tool
 -----------------------------------------
 
-Fill in all required parameters in ``input/provision_config.yml``, ``input/provision_config_credentials.yml``, ``input/software_config.json``, and ``input/network_spec.yml``.
+Fill in all required parameters in ``/opt/omnia/input/provision_config.yml``, ``/opt/omnia/input/omnia_config_credentials.yml``, ``/opt/omnia/input/software_config.json``, and ``/opt/omnia/input/network_spec.yml``.
 
 .. caution:: Do not remove or comment any lines in the above mentioned ``.yml`` files.
 
@@ -12,22 +12,17 @@ Fill in all required parameters in ``input/provision_config.yml``, ``input/provi
 
 .. [1] Boolean parameters do not need to be passed with double or single quotes.
 
-.. csv-table:: provision_config_credentials.yml
-   :file: ../../../Tables/Provision_creds.csv
-   :header-rows: 1
-   :keepspace:
-
 .. note::
 
-    The ``input/provision_config_credentials.yml`` file is encrypted on the first execution of the ``discovery_provision.yml`` or ``local_repo.yml`` playbooks.
+    The ``/opt/omnia/input/omnia_config_credentials.yml`` file is encrypted on the first execution of the ``discovery_provision.yml`` or ``local_repo.yml`` playbooks.
 
       * To view the encrypted parameters: ::
 
-          ansible-vault view provision_config_credentials.yml --vault-password-file .provision_credential_vault_key
+          ansible-vault view omnia_config_credentials.yml --vault-password-file .omnia_config_credentials_key
 
       * To edit the encrypted parameters: ::
 
-          ansible-vault edit provision_config_credentials.yml --vault-password-file .provision_credential_vault_key
+          ansible-vault edit omnia_config_credentials.yml --vault-password-file .omnia_config_credentials_key
 
 
 .. csv-table:: software_config.json
@@ -43,18 +38,19 @@ Fill in all required parameters in ``input/provision_config.yml``, ``input/provi
 
 .. note::
 
-    * If the ``nic_name`` is identical on both the ``admin_network`` and the ``bmc_network``, it indicates a LOM setup. Otherwise, it's a dedicated setup.
+    * If the ``oim_nic_name`` is identical on both the ``admin_network`` and the ``bmc_network``, it indicates a LOM setup. Otherwise, it's a dedicated setup.
     * BMC network details are not required when target nodes are discovered using a mapping file.
-    * If ``bmc_network`` properties are provided, target nodes will be discovered using the BMC method in addition to the methods whose details are explicitly provided in ``provision_config.yml``.
-    * The strings ``admin_network`` and ``bmc_network`` in the ``input/network_spec.yml`` file should not be edited. Also, the properties ``nic_name``, ``static_range``, and ``dynamic_range`` cannot be edited on subsequent runs of the provision tool.
+    * If ``bmc_network`` properties are provided, target nodes will be discovered using the BMC method in addition to the methods whose details are explicitly provided in ``roles_config.yml``.
+    * The strings ``admin_network`` and ``bmc_network`` in the ``/opt/omnia/input/project_default/network_spec.yml`` file should not be edited. Also, the properties ``oim_nic_name``, ``static_range``, and ``dynamic_range`` present in ``network_spec.yml`` cannot be edited during multiple runs of the provision tool.
+    * The BMC and Switch properties present in ``/opt/omnia/input/project_default/roles_config.yml`` should not be edited while running the provision tool multiple times.
     * ``netmask_bits`` are mandatory and should be same for both ``admin_network`` and ``bmc_network`` (that is, between 1 and 32; 1 and 32 are also acceptable values).
 
 .. caution::
     * Do not assign the subnet 10.4.0.0/24 to any interfaces in the network as nerdctl uses it by default.
-    * All provided network ranges and NIC IP addresses should be distinct with no overlap in the ``input/network_spec.yml``.
+    * All provided network ranges and NIC IP addresses should be distinct with no overlap in the ``/opt/omnia/input/project_default/network_spec.yml``.
     * Ensure that all the iDRACs are reachable from the OIM.
 
-A sample of the ``input/network_spec.yml`` where nodes are discovered using a mapping file is provided below: ::
+A sample of the ``/opt/omnia/input/project_default/network_spec.yml`` where nodes are discovered using a mapping file is provided below: ::
 
     ---
          Networks:
@@ -81,7 +77,7 @@ A sample of the ``input/network_spec.yml`` where nodes are discovered using a ma
              network_gateway: ""
              MTU: "1500"
 
-A sample of the ``input/network_spec.yml`` where nodes are discovered using BMC discovery mechanism is provided below: ::
+A sample of the ``/opt/omnia/input/project_default/network_spec.yml`` where nodes are discovered using BMC discovery mechanism is provided below: ::
 
     ---
         Networks:

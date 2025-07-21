@@ -19,7 +19,7 @@
     - name: Load required image tarballs using podman
       containers.podman.podman_load:
         input: "{{ omnia_images_dir_path }}/{{ item.key }}"
-      loop: "{{ hostvars['localhost']['container_images'] | dict2items }}"
+      loop: "{{ hostvars['localhost']['container_images_dict'] | dict2items }}"
       loop_control:
         label: "{{ item.key }}"
       register: podman_load_result

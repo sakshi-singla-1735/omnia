@@ -69,7 +69,6 @@ supported_roles:
   - oim_ha_node
   - service_node
   - slurm_control_node
-  - slurm_dbd
   - slurm_node
 
 # Usage: configure_service_node.yml

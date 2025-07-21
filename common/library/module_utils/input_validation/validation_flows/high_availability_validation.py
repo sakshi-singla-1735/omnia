@@ -76,11 +76,11 @@ def check_and_validate_ha_role_in_roles_config(errors, roles_config_json, ha_rol
                 create_error_msg(
                     f"group: '{group}' associated for role",
                     ha_role,
-                    en_us_validation_msg.group_not_found,
+                    en_us_validation_msg.GROUP_NOT_FOUND,
                 )
             )
     else:
-        errors.append(create_error_msg("role", ha_role, en_us_validation_msg.role_node_found))
+        errors.append(create_error_msg("role", ha_role, en_us_validation_msg.ROLE_NODE_FOUND))
 
 
 def get_admin_static_dynamic_ranges(network_spec_json):
@@ -262,7 +262,7 @@ def validate_service_tag_presence(
             create_error_msg(
                 f"{config_type}",
                 active_node_service_tag,
-                en_us_validation_msg.duplicate_active_node_service_tag,
+                en_us_validation_msg.DUPLICATE_ACTIVE_NODE_SERVICE_TAG,
             )
         )
 
@@ -276,7 +276,7 @@ def validate_service_tag_presence(
                     create_error_msg(
                         f"{config_type}",
                         service_tag,
-                        en_us_validation_msg.duplicate_passive_node_service_tag,
+                        en_us_validation_msg.DUPLICATE_PASSIVE_NODE_SERVICE_TAG,
                     )
                 )
 
@@ -314,7 +314,7 @@ def validate_vip_address(
             create_error_msg(
                 f"{config_type} virtual_ip_address:",
                 vip_address,
-                en_us_validation_msg.duplicate_virtual_ip,
+                en_us_validation_msg.DUPLICATE_VIRTUAL_IP,
             )
         )
     else:
@@ -398,7 +398,7 @@ def validate_k8s_head_node_ha(
                 create_error_msg(
                     f"{config_type}",
                     common_tags,
-                    en_us_validation_msg.duplicate_active_node_service_tag,
+                    en_us_validation_msg.DUPLICATE_ACTIVE_NODE_SERVICE_TAG,
                 )
             )
 
@@ -519,7 +519,7 @@ def validate_oim_ha(
                     errors.append(create_error_msg(
                         f"{config_type} bmc_virtual_ip_address conflict with roles_config",
                         bmc_virtual_ip,
-                        en_us_validation_msg.bmc_virtual_ip_not_valid
+                        en_us_validation_msg.BMC_VIRTUAL_IP_NOT_VALID
                     ))
 
         bmc_vip_conflict_dynamic = False
@@ -546,7 +546,7 @@ def validate_oim_ha(
             errors.append(create_error_msg(
                 f"{config_type} bmc_virtual_ip_address conflict with network_spec",
                 bmc_virtual_ip,
-                en_us_validation_msg.bmc_virtual_ip_not_valid
+                en_us_validation_msg.BMC_VIRTUAL_IP_NOT_VALID
             ))
 
 # Dispatch table maps config_type to validation handler
