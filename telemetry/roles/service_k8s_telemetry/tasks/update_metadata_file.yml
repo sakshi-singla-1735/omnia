@@ -52,7 +52,6 @@
   copy:
     content: "{{ {'service_cluster_metadata': service_cluster_metadata} | to_nice_yaml }}"
     dest: "{{ service_cluster_metadata_path }}"
+    force: true
   delegate_to: localhost
   connection: local
-  mode: "{{ metadata_perm }}"
-  force: true
