@@ -44,6 +44,12 @@
       ansible.builtin.set_fact:
         groups_info: "{{ composable_roles_output.groups_roles_info }}"
 
+    - name: Include service_cluster metadata if already exists
+      ansible.builtin.include_vars: "{{ service_cluster_metadata_path }}"
+      register: exisiting_metadata
+      no_log: true
+      failed_when: false
+
     - name: Fetch service_cluster info
       get_service_cluster_info:
         groups_info: "{{ groups_info }}"
@@ -53,9 +59,17 @@
       ansible.builtin.set_fact:
         service_cluster_node_details: "{{ service_cluster_info_output.service_cluster_node_details | default({}) }}"
 
+    - name: Merge existing and new service node details
+      ansible.builtin.set_fact:
+        service_cluster_details: >-
+          {{
+            exisiting_metadata.service_cluster_metadata | default({}) |
+            combine(service_cluster_node_details, recursive=False)
+          }}
+
     - name: Create and update service node metadata file
       ansible.builtin.copy:
         dest: "{{ service_cluster_metadata_path }}"
-        content: "{{ {'service_cluster_metadata': service_cluster_node_details} | to_nice_yaml }}"
+        content: "{{ {'service_cluster_metadata': service_cluster_details} | to_nice_yaml }}"
         mode: "{{ metadata_perm }}"
         force: true

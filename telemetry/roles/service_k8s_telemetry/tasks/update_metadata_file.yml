@@ -13,26 +13,21 @@
 #  limitations under the License.
 ---
 
-- name: Fetch pods details in "{{ telemetry_namespace }}" namespace # noqa: name[template]
-  kubernetes.core.k8s_info:
-    api_version: v1
-    kind: Pod
-    namespace: "{{ telemetry_namespace }}"
-  register: telemetry_pod_info
-
-- name: Filter running iDRAC telemetry pods
+- name: Generating iDRAC telemetry pods names
   ansible.builtin.set_fact:
-    idrac_telemetry_pod_info: >-
+    idrac_telemetry_pods: >-
       {{
-        telemetry_pod_info.resources
-        | selectattr('metadata.name', 'search', '^' ~ idrac_telemetry_k8s_name)
-        | selectattr('status.phase', 'equalto', 'Running')
+        range(0, idrac_telemetry_replicas | int)
+        | map('regex_replace', '^', idrac_telemetry_k8s_name ~ '-')
         | list
       }}
 
-- name: Extract names of running iDRAC telemetry pods
-  ansible.builtin.set_fact:
-    idrac_telemetry_pods: "{{ idrac_telemetry_pod_info | map(attribute='metadata.name') | list }}"
+- name: Wait for each iDRAC telemetry pod to be ready
+  ansible.builtin.command: >
+    kubectl wait --for=condition=ready pod/{{ item }}
+    -n {{ telemetry_namespace }} --timeout={{ pod_wait_timeout }}
+  loop: "{{ idrac_telemetry_pods }}"
+  changed_when: false
 
 - name: Get service cluster node details
   ansible.builtin.set_fact:

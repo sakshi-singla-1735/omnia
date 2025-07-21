@@ -40,6 +40,7 @@ def get_service_cluster_node_details():
         admin_ip = sn['admin_ip']
         service_tag = sn['service_tag']
         cluster_name = sn['cluster_name']
+        role = sn['role']
 
         if status != 'booted':
             not_available_nodes.append(service_tag)
@@ -52,13 +53,14 @@ def get_service_cluster_node_details():
             'cluster_name': cluster_name
         }
 
+        data[service_tag]['parent_status'] = 'service_kube_control_plane' in role
+
     if not_available_nodes:
         raise ValueError(
             f"The following service cluster nodes are not in 'booted' state: "
-            f"{', '.join(not_available_nodes)}. "
+            f"{', '.join(not_available_nodes)}."
             "Please verify the node status and try again."
-            "For federated telemetry colelction of compute nodes, "
-            "service cluster nodes must be available and in the 'booted' state. "
+            "For federated telemetry colelction of compute nodes, service cluster nodes must be available and in the 'booted' state."
             "Please wait until all service cluster nodes are booted, or remove the nodes experiencing "
             "provisioning failures using the utils/delete_node.yml playbook."
         )
@@ -110,6 +112,8 @@ def get_service_cluster_data(groups_info, service_cluster_node_details):
 
         parent_data = service_cluster_node_details.get(parent, {})
         parent_data.setdefault('child_groups', []).append(group)
+        if parent_data['child_groups']:
+            parent_data['parent_status'] = True
         service_cluster_node_details[parent] = parent_data
         groups_info[group]['service_cluster_node_details_status'] = service_cluster_node_details_status
 
