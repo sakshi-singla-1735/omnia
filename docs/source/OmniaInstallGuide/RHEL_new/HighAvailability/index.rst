@@ -5,3 +5,4 @@ Step 7: High Availability
 
     oim_ha
     kubernetes_ha
+    service_cluster_ha

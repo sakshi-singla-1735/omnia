@@ -124,3 +124,25 @@
   gather_facts: false
   roles:
     - update_containerd_config
+
+- name: Pull k8s images
+  hosts: kube_control_plane, kube_node, etcd
+  gather_facts: false
+  any_errors_fatal: true
+  roles:
+    - k8s_prepare_images
+
+- name: Deploy plugins on kube control nodes
+  hosts: kube_control_plane[0]
+  gather_facts: false
+  vars:
+    common_plugin:
+      kubernetes_dashboard: false
+      habanalabs-device-plugin: false
+      mpi-operator: false
+      xilinx-device-plugin: false
+      nfs-subdir-external-provisioner: true
+      multus-device-plugin: false
+      whereabouts-device-plugin: true
+  roles:
+    - common_plugins

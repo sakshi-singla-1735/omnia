@@ -55,7 +55,7 @@ Configuring specific local repositories
 
     To install OFED, include the following line under ``softwares`` in ``software_config.json``: ::
 
-            {"name": "ofed", "version": "24.01-0.3.3.1"},
+            {"name": "ofed", "version": "24.10-3.2.5.0"},
 
     For a list of repositories (and their types) configured for OFED, view the ``/opt/omnia/input/project_default/config/<cluster_os_type>/<cluster_os_version>/ofed.json`` file. To customize your OFED installation, update the ``url`` parameter with your desired OFED version URL. ::
 
@@ -64,7 +64,7 @@ Configuring specific local repositories
             "cluster": [
               { "package": "ofed",
                 "type": "iso",
-                "url": "https://content.mellanox.com/ofed/MLNX_OFED-24.01-0.3.3.1/MLNX_OFED_LINUX-24.01-0.3.3.1-rhel9.0-x86_64.iso",
+                "url": "https://content.mellanox.com/ofed/MLNX_OFED-24.10-3.2.5.0/MLNX_OFED_LINUX-24.10-3.2.5.0-rhel9.6-x86_64.iso",
                 "path": ""
               }
             ]
@@ -107,7 +107,7 @@ Configuring specific local repositories
 
     For more information about installing Slurm, `click here <../OmniaCluster/BuildingCluster/install_slurm.html>`_.
 
-.. note:: Omnia recommends to install Slurm with ``repo_config`` variable set to ``always``  in ``software_config.json``. This is due to intermittent connectivity issues with the EPEL8 repositories.
+.. note:: Omnia recommends installing Slurm with ``repo_config`` variable set to ``always``  in ``software_config.json``. This is due to intermittent connectivity issues with the EPEL8 repositories.
 
 **FreeIPA**
 
@@ -182,4 +182,4 @@ Configuring specific local repositories
 
                 {"name": "additional_software"},
 
-    Create a ``additional_software.json`` file in the following directory: ``/opt/omnia/input/project_default/config/<cluster_os_type>/<cluster_os_version>`` and add your choice of additional software. For example, For a cluster running RHEL 9.6, go to ``/opt/omnia/input/project_default/config/rhel/9.6/`` and create the file there. For more information, `click here <../../../Utils/software_update.html>`_.
+    Create an ``additional_software.json`` file in the following directory: ``/opt/omnia/input/project_default/config/<cluster_os_type>/<cluster_os_version>`` and add your choice of additional software. For a cluster running RHEL 9.6, go to ``/opt/omnia/input/project_default/config/rhel/9.6/`` and create the file there. For more information, `click here <../../../Utils/software_update.html>`_.

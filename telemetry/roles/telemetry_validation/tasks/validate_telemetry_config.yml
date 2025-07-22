@@ -45,6 +45,7 @@
     idrac_telemetry_support: "{{ idrac_telemetry_support | lower }}"
     visualization_support: "{{ visualization_support | lower }}"
     federated_idrac_telemetry_collection: "{{ federated_idrac_telemetry_collection | lower }}"
+    kube_prometheus_support: "{{ kube_prometheus_support | lower }}"
 
 - name: Warning for all telemetry support category values set as false
   ansible.builtin.pause:
@@ -53,6 +54,7 @@
   when:
     - not idrac_telemetry_support
     - not visualization_support
+    - not kube_prometheus_support
 
 - name: Warning for idrac_telemetry_support is currently set to false
   ansible.builtin.pause:
@@ -65,11 +67,6 @@
     seconds: "{{ pause_time_15 }}"
     prompt: "{{ warning_idrac_telemetry_support_true }}"
   when: idrac_telemetry_support
-
-- name: Failed, Federated iDRAC Telemetry Collection not supported
-  ansible.builtin.fail:
-    msg: "{{ warning_federated_telemetry_support }}"
-  when: federated_idrac_telemetry_collection
 
 # - name: Validate k8s prometheus, scrape interval and prometheus gaudi
 #   ansible.builtin.include_tasks: validate_k8s_prometheus_prometheus_gaudi.yml

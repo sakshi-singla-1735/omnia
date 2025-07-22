@@ -112,7 +112,7 @@ idrac_telemetry_receiver_dir_path: "{{ idrac_telemetry_dir }}/idrac_telemetry_re
 idrac_telemetry_github: https://github.com/dell/iDRAC-Telemetry-Reference-Tools.git
 idrac_telemetry_reference_git_clone_path: "/opt/omnia/telemetry/idrac_telemetry/idrac_telemetry_receiver/iDRAC-Telemetry-Reference-Tools"
 idrac_telemetry_reference_path: "{{ idrac_telemetry_receiver_dir_path }}/iDRAC-Telemetry-Reference-Tools"
-reference_tools_stable_commit: "94e7621"
+reference_tools_stable_commit: "9a1c72b"
 max_retries: 10
 delay_count: 5
 idrac_git_clone_error_msg: |

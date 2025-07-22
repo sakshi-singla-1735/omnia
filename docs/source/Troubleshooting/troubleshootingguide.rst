@@ -13,7 +13,7 @@ Connecting to ``mysqldb`` container
 Checking and updating encrypted parameters
 =============================================
 
-1. Move to the filepath where the parameters are saved (as an example, we will be using ``omnia_config_credentials.yml``): ::
+1. Move to the file path where the parameters are saved (as an example, we will be using ``omnia_config_credentials.yml``): ::
 
         cd /input
 

@@ -36,6 +36,8 @@
   ansible.builtin.import_playbook: ../utils/create_container_group.yml
   vars:
     oim_group: true
+    omnia_provision_group: true
+    omnia_provision_validation: true
 
 - name: Validate telemetry input parameters
   hosts: localhost
@@ -64,6 +66,39 @@
       when:
         - hostvars['localhost']['idrac_telemetry_support']
         - not hostvars['localhost']['federated_idrac_telemetry_collection']
+
+- name: Validate service k8s cluster
+  hosts: kube_control_plane[0]
+  gather_facts: false
+  any_errors_fatal: true
+  tasks:
+    - name: Validate service k8s cluster
+      ansible.builtin.include_role:
+        name: service_k8s_telemetry
+        tasks_from: prereq_checks.yml
+
+# service_k8s_prereq
+- name: Initiate pre-requisites for service cluster
+  hosts: omnia_provision
+  connection: ssh
+  gather_facts: false
+  tasks:
+    - name: Initiate pre-requisites
+      ansible.builtin.include_role:
+        name: service_k8s_telemetry
+        tasks_from: include_composable_roles_config.yml
+
+- name: Add telemetry hosts in inventory
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Add telemetry hosts in inventory
+      ansible.builtin.include_role:
+        name: telemetry_validation
+        tasks_from: add_host_goups
+      when:
+        - idrac_telemetry_support
 
 # - name: Update Repositories/Registries on nodes
 #   ansible.builtin.import_playbook: ../utils/update_user_repo.yml
@@ -122,6 +157,15 @@
     - name: Deployment of telemetry pods
       ansible.builtin.include_role:
         name: service_k8s_telemetry
+
+- name: Deployment of kube prometheus in service cluster
+  hosts: kube_control_plane[0]
+  connection: ssh
+  gather_facts: false
+  tasks:
+    - name: Deployment of kube prometheus
+      ansible.builtin.include_role:
+        name: k8s_prometheus
 
 - name: Enable idrac telemetry in OIM
   hosts: localhost

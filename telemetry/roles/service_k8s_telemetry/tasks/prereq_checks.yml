@@ -13,47 +13,50 @@
 #  limitations under the License.
 ---
 
-- name: Install python
-  ansible.builtin.package:
-    name: "{{ hostvars['localhost']['python_package_name'] }}"
-    state: present
-
-- name: Set ansible_python_interpreter to Python 3.11
-  ansible.builtin.set_fact:
-    ansible_python_interpreter: "{{ hostvars['localhost']['python_version'] }}"
-
-- name: Ensure pip3 is available using ensurepip
-  ansible.builtin.command: "{{ hostvars['localhost']['python_version'] }} -m ensurepip"
-  changed_when: false
-
-- name: Install pip packages from offline repo
-  ansible.builtin.pip:
-    name: "{{ item }}"
-    extra_args: >
-      --find-links={{ hostvars['localhost']['offline_pip_module_path'] }}/{{ item }}/
-      --no-index
-  loop: "{{ hostvars['localhost']['k8s_pip_packages'] }}"
-
-- name: Check if k8s is running
+- name: Pre-checks for service cluster k8s
+  when: hostvars['localhost']['kube_prometheus_support'] or hostvars['localhost']['federated_idrac_telemetry_collection']
   block:
-    - name: Check if Kubernetes is running
+    - name: Install python
+      ansible.builtin.package:
+        name: "{{ hostvars['localhost']['python_package_name'] }}"
+        state: present
+
+    - name: Set ansible_python_interpreter to Python 3.11
+      ansible.builtin.set_fact:
+        ansible_python_interpreter: "{{ hostvars['localhost']['python_version'] }}"
+
+    - name: Ensure pip3 is available using ensurepip
+      ansible.builtin.command: "{{ hostvars['localhost']['python_version'] }} -m ensurepip"
+      changed_when: false
+
+    - name: Install pip packages from offline repo
+      ansible.builtin.pip:
+        name: "{{ item }}"
+        extra_args: >
+          --find-links={{ hostvars['localhost']['offline_pip_module_path'] }}/{{ item }}/
+          --no-index
+      loop: "{{ hostvars['localhost']['k8s_pip_packages'] }}"
+
+    - name: Check if k8s is running
+      block:
+        - name: Check if Kubernetes is running
+          kubernetes.core.k8s_info:
+            api_version: v1
+            kind: Node
+          register: node_info
+          failed_when: node_info.resources is not defined or node_info.resources | length == 0
+      rescue:
+        - name: Kubernetes is not running
+          ansible.builtin.fail:
+            msg: "{{ k8s_not_installed_fail_msg }}"
+
+    - name: Get all StorageClasses
       kubernetes.core.k8s_info:
-        api_version: v1
-        kind: Node
-      register: node_info
-      failed_when: node_info.resources is not defined or node_info.resources | length == 0
-  rescue:
-    - name: Kubernetes is not running
+        api_version: storage.k8s.io/v1
+        kind: StorageClass
+      register: sc_info
+
+    - name: Fail if the StorageClass does not exist - {{ storage_class_name }}
       ansible.builtin.fail:
-        msg: "{{ k8s_not_installed_fail_msg }}"
-
-- name: Get all StorageClasses
-  kubernetes.core.k8s_info:
-    api_version: storage.k8s.io/v1
-    kind: StorageClass
-  register: sc_info
-
-- name: Fail if the StorageClass does not exist - {{ storage_class_name }}
-  ansible.builtin.fail:
-    msg: "{{ storage_class_missing_fail_msg }}"
-  when: storage_class_name not in (sc_info.resources | map(attribute='metadata.name') | list)
+        msg: "{{ storage_class_missing_fail_msg }}"
+      when: storage_class_name not in (sc_info.resources | map(attribute='metadata.name') | list)
