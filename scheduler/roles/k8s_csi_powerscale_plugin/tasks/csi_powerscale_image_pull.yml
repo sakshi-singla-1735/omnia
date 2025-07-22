@@ -59,4 +59,3 @@
   when:
     - not hostvars['localhost']['k8s_offline_install']
     - not hostvars['localhost']['enable_routed_internet']
-
