@@ -14,12 +14,12 @@
 ---
 
 - name: "Process each component under {{ arch_item.key }}"
-  include_tasks: execute_parallel_tasks.yml
+  ansible.builtin.include_tasks: execute_parallel_tasks.yml
   loop: "{{ components }}"
   loop_control:
     loop_var: comp_item
   vars:
     item:
-      arch:  "{{ arch_item.key }}"
-      key:   "{{ comp_item.key }}"
+      arch: "{{ arch_item.key }}"
+      key:  "{{ comp_item.key }}"
       value: "{{ comp_item.value }}"

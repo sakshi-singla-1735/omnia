@@ -22,9 +22,6 @@
 - name: Process and configure local_repo_config
   ansible.builtin.include_tasks: process_rpm_repo.yml
 
-- name: pause
-  pause:
-
 - name: Encrypt user certificates if exist
   cert_vault_handler:
     mode: encrypt
@@ -33,7 +30,7 @@
   register: vault_result
 
 - name: Execute tasks for each architecture
-  include_tasks: arch_component_loop.yml
+  ansible.builtin.include_tasks: arch_component_loop.yml
   loop: "{{ result.software_dict | dict2items }}"
   loop_control:
     loop_var: arch_item
