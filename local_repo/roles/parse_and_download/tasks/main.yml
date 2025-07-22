@@ -37,7 +37,7 @@
   vars:
     components: "{{ arch_item.value | dict2items }}"
 
-#- name: Clear the rpm downloaded files
+# - name: Clear the rpm downloaded files
 #  ansible.builtin.file:
 #    path: "{{ repo_store_path }}/cluster/x86/rhel/9.6/rpm"
 #    state: absent

@@ -56,8 +56,6 @@
   ansible.builtin.set_fact:
     software_json_list: "{{ software_names | map('regex_replace', '$', '.json') | list }}"
 
-- name: Fetch software-arch dict
-
 - name: Find JSON files in {{ json_files_directory }}
   ansible.builtin.find:
     paths: "{{ json_files_directory }}"
