@@ -168,8 +168,7 @@
         name: k8s_prometheus
 
 - name: Enable idrac telemetry in OIM
-  hosts: localhost
-  connection: local
+  hosts: telemetry_group
   gather_facts: false
   tasks:
     - name: Enable idrac telemetry
@@ -186,6 +185,7 @@
         name: idrac_telemetry
         tasks_from: trigger_telemetry_collection.yml
       when:
+        - not hostvars['localhost']['federated_idrac_telemetry_collection']
         - hostvars['localhost']['telemetry_idrac'] is defined
         - (hostvars['localhost']['telemetry_idrac'] | length > 0)
 
@@ -262,7 +262,9 @@
     - name: Telemetry Report Overview
       ansible.builtin.debug:
         msg: "{{ telemetry_report.splitlines() }}"
-      when: hostvars['localhost']['idrac_telemetry_support']
+      when: 
+        - hostvars['localhost']['idrac_telemetry_support']
+        - not hostvars['localhost']['federated_idrac_telemetry_collection']
 
 - name: Detailed Telemetry Report
   hosts: localhost
@@ -274,4 +276,6 @@
     - name: Detailed Telemetry Report
       ansible.builtin.debug:
         msg: "Check the file at {{ telemetry_report_path_oim }} in omnia_core container for detailed telemetry report."
-      when: hostvars['localhost']['idrac_telemetry_support']
+      when: 
+        - hostvars['localhost']['idrac_telemetry_support']
+        - not hostvars['localhost']['federated_idrac_telemetry_collection']

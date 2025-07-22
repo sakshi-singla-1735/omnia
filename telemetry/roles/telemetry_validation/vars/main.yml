@@ -117,6 +117,12 @@ invalid_parent_tags_message: |
   If service nodes are not provisioned or compute node provisioning not initiated,
   please run discovery_provision.yml to provision service nodes and compute nodes from service nodes.
   And then run `telemetry.yml` playbook again.
+telemetry_host_group: "telemetry_group"
+telemetry_host: >-
+  {{ groups['kube_control_plane']
+     if federated_idrac_telemetry_collection | default(false)
+     else ['localhost']
+  }}
 
 # Usage: include_high_availability_config.yml
 high_availability_config_path: "{{ input_project_dir }}/high_availability_config.yml"
