@@ -17,6 +17,10 @@
 
 import subprocess
 import os
+from ansible.module_utils.local_repo.config import (
+    dnf_download_command_aarch64,
+    dnf_download_command_x86_64
+)
 from multiprocessing import Lock
 from ansible.module_utils.local_repo.parse_and_download import write_status_to_file
 
