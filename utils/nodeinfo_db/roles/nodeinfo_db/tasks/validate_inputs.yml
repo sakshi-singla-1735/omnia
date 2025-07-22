@@ -81,7 +81,7 @@
 
     - name: Set Complete query based on user input
       ansible.builtin.set_fact:
-        query: "{{ query_part1 + query_part2 }}"
+        query: "{{ query_part1 ~ ' ' ~ query_part2 }}"
 
   rescue:
     - name: Handle the rescue condition
