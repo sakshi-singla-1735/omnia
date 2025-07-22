@@ -262,7 +262,7 @@
     - name: Telemetry Report Overview
       ansible.builtin.debug:
         msg: "{{ telemetry_report.splitlines() }}"
-      when: 
+      when:
         - hostvars['localhost']['idrac_telemetry_support']
         - not hostvars['localhost']['federated_idrac_telemetry_collection']
 
@@ -276,6 +276,6 @@
     - name: Detailed Telemetry Report
       ansible.builtin.debug:
         msg: "Check the file at {{ telemetry_report_path_oim }} in omnia_core container for detailed telemetry report."
-      when: 
+      when:
         - hostvars['localhost']['idrac_telemetry_support']
         - not hostvars['localhost']['federated_idrac_telemetry_collection']
