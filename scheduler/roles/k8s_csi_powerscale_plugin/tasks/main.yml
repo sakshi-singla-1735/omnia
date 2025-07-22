@@ -15,8 +15,7 @@
 
 - name: CSI powerscale driver installation
   when:
-    - hostvars['localhost']['csi_driver_powerscale_precheck_pass']
-    - hostvars['localhost']['omnia_config']['k8s_offline_install']
+    - hostvars['127.0.0.1']['csi_driver_powerscale_precheck_pass']
   block:
     - name: Fetch required files to kube control plane
       ansible.builtin.include_tasks: csi_powerscale_prereq.yml

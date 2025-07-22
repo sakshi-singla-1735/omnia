@@ -23,6 +23,7 @@ csi_powerscale_secret_path: "{{ csi_powerscale_path }}/csi_powerscale_secret.yam
 
 # Usage: csi_powerscale_install.yml, csi_powerscale_prereq.yml
 csi_powerscale_path: "/opt/omnia/csi-driver-powerscale"
+ansible_python_interpreter: "/usr/bin/{{ hostvars['localhost']['python_package'] }}"
 
 # Usage: csi_powerscale_install.yml, csi_powerscale_prereq.yml
 csi_powerscale_git: "csi-powerscale.tar.gz"

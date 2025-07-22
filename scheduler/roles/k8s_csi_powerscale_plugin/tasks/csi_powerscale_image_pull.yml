@@ -23,16 +23,6 @@
   loop: "{{ hostvars['localhost']['csi_driver_powerscale_packages_json']['csi_driver_powerscale']['cluster'] }}"
   when: item.type == 'image'
 
-#- name: Pull csi powerscale images
- # ansible.builtin.command: nerdctl pull {{ item }}
-  #with_items: "{{ csi_powerscale_image_versions }}"
-  #changed_when: true
-  #failed_when: false
-  #environment:
-   # http_proxy: "{{ hostvars['localhost']['http_proxy'] }}"
-    #https_proxy: "{{ hostvars['localhost']['https_proxy'] }}"
-    #no_proxy: "{{ hostvars['localhost']['oim_hostname'] }},{{ hostvars['localhost']['admin_nic_ip'] }}"
-
 # Pulling images from pulp - always,partial, never
 - name: Pull K8s services docker images from pulp
   ansible.builtin.command: nerdctl pull {{ item }}

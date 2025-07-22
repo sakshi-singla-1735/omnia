@@ -12,26 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
-
-# Check Kubernetes is deployed on cluster
-# - name: Verify Kubernetes is deployed on cluster
-#   ansible.builtin.command: kubectl get node
-#   register: k8s_return_code
-#   changed_when: false
-#   failed_when: false
-
-- name: Verify Kubernetes is deployed on cluster
-  kubernetes.core.k8s_info:
-    kind: Node
-  register: k8s_return_code
-  failed_when: false
-  changed_when: false
-
-- name: Fail if Kubernetes is not deployed
-  ansible.builtin.assert:
-    that:
-      - k8s_return_code.rc == 0
-    fail_msg: "{{ k8s_not_deployed }}"
+- name: Check if k8s is running
+  block:
+    - name: Check if Kubernetes is running
+      kubernetes.core.k8s_info:
+        api_version: v1
+        kind: Node
+      register: node_info
+      failed_when: node_info.resources is not defined or node_info.resources | length == 0
+  rescue:
+    - name: Kubernetes is not running
+      ansible.builtin.fail:
+        msg: "{{ k8s_not_deployed }}"
 
 # Check if powerscale is already deployed
 - name: Verify powerscale is deployed on cluster
@@ -159,7 +151,7 @@
       block:
         - name: Get csi-powerscale git tar
           ansible.builtin.get_url:
-            url: "{{ hostvars['localhost']['offline_git_path'] }}/{{ csi_powerscale_git }}"
+            url: "{{ hostvars['localhost']['offline_git_path'] }}/csi-powerscale/{{ csi_powerscale_git }}"
             dest: "{{ csi_powerscale_path }}/{{ csi_powerscale_git }}"
             mode: "{{ permission_644 }}"
 
@@ -171,13 +163,13 @@
 
         - name: Get dell/helm-charts git tar
           ansible.builtin.get_url:
-            url: "{{ hostvars['localhost']['offline_git_path'] }}/{{ helm_charts_git }}"
+            url: "{{ hostvars['localhost']['offline_git_path'] }}/helm-charts/{{ helm_charts_git }}"
             dest: "{{ csi_powerscale_path }}/csi-powerscale/{{ helm_charts_git }}"
             mode: "{{ permission_644 }}"
 
         - name: Get external-snapshotter git tar
           ansible.builtin.get_url:
-            url: "{{ hostvars['localhost']['offline_git_path'] }}/{{ external_snapshotter_git }}"
+            url: "{{ hostvars['localhost']['offline_git_path'] }}/external-snapshotter/{{ external_snapshotter_git }}"
             dest: "{{ csi_powerscale_path }}/csi-powerscale/{{ external_snapshotter_git }}"
             mode: "{{ permission_644 }}"
       rescue:
@@ -204,13 +196,6 @@
         owner: "{{ owner_value }}"
         group: "{{ group_value }}"
         mode: "{{ permission_644 }}"
-
-    # - name: Create isilon namespace
-    #   ansible.builtin.command:
-    #     cmd: "kubectl create ns isilon"
-    #   register: command_result
-    #   failed_when: false
-    #   changed_when: command_result.changed
     
     - name: Create isilon namespace
       kubernetes.core.k8s:
