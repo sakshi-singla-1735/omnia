@@ -37,11 +37,16 @@
   vars:
     components: "{{ arch_item.value | dict2items }}"
 
-# - name: Clear the rpm downloaded files
-#  ansible.builtin.file:
-#    path: "{{ repo_store_path }}/cluster/x86/rhel/9.6/rpm"
-#    state: absent
-#  when: clean_rpms
+- name: Set fact for all_archs_var
+  ansible.builtin.set_fact:
+    all_archs_var: "{{ hostvars['localhost']['all_archs'] }}"
+
+- name: Clear the rpm downloaded files for each arch
+  ansible.builtin.file:
+    path: "{{ rpm_dir_path }}"
+    state: absent
+  loop: "{{ all_archs_var }}"
+  when: clean_rpms
 
 - name: Determine final repository status
   ansible.builtin.set_fact:
