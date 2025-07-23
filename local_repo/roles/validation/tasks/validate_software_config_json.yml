@@ -56,6 +56,27 @@
   ansible.builtin.set_fact:
     software_json_list: "{{ software_names | map('regex_replace', '$', '.json') | list }}"
 
+- name: Fetch architecture for each software
+  fetch_software_arch:
+    software_name: "{{ item }}"
+  loop: "{{ software_names }}"
+  loop_control:
+    label: "{{ item }}"
+  register: fetch_arch
+
+- name: Combine all architectures into a single list
+  ansible.builtin.set_fact:
+    all_archs: >-
+      {{
+        fetch_arch.results
+        | map(attribute='arch')
+        | map('dict2items')
+        | flatten
+        | map(attribute='value')
+        | flatten
+        | unique
+      }}
+
 - name: Find JSON files in {{ json_files_directory }}
   ansible.builtin.find:
     paths: "{{ json_files_directory }}"
