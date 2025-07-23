@@ -23,7 +23,7 @@
 
 - name: Validate kube_control_plane group
   ansible.builtin.assert:
-    that: "groups['kube_control_plane'] | length | int == 1"
+    that: "groups['kube_control_plane'] | length | int >= 1"
     fail_msg: "{{ kube_control_plane_group_fail_msg }}"
 
 - name: Validate kube_node group
@@ -40,10 +40,3 @@
   ansible.builtin.assert:
     that: "groups['etcd'] | length | int % 2 == 1"
     fail_msg: "{{ etcd_odd_entry_fail_msg }}"
-
-- name: Assert prometheus_scrape_interval
-  ansible.builtin.assert:
-    that:
-      - prometheus_scrape_interval is integer
-      - prometheus_scrape_interval > 0
-    fail_msg: "{{ prometheus_scrape_interval_fail_msg }}"

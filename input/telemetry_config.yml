@@ -1,4 +1,4 @@
-# Copyright 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Copyright 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,6 +17,18 @@
 # DO NOT REMOVE OR COMMENT OUT ANY LINES IN THIS FILE.
 # SIMPLY APPEND THE REQUIRED VALUES AGAINST THE PARAMETER OF YOUR CHOICE.
 # ***********************************************************************
+
+# This variable signifies support for Kubernetes metric collection and deployment of the Kube-Prometheus stack.
+# Set to true to deploy Prometheus, Node Exporter, Alertmanager, and related components.
+# Accepted values:  true or false
+# Default value: false
+kube_prometheus_support: false
+
+# Specifies the time interval (in seconds) at which Prometheus scrapes metrics from its targets.
+# Must be an integer greater than 0.
+# Unit: seconds
+# Default: 15
+prometheus_scrape_interval: 15
 
 # This variable is used to enable iDRAC telemetry support
 # Accepted values:  true or false
