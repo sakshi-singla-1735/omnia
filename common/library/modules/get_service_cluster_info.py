@@ -50,7 +50,8 @@ def get_service_cluster_node_details():
             'admin_ip': admin_ip,
             'service_tag': service_tag,
             'node': node,
-            'cluster_name': cluster_name
+            'cluster_name': cluster_name,
+            'role': role
         }
 
         data[service_tag]['parent_status'] = 'service_kube_control_plane' in role

@@ -31,17 +31,43 @@
 
 - name: Get service cluster node details
   ansible.builtin.set_fact:
-    kube_cp_node: "{{ service_cluster_metadata | dict2items | selectattr('value.child_groups', 'undefined') | list }}"
-    kube_compute_nodes: "{{ service_cluster_metadata | dict2items | selectattr('value.child_groups', 'defined') | list }}"
+    kube_cp_node: >-
+      {{ service_cluster_metadata | dict2items
+         | selectattr('value.role', 'search', '(^|,)service_kube_control_plane(,|$)')
+         | list }}
+    kube_compute_nodes: >-
+      {{ service_cluster_metadata | dict2items
+         | rejectattr('value.role', 'search', '(^|,)service_kube_control_plane(,|$)')
+         | list }}
 
-- name: Build updated metadata with idrac telemetry pods
+- name: Identify unassigned service nodes and idrac-telemetry pods
   ansible.builtin.set_fact:
-    updated_metadata_items: "{{ updated_metadata_items | default([]) + [ { item.0.key: item.0.value | combine({ 'idrac_podname': item.1 }) } ] }}"
-  loop: "{{ (kube_cp_node + kube_compute_nodes) | zip(idrac_telemetry_pods) | list }}"
+    unassigned_nodes: >-
+      {{ (kube_cp_node + kube_compute_nodes)
+         | rejectattr('value.idrac_podname', 'defined')
+         | list }}
+    assigned_pods: >-
+      {{ (kube_cp_node + kube_compute_nodes)
+         | map(attribute='value.idrac_podname')
+         | select('defined') | list | default([]) }}
 
-- name: Append pod details in service_cluster metadata
+- name: Identify unassigned telemetry pods
   ansible.builtin.set_fact:
-    service_cluster_metadata: "{{ service_cluster_metadata | combine(updated_metadata_items | combine, recursive=True) }}"
+    unassigned_pods: >-
+      {{ idrac_telemetry_pods | difference(assigned_pods) }}
+
+- name: Build new pod assignments for unassigned nodes
+  ansible.builtin.set_fact:
+    new_metadata_items: "{{ new_metadata_items | default([]) + [
+        {
+          item.0.key: item.0.value | combine({ 'idrac_podname': item.1 })
+        }
+      ] }}"
+  loop: "{{ unassigned_nodes | zip(unassigned_pods) | list }}"
+
+- name: Append new pod details in service_cluster metadata
+  ansible.builtin.set_fact:
+    service_cluster_metadata: "{{ service_cluster_metadata | combine(new_metadata_items | combine, recursive=True) }}"
 
 - name: Update service_cluster metadata file
   ansible.builtin.copy:
