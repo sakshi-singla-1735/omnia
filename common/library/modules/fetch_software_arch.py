@@ -24,7 +24,8 @@ from ansible.module_utils.local_repo.software_utils import(
     load_yaml
 )
 from ansible.module_utils.local_repo.config import (
-    ROLES_CONFIG_PATH_DEFAULT
+     SOFTWARE_CONFIG_PATH_DEFAULT,
+     ROLES_CONFIG_PATH_DEFAULT
 )
 
 def main():
@@ -44,7 +45,7 @@ def main():
 
     module_args = {
         "software_name": {"type": "str", "required": True},
-        "user_json_file": {"type": "str", "required": True},
+        "user_json_file": {"type": "str", "required": False, "default": SOFTWARE_CONFIG_PATH_DEFAULT},
         "roles_config_path": {"type": "str", "required": False, "default": ROLES_CONFIG_PATH_DEFAULT},
     }
 
