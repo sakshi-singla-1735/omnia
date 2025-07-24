@@ -113,7 +113,7 @@ def validate_repo_mappings(yaml_data, json_data):
     return errors
 
 
-def get_json_file_path(software_name, cluster_os_type, cluster_os_version, user_json_path):
+def get_json_file_path(software_name, cluster_os_type, cluster_os_version, user_json_path, arch_list):
     """
     Generate the file path for a JSON file based on the provided software name,
      cluster OS type, cluster OS version, and user JSON path.
@@ -128,12 +128,18 @@ def get_json_file_path(software_name, cluster_os_type, cluster_os_version, user_
         str or None: The file path for the JSON file if it exists, otherwise None.
     """
     base_path = os.path.dirname(os.path.abspath(user_json_path))
-    json_path = os.path.join(
-        base_path,
-        f'{SOFTWARE_CONFIG_SUBDIR}/{cluster_os_type}/{cluster_os_version}/{software_name}.json')
-    if os.path.exists(json_path):
-        return json_path
-    return None
+    json_paths = []
+    for arch in arch_list:
+        json_path = os.path.join(
+            base_path,
+            f'{SOFTWARE_CONFIG_SUBDIR}/{arch}/{cluster_os_type}/{cluster_os_version}/{software_name}.json'
+        )
+        if os.path.exists(json_path):
+            json_paths.append(json_path)
+        else:
+            print(f"Info: JSON path not found: {json_path}")
+
+    return json_paths
 
 
 def get_csv_file_path(software_name, user_csv_dir):
