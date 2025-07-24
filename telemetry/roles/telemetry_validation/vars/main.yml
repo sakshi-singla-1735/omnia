@@ -64,7 +64,7 @@ software_config_file: "{{ input_project_dir }}/software_config.json"
 #   and then execute telemetry.yml.
 local_repo_service_missing_msg: |
   [ERROR] It seems local_repo not executed with service_k8s/service_node entry in software_config.yml.
-  Kindly execute local_repo.yml with `service_k8s` or `service_node` entry in softwares list in software_config.yml
+  Kindly execute local_repo.yml with `service_k8s` or `service_node` entry in softwares list in software_config.json
   and then execute telemetry.yml.
 local_repo_access_path: "/opt/omnia/provision/local_repo_access.yml"
 # sn_packages_file: "{{ input_project_dir }}/config/{{ software_config.cluster_os_type }}/{{ software_config.cluster_os_version }}/service_node.json"
@@ -108,7 +108,7 @@ prepare_oim_telemetry_not_executed_msg: "Telemetry container {{ telemetry_contai
  Please execute prepare_oim.yml to deploy all required containers."
 
 # Usage: add_host_goups.yml
-service_node_metadata_path: "/opt/omnia/.data/service_node_metadata.yml"
+service_cluster_metadata_path: "/opt/omnia/.data/service_cluster_metadata.yml"
 cluster_layout_path: "/opt/omnia/omnia_inventory/cluster_layout"
 invalid_parent_tags_message: |
   [ERROR] Invalid parent tags : {{ host_inventory.invalid_parent_tags }}.
@@ -117,6 +117,12 @@ invalid_parent_tags_message: |
   If service nodes are not provisioned or compute node provisioning not initiated,
   please run discovery_provision.yml to provision service nodes and compute nodes from service nodes.
   And then run `telemetry.yml` playbook again.
+telemetry_host_group: "telemetry_group"
+telemetry_host: >-
+  {{ groups['kube_control_plane']
+     if federated_idrac_telemetry_collection | default(false)
+     else ['localhost']
+  }}
 
 # Usage: include_high_availability_config.yml
 high_availability_config_path: "{{ input_project_dir }}/high_availability_config.yml"

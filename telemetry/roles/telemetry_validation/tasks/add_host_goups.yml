@@ -15,17 +15,17 @@
 
 - name: Check service node metadata file exists
   ansible.builtin.stat:
-    path: "{{ service_node_metadata_path }}"
+    path: "{{ service_cluster_metadata_path }}"
   register: service_node_metadata_exists
 
 - name: Include service node metadata vars
-  ansible.builtin.include_vars: "{{ service_node_metadata_path }}"
+  ansible.builtin.include_vars: "{{ service_cluster_metadata_path }}"
   when: service_node_metadata_exists.stat.exists
 
 - name: Get updated host inventory
   get_telemetry_host_inventory:
     bmc_group_data_path: "{{ bmc_group_data_filename }}"
-    service_node_metadata: "{{ service_nodes_metadata | default({}) }}"
+    service_node_metadata: "{{ service_cluster_metadata | default({}) }}"
     inventory_file_path: "{{ cluster_layout_path if enable_oim_ha else '' }}"
   register: host_inventory
 
@@ -72,3 +72,10 @@
     groups: "active_oim_node"
   when:
     - enable_oim_ha
+
+- name: Create telemetry group
+  ansible.builtin.add_host:
+    hostname: "{{ item }}"
+    groups: "{{ telemetry_host_group }}"
+    ansible_connection: "{{ 'local' if item == 'localhost' else 'ssh' }}"
+  loop: "{{ telemetry_host }}"

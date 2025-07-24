@@ -47,7 +47,3 @@
     # - name: Custom validation for federated way of telemetry
     #   ansible.builtin.include_tasks: validate_service_node_status.yml
     #   when: federated_idrac_telemetry_collection
-
-    - name: Generate service node host groups
-      ansible.builtin.include_tasks: add_host_goups.yml
-      when: idrac_telemetry_support
