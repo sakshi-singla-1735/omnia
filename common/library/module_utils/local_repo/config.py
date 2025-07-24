@@ -146,6 +146,3 @@ CERT_KEYS = ["sslcacert", "sslclientkey", "sslclientcert"]
 # Used by process_metadata.py
 # ----------------------------
 metadata_rerun_file_path = "/opt/omnia/offline_repo/.data/localrepo_rerun_metadata.yml"
-
-dnf_download_command_x86_64 = ["dnf", "download", "--resolve", "--alldeps", "--arch=x86_64,noarch"]
-dnf_download_command_aarch64 = ["dnf", "download", "--arch", "aarch64", "--forcearch", "aarch64", "--best", "--resolve", "--alldeps"] 
