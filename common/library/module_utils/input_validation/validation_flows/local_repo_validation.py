@@ -91,6 +91,4 @@ def validate_local_repo_config(input_file_path, data,
                             create_error_msg(sw + '/' + arch,
                                              json_path,
                                              f"Repo name {pkg.get('repo_name')} not found."))
-
-            # module.fail_json(msg="local_repo", errors=errors)
     return errors
