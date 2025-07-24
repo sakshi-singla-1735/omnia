@@ -125,7 +125,8 @@ def main():
             
             sw_arch_map.update(get_arch_from_sw_config(software, user_data, roles_config_data))
             logger.info(f"Softwares mapped to architecture: {sw_arch_map}") #Softwares mapped to architecture: {'amdgpu': ['x86_64'], 'k8s': ['aarch64', 'x86_64']}
-            json_paths = get_json_file_path(software, cluster_os_type, cluster_os_version, user_json_file, sw_arch_map)
+            sw_architectures = sw_arch_map.get(software, [])
+            json_paths = get_json_file_path(software, cluster_os_type, cluster_os_version, user_json_file, sw_architectures)
             csv_paths = get_csv_file_path(software, log_dir, sw_arch_map)
             logger.info(f"csv_path(s): {csv_paths}")
             
