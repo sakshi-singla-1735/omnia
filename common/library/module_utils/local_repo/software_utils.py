@@ -114,7 +114,7 @@ def validate_repo_mappings(yaml_data, json_data):
     return errors
 
 
-def get_json_file_path(software_name, cluster_os_type, cluster_os_version, user_json_path, sw_arch_map):
+def get_json_file_path(software_name, cluster_os_type, cluster_os_version, user_json_path, arch_list):
     """
     Generate the file path for a JSON file based on the provided software name,
      cluster OS type, cluster OS version, and user JSON path.
@@ -124,13 +124,12 @@ def get_json_file_path(software_name, cluster_os_type, cluster_os_version, user_
         cluster_os_type (str): The type of the cluster operating system.
         cluster_os_version (str): The version of the cluster operating system.
         user_json_path (str): The path to the user JSON file.
-        sw_arch_map (dict): Software name to architecture mapping
+        arch_list (list): List of architectures for a particular software
 
     Returns:
         str or None: The file path for the JSON file if it exists, otherwise None.
     """
     base_path = os.path.dirname(os.path.abspath(user_json_path))
-    arch_list = sw_arch_map.get(software_name, [])
 
     if not arch_list:
         print(f"Warning: No architectures found for software '{software_name}'")
