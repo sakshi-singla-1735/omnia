@@ -17,7 +17,7 @@
 # Kafka-specific
 kafka_broker: kafka-0.kafka-headless.telemetry.svc.cluster.local:9092
 kafka_topic: idrac_telemetry
-kafka_skip_verify: false
+kafka_skip_verify: true
 kafka_certs_path: /root/certs
 
 # Usage: prereq_checks.yml
