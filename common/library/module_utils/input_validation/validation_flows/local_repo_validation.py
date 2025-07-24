@@ -38,7 +38,7 @@ def validate_local_repo_config(input_file_path, data,
     with open(local_repo_yml, "r", encoding="utf-8") as f:
         local_repo_config = yaml.safe_load(f)
 
-    repo_names = []
+    repo_names = ['baseos', 'appstream']
     url_list = ["omnia_repo_url_rhel", "rhel_os_url", "user_repo_url"]
     for repurl in url_list:
         repos = local_repo_config.get(repurl)
@@ -62,9 +62,8 @@ def validate_local_repo_config(input_file_path, data,
     roles_config_file_path = create_file_path(input_file_path, file_names["roles_config"])
     with open(roles_config_file_path, "r", encoding="utf-8") as f:
         roles_config_dict = yaml.safe_load(f)
-    def_archs = [x["architecture"] for x in roles_config_dict["Groups"].values()]
-  
-    sw_dict = {}
+    def_archs = list({x["architecture"] for x in roles_config_dict["Groups"].values()})
+
     os_ver_path = f"/{software_config_json['cluster_os_type']}/{software_config_json['cluster_os_version']}/"
     for software in software_config_json["softwares"]:
         sw = software["name"]
@@ -75,6 +74,16 @@ def validate_local_repo_config(input_file_path, data,
             f"config/{arch}{os_ver_path}" + sw +".json")
             curr_json = json.load(open(json_path, "r", encoding="utf-8"))
             pkg_list = curr_json[sw]['cluster']
+            if sw in software_config_json:
+                for sub_pkg in software_config_json[sw]:
+                    sub_sw = sub_pkg.get('name')
+                    if sub_sw not in curr_json:
+                        errors.append(
+                            create_error_msg(sw + '/' + arch,
+                                             json_path,
+                                             f"Software {sub_sw} not found in {sw}."))
+                    else:
+                        pkg_list = pkg_list + curr_json[sub_sw]['cluster']
             for pkg in pkg_list:
                 if pkg.get("type") in ['rpm', 'rpm_list']:
                     if pkg.get("repo_name") not in repo_names:

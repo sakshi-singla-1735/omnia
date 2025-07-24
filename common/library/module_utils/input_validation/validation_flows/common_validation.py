@@ -167,51 +167,51 @@ def validate_software_config(
         errors.extend(additional_software_errors)
 
     # create the subgroups and softwares dictionary with version details
-    software_json_data = load_json(input_file_path)
-    subgroup_dict, _ = get_subgroup_dict(software_json_data)
-
-    # mismatches = validate_versions(software_json_data, config.expected_versions)
-    # if mismatches:
-    #     for msg in mismatches:
-    #         errors.append(
-    #             create_error_msg(
-    #                 "Validation Error: ","Version Mismatch found at" , msg
-    #                 )
-    #             )
+    # software_json_data = load_json(input_file_path)
+    subgroup_dict, _ = get_subgroup_dict(data)
 
     # check if the corresponding json files for softwares and subgroups exists in config folder
-    software_list = get_software_names(input_file_path)
+    # software_list = get_software_names(input_file_path)
     validation_results = []
     failures = []
     fail_data = []
-    for software in software_list:
-        json_path = get_json_file_path(
-            software, cluster_os_type, cluster_os_version, input_file_path
-        )
-        # Check if json_path is None or if the JSON syntax is invalid
-        if json_path is None:
-            errors.append(
-                create_error_msg(
-                    "Validation Error: ", software,
-                    f"is present in software_config.json. JSON file not found: {os.path.dirname(input_file_path)}/config/{cluster_os_type}/{cluster_os_version}/{software}.json"
-                )
-            )
-        else:
-            try:
-                subgroup_softwares = subgroup_dict.get(software, None)
-                # for each subgroup for a software check for corresponding entry in software.json
-                # eg: for amd the amd.json should contain both amd and rocm entries
-                with open(json_path, "r") as file:
-                    json_data = json.load(file)
-                for subgroup_software in subgroup_softwares:
-                    _, fail_data = validation_utils.validate_softwaresubgroup_entries(
-                        subgroup_software, json_path, json_data, validation_results, failures
-                    )
 
-            except (FileNotFoundError, json.JSONDecodeError) as e:
+    roles_config_file_path = create_file_path(input_file_path, file_names["roles_config"])
+    with open(roles_config_file_path, "r", encoding="utf-8") as f:
+        roles_config_dict = yaml.safe_load(f)
+    def_archs = list({x["architecture"] for x in roles_config_dict["Groups"].values()})
+
+    for software_pkg in data['softwares']:
+        software = software_pkg['name']
+        arch_list = software_pkg.get('arch', def_archs)
+        json_paths = get_json_file_path(
+            software, cluster_os_type, cluster_os_version, input_file_path, arch_list
+        )
+        for json_path in json_paths:
+        # Check if json_path is None or if the JSON syntax is invalid
+            if not json_path:
                 errors.append(
-                    create_error_msg("Error opening or reading JSON file:", json_path, str(e))
+                    create_error_msg(
+                        "Validation Error: ", software,
+                        f"is present in software_config.json. JSON file not found: {os.path.dirname(input_file_path)}/config/{cluster_os_type}/{cluster_os_version}/{software}.json"
+                    )
                 )
+            else:
+                try:
+                    subgroup_softwares = subgroup_dict.get(software, None)
+                    # for each subgroup for a software check for corresponding entry in software.json
+                    # eg: for amd the amd.json should contain both amd and rocm entries
+                    with open(json_path, "r", encoding='utf-8') as file:
+                        json_data = json.load(file)
+                    for subgroup_software in subgroup_softwares:
+                        _, fail_data = validation_utils.validate_softwaresubgroup_entries(
+                            subgroup_software, json_path, json_data, validation_results, failures
+                        )
+
+                except (FileNotFoundError, json.JSONDecodeError) as e:
+                    errors.append(
+                        create_error_msg("Error opening or reading JSON file:", json_path, str(e))
+                    )
 
     if fail_data:
         errors.append(
