@@ -18,8 +18,7 @@
 import subprocess
 import os
 from ansible.module_utils.local_repo.config import (
-    dnf_download_command_aarch64,
-    dnf_download_command_x86_64
+    DNF_COMMANDS
 )
 from multiprocessing import Lock
 from ansible.module_utils.local_repo.parse_and_download import write_status_to_file
@@ -60,11 +59,9 @@ def process_rpm(package, repo_store_path, status_file_path, cluster_os_type,
             logger.info(f"rpm_dir {rpm_directory}")
             os.makedirs(rpm_directory, exist_ok=True)
 
-            if arc.lower() in ("x86", "x86_64"):
-                dnf_download_command = (dnf_download_command_x86_64 + [f'--destdir={rpm_directory}'] + rpm_list)
+            arch_key = "x86_64" if arc.lower() in ("x86_64") else "aarch64"
+            dnf_download_command = DNF_COMMANDS[arch_key] + [f'--destdir={rpm_directory}'] + rpm_list
 
-            elif arc.lower() in ("arm", "aarch64"):  # ARM architectures
-                dnf_download_command = (dnf_download_command_aarch64 + [f'--destdir={rpm_directory}'] + rpm_list)
             rpm_result = subprocess.run(dnf_download_command,
                                         check=False, capture_output=True, text=True)
             logger.info(f"RPM Download success stdout {rpm_result.stdout}")

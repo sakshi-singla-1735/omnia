@@ -61,7 +61,11 @@ RHEL_OS_URL = "rhel_os_url"
 SOFTWARES_KEY = "softwares"
 USER_REPO_URL = "user_repo_url"
 REPO_CONFIG = { "always": "on_demand", "partial": "on_demand", "never": "streamed" }
-ARCH_SUFFIXES = {"x86", "x86_64", "aarch64"}
+ARCH_SUFFIXES = {"x86_64", "aarch64"}
+DNF_COMMANDS = {
+    "x86_64": ["dnf", "download", "--resolve", "--alldeps", "--arch=x86_64,noarch"],
+    "aarch64": ["dnf", "download", "--arch", "aarch64", "--forcearch", "aarch64", "--best", "--resolve", "--alldeps"]
+}
 
 # ----------------------------
 # Used by download_common.py
