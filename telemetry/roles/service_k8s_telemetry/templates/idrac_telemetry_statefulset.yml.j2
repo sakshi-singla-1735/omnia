@@ -138,6 +138,34 @@ spec:
           command: ["/bin/sh", "-c"]
           args: ["go run cmd/prometheuspump/prometheuspump.go"]
 
+        - name: kafka-pump
+          image: {{ go_image }}
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - mountPath: /go/src/github.com/telemetry-reference-tools
+              name: telemetry-reference-tools
+          workingDir: /go/src/github.com/telemetry-reference-tools
+          env:
+            - name: MESSAGEBUS_HOST
+              value: activemq
+            - name: MESSAGEBUS_PORT
+              value: "{{ messagebus_http_port }}"
+            - name: KAFKA_BROKER
+              value: "{{ kafka_broker }}"
+            - name: KAFKA_TOPIC
+              value: "{{ kafka_topic }}"
+            - name: KAFKA_SKIP_VERIFY
+              value: "{{ kafka_skip_verify | default('true') | lower }}"
+            # Uncomment below if TLS is used
+            # - name: KAFKA_CACERT
+            #   value: certs/ca.crt
+            # - name: KAFKA_CLIENT_CERT
+            #   value: certs/client.crt
+            # - name: KAFKA_CLIENT_KEY
+            #   value: certs/client.key
+          command: ["/bin/sh", "-c"]
+          args: ["go run cmd/kafkapump/kafkapump.go"]
+
   volumeClaimTemplates:
     - metadata:
         name: mysqldb-pvc
