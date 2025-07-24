@@ -71,6 +71,10 @@ prometheus_reload:
   retries: 3
   delay: 5
 
+idrac_telemetry_statefulset_restart_failure_msg: |
+  Failed to restart the idrac_telemetry StatefulSet.
+  Please check the logs using the command kubectl logs -n telemetry idrac-telemetry-<pod-index> and try again.
+
 # Usage: create_telemetry_report.yml
 telemetry_report_path_oim: "/opt/omnia/telemetry/idrac_telemetry_report.yml"
 telemetry_report_path_sn: "{{ omnia_nfs_share }}/telemetry/idrac_telemetry_report.yml"
