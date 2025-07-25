@@ -62,7 +62,7 @@
     idrac_podnames: "{{ idrac_podname_idracips.idrac_podname_ips.keys() | list }}"
     mysqldb_k8s_name: "{{ mysqldb_k8s_name }}"
     mysqldb_name: "{{ mysqldb_name }}"
-    mysqldb_user: "{{ hostvars['localhost']['mysqldb_user'] }}
+    mysqldb_user: "{{ hostvars['localhost']['mysqldb_user'] }}"
     mysqldb_password: "{{ hostvars['localhost']['mysqldb_password'] }}"
     db_retries: "{{ db_retries }}"
     db_delay: "{{ db_delay }}"
