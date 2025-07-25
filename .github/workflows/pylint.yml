@@ -8,6 +8,7 @@ on:
       - pub/service_k8s_telemetry
       - pub/local_repo
       - pub/new_arch_pylint
+      - pub/local_repo_arch
 
 jobs:
   build:
