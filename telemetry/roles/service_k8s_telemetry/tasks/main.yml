@@ -27,7 +27,7 @@
 
     # - name: Deployment of prometheus pod
     #   ansible.builtin.include_tasks: prometheus_deployment.yml
-    #   when: 
+    #   when: hostvars['localhost']['idrac_telemetry_collection_type'] == "prometheus"
 
     - name: Deployment of kafka pod
       ansible.builtin.include_tasks: kafka_deployment.yml
