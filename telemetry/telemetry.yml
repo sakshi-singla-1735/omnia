@@ -212,11 +212,11 @@
 #         tasks_from: prometheus_config_reload.yml
 
 - name: Telemetry report overview
-  hosts: localhost
+  hosts: telemetry_group
   connection: ssh
   gather_facts: false
   vars:
-    node_host: "{{ hostvars[inventory_hostname]['service_tag'] if inventory_hostname != 'localhost' else 'oim' }}"
+    node_host: "{{ hostvars[inventory_hostname]['inventory_hostname'] if inventory_hostname != 'localhost' else 'oim' }}"
     telemetry_report: |
           ---- Telemetry Report Overview ({{ node_host }}) ----
 

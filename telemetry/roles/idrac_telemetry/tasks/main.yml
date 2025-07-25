@@ -26,4 +26,3 @@
 
     - name: Generete telemetry report
       ansible.builtin.include_tasks: create_telemetry_report.yml
-      when: not hostvars['localhost']['federated_idrac_telemetry_collection']

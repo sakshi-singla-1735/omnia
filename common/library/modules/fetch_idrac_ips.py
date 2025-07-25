@@ -25,36 +25,11 @@ The module also handles cases where no relevant data isfound"""
 
 from ansible.module_utils.basic import AnsibleModule
 
-def main():
-    """Main function to execute the module logic."""
-    # Define the module arguments
-    # service_cluster_metadata: Metadata about the service cluster
-    # parent_to_bmc_ip_details: Mapping of service tags to BMC group data
-    # This module expects these inputs to be provided by the playbook
-    # or task that calls this module.
-    # It will process these inputs to find iDRAC podnames and their IPs.
-    # The output will be a dictionary where keys are iDRAC podnames and
-    # values are lists of IPs associated with those podnames.
-    module_args = {
-        "service_cluster_metadata": {"type":"dict", "required":True},
-        "parent_to_bmc_ip_details": {"type":"dict", "required":True}
-    }
-
-    module = AnsibleModule(argument_spec=module_args, supports_check_mode=True)
-
-    service_cluster_metadata = module.params["service_cluster_metadata"]
-    module.warn(f"Service Cluster metadata path: {service_cluster_metadata}")
-    parent_to_bmc_ip_details = module.params["parent_to_bmc_ip_details"]
-
-    if not service_cluster_metadata:
-        module.warn("Service cluster metadata is required but not provided.")
-    if not parent_to_bmc_ip_details:
-        module.warn("BMC group data list is required but not provided.")
-
-    module.warn(f"Loaded service cluster metadata: {service_cluster_metadata}")
-    module.warn(f"Loaded BMC group data: {parent_to_bmc_ip_details}")
-
-    # Step 1: Find child_groups for that service tag
+def fetch_pod_to_idracips(service_cluster_metadata, parent_to_bmc_ip_details, module):
+    """
+    Maps iDRAC podnames to their associated IPs using service cluster metadata and BMC group data.
+    Returns a dictionary where keys are iDRAC podnames and values are lists of IPs.
+    """
     idrac_podname_ips = {}
 
     for node in service_cluster_metadata.values():
@@ -83,6 +58,37 @@ def main():
 
     if not idrac_podname_ips:
         module.warn("No iDRAC podnames and IPs found in the service cluster metadata.")
+
+    return idrac_podname_ips
+
+def main():
+    """Main function to execute the module logic."""
+    # Define the module arguments
+    # service_cluster_metadata: Metadata about the service cluster
+    # parent_to_bmc_ip_details: Mapping of service tags to BMC group data
+    # This module expects these inputs to be provided by the playbook
+    # or task that calls this module.
+    # It will process these inputs to find iDRAC podnames and their IPs.
+    # The output will be a dictionary where keys are iDRAC podnames and
+    # values are lists of IPs associated with those podnames.
+    module_args = {
+        "service_cluster_metadata": {"type":"dict", "required":True},
+        "parent_to_bmc_ip_details": {"type":"dict", "required":True}
+    }
+
+    module = AnsibleModule(argument_spec=module_args, supports_check_mode=True)
+
+    service_cluster_metadata = module.params["service_cluster_metadata"]
+    module.warn(f"Service Cluster metadata path: {service_cluster_metadata}")
+    parent_to_bmc_ip_details = module.params["parent_to_bmc_ip_details"]
+
+    if not service_cluster_metadata:
+        module.warn("Service cluster metadata is required but not provided.")
+    if not parent_to_bmc_ip_details:
+        module.warn("BMC group data list is required but not provided.")
+
+    idrac_podname_ips = fetch_pod_to_idracips(service_cluster_metadata, \
+                    parent_to_bmc_ip_details, module)
 
     module.exit_json(
         changed=False,

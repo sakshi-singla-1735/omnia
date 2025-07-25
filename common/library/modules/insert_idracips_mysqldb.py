@@ -76,7 +76,7 @@ def run_mysql_insert(
             stdin=False,
             stdout=True,
             tty=False,
-            _preload_content=False  # ✅ Allows streaming access
+            _preload_content=False  # Allows streaming access
         )
 
         stdout = ""
@@ -102,7 +102,7 @@ def run_mysql_insert(
             "result": stdout.strip()
         }
 
-    except Exception as e:  # noqa: W0718
+    except Exception as e:
     # Catching all to ensure MySQL errors or stream failures are handled
         return {
             "rc": False, 
