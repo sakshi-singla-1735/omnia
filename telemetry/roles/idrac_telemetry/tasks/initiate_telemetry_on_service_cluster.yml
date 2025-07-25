@@ -62,10 +62,12 @@
     idrac_podnames: "{{ idrac_podname_idracips.idrac_podname_ips.keys() | list }}"
     mysqldb_k8s_name: "{{ mysqldb_k8s_name }}"
     mysqldb_name: "{{ mysqldb_name }}"
-    mysqldb_root_password: "{{ hostvars['localhost']['mysqldb_root_password'] }}"
+    mysqldb_user: "{{ hostvars['localhost']['mysqldb_user'] }}
+    mysqldb_password: "{{ hostvars['localhost']['mysqldb_password'] }}"
     db_retries: "{{ db_retries }}"
     db_delay: "{{ db_delay }}"
   register: existing_mysqldb_idracips
+  #no_log: true
 
 - name: Set existing BMC IPs from mysqlDB
   ansible.builtin.set_fact:
@@ -98,7 +100,8 @@
     idrac_podnames_ips: "{{ idrac_podname_idracips.idrac_podname_ips }}"
     mysqldb_k8s_name: "{{ mysqldb_k8s_name }}"
     mysqldb_name: "{{ mysqldb_name }}"
-    mysqldb_root_password: "{{ hostvars['localhost']['mysqldb_root_password'] }}"
+    mysql_user: "{{ hostvars['localhost']['mysqldb_user'] }}"
+    mysqldb_password: "{{ hostvars['localhost']['mysqldb_password'] }}"
     bmc_username: "{{ hostvars['localhost']['bmc_username'] }}"
     bmc_password: "{{ hostvars['localhost']['bmc_password'] }}"
     telemetry_idrac: "{{ telemetry_idrac }}"
@@ -107,6 +110,7 @@
     db_retries: "{{ db_retries }}"
     db_delay: "{{ db_delay }}"
   register: add_idrac_to_db
+  #no_log: true
 
 - name: Show iDRACs added to mysqldb
   ansible.builtin.debug:

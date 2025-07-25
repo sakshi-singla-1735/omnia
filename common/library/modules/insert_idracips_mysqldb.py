@@ -41,7 +41,8 @@ def run_mysql_insert(
     pod,
     container,
     mysqldb_name,
-    mysqldb_root_password,
+    mysql_user,
+    mysql_password,
     ip,
     service_type,
     auth_type,
@@ -60,7 +61,7 @@ def run_mysql_insert(
     )
 
     command = [
-        "mysql", "-u", "root", f"-p{mysqldb_root_password}",
+        "mysql", "-u", mysql_user, f"-p{mysql_password}",
         "-e", query
     ]
 
@@ -115,7 +116,8 @@ def insert_idracs_to_mysql(
     pod,
     container,
     mysqldb_name,
-    mysqldb_root_password,
+    mysql_user,
+    mysql_password,
     telemetry_idrac_list,
     service_type,
     auth_type,
@@ -139,7 +141,8 @@ def insert_idracs_to_mysql(
                 pod=pod,
                 container=container,
                 mysqldb_name=mysqldb_name,
-                mysqldb_root_password=mysqldb_root_password,
+                mysql_user=mysql_user,
+                mysql_password=mysql_password,
                 ip=ip,
                 service_type=service_type,
                 auth_type=auth_type,
@@ -162,7 +165,8 @@ def main():
         "idrac_podnames_ips": {"type": "dict", "required": True},
         "mysqldb_k8s_name": {"type": "str", "required": True},
         "mysqldb_name": {"type": "str", "required": True},
-        "mysqldb_root_password": {"type": "str", "required": True, "no_log": True},
+        "mysql_user": {"type": "str", "required": True},
+        "mysql_password": {"type": "str", "required": True, "no_log": True},
         "bmc_username": {"type": "str", "required": True, "no_log": True},
         "bmc_password": {"type": "str", "required": True, "no_log": True},
         "telemetry_idrac": {"type": "list", "elements": "str", "required": True},
@@ -187,7 +191,8 @@ def main():
     idrac_podnames_ips = module.params['idrac_podnames_ips']
     mysqldb_k8s_name = module.params['mysqldb_k8s_name']
     mysqldb_name = module.params['mysqldb_name']
-    mysqldb_root_password = module.params['mysqldb_root_password']
+    mysql_user = module.params['mysql_user']
+    mysql_password = module.params['mysql_password']
     bmc_username = module.params['bmc_username']
     bmc_password = module.params['bmc_password']
     telemetry_idrac = module.params['telemetry_idrac']
@@ -210,7 +215,8 @@ def main():
             pod=pod,
             container=mysqldb_k8s_name,
             mysqldb_name=mysqldb_name,
-            mysqldb_root_password=mysqldb_root_password,
+            mysql_user=mysql_user,
+            mysql_password=mysql_password,
             telemetry_idrac_list=working_idrac_ips,
             service_type=service_type,
             auth_type=auth_type,

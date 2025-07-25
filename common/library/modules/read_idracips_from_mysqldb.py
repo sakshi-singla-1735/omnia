@@ -30,14 +30,14 @@ def load_kube_context():
 
 
 # Function to execute a MySQL command inside a pod using the Kubernetes client
-def run_mysql_query_in_pod(namespace, pod, container, mysql_root_password, query):
+def run_mysql_query_in_pod(namespace, pod, container, mysql_user, mysql_password, query):
     """Run a MySQL query in the specified pod."""
     core_v1 = client.CoreV1Api()
     mysql_command = [
         "mysql",
-        "-u", "root",
+        "-u", mysql_user,
         "-N", "-B",
-        f"-p{mysql_root_password}",
+        f"-p{mysql_password}",
         "-e", query
     ]
 
@@ -98,7 +98,8 @@ def main():
         "idrac_podnames": {"type": "list", "required": True},
         "mysqldb_k8s_name": {"type": "str", "required": True},
         "mysqldb_name": {"type": "str", "required": True},
-        "mysqldb_root_password": {"type": "str", "required": True, "no_log": True},
+        "mysqldb_user": {"type": "str", "required": True},
+        "mysqldb_password": {"type": "str", "required": True, "no_log": True},
         "db_retries": {"type": "int", "default": 5},
         "db_delay": {"type": "int", "default": 3},
     }
@@ -109,7 +110,8 @@ def main():
     idrac_podnames = module.params["idrac_podnames"]
     mysqldb_k8s_name = module.params["mysqldb_k8s_name"]
     mysqldb_name = module.params["mysqldb_name"]
-    mysqldb_root_password = module.params["mysqldb_root_password"]
+    mysqldb_user = module.params["mysqldb_user"]
+    mysqldb_password = module.params["mysqldb_password"]
     db_retries = module.params["db_retries"]
     db_delay = module.params["db_delay"]
 
@@ -131,7 +133,8 @@ def main():
                 telemetry_namespace,
                 idrac_podname,
                 mysqldb_k8s_name,
-                mysqldb_root_password,
+                mysqldb_user,
+                mysqldb_password,
                 query_tables
             )
             if tables_output and not found:
@@ -144,7 +147,8 @@ def main():
                     telemetry_namespace,
                     idrac_podname,
                     mysqldb_k8s_name,
-                    mysqldb_root_password,
+                    mysqldb_user,
+                    mysqldb_password,
                     query_ips
                 )
                 module.warn(f"iDRAC IPs output from {idrac_podname}: {ip_output}")
