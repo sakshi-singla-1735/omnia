@@ -21,12 +21,16 @@
   changed_when: refresh_mounts.rc == 0
   when: slurm_installation_type == nfs_share_slurm
 
+- name: Set facts for node ip # In case of multi NICs updates the right ip
+  ansible.builtin.set_fact:
+    node_ip: "{{ ansible_host }}"
+
 - name: Update hosts file for all slurm groups
   block:
     - name: Update hosts file for all slurm groups
       ansible.builtin.lineinfile:
         dest: "{{ hosts_file_dest }}"
-        line: "{{ hostvars[item]['ansible_default_ipv4']['address'] }} {{ hostvars[item]['ansible_fqdn'] }}
+        line: "{{ hostvars[item].node_ip }} {{ hostvars[item]['ansible_fqdn'] }}
          {{ hostvars[item]['ansible_nodename'] | split('.') | first }}"
         state: present
         create: true

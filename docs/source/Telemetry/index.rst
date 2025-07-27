@@ -22,15 +22,12 @@ Prerequisites
     
     * Additionally, the ``idrac_telemetry_receiver``, ``activemq``, ``mysqldb``, ``prometheus``, and ``prometheus_pump`` containers are deployed on the service nodes to facilitate telemetry data collection. 
 
-.. note:: Federated telemetry support is only available for a `hierarchical cluster <../OmniaInstallGuide/RHEL_new/xcat_hierarchical.html>`_. For a non-hierarchical cluster, telemetry data for all nodes in the cluster is collected by the OIM. 
-
 .. csv-table:: telemetry_config.yml
    :file: ../Tables/telemetry_config.csv
    :header-rows: 1
    :keepspace:
 
-.. note:: 
-    * Credentials can be provided using the ``get_config_credential.yml`` utility or can be provided during the execution of the ``prepare_oim.yml`` playbook.          
+.. note:: Credentials can be provided using the ``get_config_credential.yml`` utility or can be provided during the execution of the ``prepare_oim.yml`` playbook.          
 
 .. note:: To update the ``bmc_username`` and ``bmc_password`` fields in the ``omnia_config_credentials.yml`` input file for the connected iDRACs, use the command provided below. Do not alter any other fields in the file, as this may lead to unexpected failures. For more information, `click here <../OmniaInstallGuide/RHEL_new/credentials_utility.html>`_.
     ::

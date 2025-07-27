@@ -130,7 +130,6 @@ def get_json_file_path(software_name, cluster_os_type, cluster_os_version, user_
         str or None: The file path for the JSON file if it exists, otherwise None.
     """
     base_path = os.path.dirname(os.path.abspath(user_json_path))
-
     json_paths = []
     for arch in arch_list:
         json_path = os.path.join(

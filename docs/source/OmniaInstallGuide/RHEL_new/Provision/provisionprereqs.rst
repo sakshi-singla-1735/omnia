@@ -26,7 +26,7 @@ Prerequisites
 
         hostnamectl set-hostname <hostname>
 
-    .. note:: The domain name specified for the OIM should be the same as the one specified under ``domain_name`` in ``input/provision_config.yml``.
+    .. note:: The domain name specified for the OIM should be the same as the one specified under ``domain_name`` in ``/opt/omnia/input/project_default/provision_config.yml``.
 
 * To provision the bare metal servers, download the following ISO to the OIM:
 

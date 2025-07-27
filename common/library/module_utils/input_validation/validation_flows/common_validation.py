@@ -1031,7 +1031,7 @@ def validate_k8s(data, admin_bmc_networks, softwares, ha_config, tag_names, erro
                         create_error_msg(
                             "IP overlap -",
                             None,
-                            en_us_validation_msg.ip_overlap_fail_msg))
+                            en_us_validation_msg.IP_OVERLAP_FAIL_MSG))
 
 def validate_omnia_config(
         input_file_path,
