@@ -3,9 +3,9 @@ Provisioning the cluster
 
 The ``discovery_provision.yml`` playbook discovers the probable bare-metal cluster nodes and provisions the minimal version of RHEL OS onto those nodes. This playbook is dependent on inputs from the following input files:
 
-* ``/opt/omnia/input/provision_config.yml``
-* ``/opt/omnia/input/provision_config_credentials.yml``
-* ``/opt/omnia/input/network_spec.yml``
+* ``/opt/omnia/input/project_default/provision_config.yml``
+* ``/opt/omnia/input/project_default/provision_config_credentials.yml``
+* ``/opt/omnia/input/project_default/network_spec.yml``
 
 .. note:: The first PXE device on target nodes should be the designated active NIC for PXE booting.
 

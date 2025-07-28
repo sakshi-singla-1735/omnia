@@ -4,7 +4,7 @@ High Availability (HA) for the Service Cluster
 Prerequisites
 --------------
 
-* Ensure that the ``local_repo.yml`` playbook has been run successfully at least once. Before running it, verify that the ``opt/omnia/input/project_default/software_config.json`` file contains ``{"name": "service_k8s"}`` in the ``softwares`` list.
+* Ensure that the ``local_repo.yml`` playbook has been run successfully at least once. Before running it, verify that the ``/opt/omnia/input/project_default/software_config.json`` file contains ``{"name": "service_k8s"}`` in the ``softwares`` list.
 
 * To enable and configure the HA for Service cluster, fill up the necessary parameters in the ``high_availability_config.yml`` config file present in the ``/opt/omnia/input/project_default/`` directory. Once the config file is updated, run the ``prepare_oim.yml`` playbook.
 

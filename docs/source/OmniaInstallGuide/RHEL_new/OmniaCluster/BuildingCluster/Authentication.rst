@@ -4,7 +4,7 @@ Centralized authentication on the cluster
 The security feature allows cluster admin users to set up FreeIPA or OpenLDAP in order to allow or deny access to the user(s).
 
 Configuring FreeIPA/OpenLDAP security
-______________________________________
+--------------------------------------
 
 **Prerequisites**
 

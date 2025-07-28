@@ -28,7 +28,7 @@ Prerequisites
 Steps
 -------
 
-1. Create a ``additional_software.json`` file under ``input/config/<cluster_os_type>/<cluster_os_version>`` directory, with all the additional packages listed. These packages will be installed on the cluster nodes.
+1. Create a ``additional_software.json`` file under ``/opt/omnia/input/project_default/config/<cluster_os_type>/<cluster_os_version>`` directory, with all the additional packages listed. These packages will be installed on the cluster nodes.
 
 2. Provide details about the software installation requirements for each group or role in the ``/opt/omnia/input/project_default/software_config.json`` file. Use the format of subgroups, where each subgroup name is a comma-separated list of group or role names.
 
