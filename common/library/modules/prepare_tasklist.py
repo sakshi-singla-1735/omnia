@@ -23,7 +23,7 @@ from ansible.module_utils.local_repo.common_functions import(
     get_arch_from_sw_config,
     get_arch_from_roles_config
 )
-from ansible.module_utils.local_repo.software_utils  import (
+from ansible.module_utils.local_repo.software_utils import (
     validate_repo_mappings,
     get_software_names,
     check_csv_existence,
