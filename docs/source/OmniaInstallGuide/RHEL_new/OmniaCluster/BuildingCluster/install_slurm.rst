@@ -16,7 +16,7 @@ Set up Slurm
             "slurm": [
                     {"name": "slurm_control_node"},
                     {"name": "slurm_node"},
-                    {"name": "login"}
+                    {"name": "login_node"}
                 ]
 
 * Ensure to run ``local_repo.yml`` with the ``slurm`` entry present in ``software_config.json`` to download all required slurm packages.

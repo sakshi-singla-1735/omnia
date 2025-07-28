@@ -118,12 +118,12 @@ Slurm control plane - ``slurm_control_node``,Management,"* Nodes with ``slurm_co
     groups:
       - grp0
       - grp1"
-Login node - ``login``,Management,"* This role is used to configure the nodes for user logins. The nodes included in this role will have the necessary tools and configurations to support user login activities.
+Login node - ``login_node``,Management,"* This role is used to configure the nodes for user logins. The nodes included in this role will have the necessary tools and configurations to support user login activities.
 
 **Example**:
 ::
     Roles:
-  - name: ""login""
+  - name: ""login_node""
     groups:
       - grp0
       - grp1"

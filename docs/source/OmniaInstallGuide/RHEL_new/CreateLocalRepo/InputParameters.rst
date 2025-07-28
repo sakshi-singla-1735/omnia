@@ -42,7 +42,7 @@ Here's a sample of the ``software_config.json`` for RHEL clusters:
         "slurm": [
             {"name": "slurm_control_node"},
             {"name": "slurm_node"},
-            {"name": "login"}
+            {"name": "login_node"}
         ]
     }
 

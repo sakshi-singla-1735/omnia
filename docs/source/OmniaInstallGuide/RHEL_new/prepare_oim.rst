@@ -135,7 +135,7 @@ A sample of the ``software_config.json`` file for RHEL clusters is attached belo
         "slurm": [
             {"name": "slurm_control_node"},
             {"name": "slurm_node"},
-            {"name": "login"}
+            {"name": "login_node"}
         ]
     }
 

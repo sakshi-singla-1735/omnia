@@ -29,7 +29,7 @@ To deploy Kubernetes on service cluster, ensure that ``service_k8s`` is added un
         "slurm": [
             {"name": "slurm_control_node"},
             {"name": "slurm_node"},
-            {"name": "login"}
+            {"name": "login_node"}
         ]
     }
 
