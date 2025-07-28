@@ -54,14 +54,20 @@
       ansible.builtin.set_fact:
         host_inventory: >-
           {{
-            groups['all']
-            | difference(['oim', 'omnia_provision'])
-            | map('extract', hostvars)
-            | zip(groups['all'] | difference(['oim', 'omnia_provision']))
-            | map('reverse')
-            | map('map', 'default')
-            | map('first')
-            | list
+            (
+              groups['all']
+              | reject('in', ['oim', 'omnia_provision', 'localhost'])
+              | list
+              +
+              (
+                groups['all']
+                | map('extract', hostvars)
+                | selectattr('ansible_host', 'defined')
+                | rejectattr('inventory_hostname', 'in', ['oim', 'omnia_provision', 'localhost'])
+                | map(attribute='ansible_host')
+                | list
+              )
+            ) | unique
           }}
 
     - name: Fetch service_cluster info
