@@ -54,9 +54,13 @@
       ansible.builtin.set_fact:
         host_inventory: >-
           {{
-            groups['all'] | map('extract', hostvars) |
-            map('combine', [{'ip': item.ansible_host | default(item.inventory_hostname)}]) |
-            map(attribute='ip') | list
+            groups['all'] |
+            map('extract', hostvars) |
+            zip(groups['all']) |
+            map('reverse') |
+            map('map', 'default') |
+            map('first') |
+            list
           }}
 
     - name: Fetch service_cluster info
