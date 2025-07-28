@@ -175,19 +175,14 @@
       ansible.builtin.include_role:
         name: idrac_telemetry
 
-- name: Initiate telemetry collection on OIM
-  hosts: oim
-  connection: ssh
+- name: Initiate telemetry collection on OIM/Service Cluster
+  hosts: telemetry_group
   gather_facts: false
   tasks:
     - name: Initiate telemetry collection
       ansible.builtin.include_role:
         name: idrac_telemetry
         tasks_from: trigger_telemetry_collection.yml
-      when:
-        - not hostvars['localhost']['federated_idrac_telemetry_collection']
-        - hostvars['localhost']['telemetry_idrac'] is defined
-        - (hostvars['localhost']['telemetry_idrac'] | length > 0)
 
 # - name: Enable idrac telemetry in SN
 #   hosts: sn_active
@@ -217,11 +212,11 @@
 #         tasks_from: prometheus_config_reload.yml
 
 - name: Telemetry report overview
-  hosts: localhost
+  hosts: telemetry_group
   connection: ssh
   gather_facts: false
   vars:
-    node_host: "{{ hostvars[inventory_hostname]['service_tag'] if inventory_hostname != 'localhost' else 'oim' }}"
+    node_host: "{{ hostvars[inventory_hostname]['inventory_hostname'] if inventory_hostname != 'localhost' else 'oim' }}"
     telemetry_report: |
           ---- Telemetry Report Overview ({{ node_host }}) ----
 
@@ -264,7 +259,6 @@
         msg: "{{ telemetry_report.splitlines() }}"
       when:
         - hostvars['localhost']['idrac_telemetry_support']
-        - not hostvars['localhost']['federated_idrac_telemetry_collection']
 
 - name: Detailed Telemetry Report
   hosts: localhost
@@ -278,4 +272,3 @@
         msg: "Check the file at {{ telemetry_report_path_oim }} in omnia_core container for detailed telemetry report."
       when:
         - hostvars['localhost']['idrac_telemetry_support']
-        - not hostvars['localhost']['federated_idrac_telemetry_collection']
