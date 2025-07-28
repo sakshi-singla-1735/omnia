@@ -19,6 +19,11 @@
     dest: "{{ kafka_values_yaml_path }}"
     mode: "{{ metadata_perm }}"
 
+- name: Add bitnami helm repository
+  community.kubernetes.helm_repository:
+    name: bitnami
+    repo_url: "{{ helm_repo_url }}"
+
 - name: Install kafka helm chart
   community.kubernetes.helm:
     release_name: kafka
