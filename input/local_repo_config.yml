@@ -81,6 +81,7 @@ rhel_os_url:
 # 'url' defines the baseurl for the repository
 # 'gpgkey' defines gpgkey for the repository
 # If 'gpgkey' is kept empty then gpgcheck=0 for that repository
+# 'name' A unique identifier for the registry.
 omnia_repo_url_rhel_x86_64:
   - { url: "https://download.docker.com/linux/centos/9/x86_64/stable/", gpgkey: "https://download.docker.com/linux/centos/gpg", name: "docker-ce"}
   - { url: "https://repo.radeon.com/rocm/rhel9/{{ rocm_version }}/main/", gpgkey: "https://repo.radeon.com/rocm/rocm.gpg.key", name: "rocm"}
@@ -100,6 +101,7 @@ omnia_repo_url_rhel_x86_64:
 # 'url' defines the baseurl for the repository
 # 'gpgkey' defines gpgkey for the repository
 # If 'gpgkey' is kept empty then gpgcheck=0 for that repository
+# 'name' A unique identifier for the registry.
 omnia_repo_url_rhel_aarch64:
   - { url: "https://download.docker.com/linux/centos/9/aarch64/stable/", gpgkey: "https://download.docker.com/linux/centos/gpg", name: "docker-ce"}
   - { url: "https://repo.radeon.com/rocm/rhel9/{{ rocm_version }}/main/", gpgkey: "https://repo.radeon.com/rocm/rocm.gpg.key", name: "rocm"}
