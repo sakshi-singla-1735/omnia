@@ -34,7 +34,7 @@ Set up Slurm
 
     1. Exactly 1 ``slurm_control_node``.
     2. At least 1 ``slurm_node``.
-    3. At least 1 ``login`` node (Optional).
+    3. At least 1 ``login_node`` node (Optional).
 
 
 **Sample inventory**
