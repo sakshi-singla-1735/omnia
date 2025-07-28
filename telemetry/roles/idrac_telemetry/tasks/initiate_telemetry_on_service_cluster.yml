@@ -67,7 +67,7 @@
     db_retries: "{{ db_retries }}"
     db_delay: "{{ db_delay }}"
   register: existing_mysqldb_idracips
-  #no_log: true
+  no_log: true
 
 - name: Set existing BMC IPs from mysqlDB
   ansible.builtin.set_fact:
@@ -110,7 +110,7 @@
     db_retries: "{{ db_retries }}"
     db_delay: "{{ db_delay }}"
   register: add_idrac_to_db
-  #no_log: true
+  no_log: true
 
 - name: Show iDRACs added to mysqldb
   ansible.builtin.debug:

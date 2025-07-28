@@ -272,4 +272,3 @@
         msg: "Check the file at {{ telemetry_report_path_oim }} in omnia_core container for detailed telemetry report."
       when:
         - hostvars['localhost']['idrac_telemetry_support']
-        - not hostvars['localhost']['federated_idrac_telemetry_collection']
