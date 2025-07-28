@@ -3,7 +3,7 @@
 * Specify the operating system running on the OIM and the one to be provisioned on the compute nodes.
 * **Accepted value**: ``rhel``"
 **cluster_os_version**,Mandatory,"* **Type**: string
-* The OS Version that will be provisoned on compute nodes.
+* The OS Version that will be provisioned on compute nodes.
 * **Accepted value**: ``9.6``."
 **iso_file_path**,Mandatory,"* **Type**: string
 * Path where the user has placed the ``<OS>.iso`` image that needs to be provisioned on target nodes. 
@@ -31,7 +31,7 @@
 * A JSON list of required software and (optionally) the software version.
 * The following software should be listed with a version in the list: BeeGFS, AMD GPU, Kubernetes, CUDA, OFED, UCX, and ROCm.
 * A minimum of one software should be provided in the list for ``local_repo.yml`` to execute correctly.
-* The ``<os_type>_software_config.json`` will have the basic softwares present in it. To add additional software stacks, add the software under ``/opt/omnia/input/project_default/software_config.json``.
+* The ``software_config.json`` will have the basic softwares present in it. To add additional software stacks, add the software under ``/opt/omnia/input/project_default/software_config.json``.
 * For the list of all applicable softwares based on your ``<cluster_os_type>``, refer the templates at ``examples/template_<os>_software_config.json``. For example, ``examples/template_rhel_software_config.json``.
 
-.. note:: The accepted names for software is taken from ``/opt/omnia/input/project_default/config/<cluster_os_type>/<cluster_os_version>``."
+.. note:: The accepted names for software are taken from ``/opt/omnia/input/project_default/config/<cluster_os_type>/<cluster_os_version>``."

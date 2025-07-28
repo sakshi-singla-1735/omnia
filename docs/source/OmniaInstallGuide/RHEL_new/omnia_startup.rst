@@ -29,7 +29,7 @@ Tasks performed by the ``omnia_startup.sh`` script
 
 The ``omnia_startup.sh`` script performs the following tasks:
 
-	* The script prompts you to provide the path for the Omnia shared path, which can be a NFS share path or even a local filepath.
+	* The script prompts you to provide the path for the Omnia shared path, which can be a NFS share path or even a local file path.
 
 	* Sets up the Omnia root password: The script prompts you to provide a combination of alphanumeric characters, which will be used as password to facilitate direct access to the ``omnia_core`` container.
 	.. caution:: Do not use ``\,|,&,;,`,<>,*,?!,$,(),{},[]`` characters in your password.
@@ -39,7 +39,7 @@ The ``omnia_startup.sh`` script performs the following tasks:
 
 	* Initiates the container engine: The script initiates the Podman container engine present on the OIM.
 
-	* Creates an input folder containing all the playbook inputs files and the software configs.
+	* Creates an input folder containing all the playbook input files and the software configs.
 
 	* The script checks if Podman is installed and initiates the Podman socket. Further, it pulls the Omnia container image from the Dell registry and starts the ``omnia_core`` container.
 
@@ -48,7 +48,7 @@ Execute the ``omnia_startup.sh`` script
 
 To initiate the ``omnia_startup.sh`` script, execute the following commands:
 ::
-    wget https://raw.githubusercontent.com/dell/omnia/refs/heads/pub/new_architecture/omnia_startup.sh
+    wget https://raw.githubusercontent.com/dell/omnia/refs/heads/staging/omnia_startup.sh
     chmod +x omnia_startup.sh
     sh omnia_startup.sh
 
@@ -80,5 +80,5 @@ The following are the main directories available in the ``omnia_core`` container
 
     * Do not delete any files manually from the omnia shared directory. Use the ``oim_cleanup.yml`` playbook to safely remove the entire omnia shared directory.
     * To re-deploy or delete the ``omnia_core`` container, you need to re-run the ``omnia_startup.sh`` script. Before re-running the ``omnia_startup.sh`` script, ensure that there are no other containers on the OIM except ``omnia_core``. If you have other containers running on the OIM, run the ``oim_cleanup.yml`` playbook to delete those.
-    * All user-generated files (for example, inventory files) will get deleted if the ``oim_core`` container is redeployed.
+    * All Omnia generated files will get deleted if the ``oim_core`` container is redeployed. But, user-generated files (for example, inventory files, mapping files) will still remain. 
     * Provide any file paths (ISO, mapping files, etc.) that are mentioned in input files in the ``/opt/omnia`` directory.

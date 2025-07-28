@@ -38,7 +38,7 @@ Once the details have been provided to the input files and the ``prepare_oim.yml
 
 ::
 
-    ansible-playbook discovery_provision.yml --tags "management_layer"
+    ansible-playbook discovery_provision.yml
 
 .. note:: Ensure that ``local_repo.yml`` playbook has been executed successfully before provisioning.
 
