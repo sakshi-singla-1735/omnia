@@ -46,7 +46,7 @@ def get_service_cluster_node_details(host_inventory):
         if status != 'booted':
             not_available_nodes[service_tag] = admin_ip
             continue
-        
+
         if admin_ip in host_inventory:
             data[service_tag] = {
                 'admin_ip': admin_ip,
