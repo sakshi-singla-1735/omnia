@@ -51,7 +51,7 @@
       failed_when: false
 
     - name: Build host_inventory list
-      set_fact:
+      ansible.builtin.set_fact:
         host_inventory: >-
           {{
             groups['all'] | map('extract', hostvars) |
