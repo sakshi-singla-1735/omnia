@@ -55,21 +55,25 @@
         host_inventory: >-
           {{
             (
-              groups['all']
-              | reject('in', ['oim', 'omnia_provision', 'localhost'])
-              | list
+              (
+                groups['kube_control_plane'] | default([])
+                + groups['etcd'] | default([])
+                + groups['kube_node'] | default([])
+              )
               +
               (
-                groups['all']
+                (
+                  groups['kube_control_plane'] | default([])
+                  + groups['etcd'] | default([])
+                  + groups['kube_node'] | default([])
+                )
                 | map('extract', hostvars)
                 | selectattr('ansible_host', 'defined')
-                | rejectattr('inventory_hostname', 'in', ['oim', 'omnia_provision', 'localhost'])
                 | map(attribute='ansible_host')
                 | list
               )
             ) | unique
           }}
-
     - name: Fetch service_cluster info
       get_service_cluster_info:
         groups_info: "{{ groups_info }}"
