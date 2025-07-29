@@ -1125,8 +1125,8 @@ def validate_telemetry_config(
     """
     errors = []
 
-    idrac_telemetry_support = data.get("idrac_telemetry_support")
-    federated_idrac_telemetry_collection = data.get("federated_idrac_telemetry_collection")
+    # idrac_telemetry_support = data.get("idrac_telemetry_support")
+    # federated_idrac_telemetry_collection = data.get("federated_idrac_telemetry_collection")
 
     collection_type = data.get("idrac_telemetry_collection_type")
     if collection_type and collection_type not in config.supported_telemetry_collection_type:
