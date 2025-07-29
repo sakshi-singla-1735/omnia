@@ -19,6 +19,7 @@ fail_msg_empty_certificate: "Failed. Unable to create empty certificate."
 empty_certificate_template_path: "{{ role_path }}/files/empty_certificate_template.yml"
 
 # Usage: csi_powerscale_config_secret.yml, csi_powerscale_prereq.yml
+input_project_dir: "{{ hostvars['localhost']['input_project_dir'] }}"
 csi_powerscale_secret_path: "{{ csi_powerscale_path }}/csi_powerscale_secret.yaml"
 
 # Usage: csi_powerscale_install.yml, csi_powerscale_prereq.yml

@@ -1,4 +1,4 @@
-# Copyright 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Copyright 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -83,7 +83,7 @@
     - name: Decrpyt secret file
       ansible.builtin.command: >-
         ansible-vault decrypt {{ hostvars['localhost']['csi_powerscale_driver_secret_file_path'] }}
-        --vault-password-file {{ role_path }}/files/{{ csi_powerscale_secret_vaultname }}
+        --vault-password-file {{ input_project_dir }}/{{ csi_powerscale_secret_vaultname }}
       when: "'$ANSIBLE_VAULT;' in config_content.stdout"
       changed_when: true
       connection: local
@@ -133,7 +133,7 @@
     - name: Encrypt secret file
       ansible.builtin.command: >-
         ansible-vault encrypt {{ hostvars['localhost']['csi_powerscale_driver_secret_file_path'] }}
-        --vault-password-file {{ role_path }}/files/{{ csi_powerscale_secret_vaultname }}
+        --vault-password-file {{ input_project_dir }}/{{ csi_powerscale_secret_vaultname }}
       changed_when: false
       connection: local
       delegate_to: localhost

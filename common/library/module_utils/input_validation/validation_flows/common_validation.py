@@ -950,7 +950,7 @@ def is_ip_in_range(ip_str, ip_range_str):
     
 
 def validate_k8s(data, admin_bmc_networks, softwares, ha_config, tag_names, errors, 
-                 omnia_base_dir, project_name, logger, module):
+                 omnia_base_dir, project_name, logger, module, input_file_path):
     """
     Validates Kubernetes cluster configurations.
 
@@ -1068,7 +1068,7 @@ def validate_k8s(data, admin_bmc_networks, softwares, ha_config, tag_names, erro
                                     en_us_validation_msg.CSI_DRIVER_VALUES_FAIL_MSG,
                                 )
                             )
-                        csi_driver_validation.validate_powerscale_secret_and_values_file(csi_secret_file_path,csi_values_file_path, errors)
+                        csi_driver_validation.validate_powerscale_secret_and_values_file(csi_secret_file_path,csi_values_file_path, errors, input_file_path)
 
 def validate_omnia_config(
         input_file_path,
@@ -1125,7 +1125,7 @@ def validate_omnia_config(
         for k in ["service_k8s_cluster_ha", "compute_k8s_cluster_ha"]:
             ha_config[k] = [xha["cluster_name"] for xha in ha_config.get(k, [])]
         validate_k8s(data, admin_bmc_networks, sw_list, ha_config, tag_names,
-                        errors, omnia_base_dir, project_name, logger, module)
+                        errors, omnia_base_dir, project_name, logger, module, input_file_path)
     return errors
 
 def validate_telemetry_config(
