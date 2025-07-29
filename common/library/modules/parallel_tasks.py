@@ -18,6 +18,7 @@ import os
 import re
 from datetime import datetime
 from prettytable import PrettyTable
+from collections import defaultdict
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.local_repo.process_parallel import execute_parallel, log_table_output
 from ansible.module_utils.local_repo.download_common import (
@@ -191,11 +192,24 @@ def generate_pretty_table(task_results, total_duration, overall_status):
     return table.get_string()
 
 def generate_software_status_table(status_dict):
-    table = PrettyTable()
-    table.field_names = ["Name", "Status"]
-    for name, status in status_dict.items():
-        table.add_row([name, str(status).lower()])
-    return table.get_string()
+    # Group entries by arch
+    grouped = defaultdict(list)
+    for name, info in status_dict.items():
+        arch = info.get("arch", "unknown")
+        status = info.get("overall_status", "unknown")
+        grouped[arch].append((name, status))
+
+    # Build tables for each arch
+    tables = []
+    for arch, items in grouped.items():
+        table = PrettyTable()
+        table.title = f"{arch} Software Stack Download Overview"
+        table.field_names = ["Name", "Status"]
+        for name, status in items:
+            table.add_row([name, status.lower()])
+        tables.append(table.get_string())
+
+    return "\n\n".join(tables)
 
 def main():
     """
@@ -309,6 +323,7 @@ def main():
         result["total_duration"] = total_duration
         result["task_results"] = task_results
         result["table_output"] = table_output
+        result["arch"] = arc
 
         update_status_csv(csv_file_path, software, overall_status)
 
