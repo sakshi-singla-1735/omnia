@@ -330,6 +330,7 @@ def parse_repo_urls(repo_config, local_repo_config_path, version_variables, vaul
             "policy": policy
         })
 
+    seen_urls = set()
     for arch, entries in repo_entries.items():
         if not entries:
            continue
@@ -351,6 +352,10 @@ def parse_repo_urls(repo_config, local_repo_config_path, version_variables, vaul
                rendered_url = Template(url).render(version_variables)
             except Exception:
                rendered_url = url  # fallback
+
+            if rendered_url in seen_urls:
+                continue
+            seen_urls.add(rendered_url)
 
             # Skip unreachable URLs unless they're oneapi/snoopy/nvidia
             if not any(skip_str in rendered_url for skip_str in ["oneapi", "snoopy", "nvidia"]):
