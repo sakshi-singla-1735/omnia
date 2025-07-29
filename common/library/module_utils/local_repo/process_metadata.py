@@ -192,7 +192,8 @@ def handle_generate_metadata(sw_config,repo_data,output_file):
     # Define the keys in the repo_data to process, based on OS type
     keys_to_process = [
         'user_repo_url',
-        f'omnia_repo_url_{os_type}',
+        f'omnia_repo_url_{os_type}_x86_64',
+        f'omnia_repo_url_{os_type}_aarch64',
         f'{os_type}_os_url'
     ]
 
