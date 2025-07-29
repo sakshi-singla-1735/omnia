@@ -35,8 +35,8 @@ prometheus_scrape_interval: 15
 idrac_telemetry_support: false
 
 # This variable used to decide the iDRAC telemetry collection.
-# Supported values are prometheus.
-idrac_telemetry_collection_type: "prometheus"
+# Supported values are prometheus/kafka.
+idrac_telemetry_collection_type: "kafka"
 
 # This variable is used to enable visualizations on grafana
 # Accepted values:  true or false

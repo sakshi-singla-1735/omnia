@@ -57,8 +57,11 @@ idrac_telemetry_service_name: "idrac-telemetry-service"
 mysqldb_container_port1: 3306
 mysqldb_container_port2: 33060
 prometheus_pump_port: 2112
+kafka_pump_port: 8082
 mysql_image: "docker.io/library/mysql:9.3.0"
 pod_wait_timeout: "10m"
+# kafka_broker: 192.168.10.140:9092
+kafka_skip_verify: true
 
 # Usage: prometheus_deployment.yml
 prometheus_pvc_name: "prometheus-pvc"
@@ -86,3 +89,5 @@ kafka_image_tag: "3.9.0"
 kafka_storage: 5Gi
 kafka_container_port: 9092
 helm_repo_url: "https://charts.bitnami.com/bitnami"
+
+
