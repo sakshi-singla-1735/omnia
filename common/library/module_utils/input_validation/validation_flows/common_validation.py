@@ -228,39 +228,39 @@ def is_version_valid(actual_version, expected):
     if isinstance(expected, list):
         return actual_version in expected
     return actual_version == expected
- 
+
 def validate_versions(data, expected):
     mismatches = []
- 
+
     # Validate top-level 'softwares'
     for sw in data.get("softwares", []):
         name = sw.get("name")
         version = sw.get("version")
         expected_version = expected.get(name)
- 
+
         if expected_version:
             if not version:
                 mismatches.append(f"{name} is missing a version")
             elif not is_version_valid(version, expected_version):
                 mismatches.append(f"{name} version mismatch: expected {expected_version}, got {version}")
- 
+
     # Validate subgroup software (e.g. "amdgpu": [{...}])
     for parent_key, children in data.items():
         if parent_key == "softwares" or not isinstance(children, list):
             continue
- 
+
         for sub_sw in children:
             name = sub_sw.get("name")
             version = sub_sw.get("version")
             expected_version = expected.get(name)
- 
+
             # Skip if version is not provided
             if expected_version and version:
                 if not is_version_valid(version, expected_version):
                     mismatches.append(
                         f"{name} version mismatch in {parent_key}: expected {expected_version}, got {version}"
                     )
- 
+
     return mismatches
 
 
@@ -1128,23 +1128,14 @@ def validate_telemetry_config(
     idrac_telemetry_support = data.get("idrac_telemetry_support")
     federated_idrac_telemetry_collection = data.get("federated_idrac_telemetry_collection")
 
-    if idrac_telemetry_support:
-        collection_type = data.get("idrac_telemetry_collection_type")
-        if collection_type and collection_type not in config.supported_telemetry_collection_type:
-            errors.append(create_error_msg(
-                "idrac_telemetry_collection_type",
-                collection_type,
-                en_us_validation_msg.UNSUPPORTED_IDRAC_TELEMETRY_COLLECTION_TYPE
-                )
-            )
-
-    if federated_idrac_telemetry_collection and not idrac_telemetry_support:
+    collection_type = data.get("idrac_telemetry_collection_type")
+    if collection_type and collection_type not in config.supported_telemetry_collection_type:
         errors.append(create_error_msg(
-                "federated_idrac_telemetry_collection",
-                federated_idrac_telemetry_collection,
-                en_us_validation_msg.FEDERATED_IDRAC_TELEMETRY_COLLECTION_FAIL
-                )
+            "idrac_telemetry_collection_type",
+            collection_type,
+            en_us_validation_msg.UNSUPPORTED_IDRAC_TELEMETRY_COLLECTION_TYPE
             )
+        )
 
     return errors
 

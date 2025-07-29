@@ -35,9 +35,9 @@ prometheus_scrape_interval: 15
 idrac_telemetry_support: false
 
 # This variable used to decide the iDRAC telemetry collection.
-# Supported values are prometheus or kafka.
-# Default: "prometheus"
-idrac_telemetry_collection_type: "prometheus"
+# Supported values are kafka or prometheus.
+# Default: "kafka"
+idrac_telemetry_collection_type: "kafka"
 
 # This variable is used to enable visualizations on grafana
 # Accepted values:  true or false
@@ -45,6 +45,7 @@ idrac_telemetry_collection_type: "prometheus"
 visualization_support: false
 
 # This variable is used to determine whether iDRAC telemetry should be collected from service k8s cluster in a federated manner.
+# This variable will be effective only if idrac_telemetry_support is true
 # Accepted values: true or false
-# Default: false
-federated_idrac_telemetry_collection: false
+# Default: true
+federated_idrac_telemetry_collection: true
