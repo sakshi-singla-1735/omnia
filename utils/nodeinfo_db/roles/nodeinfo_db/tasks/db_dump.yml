@@ -13,7 +13,7 @@
 # limitations under the License.
 ---
 
-- name: Extract query data from omniadb cluster.nodeinfo for {{ filename }}
+- name: Extract query data from omniadb cluster.nodeinfo for {{ filename }} # noqa jinja[invalid]
   community.postgresql.postgresql_copy:
     db: "{{ nodeinfo_db_omniadb }}"
     login_user: "{{ nodeinfo_db_login_user }}"
