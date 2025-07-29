@@ -20,8 +20,12 @@ k8s_not_installed_fail_msg: "Failed. Kubernetes installation required.
 storage_class_missing_fail_msg: "Failed. StorageClass {{ storage_class_name }} is not present in the cluster.
   To resolve this, create the StorageClass by running scheduler/service_k8s_cluster.yml playbook."
 
-# Usage: k8s_secrets.yml
+# Usage: secrets_creation.yml
 mysqldb_secrets_name: mysqldb-credentials
+kafka_secrets_name: kafka-secrets
+kafka_cert_path: "/etc/pki/tls/"
+kafka_cert_file: "{{ kafka_cert_path }}/certs/kafka.crt"
+kafka_cert_key: "{{ kafka_cert_path }}/private/kafka.key"
 
 # Usage: idrac_telemetry_deployment.yml
 omnia_nfs_share: "{{ hostvars['localhost']['oim_shared_path'] }}/omnia"

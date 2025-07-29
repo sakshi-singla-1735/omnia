@@ -38,6 +38,13 @@ provisioning:
   topics:
     - name: {{ telemetry_topic_name }}
       partitions: {{ telemetry_topic_partitions }}
+  auth:
+    tls:
+      type: pem
+      certificatesSecret: "{{ kafka_secrets_name }}"
+      cert: tls.crt
+      key: tls.key
+      caCert: ca.crt
 
 zookeeper:
   enabled: false
