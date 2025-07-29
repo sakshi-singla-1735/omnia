@@ -50,7 +50,7 @@
       no_log: true
       failed_when: false
 
-    - name: Build host_inventory list
+    - name: Build host_inventory list # noqa: jinja[invalid]
       ansible.builtin.set_fact:
         host_inventory: >-
           {{
