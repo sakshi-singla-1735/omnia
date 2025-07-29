@@ -134,28 +134,36 @@ def insert_idracs_to_mysql(
     auth_json = json.dumps(auth_dict)
     results = []
 
-    for ip in telemetry_idrac_list:
-        for _ in range(retries):
-            result = run_mysql_insert(
-                namespace=namespace,
-                pod=pod,
-                container=container,
-                mysqldb_name=mysqldb_name,
-                mysql_user=mysql_user,
-                mysql_password=mysql_password,
-                ip=ip,
-                service_type=service_type,
-                auth_type=auth_type,
-                auth_json=auth_json
-            )
-            if result["rc"] is True:
-                msg = f"Successfully inserted iDRAC IP {ip} into MySQL."
-                results.append({"ip": ip, "changed": True, "msg": msg})
-                break
-            time.sleep(delay)
-        else:
-            results.append({"ip": ip, "changed": False, \
-            "msg": f"Failed after {retries} attempts: {msg}"})
+    try:
+        for ip in telemetry_idrac_list:
+            for _ in range(retries):
+                result = run_mysql_insert(
+                    namespace=namespace,
+                    pod=pod,
+                    container=container,
+                    mysqldb_name=mysqldb_name,
+                    mysql_user=mysql_user,
+                    mysql_password=mysql_password,
+                    ip=ip,
+                    service_type=service_type,
+                    auth_type=auth_type,
+                    auth_json=auth_json
+                )
+                if result["rc"] is True:
+                    msg = f"Successfully inserted iDRAC IP {ip} into MySQL."
+                    results.append({"ip": ip, "changed": True, "msg": msg})
+                    break
+                time.sleep(delay)
+            else:
+                results.append({"ip": ip, "changed": False, \
+                "msg": f"Failed after {retries} attempts: {msg}"})
+        if not results:
+            results.append({"ip": "unknown", "changed": False, \
+            "msg": "No iDRAC IPs to insert."})
+    except Exception as e:
+        results.append({"ip": "unknown", "changed": False, \
+        "msg": f"An error occurred: {str(e)}"})
+
     return results
 
 def main():
@@ -165,7 +173,7 @@ def main():
         "idrac_podnames_ips": {"type": "dict", "required": True},
         "mysqldb_k8s_name": {"type": "str", "required": True},
         "mysqldb_name": {"type": "str", "required": True},
-        "mysql_user": {"type": "str", "required": True},
+        "mysql_user": {"type": "str", "required": True, "no_log": True},
         "mysqldb_password": {"type": "str", "required": True, "no_log": True},
         "bmc_username": {"type": "str", "required": True, "no_log": True},
         "bmc_password": {"type": "str", "required": True, "no_log": True},
@@ -204,45 +212,52 @@ def main():
     # For each pod in idrac_podnames,
     # fetch the working IP's from telemetry_idrac,
     # then insert them into the mysqldb
-    for pod in idrac_podnames_ips:
-        idrac_ips_of_pod = idrac_podnames_ips.get(pod, [])
-        if not idrac_ips_of_pod:
-            module.warn(f"No iDRAC IPs found for pod {pod}. Skipping.")
-            continue
-        working_idrac_ips = list(set(telemetry_idrac) & set(idrac_ips_of_pod))
-        pod_results = insert_idracs_to_mysql(
-            namespace=telemetry_namespace,
-            pod=pod,
-            container=mysqldb_k8s_name,
-            mysqldb_name=mysqldb_name,
-            mysql_user=mysql_user,
-            mysql_password=mysqldb_password,
-            telemetry_idrac_list=working_idrac_ips,
-            service_type=service_type,
-            auth_type=auth_type,
-            bmc_username=bmc_username,
-            bmc_password=bmc_password,
-            retries=db_retries,
-            delay=db_delay
+    try:
+        for pod in idrac_podnames_ips:
+            idrac_ips_of_pod = idrac_podnames_ips.get(pod, [])
+            if not idrac_ips_of_pod:
+                module.warn(f"No iDRAC IPs found for pod {pod}. Skipping.")
+                continue
+            working_idrac_ips = list(set(telemetry_idrac) & set(idrac_ips_of_pod))
+            pod_results = insert_idracs_to_mysql(
+                namespace=telemetry_namespace,
+                pod=pod,
+                container=mysqldb_k8s_name,
+                mysqldb_name=mysqldb_name,
+                mysql_user=mysql_user,
+                mysql_password=mysqldb_password,
+                telemetry_idrac_list=working_idrac_ips,
+                service_type=service_type,
+                auth_type=auth_type,
+                bmc_username=bmc_username,
+                bmc_password=bmc_password,
+                retries=db_retries,
+                delay=db_delay
+            )
+            result['results'][pod] = pod_results
+            success = False
+            for r in pod_results:
+                if r.get('changed'):
+                    success = True
+                else:
+                    result['failed_ips'].append({
+                        "pod": pod,
+                        "ip": r.get("ip", "unknown"),
+                        "msg": r.get("msg", "No message")
+                    })
+
+            result['results'][pod] = pod_results
+
+            if success:
+                result['changed'] = True
+
+        module.exit_json(**result)
+    except Exception as e:
+        module.fail_json(
+            msg=f"An error occurred while inserting iDRAC IPs into MySQL: {str(e)}",
+            results=result['results'],
+            failed_ips=result['failed_ips']
         )
-        result['results'][pod] = pod_results
-        success = False
-        for r in pod_results:
-            if r.get('changed'):
-                success = True
-            else:
-                result['failed_ips'].append({
-                    "pod": pod,
-                    "ip": r.get("ip", "unknown"),
-                    "msg": r.get("msg", "No message")
-                })
-
-        result['results'][pod] = pod_results
-
-        if success:
-            result['changed'] = True
-
-    module.exit_json(**result)
 
 if __name__ == '__main__':
     main()
