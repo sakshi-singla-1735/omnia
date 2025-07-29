@@ -8,7 +8,7 @@
       },
       { "package": "dkms",
         "type": "rpm",
-        "repo_name": "epel-x86_64"
+        "repo_name": "epel"
       }
     ]
   }
