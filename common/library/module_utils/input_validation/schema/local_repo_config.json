@@ -141,7 +141,95 @@
 	    "additionalProperties": false
       }
     },
-    "omnia_repo_url_rhel": {
+    "omnia_repo_url_rhel_x86_64": {
+      "type": ["array", "null"],
+      "items": {
+        "type": "object",
+        "properties": {
+            "url": {
+            "type": "string",
+            "pattern": "^https?:\\/\\/(?!\\s*$).+",
+            "minLength": 1
+          },
+          "gpgkey": {
+            "type": "string",
+            "pattern": "^(|https?:\\/\\/\\S.+)$"
+          },
+          "sslcacert": {
+            "type": ["string","null"]
+          },
+          "sslclientkey": {
+            "type": ["string","null"]
+          },
+          "sslclientcert": {
+            "type": ["string","null"]
+          },
+          "name": {
+            "type": "string",
+            "pattern": "^(?!\\s*$).+",
+            "minLength": 1
+          },
+          "policy": {
+            "enum": ["always", "partial", "never"]
+          }
+        },
+        "required": [
+          "url",
+          "gpgkey",
+          "name"
+        ],
+       "allOf": [
+          {
+            "if": {
+              "required": ["sslcacert"],
+              "properties": {
+                "sslcacert": { "minLength": 1 }
+              }
+            },
+            "then": {
+              "required": ["sslclientkey", "sslclientcert"],
+              "properties": {
+                "sslclientkey": { "minLength": 1 },
+                "sslclientcert": { "minLength": 1 }
+              }
+            }
+          },
+          {
+            "if": {
+              "required": ["sslclientkey"],
+              "properties": {
+                "sslclientkey": { "minLength": 1 }
+              }
+            },
+            "then": {
+              "required": ["sslcacert", "sslclientcert"],
+              "properties": {
+                "sslcacert": { "minLength": 1 },
+                "sslclientcert": { "minLength": 1 }
+              }
+            }
+          },
+          {
+            "if": {
+              "required": ["sslclientcert"],
+              "properties": {
+                "sslclientcert": { "minLength": 1 }
+              }
+            },
+            "then": {
+              "required": ["sslcacert", "sslclientkey"],
+              "properties": {
+                "sslcacert": { "minLength": 1 },
+                "sslclientkey": { "minLength": 1 }
+              }
+            }
+          }
+        ]
+
+      },
+      "description": "URLs for repositories from which RPMs will be downloaded for Omnia features on RHEL, with SSL configuration options and policy."
+    },
+    "omnia_repo_url_rhel_aarch64": {
       "type": ["array", "null"],
       "items": {
         "type": "object",
@@ -239,6 +327,6 @@
 
     }
   },
-  "required": ["rhel_os_url","omnia_repo_url_rhel"],
+  "required": ["rhel_os_url","omnia_repo_url_rhel_aarch64", "omnia_repo_url_rhel_x86_64"],
   "additionalProperties": false
   }

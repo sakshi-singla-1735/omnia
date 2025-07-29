@@ -15,10 +15,9 @@
 """
 Validates local repository configuration files for Omnia.
 """
-import json
-import yaml
 from ansible.module_utils.input_validation.common_utils import validation_utils
 from ansible.module_utils.input_validation.common_utils import config
+from ansible.module_utils.local_repo.software_utils import load_yaml, load_json
 
 file_names = config.files
 create_error_msg = validation_utils.create_error_msg
@@ -32,36 +31,35 @@ def validate_local_repo_config(input_file_path, data,
     Validates local repo configuration by checking cluster_os_type and
     omnia_repo_url_rhel fields are present and accessible.
     """
-    # check to make sure associated os info is filled out
     errors = []
     local_repo_yml = create_file_path(input_file_path, file_names["local_repo_config"])
-    with open(local_repo_yml, "r", encoding="utf-8") as f:
-        local_repo_config = yaml.safe_load(f)
 
-    repo_names = ['baseos', 'appstream']
+    repo_names = {}
+    base_repo_names = ['baseos', 'appstream']
+    all_archs = ['x86_64', 'aarch64']
     url_list = ["omnia_repo_url_rhel", "rhel_os_url", "user_repo_url"]
-    for repurl in url_list:
-        repos = local_repo_config.get(repurl)
-        if repos:
-            repo_names = repo_names + [x.get('name') for x in repos]
+    for arch in all_archs:
+        arch_repo_names = []
+        arch_list = url_list + [url+'_'+arch for url in url_list]
+        for repurl in arch_list:
+            repos = data.get(repurl)
+            if repos:
+                arch_repo_names = base_repo_names + [x.get('name') for x in repos]
+        repo_names[arch] = repo_names.get(arch, []) + arch_repo_names
 
-    if not repo_names: # is this valid scenario?
-        errors.append(create_error_msg(local_repo_yml, None, "No repo names found."))
-
-    if len(repo_names) != len(set(repo_names)):
-        errors.append(create_error_msg(local_repo_yml, None, "Duplicate repo names found."))
-        for c in set(repo_names):
-            if repo_names.count(c) > 1:
-                errors.append(create_error_msg(local_repo_yml, None,
-                                               f"Repo with name {c} found more than once."))
+    for k,v in repo_names.items():
+        if len(v) != len(set(v)):
+            errors.append(create_error_msg(local_repo_yml, k, "Duplicate repo names found."))
+            for c in set(v):
+                if v.count(c) > 1:
+                    errors.append(create_error_msg(local_repo_yml, k,
+                                                f"Repo with name {c} found more than once."))
 
     software_config_file_path = create_file_path(input_file_path, file_names["software_config"])
-    with open(software_config_file_path, "r", encoding="utf-8") as f:
-        software_config_json = json.load(f)
-  
+    software_config_json = load_json(software_config_file_path)
+
     roles_config_file_path = create_file_path(input_file_path, file_names["roles_config"])
-    with open(roles_config_file_path, "r", encoding="utf-8") as f:
-        roles_config_dict = yaml.safe_load(f)
+    roles_config_dict = load_yaml(roles_config_file_path)
     def_archs = list({x["architecture"] for x in roles_config_dict["Groups"].values()})
 
     os_ver_path = f"/{software_config_json['cluster_os_type']}/{software_config_json['cluster_os_version']}/"
@@ -72,7 +70,7 @@ def validate_local_repo_config(input_file_path, data,
             json_path = create_file_path(
             input_file_path,
             f"config/{arch}{os_ver_path}" + sw +".json")
-            curr_json = json.load(open(json_path, "r", encoding="utf-8"))
+            curr_json = load_json(json_path)
             pkg_list = curr_json[sw]['cluster']
             if sw in software_config_json:
                 for sub_pkg in software_config_json[sw]:
@@ -86,7 +84,7 @@ def validate_local_repo_config(input_file_path, data,
                         pkg_list = pkg_list + curr_json[sub_sw]['cluster']
             for pkg in pkg_list:
                 if pkg.get("type") in ['rpm', 'rpm_list']:
-                    if pkg.get("repo_name") not in repo_names:
+                    if pkg.get("repo_name") not in repo_names.get(arch, []):
                         errors.append(
                             create_error_msg(sw + '/' + arch,
                                              json_path,
