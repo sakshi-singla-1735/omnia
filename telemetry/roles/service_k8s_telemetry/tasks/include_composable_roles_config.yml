@@ -50,9 +50,35 @@
       no_log: true
       failed_when: false
 
+    - name: Build host_inventory list # noqa: jinja[invalid]
+      ansible.builtin.set_fact:
+        host_inventory: >-
+          {{
+            (
+              (
+                (groups['kube_control_plane'] | default([]))
+                + (groups['etcd'] | default([]))
+                + (groups['kube_node'] | default([]))
+              )
+              +
+              (
+                (
+                  (groups['kube_control_plane'] | default([]))
+                  + (groups['etcd'] | default([]))
+                  + (groups['kube_node'] | default([]))
+                )
+                | map('extract', hostvars)
+                | selectattr('ansible_host', 'defined')
+                | map(attribute='ansible_host')
+                | list
+              )
+            ) | unique
+          }}
+
     - name: Fetch service_cluster info
       get_service_cluster_info:
         groups_info: "{{ groups_info }}"
+        host_inventory: "{{ host_inventory }}"
       register: service_cluster_info_output
 
     - name: Set fact for service_cluster role required and other facts
