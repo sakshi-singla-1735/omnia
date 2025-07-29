@@ -56,16 +56,16 @@
           {{
             (
               (
-                groups['kube_control_plane'] | default([])
-                + groups['etcd'] | default([])
-                + groups['kube_node'] | default([])
+                (groups['kube_control_plane'] | default([]))
+                + (groups['etcd'] | default([]))
+                + (groups['kube_node'] | default([]))
               )
               +
               (
                 (
-                  groups['kube_control_plane'] | default([])
-                  + groups['etcd'] | default([])
-                  + groups['kube_node'] | default([])
+                  (groups['kube_control_plane'] | default([]))
+                  + (groups['etcd'] | default([]))
+                  + (groups['kube_node'] | default([]))
                 )
                 | map('extract', hostvars)
                 | selectattr('ansible_host', 'defined')
@@ -74,6 +74,7 @@
               )
             ) | unique
           }}
+
     - name: Fetch service_cluster info
       get_service_cluster_info:
         groups_info: "{{ groups_info }}"
