@@ -74,19 +74,20 @@
         | length
       }}
 
-- name: Wait for Kafka pod to be ready
-  kubernetes.core.k8s_info:
-    kind: Pod
-    namespace: "{{ telemetry_namespace }}"
-    label_selectors:
-      - app.kubernetes.io/name=kafka
-  register: kafka_pods
-  until: kafka_pods.resources | selectattr('status.containerStatuses', 'defined')
-                                 | selectattr('status.containerStatuses[0].ready', 'equalto', true)
-                                 | list | length > 0
-  retries: 20
-  delay: 15
-  when: hostvars['localhost']['idrac_telemetry_collection_type'] == "kafka"
+- name: Wait for Kafka pod to come to ready state
+  block:
+    - name: Wait for Kafka pod to come to ready state
+      ansible.builtin.command: >
+        kubectl wait --for=condition=ready
+        --timeout=300s
+        -n {{ telemetry_namespace }}
+        pod -l app.kubernetes.io/name=kafka
+      changed_when: false
+  rescue:
+    - name: Failed - Kafka pod is not running
+      ansible.builtin.fail:
+        msg: "Kafka pod did not come to ready state within timeout."
+  
 
 # Get Kafka service external IP
 - name: Get Kafka LoadBalancer external IP

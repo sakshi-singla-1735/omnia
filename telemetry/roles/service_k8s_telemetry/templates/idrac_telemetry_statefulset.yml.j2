@@ -40,14 +40,14 @@ spec:
             - "mysqldb"
 
       tolerations:
-      - effect: NoExecute
-        key: node.kubernetes.io/not-ready
-        operator: Exists
-        tolerationSeconds: 5
-      - effect: NoExecute
-        key: node.kubernetes.io/unreachable
-        operator: Exists
-        tolerationSeconds: 5
+        - effect: NoExecute
+          key: node.kubernetes.io/not-ready
+          operator: Exists
+          tolerationSeconds: 5
+        - effect: NoExecute
+          key: node.kubernetes.io/unreachable
+          operator: Exists
+          tolerationSeconds: 5
 
       containers:
         - name: mysqldb
@@ -118,7 +118,7 @@ spec:
           command: ["/bin/sh", "-c"]
           args: ["./scripts/example/idrac-telemetry-receiver.sh"]
 
-      {% if hostvars['localhost']['idrac_telemetry_collection_type'] == "prometheus" %}
+{% if hostvars['localhost']['idrac_telemetry_collection_type'] == "prometheus" %}
         - name: prometheus-pump
           image: {{ go_image }}
           imagePullPolicy: IfNotPresent
@@ -135,8 +135,7 @@ spec:
               value: prometheus
           command: ["/bin/sh", "-c"]
           args: ["go run cmd/prometheuspump/prometheuspump.go"]
-      
-      {% elif hostvars['localhost']['idrac_telemetry_collection_type'] == "kafka" %}
+{% elif hostvars['localhost']['idrac_telemetry_collection_type'] == "kafka" %}
         - name: kafka-pump
           image: {{ go_image }}
           imagePullPolicy: IfNotPresent
@@ -146,7 +145,7 @@ spec:
           workingDir: /go/src/github.com/telemetry-reference-tools
           env:
             - name: MESSAGEBUS_HOST
-              value: activemq
+              value: 127.0.0.1
             - name: MESSAGEBUS_PORT
               value: "{{ messagebus_http_port }}"
             - name: KAFKA_BROKER
@@ -164,7 +163,7 @@ spec:
             #   value: certs/client.key
           command: ["/bin/sh", "-c"]
           args: ["go run cmd/kafkapump/kafkapump.go"]
-      {% endif %}
+{% endif %}
 
   volumeClaimTemplates:
     - metadata:
