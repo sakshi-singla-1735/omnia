@@ -26,8 +26,8 @@
         metadata_raw.content | b64decode | from_yaml
         if metadata_raw is defined and metadata_raw.content is defined
         else {
-          "k8s_local_repo_versions": [],
-          "last_k8s_local_repo_version": "",
+          "compute_k8s_local_repo_versions": [],
+          "last_compute_k8s_local_repo_version": "",
           "service_k8s_local_repo_versions": [],
           "last_service_k8s_local_repo_version": ""
         }

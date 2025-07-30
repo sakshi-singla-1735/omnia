@@ -968,7 +968,7 @@ def validate_k8s(data, admin_bmc_networks, softwares, ha_config, tag_names, erro
     
     # service_k8s_cluster = data["service_k8s_cluster"]
     cluster_set = {}
-    if "k8s" in softwares and "k8s" in tag_names:
+    if "compute_k8s" in softwares and "compute_k8s" in tag_names:
         cluster_set["compute_k8s_cluster"] = data.get(
             "compute_k8s_cluster", [])
     if "service_k8s" in softwares and "service_k8s" in tag_names:
@@ -1114,8 +1114,8 @@ def validate_omnia_config(
             )
         )
 
-    if ("k8s" in sw_list or "service_k8s" in sw_list) and \
-        ("k8s" in tag_names or "service_k8s" in tag_names):
+    if ("compute_k8s" in sw_list or "service_k8s" in sw_list) and \
+        ("compute_k8s" in tag_names or "service_k8s" in tag_names):
         admin_bmc_networks = get_admin_bmc_networks(
             input_file_path, logger, module, omnia_base_dir, module_utils_base, project_name)
         ha_config_path = create_file_path(
