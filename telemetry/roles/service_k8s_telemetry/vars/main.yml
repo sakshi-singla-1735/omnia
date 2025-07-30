@@ -88,5 +88,3 @@ kafka_image_tag: "3.9.0"
 kafka_storage: 5Gi
 kafka_container_port: 9092
 helm_repo_url: "https://charts.bitnami.com/bitnami"
-
-
