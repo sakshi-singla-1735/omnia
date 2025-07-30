@@ -57,7 +57,6 @@ idrac_telemetry_service_name: "idrac-telemetry-service"
 mysqldb_container_port1: 3306
 mysqldb_container_port2: 33060
 prometheus_pump_port: 2112
-kafka_pump_port: 8082
 mysql_image: "docker.io/library/mysql:9.3.0"
 pod_wait_timeout: "10m"
 kafka_skip_verify: true
