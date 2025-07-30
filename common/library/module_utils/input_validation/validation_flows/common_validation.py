@@ -17,13 +17,13 @@ This module contains functions for validating common configuration files.
 """
 import json
 import os
-import ipaddress
 import yaml
+import ipaddress
+import subprocess
 from ast import literal_eval
 import ansible.module_utils.input_validation.common_utils.data_fetch as get
+from ansible.module_utils.input_validation.validation_flows import csi_driver_validation
 import ansible.module_utils.input_validation.common_utils.data_validation as validate
-from ansible.modules.validate_input import generate_log_failure_message
-
 from ansible.module_utils.input_validation.common_utils import (
     validation_utils,
     config,
@@ -32,7 +32,6 @@ from ansible.module_utils.input_validation.common_utils import (
 )
 
 from ansible.module_utils.input_validation.validation_flows import scheduler_validation
-
 from ansible.module_utils.local_repo.software_utils import (
     load_json,
     set_version_variables,
@@ -947,7 +946,11 @@ def is_ip_in_range(ip_str, ip_range_str):
     except ValueError:
         return False
 
-def validate_k8s(data, admin_bmc_networks, softwares, ha_config, tag_names, errors):
+
+    
+
+def validate_k8s(data, admin_bmc_networks, softwares, ha_config, tag_names, errors, 
+                 omnia_base_dir, project_name, logger, module, input_file_path):
     """
     Validates Kubernetes cluster configurations.
 
@@ -962,7 +965,7 @@ def validate_k8s(data, admin_bmc_networks, softwares, ha_config, tag_names, erro
     bmc_static_range = admin_bmc_networks["bmc_network"]["static_range"]
     bmc_dynamic_range = admin_bmc_networks["bmc_network"]["dynamic_range"]
     primary_oim_admin_ip = admin_bmc_networks["admin_network"]["primary_oim_admin_ip"]
-
+    
     # service_k8s_cluster = data["service_k8s_cluster"]
     cluster_set = {}
     if "compute_k8s" in softwares and "compute_k8s" in tag_names:
@@ -997,7 +1000,7 @@ def validate_k8s(data, admin_bmc_networks, softwares, ha_config, tag_names, erro
                             f"{cluster_name} not found in high_availability_config.yml"
                         ))
                 pod_external_ip_range = kluster.get("pod_external_ip_range")
-                if not pod_external_ip_range:
+                if not pod_external_ip_range or str(pod_external_ip_range).strip() == "":
                     errors.append(
                         create_error_msg(
                             "Pod External IP Range -",
@@ -1031,7 +1034,41 @@ def validate_k8s(data, admin_bmc_networks, softwares, ha_config, tag_names, erro
                         create_error_msg(
                             "IP overlap -",
                             None,
-                            en_us_validation_msg.IP_OVERLAP_FAIL_MSG))
+                           en_us_validation_msg.IP_OVERLAP_FAIL_MSG))
+
+                #csi validation
+                if (
+                      "csi_driver_powerscale" in softwares
+                      and ("k8s" in softwares or "service_k8s" in softwares)
+                    ):
+
+                    csi_secret_file_path = kluster.get("csi_powerscale_driver_secret_file_path")
+                    csi_values_file_path = kluster.get("csi_powerscale_driver_values_file_path")
+                    
+                    # Validate secret file path
+                    if not csi_secret_file_path or \
+                    not csi_secret_file_path.strip() or \
+                    not os.path.exists(csi_secret_file_path.strip()):
+                        errors.append(
+                            create_error_msg(
+                                "csi_powerscale_driver_secret_file_path",
+                                csi_secret_file_path,
+                                en_us_validation_msg.CSI_DRIVER_SECRET_FAIL_MSG,
+                            )
+                        )
+                    else:
+                        # If secret path is valid, ensure values path is also valid
+                        if not csi_values_file_path or \
+                        not csi_values_file_path.strip() or \
+                        not os.path.exists(csi_values_file_path.strip()):
+                            errors.append(
+                                create_error_msg(
+                                    "csi_powerscale_driver_values_file_path",
+                                    csi_values_file_path,
+                                    en_us_validation_msg.CSI_DRIVER_VALUES_FAIL_MSG,
+                                )
+                            )
+                        csi_driver_validation.validate_powerscale_secret_and_values_file(csi_secret_file_path,csi_values_file_path, errors, input_file_path)
 
 def validate_omnia_config(
         input_file_path,
@@ -1087,7 +1124,8 @@ def validate_omnia_config(
             ha_config = yaml.safe_load(f)
         for k in ["service_k8s_cluster_ha", "compute_k8s_cluster_ha"]:
             ha_config[k] = [xha["cluster_name"] for xha in ha_config.get(k, [])]
-        validate_k8s(data, admin_bmc_networks, sw_list, ha_config, tag_names, errors)
+        validate_k8s(data, admin_bmc_networks, sw_list, ha_config, tag_names,
+                        errors, omnia_base_dir, project_name, logger, module, input_file_path)
     return errors
 
 def validate_telemetry_config(
@@ -1233,3 +1271,4 @@ def validate_additional_software(
                 )
             )
     return errors
+
