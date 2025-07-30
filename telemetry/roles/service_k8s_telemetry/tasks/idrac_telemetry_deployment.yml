@@ -127,7 +127,5 @@
             port: "{{ mysqldb_container_port2 }}"
           - name: pump-port
             port: "{{ prometheus_pump_port }}"
-          - name: pump-port-kafka
-            port: "{{ kafka_pump_port }}"
         selector:
           app: "{{ idrac_telemetry_k8s_name }}"
