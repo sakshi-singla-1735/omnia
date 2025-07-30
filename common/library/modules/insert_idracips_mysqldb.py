@@ -149,7 +149,7 @@ def insert_idracs_to_mysql(
                     auth_type=auth_type,
                     auth_json=auth_json
                 )
-                if result["rc"] is True:
+                if result.get("rc"):
                     msg = f"Successfully inserted iDRAC IP {ip} into MySQL."
                     results.append({"ip": ip, "changed": True, "msg": msg})
                     break
@@ -186,7 +186,7 @@ def main():
 
     result = {
         "changed": False,
-        "results": {},
+        "inserted_ips": {},
         "failed_ips": []
     }
 
@@ -234,7 +234,7 @@ def main():
                 retries=db_retries,
                 delay=db_delay
             )
-            result['results'][pod] = pod_results
+            result['inserted_ips'][pod] = pod_results
             success = False
             for r in pod_results:
                 if r.get('changed'):
@@ -246,8 +246,6 @@ def main():
                         "msg": r.get("msg", "No message")
                     })
 
-            result['results'][pod] = pod_results
-
             if success:
                 result['changed'] = True
 
@@ -255,7 +253,7 @@ def main():
     except Exception as e:
         module.fail_json(
             msg=f"An error occurred while inserting iDRAC IPs into MySQL: {str(e)}",
-            results=result['results'],
+            results=result['inserted_ips'],
             failed_ips=result['failed_ips']
         )
 

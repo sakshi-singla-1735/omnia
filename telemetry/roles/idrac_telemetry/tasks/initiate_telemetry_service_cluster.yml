@@ -131,7 +131,7 @@
 - name: Show iDRACs added to mysqldb
   ansible.builtin.debug:
     msg: >-
-      iDRACs added to mysqldb: {{ add_idrac_to_db.results | default('No results returned') }}
+      iDRACs added to mysqldb: {{ add_idrac_to_db.inserted_ips | default('No results returned') }}
 
 - name: Show iDRACs failed to add to mysqldb
   ansible.builtin.debug:
