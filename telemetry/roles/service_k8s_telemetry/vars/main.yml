@@ -60,7 +60,6 @@ prometheus_pump_port: 2112
 kafka_pump_port: 8082
 mysql_image: "docker.io/library/mysql:9.3.0"
 pod_wait_timeout: "10m"
-# kafka_broker: 192.168.10.140:9092
 kafka_skip_verify: true
 
 # Usage: prometheus_deployment.yml
