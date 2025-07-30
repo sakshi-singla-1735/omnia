@@ -192,6 +192,15 @@ def generate_pretty_table(task_results, total_duration, overall_status):
     return table.get_string()
 
 def generate_software_status_table(status_dict):
+    """
+    Returns status tables of software grouped by architecture.
+
+    Args:
+        status_dict (dict): Software info with 'arch' and 'overall_status' for each entry.
+
+    Returns:
+        str: Formatted tables (per arch) showing software name and status.
+    """
     # Group entries by arch
     grouped = defaultdict(list)
     for name, info in status_dict.items():
