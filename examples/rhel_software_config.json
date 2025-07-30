@@ -13,7 +13,7 @@
         {"name": "nfs"},
         {"name": "beegfs", "version": "7.4.5"},
         {"name": "slurm"},
-        {"name": "k8s", "version": "1.31.4"},
+        {"name": "compute_k8s", "version": "1.31.4"},
         {"name": "service_k8s", "version": "1.31.4"},
         {"name": "intel_benchmarks", "version": "2024.1.0"},
         {"name": "amd_benchmarks"},
