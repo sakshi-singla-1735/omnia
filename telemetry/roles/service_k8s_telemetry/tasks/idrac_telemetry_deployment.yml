@@ -86,7 +86,7 @@
   rescue:
     - name: Failed - Kafka pod is not running
       ansible.builtin.fail:
-        msg: "Kafka pod did not come to ready state within timeout."
+        msg: "{{ kafka_failed_msg }}"
 
 # Get Kafka service external IP
 - name: Get Kafka LoadBalancer external IP
