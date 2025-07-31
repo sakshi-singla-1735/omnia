@@ -31,7 +31,6 @@ from ansible.module_utils.local_repo.config import (
     RPM_LABEL_TEMPLATE,
     RHEL_OS_URL,
     SOFTWARES_KEY,
-    USER_REPO_URL,
     REPO_CONFIG,
     ARCH_SUFFIXES
 )
@@ -90,7 +89,12 @@ def validate_repo_mappings(yaml_data, json_data):
     Returns:
         list: A list of error messages for invalid repository mappings.
     """
-    user_repos = yaml_data.get("user_repo_url") or []
+    user_repos = []
+
+    for arch in ARCH_SUFFIXES:
+        key = f"user_repo_url_{arch}"
+        if yaml_data.get(key):
+            user_repos.extend(yaml_data[key])
 
     # Combine x86 and aarch64 omnia repos if they exist
     omnia_repos = []
@@ -274,15 +278,17 @@ def parse_repo_urls(repo_config, local_repo_config_path, version_variables, vaul
     repo_entries = {}
 
     for arch in ARCH_SUFFIXES:
-        key = f"omnia_repo_url_rhel_{arch}"
-        repo_entries[arch] = local_yaml.get(key, [])
+        omnia_key = f"omnia_repo_url_rhel_{arch}"
+        user_key = f"user_repo_url_{arch}"
+
+        repo_entries[arch] = local_yaml.get(omnia_key, [])
+        user_repo_entry[arch] = local_yaml.get(user_key, [])
     rhel_repo_entry = local_yaml.get(RHEL_OS_URL, [])
-    user_repo_entry = local_yaml.get(USER_REPO_URL, [])
     parsed_repos = []
     vault_key_path = os.path.join(
         vault_key_path, ".local_repo_credentials_key")
-    if user_repo_entry:
-        for url_ in user_repo_entry:
+    for arch, repo_list in user_repo_entry.items():
+        for url_ in repo_list:
             name = url_.get("name", "unknown")
             url = url_.get("url", "")
             gpgkey = url_.get("gpgkey")
@@ -291,6 +297,7 @@ def parse_repo_urls(repo_config, local_repo_config_path, version_variables, vaul
             client_cert = url_.get("sslclientcert", "")
             policy_given = url_.get("policy", repo_config)
             policy = REPO_CONFIG.get(policy_given)
+
             for path in [ca_cert, client_key, client_cert]:
                 mode = "decrypt"
                 if path and is_encrypted(path):
