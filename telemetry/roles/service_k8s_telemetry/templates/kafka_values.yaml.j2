@@ -19,7 +19,7 @@ headless:
 persistence:
   enabled: true
   storageClass: {{ storage_class_name }}
-  size: "{{ hostvars['localhost']['kafka_helm_configuration']['persistence_size'] }}"
+  size: "{{ hostvars['localhost']['kafka_configurations']['persistence_size'] }}"
 
 nodeSelector:
   node-role.kubernetes.io/control-plane: ""
@@ -37,7 +37,7 @@ provisioning:
   enabled: true
   topics:
     - name: {{ telemetry_topic_name }}
-      partitions: "{{ hostvars['localhost']['kafka_helm_configuration']['topic_partitions'] }}"
+      partitions: "{{ hostvars['localhost']['kafka_configurations']['topic_partitions'] }}"
 
 zookeeper:
   enabled: false
