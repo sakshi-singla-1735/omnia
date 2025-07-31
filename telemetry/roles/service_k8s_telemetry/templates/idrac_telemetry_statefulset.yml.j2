@@ -118,6 +118,7 @@ spec:
           command: ["/bin/sh", "-c"]
           args: ["./scripts/example/idrac-telemetry-receiver.sh"]
 
+{% if hostvars['localhost']['idrac_telemetry_collection_type'] == "prometheus" %}
         - name: prometheus-pump
           image: {{ go_image }}
           imagePullPolicy: IfNotPresent
@@ -134,6 +135,35 @@ spec:
               value: prometheus
           command: ["/bin/sh", "-c"]
           args: ["go run cmd/prometheuspump/prometheuspump.go"]
+{% elif hostvars['localhost']['idrac_telemetry_collection_type'] == "kafka" %}
+        - name: kafka-pump
+          image: {{ go_image }}
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - mountPath: /go/src/github.com/telemetry-reference-tools
+              name: telemetry-reference-tools
+          workingDir: /go/src/github.com/telemetry-reference-tools
+          env:
+            - name: MESSAGEBUS_HOST
+              value: 127.0.0.1
+            - name: MESSAGEBUS_PORT
+              value: "{{ messagebus_http_port }}"
+            - name: KAFKA_BROKER
+              value: "{{ kafka_broker }}"
+            - name: KAFKA_TOPIC
+              value: "{{ telemetry_topic_name }}"
+            - name: KAFKA_SKIP_VERIFY
+              value: "{{ kafka_skip_verify | default('true') | lower }}"
+            # Uncomment below if TLS is used
+            # - name: KAFKA_CACERT
+            #   value: certs/ca.crt
+            # - name: KAFKA_CLIENT_CERT
+            #   value: certs/client.crt
+            # - name: KAFKA_CLIENT_KEY
+            #   value: certs/client.key
+          command: ["/bin/sh", "-c"]
+          args: ["go run cmd/kafkapump/kafkapump.go"]
+{% endif %}
 
   volumeClaimTemplates:
     - metadata:
