@@ -98,7 +98,7 @@ def main():
         "idrac_podnames": {"type": "list", "required": True},
         "mysqldb_k8s_name": {"type": "str", "required": True},
         "mysqldb_name": {"type": "str", "required": True},
-        "mysqldb_user": {"type": "str", "required": True},
+        "mysqldb_user": {"type": "str", "required": True, "no_log": True},
         "mysqldb_password": {"type": "str", "required": True, "no_log": True},
         "db_retries": {"type": "int", "default": 5},
         "db_delay": {"type": "int", "default": 3},
@@ -121,65 +121,73 @@ def main():
     db_idrac_ips = {}
     mysqldb_idrac_ips = []
 
-    for idrac_podname in idrac_podnames:
-        found = None
-        ip_output = None
-        ip_list = []
+    try:
+        for idrac_podname in idrac_podnames:
+            found = None
+            ip_output = None
+            ip_list = []
 
-        for _ in range(db_retries):
-            # Check for services table
-            query_tables = f"SHOW TABLES FROM {mysqldb_name}"
-            tables_output = run_mysql_query_in_pod(
-                telemetry_namespace,
-                idrac_podname,
-                mysqldb_k8s_name,
-                mysqldb_user,
-                mysqldb_password,
-                query_tables
-            )
-            if tables_output and not found:
-                found = tables_output
-
-            # Fetch iDRAC IPs if table exists
-            if found and not ip_output:
-                query_ips = f"SELECT ip FROM {mysqldb_name}.services"
-                ip_output = run_mysql_query_in_pod(
+            for _ in range(db_retries):
+                # Check for services table
+                query_tables = f"SHOW TABLES FROM {mysqldb_name}"
+                tables_output = run_mysql_query_in_pod(
                     telemetry_namespace,
                     idrac_podname,
                     mysqldb_k8s_name,
                     mysqldb_user,
                     mysqldb_password,
-                    query_ips
+                    query_tables
                 )
-                module.warn(f"iDRAC IPs output from {idrac_podname}: {ip_output}")
-            if ip_output.get("rc") == 0:
-                ip_list = ip_output.get("result", [])
-                module.warn(f"iDRAC IPs found in {idrac_podname}: {ip_list}")
-                break
+                if tables_output and not found:
+                    found = tables_output
 
-            time.sleep(db_delay)
+                # Fetch iDRAC IPs if table exists
+                if found and not ip_output:
+                    query_ips = f"SELECT ip FROM {mysqldb_name}.services"
+                    ip_output = run_mysql_query_in_pod(
+                        telemetry_namespace,
+                        idrac_podname,
+                        mysqldb_k8s_name,
+                        mysqldb_user,
+                        mysqldb_password,
+                        query_ips
+                    )
+                    module.warn(f"iDRAC IPs output from {idrac_podname}: {ip_output}")
+                if ip_output.get("rc") == 0:
+                    ip_list = ip_output.get("result", [])
+                    module.warn(f"iDRAC IPs found in {idrac_podname}: {ip_list}")
+                    break
 
-        services_table_exists[idrac_podname] = found
+                time.sleep(db_delay)
 
-        # Parse iDRAC IPs
-        if ip_list:
-            db_idrac_ips[idrac_podname] = ip_list
-            mysqldb_idrac_ips.extend(ip_list)
-        else:
-            db_idrac_ips[idrac_podname] = []
+            services_table_exists[idrac_podname] = found
 
-    if not any(services_table_exists.values()):
-        module.warn("Failed to find 'services' table in any of the MySQL pods.")
+            # Parse iDRAC IPs
+            if ip_list:
+                db_idrac_ips[idrac_podname] = ip_list
+                mysqldb_idrac_ips.extend(ip_list)
+            else:
+                db_idrac_ips[idrac_podname] = []
 
-    if not any(db_idrac_ips.values()):
-        module.warn("Failed to fetch iDRAC IPs from any pod.")
+        if not any(services_table_exists.values()):
+            module.warn("Failed to find 'services' table in any of the MySQL pods.")
 
-    module.exit_json(
-        changed=False,
-        mysqldb_idrac_ips=mysqldb_idrac_ips,
-        pod_to_db_idrac_ips=db_idrac_ips,
-        services_table_check=services_table_exists
-    )
+        if not any(db_idrac_ips.values()):
+            module.warn("Failed to fetch iDRAC IPs from any pod.")
+
+        module.exit_json(
+            changed=False,
+            mysqldb_idrac_ips=mysqldb_idrac_ips,
+            pod_to_db_idrac_ips=db_idrac_ips,
+            services_table_check=services_table_exists
+        )
+    except Exception as e:
+        module.fail_json(
+            msg=f"An error occurred while reading iDRAC IPs from MySQL: {str(e)}",
+            mysqldb_idrac_ips=[],
+            services_table_check=services_table_exists,
+            pod_to_db_idrac_ips=db_idrac_ips
+        )
 
 
 if __name__ == "__main__":
