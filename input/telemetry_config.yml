@@ -46,3 +46,11 @@ visualization_support: false
 # federated_idrac_telemetry_collection true is currently not supported.
 # Accepted values: false
 federated_idrac_telemetry_collection: false
+
+# This variable is used to configure the Kafka telemetry
+
+kafka_helm_configuration:
+  persistence_size: 8Gi
+  log_retention_hours: 168
+  log_retention_bytes: -1
+  topic_partitions: 1
