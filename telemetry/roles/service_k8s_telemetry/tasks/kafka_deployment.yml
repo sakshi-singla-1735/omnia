@@ -32,23 +32,18 @@
 - debug:
     var: kafka_yaml_debug.stdout
 
-# - name: Add bitnami helm repository
-#   community.kubernetes.helm_repository:
-#     name: bitnami
-#     repo_url: "{{ helm_repo_url }}"
-# 
 - name: Download Helm tarball
   ansible.builtin.get_url:
     url: "{{ kafka_helm_offline_repo_url }}"
     dest: "{{ kafka_helm_offline_repo_url_dest }}"
     mode: "{{ file_mode }}"
-  # environment: "{{ compute_env }}"
+  # environment: "{{ compute_env }}"            # variable required for squid support
 
-- name: Extract Kafka Helm chart tarball
-  unarchive:
-    src: "{{ kafka_helm_offline_repo_url_dest }}"
-    dest: "{{ k8s_tmp_dir }}"
-    remote_src: true
+# - name: Extract Kafka Helm chart tarball
+#   unarchive:
+#     src: "{{ kafka_helm_offline_repo_url_dest }}"
+#     dest: "{{ k8s_tmp_dir }}"
+#     remote_src: true
 
 - name: Install Kafka Helm chart from extracted path
   community.kubernetes.helm:
