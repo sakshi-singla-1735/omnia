@@ -15,7 +15,7 @@
 
 - name: Create a list of discovered groups
   ansible.builtin.set_fact:
-    discovered_groups: "{{ discovered_groups | default([]) + item.split(',') | map('trim') | list }}"
+    discovered_groups: "{{ (discovered_groups | default([])) + ((item | default('') | string).split(',') | map('trim') | list) }}"
   loop: "{{ discovered_nodes | map(attribute='group_name') | list }}"
 
 - name: Fetch list of unique groups from discovered groups

@@ -19,7 +19,7 @@
   tasks:
     - name: Set dynamic run tags including k8s
       ansible.builtin.set_fact:
-        omnia_run_tags: "{{ (ansible_run_tags | default([]) + ['k8s']) | unique }}"
+        omnia_run_tags: "{{ (ansible_run_tags | default([]) + ['compute_k8s', 'slurm']) | unique }}"
         cacheable: true
 
 - name: Invoke get_config_credentials.yml
@@ -171,10 +171,9 @@
         tasks_from: csi_powerscale_image_pull.yml
       when:
         - hostvars['127.0.0.1']['csi_driver_powerscale_precheck_pass'] | default(false) | bool
-        - hostvars['127.0.0.1']['omnia_config']['k8s_offline_install']
 
 - name: Install CSI powerscale plugin on kube control nodes
-  hosts: kube_control_plane
+  hosts: kube_control_plane[0]
   gather_facts: false
   roles:
     - k8s_csi_powerscale_plugin
