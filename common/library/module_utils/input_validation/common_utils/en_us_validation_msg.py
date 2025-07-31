@@ -160,6 +160,8 @@ SWITCH_SNMP3_PASSWORD_FAIL_MSG = ("switch_snmp3_password must be at least 3 char
 # telemetry_config.yml
 UNSUPPORTED_IDRAC_TELEMETRY_COLLECTION_TYPE= ("unsupported. 'kafka' or 'prometheus' "
                                               "is the supported telemetry collection type.")
+ENABLE_FEDERATED_IDRAC_TELEMETRY_COLLECTION= ("requires federated_idrac_telemetry_collection "
+                                             "to be enabled")
 
 def boolean_fail_msg(value):
     """Returns a formatted message indicating boolean_fail_msg."""

@@ -1126,7 +1126,7 @@ def validate_telemetry_config(
     errors = []
 
     # idrac_telemetry_support = data.get("idrac_telemetry_support")
-    # federated_idrac_telemetry_collection = data.get("federated_idrac_telemetry_collection")
+    federated_idrac_telemetry_collection = data.get("federated_idrac_telemetry_collection")
 
     collection_type = data.get("idrac_telemetry_collection_type")
     if collection_type and collection_type not in config.supported_telemetry_collection_type:
@@ -1134,6 +1134,13 @@ def validate_telemetry_config(
             "idrac_telemetry_collection_type",
             collection_type,
             en_us_validation_msg.UNSUPPORTED_IDRAC_TELEMETRY_COLLECTION_TYPE
+            )
+        )
+    if collection_type == "kafka" and not federated_idrac_telemetry_collection:
+        errors.append(create_error_msg(
+            "for idrac_telemetry_collection_type",
+            collection_type,
+            en_us_validation_msg.ENABLE_FEDERATED_IDRAC_TELEMETRY_COLLECTION
             )
         )
 
