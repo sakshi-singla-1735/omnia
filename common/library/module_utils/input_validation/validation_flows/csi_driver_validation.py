@@ -214,23 +214,15 @@ def process_encrypted_file(secret_file_path,vault_secret_file_path,errors):
                             secret_file_path, "Please check that the assoicated vault file exists"))
     return decrypted_file
 
-<<<<<<< HEAD
-def validate_powerscale_secret_and_values_file(secret_file_path, values_file_path, errors):
-=======
 def validate_powerscale_secret_and_values_file(secret_file_path, values_file_path, errors, input_file_path):
->>>>>>> 7e4a9b9647004e002ab4a861e825557dbde303ee
     """
     Driver code to initiate the powerscale secret and values file input validation
     """
 
     #valiadte secret file inputs
     secrets_file_encrypted = validation_utils.is_file_encrypted(secret_file_path)
-<<<<<<< HEAD
-    vault_secret_file_path= "/omnia/scheduler/roles/k8s_csi_powerscale_plugin/files/.csi_powerscale_secret_vault"
-=======
     file_path = os.path.dirname(input_file_path)
     vault_secret_file_path = os.path.join(file_path, ".csi_powerscale_secret_vault")
->>>>>>> 7e4a9b9647004e002ab4a861e825557dbde303ee
     #check if secret file exists
     file_exists = os.path.exists(vault_secret_file_path.strip())
 
@@ -247,11 +239,7 @@ def validate_powerscale_secret_and_values_file(secret_file_path, values_file_pat
             if secret_validation_errors:
                for err in secret_validation_errors:
                     errors.append(create_error_msg("Powerscale Secret File Validation Error:", err, None))
-<<<<<<< HEAD
 
-=======
-                
->>>>>>> 7e4a9b9647004e002ab4a861e825557dbde303ee
     #validate values file input
     with open(values_file_path, "r") as f:
                 values_data = yaml.safe_load(f)
