@@ -16,6 +16,14 @@ headless:
   ports:
     broker: {{ kafka_container_port }}
 
+tls:
+  type: pem
+  existingSecret: "kafka-secrets"
+  passwordsSecret: ""
+  keyPasswordSecretKey: ""
+  keystorePasswordSecretKey: ""
+  truststorePasswordSecretKey: ""
+
 persistence:
   enabled: true
   storageClass: {{ storage_class_name }}
@@ -41,23 +49,33 @@ provisioning:
   auth:
     tls:
       type: pem
-      certificatesSecret: "{{ kafka_secrets_name }}"
+      certificatesSecret: "{{ kafka_secrets.name }}"
       cert: tls.crt
       key: tls.key
       caCert: ca.crt
+      passwordsSecret: ""
+      keyPasswordSecretKey: ""
+      keystorePasswordSecretKey: ""
+      truststorePasswordSecretKey: ""
 
 zookeeper:
   enabled: false
 
 listeners:
   client:
-    protocol: PLAINTEXT
+    name: CLIENT
+    containerPort: 9092
+    protocol: SSL
+    sslClientAuth: "none"
+  controller:
+    name: CONTROLLER
+    containerPort: 9093
+    protocol: SSL
+  interbroker:
+    name: INTERBROKER
+    containerPort: 9094
+    protocol: SSL
 
-listenerSecurityProtocolMap: "CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT"
-interBrokerListenerName: PLAINTEXT
-
+listenerSecurityProtocolMap: "CLIENT:SSL,INTERBROKER:SSL,CONTROLLER:SSL"
+interBrokerListenerName: INTERBROKER
 controllerListenerNames: CONTROLLER
-
-extraEnvVars:
-  - name: ALLOW_PLAINTEXT_LISTENER
-    value: "yes"

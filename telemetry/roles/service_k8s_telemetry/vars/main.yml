@@ -22,10 +22,13 @@ storage_class_missing_fail_msg: "Failed. StorageClass {{ storage_class_name }} i
 
 # Usage: secrets_creation.yml
 mysqldb_secrets_name: mysqldb-credentials
-kafka_secrets_name: kafka-secrets
-kafka_cert_path: "/etc/pki/tls/"
-kafka_cert_file: "{{ kafka_cert_path }}/certs/kafka.crt"
-kafka_cert_key: "{{ kafka_cert_path }}/private/kafka.key"
+cert_path: "/opt/omnia/telemetry/certs/"
+kafka_secrets:
+  name: kafka-secrets
+  cert_file: "{{ cert_path }}/kafka.crt"
+  cert_key: "{{ cert_path }}/kafka.key"
+  dir_permissions: "0755"
+  ssl_limit: 365
 
 # Usage: idrac_telemetry_deployment.yml
 omnia_nfs_share: "{{ hostvars['localhost']['oim_shared_path'] }}/omnia"
