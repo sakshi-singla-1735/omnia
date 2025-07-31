@@ -106,5 +106,4 @@ omnia_repo_url_rhel_aarch64:
   - { url: "https://repo.radeon.com/rocm/rhel9/{{ rocm_version }}/main/", gpgkey: "https://repo.radeon.com/rocm/rocm.gpg.key", name: "rocm"}
   - { url: "https://dl.fedoraproject.org/pub/epel/9/Everything/aarch64/", gpgkey: "https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-9", name: "epel"}
   - { url: "https://www.beegfs.io/release/beegfs_{{beegfs_version}}/dists/rhel9/", gpgkey: "https://www.beegfs.io/release/beegfs_{{beegfs_version}}/gpg/GPG-KEY-beegfs", name: "beegfs"}
-  - { url: "https://yum.repos.intel.com/oneapi/", gpgkey: "https://yum.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB", name: "oneapi"}
   - { url: "https://nvidia.github.io/libnvidia-container/stable/rpm/aarch64/", gpgkey: "https://nvidia.github.io/libnvidia-container/gpgkey", name: "nvidia-repo"}
