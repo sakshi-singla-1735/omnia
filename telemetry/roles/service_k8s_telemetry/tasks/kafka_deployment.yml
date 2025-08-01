@@ -25,13 +25,6 @@
     dest: "{{ kafka_values_yaml_path }}"
     mode: "{{ metadata_perm }}"
 
-- name: Debug rendered Kafka values
-  ansible.builtin.shell: cat "{{ kafka_values_yaml_path }}"
-  register: kafka_yaml_debug
-
-- debug:
-    var: kafka_yaml_debug.stdout
-
 - name: Download Helm tarball
   ansible.builtin.get_url:
     url: "{{ kafka_helm_offline_repo_url }}"
@@ -40,7 +33,7 @@
   # environment: "{{ compute_env }}"            # variable required for squid support
 
 - name: Extract Kafka Helm chart tarball
-  unarchive:
+  ansible.builtin.unarchive:
     src: "{{ kafka_helm_offline_repo_url_dest }}"
     dest: "{{ k8s_tmp_dir }}"
     remote_src: true
