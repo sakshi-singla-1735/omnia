@@ -166,7 +166,6 @@ def validate_software_config(
 
     # create the subgroups and softwares dictionary with version details
     subgroup_dict, _ = get_subgroup_dict(data)
-    # module.fail_json(msg="SUBDICT", subgroup_dict=subgroup_dict)
     # check if the corresponding json files for softwares and subgroups exists in config folder
     validation_results = []
     failures = []
