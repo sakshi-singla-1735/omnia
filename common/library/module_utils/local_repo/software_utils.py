@@ -77,43 +77,6 @@ def load_yaml(file_path):
     with open(file_path, 'r', encoding='utf-8') as file:
         return yaml.safe_load(file)
 
-
-def validate_repo_mappings(yaml_data, json_data):
-    """
-    Validates whether RPM repo names in software.json are valid repo names
-
-    Args:
-        yaml_data (dict): The YAML data containing the repository mappings.
-        json_data (str): The path to the JSON file or the JSON data
-        containing the package information.
-
-    Returns:
-        list: A list of error messages for invalid repository mappings.
-    """
-    user_repos = yaml_data.get("user_repo_url") or []
-    omnia_repos = yaml_data.get("omnia_repo_url_rhel") or []
-
-    valid_repos = [repo["name"] for repo in (user_repos + omnia_repos)]
-    valid_repos.extend(['baseos', 'appstream', 'codeready-builder'])
-    data = load_json(json_data)
-
-    errors = []
-    for section, section_data in data.items():
-        if isinstance(section_data, dict):
-            for cluster_name, cluster_data in section_data.items():
-                for package in cluster_data:
-                    if package.get("type") == 'rpm':
-                        repo_name = package.get("repo_name")
-                        if repo_name not in valid_repos:
-                            error_msg = (
-                                f"Error: Repository '{repo_name}' for "
-                                f"package '{package['package']}' "
-                                f"in subgroup '{section}' is not found in local_repo_config.yml"
-                            )
-                            errors.append(error_msg)
-    return errors
-
-
 def get_json_file_path(software_name, cluster_os_type, cluster_os_version, user_json_path, arch_list):
     """
     Generate the file path for a JSON file based on the provided software name,
@@ -349,7 +312,7 @@ def parse_repo_urls(repo_config, local_repo_config_path, version_variables, vaul
             "policy": policy
         })
 
-    return json.dumps(parsed_repos), True
+    return parsed_repos, True
 
 
 def set_version_variables(user_data, software_names, cluster_os_version):

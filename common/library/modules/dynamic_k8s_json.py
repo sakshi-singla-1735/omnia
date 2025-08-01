@@ -1119,8 +1119,12 @@ def generate_k8_jsons_for_version(kube_version, base_path, repo_url, package_typ
             if not process_image_list(images_list_path, filetype_inv, final_k8s_data, software_name):
                 raise FileOperationError("Failed to process image list")
 
+        kube_arch_map = {
+            "amd64": "x86_64",
+            "arm64": "aarch64"
+        }
         # Write final JSON output
-        output_json_path = os.path.join(temp_output_path, f"{software_name}_v{kube_version.lstrip('v')}.json")
+        output_json_path = os.path.join(temp_output_path, f"{software_name}_v{kube_version.lstrip('v')}_{kube_arch_map[arch]}.json")
         write_json(output_json_path, final_k8s_data)
 
         logger.info(f"Successfully generated JSON for version {kube_version} at {output_json_path}")
@@ -1145,7 +1149,7 @@ def run_module():
         "k8s_json_path": {"type": "str", "required": True},
         "software_name": {"type": "str", "required": True},
         "log_dir": {"type": "str", "required": True},
-        "arch": {"type": "str", "required": True},
+        "arch": {"type": "str", "required": True, "choices": ["x86_64", "aarch64"]},
         "n_latest": {"type": "int", "default": 2},
         "mode": {
             "type": "str", 
@@ -1162,6 +1166,11 @@ def run_module():
         argument_spec=module_args,
         supports_check_mode=False
     )
+
+    kube_arch_map = {
+        "x86_64": "amd64",
+        "aarch64": "arm64"
+    }
 
     try:
         global logger, repo_url
@@ -1185,7 +1194,7 @@ def run_module():
                     repo_url,
                     module.params['package_types'],
                     module.params['k8s_json_path'],
-                    module.params['arch'],
+                    kube_arch_map[module.params['arch']],
                     module.params['n_latest'],
                     module.params['software_name'],
                     module.params['mode'],

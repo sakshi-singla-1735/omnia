@@ -32,6 +32,7 @@ from ansible.module_utils.input_validation.common_utils import (
 )
 
 from ansible.module_utils.local_repo.software_utils import (
+    load_json,
     load_yaml,
     get_subgroup_dict,
     get_software_names,
@@ -165,7 +166,7 @@ def validate_software_config(
 
     # create the subgroups and softwares dictionary with version details
     subgroup_dict, _ = get_subgroup_dict(data)
-
+    # module.fail_json(msg="SUBDICT", subgroup_dict=subgroup_dict)
     # check if the corresponding json files for softwares and subgroups exists in config folder
     validation_results = []
     failures = []
@@ -182,7 +183,7 @@ def validate_software_config(
             software, cluster_os_type, cluster_os_version, input_file_path, arch_list
         )
         for json_path in json_paths:
-        # Check if json_path is None or if the JSON syntax is invalid
+            # Check if json_path is None or if the JSON syntax is invalid
             if not json_path:
                 errors.append(
                     create_error_msg(
@@ -193,10 +194,7 @@ def validate_software_config(
             else:
                 try:
                     subgroup_softwares = subgroup_dict.get(software, None)
-                    # for each subgroup for a software check for corresponding entry in software.json
-                    # eg: for amd the amd.json should contain both amd and rocm entries
-                    with open(json_path, "r", encoding='utf-8') as file:
-                        json_data = json.load(file)
+                    json_data = load_json(json_path)
                     for subgroup_software in subgroup_softwares:
                         _, fail_data = validation_utils.validate_softwaresubgroup_entries(
                             subgroup_software, json_path, json_data, validation_results, failures
