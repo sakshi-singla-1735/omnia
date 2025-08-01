@@ -13,23 +13,36 @@
 #  limitations under the License.
 ---
 
+- name: Create k8s_tmp_dir if not exists
+  ansible.builtin.file:
+    path: "{{ k8s_tmp_dir }}"
+    state: directory
+    mode: "{{ dir_permissions_755 }}"
+
 - name: Render values.yaml.j2 template
   ansible.builtin.template:
     src: "{{ role_path }}/templates/kafka_values.yaml.j2"
     dest: "{{ kafka_values_yaml_path }}"
     mode: "{{ metadata_perm }}"
 
-- name: Add bitnami helm repository
-  community.kubernetes.helm_repository:
-    name: bitnami
-    repo_url: "{{ helm_repo_url }}"
+- name: Download Helm tarball
+  ansible.builtin.get_url:
+    url: "{{ kafka_helm_offline_repo_url }}"
+    dest: "{{ kafka_helm_offline_repo_url_dest }}"
+    mode: "{{ file_mode }}"
+  # environment: "{{ compute_env }}"            # variable required for squid support
 
-- name: Install kafka helm chart
+- name: Extract Kafka Helm chart tarball
+  ansible.builtin.unarchive:
+    src: "{{ kafka_helm_offline_repo_url_dest }}"
+    dest: "{{ k8s_tmp_dir }}"
+    remote_src: true
+
+- name: Install Kafka Helm chart from extracted path
   community.kubernetes.helm:
     release_name: kafka
-    chart_ref: "{{ kafka_image_repo }}"
-    chart_version: "{{ kafka_chart_version }}"
+    chart_ref: "{{ k8s_tmp_dir }}/charts-kafka-31.5.0/bitnami/kafka"
     namespace: "{{ telemetry_namespace }}"
     values_files:
-      - "{{ kafka_values_yaml_path }}"
+      - "{{ k8s_tmp_dir }}/values.yaml"
     wait: true
