@@ -142,3 +142,8 @@ service_node_not_booted: |
 network_spec_path: "{{ input_project_dir }}/network_spec.yml"
 fail_msg_network_spec_file: "network_spec.yml file doesn't exist."
 network_spec_syntax_fail_msg: "Failed. Syntax errors present in network_spec.yml. Fix errors and re-run playbook again."
+
+# Usage: check_inventory.yml
+telemetry_empty_inventory_fail_msg: |
+  "Failed. inventory not provided. Re-run playbook with inventory by providing -i inventory.
+  Inventory support groups are kube_control_plane, kube_node, etcd"
