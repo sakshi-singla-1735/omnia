@@ -46,17 +46,16 @@ def load_yaml(path):
     with open(path, "r", encoding = "utf-8") as file:
         return yaml.safe_load(file)
 
-def get_service_cluster_details(is_all_service_roles_discovered):
+def get_service_cluster_details():
 
     """
     Retrieves service cluster details from the database and
     returns a dictionary mapping roles to hostnames.
 
     Args:
-        inventory_groups_dict (dict): A dictionary of inventory groups.
-        module (object): A module object.
 
     Returns:
+        bool: if all service k8s roles are discovered then return true
         dict: A dictionary where the keys are roles
         ('service_kube_node', 'service_etcd', 'service_kube_control_plane')
         and the values are lists of hostnames.
@@ -65,6 +64,7 @@ def get_service_cluster_details(is_all_service_roles_discovered):
         None
     """
 
+    is_all_service_roles_discovered = False
     query_result = get_data_from_db(
         table_name='cluster.nodeinfo',
         filter_dict = {'role': ['service_kube_node', 'service_etcd', 'service_kube_control_plane']}
@@ -75,13 +75,15 @@ def get_service_cluster_details(is_all_service_roles_discovered):
         service_role = record['role']
         role = service_role.replace("service_","")
         hostname = record['hostname']
-        roles_to_hostname_dict.setdefault(role, []).append(hostname)
+        admin_ip = record['admin_ip']
+        service_tag = record['service_tag']
+        roles_to_hostname_dict.setdefault(role, []).append([hostname,admin_ip,service_tag])
 
 
     if all(role in roles_to_hostname_dict for role in required_k8s_roles):
         is_all_service_roles_discovered = True
 
-    return roles_to_hostname_dict
+    return is_all_service_roles_discovered, roles_to_hostname_dict
 
 def validate_inventory_and_db_nodes(inventory_groups_dict,
                                     db_roles_to_hostname):
@@ -112,10 +114,15 @@ def validate_inventory_and_db_nodes(inventory_groups_dict,
     grps_to_mismatch_hosts = {}
 
     for group in inventory_groups_dict:
-        if group in db_roles_to_hostname:
-            mismatch_hosts = set(inventory_groups_dict[group]) - set(db_roles_to_hostname[group])
-            if mismatch_hosts:
-                grps_to_mismatch_hosts[group] = mismatch_hosts
+        if group in required_k8s_roles:
+            inv_hosts = inventory_groups_dict[group]
+            if group in db_roles_to_hostname:
+                db_role_details_list = db_roles_to_hostname[group]
+                for host in inv_hosts:
+                    if not any(host in sublist for sublist in db_role_details_list):
+                        grps_to_mismatch_hosts.setdefault(group, []).append(host)
+            else:
+                grps_to_mismatch_hosts.setdefault(group, []).extend(inv_hosts)
 
     return grps_to_mismatch_hosts
 
@@ -136,27 +143,32 @@ def valid_groups_in_inventory(inventory_groups_dict):
 def main():
     """Main module function."""
     module_args = {
-        'telemetry_inventory_groups': {'type': "dict", 'required': True},
+        'telemetry_inventory_groups': {"type": "dict", "required": True},
+        'is_federated_idrac_telemetry_collection':{"type":"bool", "required":False,"default":False}
     }
 
     module = AnsibleModule(argument_spec=module_args, supports_check_mode=True)
     inventory_groups_dict = module.params["telemetry_inventory_groups"]
-    is_all_service_roles_discovered = False
+    federated_idrac_telemetry_collection = module.params["is_federated_idrac_telemetry_collection"]
+    all_service_roles_discovered = False
 
     try:
         if not valid_groups_in_inventory(inventory_groups_dict):
             module.fail_json(msg=f"Inventory validation failed. "\
                              f"Inventory must have all service k8s groups {required_k8s_roles}")
-        db_service_roles_to_hostname = get_service_cluster_details(is_all_service_roles_discovered)
-        grps_to_mismatch_hosts = validate_inventory_and_db_nodes(inventory_groups_dict,
+
+        if federated_idrac_telemetry_collection:
+            all_service_roles_discovered, db_service_roles_to_hostname = \
+                get_service_cluster_details()
+            grps_to_mismatch_hosts = validate_inventory_and_db_nodes(inventory_groups_dict,
                                                                  db_service_roles_to_hostname)
-        if grps_to_mismatch_hosts:
-            module.fail_json(msg=f"Inventory validation failed. "\
-                        f"Invalid service k8s hosts provided in inventory {grps_to_mismatch_hosts}")
+            if grps_to_mismatch_hosts:
+                module.fail_json(msg=f"Inventory validation failed. "\
+                        f"Invalid hosts provided in inventory {grps_to_mismatch_hosts}")
 
         module.exit_json(changed=False,
-                         is_all_service_roles_discovered=is_all_service_roles_discovered,
-                         grps_to_mismatch_hosts=grps_to_mismatch_hosts)
+                         is_all_service_roles_discovered=all_service_roles_discovered
+                        )
     except ValueError as e:
         module.fail_json(msg=f"Failed to validate Service Cluster data. {e}")
 

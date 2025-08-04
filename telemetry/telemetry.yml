@@ -39,19 +39,6 @@
     omnia_provision_group: true
     omnia_provision_validation: true
 
-- name: Check telemetry inventory is provided
-  hosts: localhost
-  connection: local
-  any_errors_fatal: true
-  tasks:
-    - name: Check telemetry inventory is provided
-      ansible.builtin.include_role:
-        name: telemetry_validation
-        tasks_from: validate_telemetry_inventory.yml
-      when:
-        - idrac_telemetry_support
-        - federated_idrac_telemetry_collection
-
 - name: Validate telemetry input parameters
   hosts: localhost
   connection: local
@@ -61,6 +48,10 @@
       ansible.builtin.include_role:
         name: telemetry_validation
         tasks_from: validation_status_check.yml
+
+- name: Update Inventory with ansible_host information
+  ansible.builtin.import_playbook: ../utils/servicetag_host_mapping.yml
+  when: federated_idrac_telemetry_collection
 
 - name: Validate containers are running
   hosts: oim

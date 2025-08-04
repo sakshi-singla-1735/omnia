@@ -13,21 +13,22 @@
 # limitations under the License.
 ---
 
-- name: Inventory not provided
-  ansible.builtin.fail:
-    msg: "{{ telemetry_empty_inventory_fail_msg }}"
-  when:
-    - hostvars['localhost']['federated_idrac_telemetry_collection']
-    - groups['all'] is defined
-    - (groups['all'] | length == 0)
+- name: Check if inventory has required groups
+  ansible.builtin.assert:
+    that: "'kube_control_plane' in groups and 'kube_node' in groups and 'etcd' in groups"
+    fail_msg: "{{ telemetry_empty_inventory_fail_msg }}"
 
-- name: Validate telemetry inventory
-  block:
-    - name: Validate telemetry inventory using custom module
-      validate_service_cluster:
-        telemetry_inventory_groups: groups
-      register: validation_output
-  rescue:
-    - name: Failed to validate inventory file
-      ansible.builtin.fail:
-        msg: "{{ inventory_fail_msg }} Error: {{ script_output.msg }}"
+- name: Check custom validation for inventory and federated_idrac_telemetry_collection
+  validate_telemetry_inventory:
+    telemetry_inventory_groups: "{{ groups }}"
+    is_federated_idrac_telemetry_collection: "{{ hostvars['localhost']['federated_idrac_telemetry_collection'] }}"
+  register: validation_output
+  delegate_to: omnia_provision
+  connection: ssh
+
+- name: Fail if service k8s is provisioned but federated_idrac_telemetry_collection is disabled
+  ansible.builtin.fail:
+    msg: "{{ enable_federated_telemetry | replace('\n', ' ')}}"
+  when:
+    - not federated_idrac_telemetry_collection
+    - validation_output.is_all_service_roles_discovered
