@@ -145,7 +145,6 @@
     dest: "{{ telemetry_metadata_path }}"
     content: |
       idrac_telemetry_collection_type: {{ hostvars['localhost']['idrac_telemetry_collection_type'] }}
-      federated_idrac_telemetry_collection: {{ hostvars['localhost']['federated_idrac_telemetry_collection'] }}
     mode: "{{ metadata_perm }}"
   delegate_to: localhost
   register: metadata_file_created
