@@ -77,23 +77,27 @@ def main():
     }
 
     module = AnsibleModule(argument_spec=module_args, supports_check_mode=True)
+    try:
+        service_cluster_metadata = module.params["service_cluster_metadata"]
+        module.warn(f"Service Cluster metadata path: {service_cluster_metadata}")
+        parent_to_bmc_ip_details = module.params["parent_to_bmc_ip_details"]
 
-    service_cluster_metadata = module.params["service_cluster_metadata"]
-    module.warn(f"Service Cluster metadata path: {service_cluster_metadata}")
-    parent_to_bmc_ip_details = module.params["parent_to_bmc_ip_details"]
+        if not service_cluster_metadata:
+            module.warn("Service cluster metadata is required but not provided.")
+        if not parent_to_bmc_ip_details:
+            module.warn("BMC group data list is required but not provided.")
 
-    if not service_cluster_metadata:
-        module.warn("Service cluster metadata is required but not provided.")
-    if not parent_to_bmc_ip_details:
-        module.warn("BMC group data list is required but not provided.")
+        idrac_podname_ips = fetch_pod_to_idracips(service_cluster_metadata, \
+                        parent_to_bmc_ip_details, module)
 
-    idrac_podname_ips = fetch_pod_to_idracips(service_cluster_metadata, \
-                    parent_to_bmc_ip_details, module)
-
-    module.exit_json(
-        changed=False,
-        idrac_podname_ips=idrac_podname_ips
-    )
+        module.exit_json(
+            changed=False,
+            idrac_podname_ips=idrac_podname_ips
+        )
+    except Exception as e:
+        module.fail_json(
+            msg=f"An error occurred while fetching iDRAC podnames and IPs: {str(e)}"
+        )
 
 if __name__ == "__main__":
     main()
