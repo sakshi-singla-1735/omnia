@@ -154,13 +154,21 @@ spec:
               value: "{{ telemetry_topic_name }}"
             - name: KAFKA_SKIP_VERIFY
               value: "{{ kafka_skip_verify | default('true') | lower }}"
-            # Uncomment below if TLS is used
-            # - name: KAFKA_CACERT
-            #   value: certs/ca.crt
-            # - name: KAFKA_CLIENT_CERT
-            #   value: certs/client.crt
-            # - name: KAFKA_CLIENT_KEY
-            #   value: certs/client.key
+            - name: KAFKA_CACERT
+              valueFrom:
+                secretKeyRef:
+                  name: "{{ kafka_secrets.name }}"
+                  key: ca.crt
+            - name: kafka.truststore.pem
+              valueFrom:
+                secretKeyRef:
+                  name: "{{ kafka_secrets.name }}"
+                  key: kafka.keystore.pem
+            - name: KAFKA_CLIENT_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: "{{ kafka_secrets.name }}"
+                  key: kafka.keystore.key
           command: ["/bin/sh", "-c"]
           args: ["go run cmd/kafkapump/kafkapump.go"]
 {% endif %}

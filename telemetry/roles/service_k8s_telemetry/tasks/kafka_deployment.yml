@@ -12,24 +12,118 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 ---
+- name: Create Kafka headless service
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: "{{ kafka.headless_service_name }}"
+        namespace: "{{ telemetry_namespace }}"
+        labels:
+          app: "{{ kafka.app_name }}"
+      spec:
+        clusterIP: None
+        selector:
+          app: "{{ kafka.app_name }}"
+        ports:
+          - port: "{{ kafka.container_port }}"
+            name: ssl
 
-- name: Render values.yaml.j2 template
-  ansible.builtin.template:
-    src: "{{ role_path }}/templates/kafka_values.yaml.j2"
-    dest: "{{ kafka_values_yaml_path }}"
-    mode: "{{ metadata_perm }}"
+- name: Create Kafka LoadBalancer service
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: "{{ kafka.lb_service_name }}"
+        namespace: "{{ telemetry_namespace }}"
+        labels:
+          app: "{{ kafka.app_name }}"
+      spec:
+        type: LoadBalancer
+        selector:
+          app: "{{ kafka.app_name }}"
+        ports:
+          - port: "{{ kafka.container_port }}"
+            name: ssl
 
-- name: Add bitnami helm repository
-  community.kubernetes.helm_repository:
-    name: bitnami
-    repo_url: "{{ helm_repo_url }}"
-
-- name: Install kafka helm chart
-  community.kubernetes.helm:
-    release_name: kafka
-    chart_ref: "{{ kafka_image_repo }}"
-    chart_version: "{{ kafka_chart_version }}"
-    namespace: "{{ telemetry_namespace }}"
-    values_files:
-      - "{{ kafka_values_yaml_path }}"
-    wait: true
+- name: Deploy Kafka StatefulSet
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: apps/v1
+      kind: StatefulSet
+      metadata:
+        name: kafka
+        namespace: "{{ telemetry_namespace }}"
+      spec:
+        serviceName: "{{ kafka.headless_service_name }}"
+        replicas: 1
+        selector:
+          matchLabels:
+            app: "{{ kafka.app_name }}"
+        template:
+          metadata:
+            labels:
+              app: "{{ kafka.app_name }}"
+          spec:
+            containers:
+              - name: "{{ kafka.container_name }}"
+                image: "{{ kafka.image }}"
+                imagePullPolicy: IfNotPresent
+                ports:
+                  - containerPort: "{{ kafka.container_port1 }}"
+                  - containerPort: "{{ kafka.container_port2 }}"
+                env:
+                  - name: KAFKA_PROCESS_ROLES
+                    value: "broker,controller"
+                  - name: KAFKA_NODE_ID
+                    value: "0"
+                  - name: KAFKA_CONTROLLER_QUORUM_VOTERS
+                    value: "0@localhost:{{ kafka.container_port2 }}"
+                  - name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
+                    value: "CONTROLLER:PLAINTEXT,INTERNAL:SSL"
+                  - name: KAFKA_LISTENERS
+                    value: "INTERNAL://:{{ kafka.container_port1 }},CONTROLLER://:{{ kafka.container_port2 }}"
+                  - name: KAFKA_ADVERTISED_LISTENERS
+                    value: "INTERNAL://{{ kafka.headless_service_name }}.{{ telemetry_namespace }}.svc.cluster.local:{{ kafka.container_port1 }}"
+                  - name: KAFKA_INTER_BROKER_LISTENER_NAME
+                    value: "INTERNAL"
+                  - name: KAFKA_CFG_CONTROLLER_LISTENER_NAMES
+                    value: "CONTROLLER"
+                  - name: ALLOW_PLAINTEXT_LISTENER
+                    value: "no"
+                  - name: KAFKA_TLS_ENABLE
+                    value: "yes"
+                  - name: KAFKA_TLS_TYPE
+                    value: "PEM"
+                  - name: KAFKA_TLS_CERTIFICATE_FILE
+                    value: "/bitnami/kafka/config/certs/kafka.keystore.pem"
+                  - name: KAFKA_TLS_KEY_FILE
+                    value: "/bitnami/kafka/config/certs/kafka.keystore.key"
+                  - name: KAFKA_TLS_TRUST_CERTS_FILE
+                    value: "/bitnami/kafka/config/certs/kafka.truststore.pem"
+                  - name: KAFKA_TLS_CLIENT_AUTH
+                    value: "none"
+                volumeMounts:
+                  - name: kafka-data
+                    mountPath: /bitnami/kafka
+                  - name: kafka-tls
+                    mountPath: /bitnami/kafka/config/certs
+                    readOnly: true
+            volumes:
+              - name: kafka-tls
+                secret:
+                  secretName: "{{ kafka_secrets.name }}"
+        volumeClaimTemplates:
+          - metadata:
+              name: kafka-data
+            spec:
+              accessModes: ["ReadWriteOnce"]
+              resources:
+                requests:
+                  storage: 5Gi
+              storageClassName: "{{ storage_class_name }}"
