@@ -87,14 +87,6 @@
     telemetry_metadata_stat.stat.exists and
     existing_metadata.idrac_telemetry_collection_type != idrac_telemetry_collection_type
 
-- name: Fail if federated flag changed from true to false after initial deployment
-  ansible.builtin.fail:
-    msg: "{{ msg_federated_flag_mismatch }}"
-  when: >
-    telemetry_metadata_stat.stat.exists and
-    (existing_metadata.federated_idrac_telemetry_collection | bool) and
-    not (federated_idrac_telemetry_collection | bool)
-
 # - name: Validate k8s prometheus, scrape interval and prometheus gaudi
 #   ansible.builtin.include_tasks: validate_k8s_prometheus_prometheus_gaudi.yml
 #   when: k8s_prometheus_support or prometheus_gaudi_support
