@@ -10,9 +10,9 @@ CN = {{ kafka_secrets.san_cn }}
 subjectAltName = @alt_names
 
 [alt_names]
-{% for idx, dns in kafka_secrets.san_dns | enumerate %}
-DNS.{{ idx + 1 }} = {{ dns }}
+{% for dns in kafka_secrets.san_dns %}
+DNS.{{ loop.index }} = {{ dns }}
 {% endfor %}
-{% for idx, ip in kafka_secrets.san_ips | enumerate %}
-IP.{{ idx + 1 }} = {{ ip }}
+{% for ip in kafka_secrets.san_ips %}
+IP.{{ loop.index }} = {{ ip }}
 {% endfor %}

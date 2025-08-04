@@ -12,6 +12,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 ---
+
 - name: Create Kafka headless service
   kubernetes.core.k8s:
     state: present
@@ -28,8 +29,8 @@
         selector:
           app: "{{ kafka.app_name }}"
         ports:
-          - port: "{{ kafka.container_port }}"
-            name: ssl
+          - name: kafka
+            port: 9092
 
 - name: Create Kafka LoadBalancer service
   kubernetes.core.k8s:
@@ -47,8 +48,8 @@
         selector:
           app: "{{ kafka.app_name }}"
         ports:
-          - port: "{{ kafka.container_port }}"
-            name: ssl
+          - name: kafka
+            port: 9092
 
 - name: Deploy Kafka StatefulSet
   kubernetes.core.k8s:
@@ -70,13 +71,30 @@
             labels:
               app: "{{ kafka.app_name }}"
           spec:
+            tolerations:
+              - key: "node-role.kubernetes.io/control-plane"
+                operator: "Exists"
+                effect: "NoSchedule"
             containers:
               - name: "{{ kafka.container_name }}"
                 image: "{{ kafka.image }}"
                 imagePullPolicy: IfNotPresent
                 ports:
-                  - containerPort: "{{ kafka.container_port1 }}"
-                  - containerPort: "{{ kafka.container_port2 }}"
+                  - containerPort: 9092
+                  - containerPort: 9093
+                lifecycle:
+                  postStart:
+                    exec:
+                      command:
+                        - /bin/sh
+                        - -c
+                        - |
+                          cat <<EOF > /tmp/client.properties
+                          security.protocol=SSL
+                          ssl.truststore.type=PEM
+                          ssl.truststore.location=/bitnami/kafka/config/certs/kafka.truststore.pem
+                          ssl.endpoint.identification.algorithm=
+                          EOF
                 env:
                   - name: KAFKA_PROCESS_ROLES
                     value: "broker,controller"
