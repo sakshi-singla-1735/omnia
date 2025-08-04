@@ -87,7 +87,7 @@ Omnia installs the following package on top of the Kubernetes stack:
 
 To set up any other Kubernetes version apart from what is present as default in the ``/opt/omnia/input/project_default/software_config.json`` file, `click here <dynamic_k8s.html>`_.
 
-[Optional] Service Kubernetes cluster
-==========================================
+[Optional] Deploy Kubernetes on the service cluster
+======================================================
 
-To set up Kubernetes on the service cluster, `click here <service_k8s.html>`_.
+To set up Kubernetes on the service cluster, `click here <service_cluster_k8s.html>`_.

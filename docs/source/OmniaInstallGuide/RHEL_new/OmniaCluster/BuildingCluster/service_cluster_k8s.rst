@@ -1,6 +1,6 @@
-=================================
-Service Kubernetes (K8s) cluster
-=================================
+==========================================
+Deploy Kubernetes on the service cluster
+==========================================
 
 Omnia supports deploying Kubernetes on the service cluster via the ``service_k8s_cluster.yml`` playbook.
 

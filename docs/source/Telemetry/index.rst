@@ -52,5 +52,6 @@ Once the cluster nodes have been provisioned using the ``discovery_provision.yml
 .. toctree::
     :maxdepth: 1
 
+    service_cluster_telemetry
     grafana
     prometheus

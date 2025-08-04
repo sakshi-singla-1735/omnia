@@ -36,3 +36,18 @@ Optional	","* Enables federated telemetry data collection using the iDRAC teleme
 
 .. note:: Currently, Omnia does not support setting the value of this variable to ``true``. Do not change the value as this can cause unexpected failures.
 "
+"**kube_prometheus_support**
+
+``boolean``
+
+Optional	","* This variable signifies support for Kubernetes metric collection and deployment of the Kube-Prometheus stack.
+* If this value is set to ``true``, Prometheus, Node Exporter, Alertmanager, and other related components will be deployed.
+* **Accepted values**:  ``true`` or ``false``
+* **Default value**: ``false``"
+"**prometheus_scrape_interval**
+
+``integer``
+
+Optional	","* Specifies the time interval (in seconds) at which the prometheus metrics collection happens from the nodes.
+* Must be an integer greater than ``0`` (zero).
+* ``Default value``: 15"
