@@ -1,8 +1,8 @@
-==================================================
-Deploy telemetry service on the service cluster
-==================================================
+=======================================================
+Deploy iDRAC telemetry service on the service cluster
+=======================================================
 
-To deploy telemetry service on the service cluster and collect iDRAC and other telemetry data using Prometheus, refer to the following guide.
+To deploy telemetry service on the service cluster and collect iDRAC telemetry data using Prometheus, refer to the following guide.
 
 Prerequisites
 ===============
@@ -23,3 +23,5 @@ Result
 =======
 
 The ``mysqldb``, ``activemq``, ``telemetry_receiver``, and ``prometheus_pump`` containers will get deployed on the ``service_kube_nodes``.
+
+.. note:: Metrics visualization using grafana is not supported for iDRAC telemetry on service cluster.

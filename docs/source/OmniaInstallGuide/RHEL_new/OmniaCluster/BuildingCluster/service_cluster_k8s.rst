@@ -78,4 +78,4 @@ In the command above, ``<service_cluster_layout_file_path>`` refers to the inven
 Next step
 ===========
 
-To know how to deploy the telemetry containers on the service cluster, `click here <../../../../https://omniahpc.readthedocs.io/en/staging/Telemetry/service_cluster_telemetry.html>`_.
+To know how to deploy the iDRAC telemetry containers on the service cluster, `click here <../../../../https://omniahpc.readthedocs.io/en/staging/Telemetry/service_cluster_telemetry.html>`_.

@@ -31,10 +31,10 @@ Optional	","* Enables visualizations for the iDRAC telemtry data via Grafana das
 
 ``boolean``
 
-Optional	","* Enables federated telemetry data collection using the iDRAC telemetry container. 
-* **Default values**: ``false``
+Optional	","* Set this to ``true`` to enable federated telemetry data collection using the iDRAC telemetry container. 
+* **Accepted values**: ``true`` or ``false``
+* **Default value**: ``false``
 
-.. note:: Currently, Omnia does not support setting the value of this variable to ``true``. Do not change the value as this can cause unexpected failures.
 "
 "**kube_prometheus_support**
 
