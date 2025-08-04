@@ -108,6 +108,12 @@
                     value: "/bitnami/kafka/config/certs/kafka.truststore.pem"
                   - name: KAFKA_TLS_CLIENT_AUTH
                     value: "none"
+                  - name: KAFKA_CFG_LOG_RETENTION_HOURS
+                    value: "{{ hostvars['localhost']['kafka_configurations']['log_retention_hours'] }}"
+                  - name: KAFKA_CFG_LOG_RETENTION_BYTES
+                    value: "{{ hostvars['localhost']['kafka_configurations']['log_retention_bytes'] }}"
+                  - name: KAFKA_CFG_NUM_PARTITIONS
+                    value: "{{ hostvars['localhost']['kafka_configurations']['topic_partitions'] }}"
                 volumeMounts:
                   - name: kafka-data
                     mountPath: /bitnami/kafka
@@ -125,5 +131,5 @@
               accessModes: ["ReadWriteOnce"]
               resources:
                 requests:
-                  storage: 5Gi
+                  storage: "{{ hostvars['localhost']['kafka_configurations']['persistence_size'] }}"
               storageClassName: "{{ storage_class_name }}"

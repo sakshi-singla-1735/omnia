@@ -22,6 +22,11 @@
         "tag": "9.3.0"
       },
       {
+        "package": "docker.io/bitnami/kafka",
+        "type": "image",
+        "tag": "3.9.0"
+      },
+      {
         "package": "python3.11",
         "type": "rpm",
         "repo_name": "appstream"
@@ -255,12 +260,6 @@
         "package": "ghcr.io/kube-vip/kube-vip",
         "tag": "v0.8.9",
         "type": "image"
-      },
-      {
-        "package": "charts-kafka-31.5.0",
-        "type": "tarball",
-        "url": "https://github.com/bitnami/charts/archive/refs/tags/kafka/31.5.0.tar.gz"
-
       },
       {
           "package": "kube-prometheus-stack-75.11.0",

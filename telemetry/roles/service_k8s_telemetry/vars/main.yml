@@ -95,19 +95,13 @@ service_cluster_metadata_path: "/opt/omnia/.data/service_cluster_metadata.yml"
 metadata_perm: "0644"
 
 # Usage: kafka_deployment.yml
-file_mode: "0644"
-k8s_tmp_dir: "/root/k8s"
-telemetry_topic_name: "idrac-telemetry"
-kafka_values_yaml_path: "{{ k8s_tmp_dir }}/values.yaml"
-kafka_image_repo: "bitnami/kafka"
-kafka_image_tag: "3.9.0"
-kafka_storage: 5Gi
-helm_repo_url: "https://charts.bitnami.com/bitnami"
 kafka:
   app_name: "kafka"
-  container_name: "kafka_controller"
+  container_name: "kafka-controller"
   headless_service_name: "kafka-headless"
   lb_service_name: "kafka-loadbalancer"
   container_port1: 9092
   container_port2: 9093
   image: "bitnami/kafka:3.9.0"
+  telemetry_topic_name: "idrac_telemetry"
+

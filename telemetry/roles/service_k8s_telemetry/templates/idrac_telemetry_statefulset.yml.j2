@@ -151,7 +151,7 @@ spec:
             - name: KAFKA_BROKER
               value: "{{ kafka_broker }}"
             - name: KAFKA_TOPIC
-              value: "{{ telemetry_topic_name }}"
+              value: "{{ kafka.telemetry_topic_name }}"
             - name: KAFKA_SKIP_VERIFY
               value: "{{ kafka_skip_verify | default('true') | lower }}"
             - name: KAFKA_CACERT
