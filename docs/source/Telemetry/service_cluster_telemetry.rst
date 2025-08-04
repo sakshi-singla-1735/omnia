@@ -24,4 +24,4 @@ Result
 
 The ``mysqldb``, ``activemq``, ``telemetry_receiver``, and ``prometheus_pump`` containers will get deployed on the ``service_kube_nodes``.
 
-.. note:: Metrics visualization using grafana is not supported for iDRAC telemetry on service cluster.
+.. note:: Metrics visualization using grafana is not supported for iDRAC telemetry metrics for service cluster.
