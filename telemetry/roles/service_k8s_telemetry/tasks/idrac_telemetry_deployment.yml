@@ -138,14 +138,14 @@
   rescue:
     - name: Failed - idrac-telemetry pod is not running
       ansible.builtin.fail:
-        msg: "idrac-telemetry pod did not come to ready state within {{ pod_wait_timeout }} timeout."
-    
+        msg: "{{ idrac_telemetry_failed_msg }}"
+
 - name: Create metadata file for telemetry
   ansible.builtin.copy:
     dest: "{{ telemetry_metadata_path }}"
     content: |
       idrac_telemetry_collection_type: {{ hostvars['localhost']['idrac_telemetry_collection_type'] }}
       federated_idrac_telemetry_collection: {{ hostvars['localhost']['federated_idrac_telemetry_collection'] }}
-    mode: '0644'
+    mode: "{{ metadata_perm }}"
   delegate_to: localhost
   register: metadata_file_created
