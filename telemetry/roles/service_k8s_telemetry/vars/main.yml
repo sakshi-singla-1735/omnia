@@ -61,6 +61,7 @@ mysql_image: "docker.io/library/mysql:9.3.0"
 pod_wait_timeout: "10m"
 kafka_skip_verify: true
 kafka_failed_msg: "Kafka pod did not come to ready state within timeout."
+kafka_k8s_name: "kafka"
 
 # Usage: prometheus_deployment.yml
 prometheus_pvc_name: "prometheus-pvc"
@@ -79,7 +80,7 @@ service_cluster_metadata_path: "/opt/omnia/.data/service_cluster_metadata.yml"
 metadata_perm: "0644"
 
 # Usage: kafka_deployment.yml
-telemetry_topic_name: "idrac-telemetry"
+telemetry_topic_name: "idrac_telemetry"
 telemetry_topic_partitions: 1
 kafka_values_yaml_path: "/root/values.yaml"
 kafka_chart_version: "31.5.0"
@@ -88,3 +89,6 @@ kafka_image_tag: "3.9.0"
 kafka_storage: 5Gi
 kafka_container_port: 9092
 helm_repo_url: "https://charts.bitnami.com/bitnami"
+
+# Usage: telemetry_metadata.yml
+telemetry_metadata_path: "/opt/omnia/.data/telemetry_metadata.yml"

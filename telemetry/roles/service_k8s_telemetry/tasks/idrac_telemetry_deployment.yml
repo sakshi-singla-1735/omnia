@@ -81,25 +81,21 @@
         kubectl wait --for=condition=ready
         --timeout=300s
         -n {{ telemetry_namespace }}
-        pod -l app.kubernetes.io/name=kafka
+        pod -l {{ kafka_k8s_name }}
       changed_when: false
   rescue:
     - name: Failed - Kafka pod is not running
       ansible.builtin.fail:
         msg: "{{ kafka_failed_msg }}"
 
-# Get Kafka service external IP
-- name: Get Kafka LoadBalancer external IP
-  ansible.builtin.command: >
-    kubectl get svc kafka -n "{{ telemetry_namespace }}"
-    -o jsonpath='{.status.loadBalancer.ingress[0].ip}'
-  register: kafka_external_ip
-  changed_when: false
+- name: Set Kafka headless service hostname
+  ansible.builtin.set_fact:
+    kafka_service_host: "{{ kafka.headless_service_name }}.{{ telemetry_namespace }}.svc.cluster.local"
   when: hostvars['localhost']['idrac_telemetry_collection_type'] == "kafka"
 
 - name: Set Kafka broker address (IP:PORT)
   ansible.builtin.set_fact:
-    kafka_broker: "{{ kafka_external_ip.stdout }}:{{ kafka_container_port }}"
+    kafka_broker: "{{ kafka_service_host }}:{{ kafka_container_port }}"
   when: hostvars['localhost']['idrac_telemetry_collection_type'] == "kafka"
 
 - name: Render and apply idrac-telemetry StatefulSet
@@ -129,3 +125,27 @@
             port: "{{ prometheus_pump_port }}"
         selector:
           app: "{{ idrac_telemetry_k8s_name }}"
+
+- name: Wait for idrac-telemetry pod to come to ready state
+  block:
+    - name: Wait for idrac-telemetry pod to come to ready state
+      ansible.builtin.command: >
+        kubectl wait --for=condition=ready
+        --timeout={{ pod_wait_timeout }}
+        -n {{ telemetry_namespace }}
+        pod -l app={{ idrac_telemetry_k8s_name }}
+      changed_when: false
+  rescue:
+    - name: Failed - idrac-telemetry pod is not running
+      ansible.builtin.fail:
+        msg: "idrac-telemetry pod did not come to ready state within {{ pod_wait_timeout }} timeout."
+    
+- name: Create metadata file for telemetry
+  ansible.builtin.copy:
+    dest: "{{ telemetry_metadata_path }}"
+    content: |
+      idrac_telemetry_collection_type: {{ hostvars['localhost']['idrac_telemetry_collection_type'] }}
+      federated_idrac_telemetry_collection: {{ hostvars['localhost']['federated_idrac_telemetry_collection'] }}
+    mode: '0644'
+  delegate_to: localhost
+  register: metadata_file_created

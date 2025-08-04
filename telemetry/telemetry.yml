@@ -150,7 +150,7 @@
 #         tasks_from: prometheus_config_update.yml
 
 - name: Deployment of telemetry pods in service cluster
-  hosts: kube_control_plane
+  hosts: kube_control_plane[0]
   connection: ssh
   gather_facts: false
   tasks:
@@ -272,21 +272,4 @@
         msg: "Check the file at {{ telemetry_report_path_oim }} in omnia_core container for detailed telemetry report."
       when:
         - hostvars['localhost']['idrac_telemetry_support']
-        
-- name: Create metadata file for telemetry
-  hosts: localhost
-  connection: local
-  gather_facts: false
-  vars:
-    telemetry_metadata_path: "/opt/omnia/.data/telemetry_metadata.yml"
-  tasks:
-    - name: Create metadata file for telemetry
-      ansible.builtin.copy:
-        dest: "{{ telemetry_metadata_path }}"
-        content: |
-          idrac_telemetry_collection_type: {{ hostvars['localhost']['idrac_telemetry_collection_type'] }}
-          federated_idrac_telemetry_collection: {{ hostvars['localhost']['federated_idrac_telemetry_collection'] }}
-        mode: '0644'
-      when:
-        - hostvars['localhost']['idrac_telemetry_support']
-        - hostvars['localhost']['federated_idrac_telemetry_collection']
+
