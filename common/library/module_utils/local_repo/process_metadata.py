@@ -192,9 +192,10 @@ def handle_generate_metadata(sw_config,repo_data,output_file):
     os_type = get_os_type(config)
 
     # Define the keys in the repo_data to process, based on OS type
-    keys_to_process = ['user_repo_url'] + \
+    keys_to_process =
+        [f'user_repo_url_{arch}' for arch in ARCH_SUFFIXES] + \
         [f'omnia_repo_url_{os_type}_{arch}' for arch in ARCH_SUFFIXES] + \
-        [f'{os_type}_os_url']
+        [f'{os_type}_os_url_{arch}' for arch in ARCH_SUFFIXES]
 
     # Iterate over each key and generate/update policy metadata
     for key in keys_to_process:
