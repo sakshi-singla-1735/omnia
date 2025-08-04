@@ -20,8 +20,25 @@ k8s_not_installed_fail_msg: "Failed. Kubernetes installation required.
 storage_class_missing_fail_msg: "Failed. StorageClass {{ storage_class_name }} is not present in the cluster.
   To resolve this, create the StorageClass by running scheduler/service_k8s_cluster.yml playbook."
 
-# Usage: k8s_secrets.yml
+# Usage: secrets_creation.yml
 mysqldb_secrets_name: mysqldb-credentials
+telemetry_cert_path: "/opt/omnia/telemetry/certs"
+kafka_secrets:
+  name: kafka-secrets
+  cert_file: "{{ telemetry_cert_path }}/kafka.crt"
+  cert_key: "{{ telemetry_cert_path }}/kafka.key"
+  cacert_file: "{{ telemetry_cert_path }}/ca.crt"
+  ca_key_file: "{{ telemetry_cert_path }}/ca.key"
+  san_permissions: "0644"
+  dir_permissions: "0755"
+  ssl_limit: 365
+  san_cn: "kafka-headless.telemetry.svc.cluster.local"
+  san_dns:
+    - "kafka-headless.telemetry.svc.cluster.local"
+    - "kafka.telemetry.svc.cluster.local"
+    - "localhost"
+  san_ips:
+    - "127.0.0.1"
 
 # Usage: idrac_telemetry_deployment.yml
 omnia_nfs_share: "{{ hostvars['localhost']['oim_shared_path'] }}/omnia"
@@ -79,12 +96,12 @@ service_cluster_metadata_path: "/opt/omnia/.data/service_cluster_metadata.yml"
 metadata_perm: "0644"
 
 # Usage: kafka_deployment.yml
-file_mode: "0644"
-k8s_tmp_dir: "/root/k8s"
-telemetry_topic_name: "idrac-telemetry"
-kafka_values_yaml_path: "{{ k8s_tmp_dir }}/values.yaml"
-kafka_image_repo: "bitnami/kafka"
-kafka_image_tag: "3.9.0"
-kafka_container_port: 9092
-kafka_helm_offline_repo_url: "{{ hostvars['localhost']['offline_tarball_path'] }}/{{ hostvars['localhost']['kafka_tarball'] }}/{{ hostvars['localhost']['kafka_tarball'] }}.tar.gz"   # noqa: yaml[line-length]
-kafka_helm_offline_repo_url_dest: "{{ k8s_tmp_dir }}/{{ hostvars['localhost']['kafka_tarball'] }}.tar.gz"
+kafka:
+  app_name: "kafka"
+  container_name: "kafka-controller"
+  headless_service_name: "kafka-headless"
+  lb_service_name: "kafka-loadbalancer"
+  container_port1: 9092
+  container_port2: 9093
+  image: "bitnami/kafka:3.9.0"
+  telemetry_topic_name: "idrac_telemetry"
