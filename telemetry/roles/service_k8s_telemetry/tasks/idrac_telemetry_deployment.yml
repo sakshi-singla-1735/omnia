@@ -95,7 +95,7 @@
 
 - name: Set Kafka broker address (IP:PORT)
   ansible.builtin.set_fact:
-    kafka_broker: "{{ kafka_service_host }}:{{ kafka_container_port }}"
+    kafka_broker: "{{ kafka_service_host }}:{{ kafka.container_port1 }}"
   when: hostvars['localhost']['idrac_telemetry_collection_type'] == "kafka"
 
 - name: Render and apply idrac-telemetry StatefulSet
