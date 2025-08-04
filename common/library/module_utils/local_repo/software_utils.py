@@ -18,6 +18,7 @@ import os
 import json
 import csv
 import yaml
+import re
 from jinja2 import Template
 import requests
 from ansible.module_utils.local_repo.common_functions import is_encrypted, process_file
@@ -28,7 +29,6 @@ from ansible.module_utils.local_repo.config import (
     SOFTWARE_CONFIG_SUBDIR,
     DEFAULT_STATUS_FILENAME,
     RPM_LABEL_TEMPLATE,
-    OMNIA_REPO_KEY,
     RHEL_OS_URL,
     SOFTWARES_KEY,
     USER_REPO_URL,
@@ -226,7 +226,11 @@ def parse_repo_urls(repo_config, local_repo_config_path, version_variables, vaul
         str: The parsed repository URLs as a JSON string.
     """
     local_yaml = load_yaml(local_repo_config_path)
-    repo_entries = local_yaml.get(OMNIA_REPO_KEY, [])
+    repo_entries = {}
+
+    for arch in ARCH_SUFFIXES:
+        key = f"omnia_repo_url_rhel_{arch}"
+        repo_entries[arch] = local_yaml.get(key, [])
     rhel_repo_entry = local_yaml.get(RHEL_OS_URL, [])
     user_repo_entry = local_yaml.get(USER_REPO_URL, [])
     parsed_repos = []
@@ -281,39 +285,62 @@ def parse_repo_urls(repo_config, local_repo_config_path, version_variables, vaul
             "policy": policy
         })
 
-    for repo in repo_entries:
-        name = repo.get("name", "unknown")
-        parts = name.split("-")
-        sw_name = name
-        if parts[-1] in ARCH_SUFFIXES:
-           sw_name = "-".join(parts[:-1])
-        url = repo.get("url", "")
-        gpgkey = repo.get("gpgkey")
-        version = version_variables.get(f"{sw_name}_version")
-        policy_given = repo.get("policy", repo_config)
-        policy = REPO_CONFIG.get(policy_given)
-        try:
-            rendered_url = Template(url).render(version_variables)
-        except Exception as e:
-            rendered_url = url  # Fallback to original URL
+    for arch, entries in repo_entries.items():
+        if not entries:
+           continue
 
-        # To handle special case when software_config.json does not contain these
-        if sw_name in ["amdgpu", "rocm", "beegfs"] and (version is None or version == "null"):
-           continue 
-        # Edge case for oneapi, snoopy, nvidia-repo
-        elif not is_remote_url_reachable(rendered_url) and sw_name not in ["oneapi", "snoopy", "nvidia-repo"]:
-            return rendered_url, False
+        for repo in entries:
+            name = repo.get("name", "unknown")
+            url = repo.get("url", "")
+            gpgkey = repo.get("gpgkey")
+            policy_given = repo.get("policy", repo_config)
+            policy = REPO_CONFIG.get(policy_given)
 
-        parsed_repos.append({
-            "package": name,
-            "url": rendered_url,
-            "gpgkey": gpgkey if gpgkey else "null",
-            "version": version if version else "null",
-            "policy": policy
-        })
+            # Find unresolved template vars in URL
+            template_vars_url = re.findall(r"{{\s*(\w+)\s*}}", url)
+            unresolved_url = [var for var in template_vars_url if var not in version_variables]
+            if unresolved_url:
+               continue
+
+            try:
+               rendered_url = Template(url).render(version_variables)
+            except Exception:
+               rendered_url = url  # fallback
+
+            # Skip unreachable URLs unless they're oneapi/snoopy/nvidia
+            if not any(skip_str in rendered_url for skip_str in ["oneapi", "snoopy", "nvidia"]):
+                if not is_remote_url_reachable(rendered_url):
+                   return rendered_url, False
+
+            # Handle gpgkey rendering (if present)
+            rendered_gpgkey = "null"
+            if gpgkey:
+                template_vars_gpg = re.findall(r"{{\s*(\w+)\s*}}", gpgkey)
+                unresolved_gpg = [var for var in template_vars_gpg if var not in version_variables]
+                if unresolved_gpg:
+                    continue
+
+                try:
+                    rendered_gpgkey = Template(gpgkey).render(version_variables)
+                except Exception:
+                    rendered_gpgkey = gpgkey  # fallback to original
+
+            sw_name = f"{arch}_{name}"
+            version = "null"
+            for var in template_vars_url:
+                if var in version_variables:
+                    version = version_variables[var]
+                    break
+
+            parsed_repos.append({
+                "package": sw_name,
+                "url": rendered_url,
+                "gpgkey": rendered_gpgkey,
+                "version": version if version else "null",
+                "policy": policy
+            })
 
     return parsed_repos, True
-
 
 def set_version_variables(user_data, software_names, cluster_os_version):
     """
