@@ -76,10 +76,9 @@ mysqldb_container_port2: 33060
 prometheus_pump_port: 2112
 mysql_image: "docker.io/library/mysql:9.3.0"
 pod_wait_timeout: "10m"
-kafka_skip_verify: true
+kafka_skip_verify: false
 kafka_failed_msg: "Kafka pod did not come to ready state within {{ pod_wait_timeout }}  timeout."
 idrac_telemetry_failed_msg: "idrac-telemetry pod did not come to ready state within {{ pod_wait_timeout }} timeout."
-kafka_k8s_name: "kafka"
 
 # Usage: prometheus_deployment.yml
 prometheus_pvc_name: "prometheus-pvc"

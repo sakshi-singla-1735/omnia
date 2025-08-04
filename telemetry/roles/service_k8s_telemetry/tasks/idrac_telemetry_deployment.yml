@@ -81,7 +81,7 @@
         kubectl wait --for=condition=ready
         --timeout=300s
         -n {{ telemetry_namespace }}
-        pod -l {{ kafka_k8s_name }}
+        pod -l app={{ kafka.app_name }}
       changed_when: false
   rescue:
     - name: Failed - Kafka pod is not running
