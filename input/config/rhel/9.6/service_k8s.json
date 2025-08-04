@@ -257,6 +257,12 @@
         "type": "image"
       },
       {
+        "package": "charts-kafka-31.5.0",
+        "type": "tarball",
+        "url": "https://github.com/bitnami/charts/archive/refs/tags/kafka/31.5.0.tar.gz"
+
+      },
+      {
           "package": "kube-prometheus-stack-75.11.0",
           "type": "tarball",
           "url": "https://github.com/prometheus-community/helm-charts/releases/download/kube-prometheus-stack-75.11.0/kube-prometheus-stack-75.11.0.tgz"

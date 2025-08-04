@@ -95,10 +95,10 @@ service_cluster_metadata_path: "/opt/omnia/.data/service_cluster_metadata.yml"
 metadata_perm: "0644"
 
 # Usage: kafka_deployment.yml
+file_mode: "0644"
+k8s_tmp_dir: "/root/k8s"
 telemetry_topic_name: "idrac-telemetry"
-telemetry_topic_partitions: 1
-kafka_values_yaml_path: "/root/values.yaml"
-kafka_chart_version: "31.5.0"
+kafka_values_yaml_path: "{{ k8s_tmp_dir }}/values.yaml"
 kafka_image_repo: "bitnami/kafka"
 kafka_image_tag: "3.9.0"
 kafka_storage: 5Gi
