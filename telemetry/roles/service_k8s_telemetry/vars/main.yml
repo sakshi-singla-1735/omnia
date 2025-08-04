@@ -22,12 +22,12 @@ storage_class_missing_fail_msg: "Failed. StorageClass {{ storage_class_name }} i
 
 # Usage: secrets_creation.yml
 mysqldb_secrets_name: mysqldb-credentials
-cert_path: "/opt/omnia/telemetry/certs/"
+telemetry_cert_path: "/opt/omnia/telemetry/certs/"
 kafka_secrets:
   name: kafka-secrets
-  cert_file: "{{ cert_path }}/kafka.crt"
-  cert_key: "{{ cert_path }}/kafka.key"
-  cacert_file: "{{ cert_path }}/ca.crt"
+  cert_file: "{{ telemetry_cert_path }}/kafka.crt"
+  cert_key: "{{ telemetry_cert_path }}/kafka.key"
+  cacert_file: "{{ telemetry_cert_path }}/ca.crt"
   san_permissions: "0644"
   dir_permissions: "0755"
   ssl_limit: 365
