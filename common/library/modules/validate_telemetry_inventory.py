@@ -28,23 +28,6 @@ from ansible.module_utils.basic import AnsibleModule
 
 required_k8s_roles = ['kube_node', 'etcd', 'kube_control_plane']
 
-def load_yaml(path):
-    """
-    Load YAML from a given file path.
-
-    Args:
-        path (str): The path to the YAML file.
-
-    Returns:
-        dict: The loaded YAML data.
-
-    Raises:
-        FileNotFoundError: If the file does not exist.
-    """
-    if not os.path.isfile(path):
-        raise FileNotFoundError(f"Config file not found: {path}")
-    with open(path, "r", encoding = "utf-8") as file:
-        return yaml.safe_load(file)
 
 def get_service_cluster_details():
 
