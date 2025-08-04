@@ -114,13 +114,7 @@ msg_collection_type_mismatch: >
   iDRAC telemetry collection type mismatch detected.
   Previously deployed with type '{{ existing_metadata.idrac_telemetry_collection_type }}', 
   but currently attempting deployment with type '{{ idrac_telemetry_collection_type }}'.
-  This change is not supported post-deployment. Please perform a cleanup before switching the collection type.
-
-msg_federated_flag_mismatch: >
-  Federated telemetry collection flag conflict detected.
-  Deployment was previously configured with 'federated_idrac_telemetry_collection' set to '{{ existing_metadata.federated_idrac_telemetry_collection }}', 
-  but now it is set to '{{ federated_idrac_telemetry_collection }}'.
-  Switching the federated flag from true to false is not supported after deployment. Cleanup is required to make this change.
+  This change is not supported post-deployment. Please reprovision the cluster and re-run telemetry.yml to deploy with a different  iDRAC telemetry collection type.
 
 # Usage: add_host_goups.yml
 service_cluster_metadata_path: "/opt/omnia/.data/service_cluster_metadata.yml"
