@@ -11,4 +11,3 @@ Advanced configurations
     ROCm_accelerator
     AutomatingOneAPI
     AutomatingOpenMPI
-    service_cluster

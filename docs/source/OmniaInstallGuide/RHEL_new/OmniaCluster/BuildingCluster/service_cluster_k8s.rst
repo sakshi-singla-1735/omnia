@@ -1,8 +1,12 @@
 ==========================================
-Deploy Kubernetes on the service cluster
+Deploy service Kubernetes cluster
 ==========================================
 
-Omnia supports deploying Kubernetes on the service cluster via the ``service_k8s_cluster.yml`` playbook.
+Omnia deploys a service Kubernetes cluster on the designated service nodes to efficiently distribute workload and manage resources for telemetry data collection. 
+This setup reduces the processing load on the OIM node and enhances overall scalability. Each service node is mapped to a specific subset of compute nodes. 
+As a result, the service Kubernetes cluster enables a federated approach to telemetry collection where each ``service_kube_node`` is responsible for collecting telemetry data from its assigned subset of compute nodes.
+
+In order to support telemetry collection, first you need to deploy Kubernetes on the service cluster. To do so, use the ``service_k8s_cluster.yml`` playbook.
 
 Prerequisite
 ==============
@@ -49,7 +53,7 @@ Steps
 
 4. Run ``discovery_provision.yml`` playbook to discover and provision OS on the service cluster nodes.
 
-5. Fill up the ``omnia_config.yml`` and ``high_availability_config.yml`` as described in the tables below:
+5. Fill up the ``omnia_config.yml`` and ``high_availability_config.yml`` (for `service cluster HA <../../HighAvailability/service_cluster_ha.html>`_) as described in the tables below:
 
 .. csv-table:: omnia_config.yml
    :file: ../../../../Tables/scheduler_k8s_rhel.csv
@@ -70,3 +74,8 @@ Once all the required input files are filled up, use the below commands to set u
     ansible-playbook service_k8s_cluster.yml - i <service_cluster_layout_file_path>
 
 In the command above, ``<service_cluster_layout_file_path>`` refers to the inventory generated based on the ``cluster_name`` in ``/opt/omnia/omnia_inventory``. For more details, `click here <../../ViewInventory.html>`_.
+
+Next step
+===========
+
+To know how to deploy the telemetry containers on the service cluster, `click here <../../../../https://omniahpc.readthedocs.io/en/staging/Telemetry/service_cluster_telemetry.html>`_.

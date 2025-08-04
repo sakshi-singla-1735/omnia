@@ -18,3 +18,8 @@ Steps
 
     cd telemetry
     ansible-playbook telemetry.yml -i <inventory_filepath>
+
+Result
+=======
+
+The ``mysqldb``, ``activemq``, ``telemetry_receiver``, and ``prometheus_pump`` containers will get deployed on the ``service_kube_nodes``.
