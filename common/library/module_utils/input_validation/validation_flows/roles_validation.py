@@ -368,8 +368,7 @@ def validate_roles_config(
         "kube_control_plane",
         "etcd",
         "slurm_control_plane",
-        "auth_server",
-
+        "auth_server"
     }
 
     errors = []
