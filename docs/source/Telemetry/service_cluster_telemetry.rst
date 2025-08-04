@@ -2,7 +2,7 @@
 Deploy telemetry service on the service cluster
 ==================================================
 
-To deploy telemetry service on the service cluster and collect iDRAC and other telemtry data using Prometheus, refer to the following guide.
+To deploy telemetry service on the service cluster and collect iDRAC and other telemetry data using Prometheus, refer to the following guide.
 
 Prerequisites
 ===============
