@@ -35,6 +35,17 @@ spec:
               - matchExpressions:
                   - key: node-role.kubernetes.io/control-plane
                     operator: Exists
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - {{ kafka.app_name }}
+                topologyKey: "kubernetes.io/hostname"
       tolerations:
         - key: "node-role.kubernetes.io/control-plane"
           operator: "Exists"
