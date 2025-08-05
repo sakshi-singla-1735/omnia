@@ -9,3 +9,4 @@ Limitations
 - All iDRACs must use the same username and password.
 - The IP subnet 10.4.0.0 is reserved for Nerdctl and cannot be used for any networks in the Omnia cluster.
 - Omnia playbooks will fail if the OIM is unable to access online resources or the Internet.
+- 
