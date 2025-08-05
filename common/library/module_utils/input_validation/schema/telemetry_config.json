@@ -40,14 +40,15 @@
     {
       "if": {
         "properties": {
-          "federated_idrac_telemetry_collection": { "const": true }
+          "idrac_telemetry_support": {
+                "const": true
+          }
         }
       },
-      "then": {
-        "required": ["idrac_telemetry_support"],
-        "properties": {
-          "idrac_telemetry_support": { "const": true }
-        }
+      "then":{
+        "required": [
+          "idrac_telemetry_collection_type"
+        ]
       }
     },
     {
@@ -66,7 +67,7 @@
             "properties": {
               "persistence_size": {
                 "type": "string",
-                "pattern": "^[0-9]+(Gi|Mi)$"
+                "pattern": "^[0-9]+(Ki|Mi|Gi|Ti|Pi|Ei)$"
               },
               "log_retention_hours": {
                 "type": "integer",
