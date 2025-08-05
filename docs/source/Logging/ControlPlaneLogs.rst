@@ -36,14 +36,6 @@ Logs pertaining to actions taken during ``discovery_provision.yml``  can be view
 .. note::  As long as a node has been added to a cluster by Omnia, deployment events taking place on the node will be updated in ``/var/log/xcat/cluster.log``.
 
 
-Telemetry logs
----------------
-
-Logs pertaining to actions taken by Omnia or iDRAC telemetry can be viewed in ``/var/log/messages``. Each log entry is tagged "omnia_telemetry". Log entries typically follow this format. ::
-
-    <Date time> <Node name> omnia_telemetry[<Process ID>]: <name of file>:<name of method throwing error>: <Error message>
-
-
 Grafana Loki
 --------------
 
