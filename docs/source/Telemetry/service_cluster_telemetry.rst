@@ -28,6 +28,13 @@ The number of iDRAC telemetry pods deployed will be number of ``service_kube_nod
 iDRAC telemetry logs collected by the Prometheus pump
 =======================================================
 
-After ``telemetry.yml`` has been executed for the service cluster, the Prometheus pump collects the iDRAC telemetry logs for each pod. To know how view these logs, `click here <../Logging/ControlPlaneLogs.html>`.
+After ``telemetry.yml`` has been executed for the service cluster, the Prometheus pump collects the iDRAC telemetry logs for each pod. To view these logs, do the following:
 
+    1. First, check if all the telemetry pods are running or not using the below command: ::
+
+        kubectl get pods -n telemetry
+
+    2. For each of the ``idrac-telemetry pod``, check the ``idrac_telemetry`` logs collected by the prometheus pump using the below command: ::
+
+        kubectl logs <idrac-telemetry-pod> -n telemetry -c prometheus-pump
 .. note:: Metrics visualization using Grafana is not supported for iDRAC telemetry metrics on service cluster.

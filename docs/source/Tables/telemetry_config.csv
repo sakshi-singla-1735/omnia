@@ -3,8 +3,9 @@
 
 ``boolean``
 
-Mandatory	","* If you want iDRAC telemetry support on your cluster, set this variable to ``true`` before executing ``prepare_oim.yml`` playbook.
-* When set to ``true``, Omnia deploys the ``idrac_telemetry_receiver``, ``mysqldb``, and ``activemq`` containers needed for iDRAC telemetry data collection during the execution of the ``prepare_oim.yml`` playbook.
+Mandatory	","* If you want iDRAC telemetry support on your OIM or service cluster, set this variable to ``true`` before executing ``prepare_oim.yml`` playbook.
+              * **OIM**: If you want to collect iDRAC telemetry data from the OIM, set this variable to ``true``. When set to ``true``, Omnia deploys the ``idrac_telemetry_receiver``, ``mysqldb``, and ``activemq`` containers on the OIM during the execution of the ``prepare_oim.yml`` playbook.
+              * **Service cluster**:  service cluster nodes, set this variable and ``federated_idrac_telemetry_collection`` to ``true``. When both variables are set to ``true``, Omnia deploys the ``idrac_telemetry_receiver``, ``mysqldb``, and ``activemq`` containers on the ``service_kube_node`` during the execution of the ``prepare_oim.yml`` playbook.
 * **Accepted values**: ``true`` or ``false``
 * **Default value**: ``false``
 
@@ -31,7 +32,8 @@ Optional	","* Enables visualizations for the iDRAC telemtry data via Grafana das
 
 ``boolean``
 
-Optional	","* When set to ``true``, Omnia deploys the ``idrac_telemetry_receiver``, ``mysqldb``, and ``activemq`` containers on the parent ``service_kube_node`` for iDRAC telemetry data collection during the execution of the ``prepare_oim.yml`` playbook.
+Optional	","* When set to ``true``, Omnia deploys the iDRAC telemetry pods with ``idrac_telemetry_receiver``, ``mysqldb``, and ``activemq`` containers on the parent ``service_kube_node`` during the execution of the ``prepare_oim.yml`` playbook. This facilitates iDRAC telemetry data collection for the service cluster nodes.
+* If this variable is set to ``false``, the iDRAC telemetry pods and containers will be deployed on the OIM.
 * **Accepted values**: ``true`` or ``false``
 * **Default value**: ``false``
 
