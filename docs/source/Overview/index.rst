@@ -7,6 +7,7 @@ Omnia: Overview
     :maxdepth: 2
 
     architecture
+    test
     omnia_stack
     newfeatures
     releasenotes
