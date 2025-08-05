@@ -109,4 +109,3 @@ kafka:
 
 # Usage: telemetry_metadata.yml
 telemetry_metadata_path: "/opt/omnia/telemetry/.telemetry_metadata.yml"
-
