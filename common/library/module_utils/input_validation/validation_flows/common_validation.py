@@ -20,7 +20,7 @@ import os
 import ipaddress
 import yaml
 from ast import literal_eval
-import ansible.module_utils.input_validation.common_utils.data_fetch as get
+import ansible.module_utils.input_validation.common_utils.data_fetch as fetch
 import ansible.module_utils.input_validation.common_utils.data_validation as validate
 from ansible.modules.validate_input import generate_log_failure_message
 
@@ -31,11 +31,9 @@ from ansible.module_utils.input_validation.common_utils import (
     data_verification
 )
 
-from ansible.module_utils.input_validation.validation_flows import scheduler_validation
-
 from ansible.module_utils.local_repo.software_utils import (
     load_json,
-    set_version_variables,
+    load_yaml,
     get_subgroup_dict,
     get_software_names,
     get_json_file_path
@@ -116,11 +114,11 @@ def validate_software_config(
         extensions = config.extensions
         fname = "additional_software"
         schema_file_path = schema_base_file_path + "/" + fname + extensions['json']
-        json_files = get.files_recursively(omnia_base_dir + "/" + project_name, extensions['json'])
+        json_files = fetch.files_recursively(omnia_base_dir + "/" + project_name, extensions['json'])
         json_files_dic = {}
 
         for file_path in json_files:
-            json_files_dic.update({get.file_name_from_path(file_path): file_path})
+            json_files_dic.update({fetch.file_name_from_path(file_path): file_path})
         new_file_path = json_files_dic.get("additional_software.json", None)
 
         # Validate the schema of the input file (L1)
@@ -167,18 +165,14 @@ def validate_software_config(
         errors.extend(additional_software_errors)
 
     # create the subgroups and softwares dictionary with version details
-    # software_json_data = load_json(input_file_path)
     subgroup_dict, _ = get_subgroup_dict(data)
-
     # check if the corresponding json files for softwares and subgroups exists in config folder
-    # software_list = get_software_names(input_file_path)
     validation_results = []
     failures = []
     fail_data = []
 
     roles_config_file_path = create_file_path(input_file_path, file_names["roles_config"])
-    with open(roles_config_file_path, "r", encoding="utf-8") as f:
-        roles_config_dict = yaml.safe_load(f)
+    roles_config_dict = load_yaml(roles_config_file_path)
     def_archs = list({x["architecture"] for x in roles_config_dict["Groups"].values()})
 
     for software_pkg in data['softwares']:
@@ -188,21 +182,18 @@ def validate_software_config(
             software, cluster_os_type, cluster_os_version, input_file_path, arch_list
         )
         for json_path in json_paths:
-        # Check if json_path is None or if the JSON syntax is invalid
+            # Check if json_path is None or if the JSON syntax is invalid
             if not json_path:
                 errors.append(
                     create_error_msg(
                         "Validation Error: ", software,
-                        f"is present in software_config.json. JSON file not found: {os.path.dirname(input_file_path)}/config/{cluster_os_type}/{cluster_os_version}/{software}.json"
+                        f"is present in software_config.json. JSON file not found: {software}.json"
                     )
                 )
             else:
                 try:
                     subgroup_softwares = subgroup_dict.get(software, None)
-                    # for each subgroup for a software check for corresponding entry in software.json
-                    # eg: for amd the amd.json should contain both amd and rocm entries
-                    with open(json_path, "r", encoding='utf-8') as file:
-                        json_data = json.load(file)
+                    json_data = load_json(json_path)
                     for subgroup_software in subgroup_softwares:
                         _, fail_data = validation_utils.validate_softwaresubgroup_entries(
                             subgroup_software, json_path, json_data, validation_results, failures

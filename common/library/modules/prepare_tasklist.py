@@ -20,11 +20,9 @@ from datetime import datetime
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.local_repo.standard_logger import setup_standard_logger
 from ansible.module_utils.local_repo.common_functions import(
-    get_arch_from_sw_config,
-    get_arch_from_roles_config
+    get_arch_from_sw_config
 )
-from ansible.module_utils.local_repo.software_utils import (
-    validate_repo_mappings,
+from ansible.module_utils.local_repo.software_utils  import (
     get_software_names,
     check_csv_existence,
     get_failed_software,
@@ -146,13 +144,6 @@ def main():
             logger.info(f"csv_path(s): {csv_paths}")
             
             for json_path, csv_path in zip(json_paths, csv_paths):
-                repo_validation_result = validate_repo_mappings(repo_config_data, json_path)
-                if repo_validation_result:  # Only fail if errors exist
-                    logger.error(f"Repository validation failed: {repo_validation_result}")
-                    module.fail_json(msg="\n".join(repo_validation_result))
-                else:
-                    logger.info("Repository validation passed successfully.")
-
                 if not json_path:
                     logger.warning(f"Skipping {software}: JSON path does not exist.")
                     continue
@@ -194,7 +185,7 @@ def main():
             module.fail_json(f"{local_config} is not reachable or invalid, please check and provide correct URL")
 
         logger.info(f"Package processing completed: {software_dict}")
-        module.exit_json(changed=False, software_dict=software_dict  , local_config=local_config)
+        module.exit_json(changed=False, software_dict=software_dict, local_config=local_config)
 
     except Exception as e:
         logger.error(f"Error occurred: {str(e)}")

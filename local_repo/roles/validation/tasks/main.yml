@@ -27,6 +27,9 @@
 
 - name: Validate k8s json
   ansible.builtin.include_tasks: validate_k8s_json.yml
+  loop: "{{ k8s_arch + service_k8s_arch }}"
+  loop_control:
+    loop_var: arch
 
 - name: Loop through cluster configs to generate JSON files
   ansible.builtin.include_tasks: dynamic_k8s_json.yml

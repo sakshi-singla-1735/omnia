@@ -12,6 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
+# default variables
+beegfs_version: "omnia_default"
+amdgpu_version: "omnia_default"
+rocm_version: "omnia_default"
+bcm_roce_libraries_version: "omnia_default"
+intelgaudi_version: "omnia_default"
+k8s_support: false
+service_k8s_support: false
+k8s_arch: []
+service_k8s_arch: []
+cluster_configs: []
 
 # Usage: update_software_csv.yml
 software_csv_path: "/opt/omnia/log/local_repo/software.csv"
@@ -32,13 +43,12 @@ softwares_invalid_msg: "Invalid software_name(s) found: {{ softwares_list | diff
 
 # Usage: dynamic_k8s_json.yml
 # dynamic_k8s_json_file: "{{ dynamic_k8s_json_folder }}/v{{ k8s_version }}/k8s_v{{ k8s_version }}.json"
-base_k8s_json_file: "{{ project_input_path }}/config/{{ cluster_os_type }}/{{ cluster_os_version }}/k8s.json"
-base_service_k8s_json_file: "{{ project_input_path }}/config/{{ cluster_os_type }}/{{ cluster_os_version }}/service_k8s.json"
+base_k8s_json_file: "{{ project_input_path }}/config/{{ arch }}/{{ cluster_os_type }}/{{ cluster_os_version }}/k8s.json"
+base_service_k8s_json_file: "{{ project_input_path }}/config/{{ arch }}/{{ cluster_os_type }}/{{ cluster_os_version }}/service_k8s.json"
 dynamic_k8s_json_folder: "/opt/omnia/k8s_dynamic_json"
 kubespray_url: "https://github.com/kubernetes-sigs/kubespray.git"
 package_type_list: ["rpm", "deb", "tarball", "image", "manifest", "pip_module", "git"]
 dynamic_k8s_json_log_dir: "/opt/omnia/log/local_repo"
-# base_k8s_json_bkp_file: "{{ dynamic_k8s_json_folder }}/k8s_bkp.json"
 
 # Usage: validate_k8s_json.yml
 kubeadm_package_name: "kubeadm-v1.31.4"
@@ -73,11 +83,9 @@ warning_msg_local_repo: "[WARNING] Omnia will remove any package/software confli
 
 # Usage: validate_software_config_json.yml
 sw_config_json_path: "{{ project_input_path }}/software_config.json"
+default_archs: "{{ (lookup('file', project_input_path + '/roles_config.yml') | from_yaml).Groups.values() | map(attribute='architecture') | list | unique }}"
 software_config_parameters_fail_msg: "Failed. Please ensure cluster_os_type, cluster_os_verion, repo_config, softwares are defined in software_config.json"
 software_config_softwares_fail_msg: "Failed. softwares list cannot be empty in software_config.json. Atleast one software should be defined."
-missing_json_fail_msg: "The json files for the following software stacks are missing at
-{{ project_input_path }}/config/{{ cluster_os_type }}/{{ cluster_os_version }}/, this might be due to removal of json files from the path or the softwares
-are not being supported on {{ cluster_os_type }} : {{ missing_json_list | map('regex_replace', '\\.json$', '') | list }}"
 specific_softwares:
   - 'beegfs'
   - 'amdgpu'
@@ -102,9 +110,6 @@ rhel_valid_os_versions:
 rocky_valid_os_versions:
   - '9.4'
 
-fedora_valid_os_versions:
-  - '38'
-
 valid_repo_config:
   - 'always'
   - 'partial'
@@ -117,10 +122,6 @@ input_project_dir: "{{ hostvars['localhost']['input_project_dir'] }}"
 local_repo_config_syntax_fail_msg: "Failed. Syntax errors present in local_repo_config.yml. Fix errors and re-run playbook again."
 repo_store_path_fail_msg: "Failed. Ensure repo_store_path is defined and it should start with '/' and should not end with '/'"
 directory_permissions: "0755"
-# omnia_repo_url_rocky_fail_msg: "Failed. Please ensure omnia_repo_url_rocky is defined and the repos are mentioned in local_repo_config.yml"
-# omnia_repo_url_rocky_url_gpg_key_fail_msg: "Failed. Each item in omnia_repo_url_rocky should have 'url' and 'gpgkey' keys defined"
-# omnia_repo_url_ubuntu_fail_msg: "Failed. Please ensure omnia_repo_url_ubuntu is defined and the repos are mentioned in local_repo_config.yml"
-# omnia_repo_url_ubuntu_url_gpg_key_fail_msg: "Failed. Each item in omnia_repo_url_ubuntu should have 'url' and 'gpgkey' keys defined"
 omnia_registry_fail_msg: "Failed. omnia_registry should be defined in local_repo_config.yml."
 omnia_registry_string_fail_msg: "Each item in omnia_registry should be a string."
 
