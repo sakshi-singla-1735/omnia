@@ -7,9 +7,9 @@
       "type": "boolean"
     },
     "prometheus_scrape_interval": {
-     "type": "integer",
-     "minimum": 1,
-     "default": 15
+      "type": "integer",
+      "minimum": 1,
+      "default": 15
     },
 
     "idrac_telemetry_support": {
@@ -23,12 +23,16 @@
     },
     "federated_idrac_telemetry_collection": {
       "type": "boolean"
+    },
+    "kafka_configurations": {
+      "type": "object"
     }
   },
   "required": [
     "kube_prometheus_support",
     "prometheus_scrape_interval",
     "idrac_telemetry_support",
+    "idrac_telemetry_collection_type",
     "visualization_support",
     "federated_idrac_telemetry_collection"
   ],
@@ -44,11 +48,45 @@
       "then":{
         "required": [
           "idrac_telemetry_collection_type"
-        ],
+        ]
+      }
+    },
+    {
+      "if": {
         "properties": {
           "idrac_telemetry_collection_type": {
-          "type": "string",
-          "minLength": 1
+            "const": "kafka"
+          }
+        }
+      },
+      "then": {
+        "required": ["kafka_configurations"],
+        "properties": {
+          "kafka_configurations": {
+            "type": "object",
+            "properties": {
+              "persistence_size": {
+                "type": "string",
+                "pattern": "^[0-9]+(Ki|Mi|Gi|Ti|Pi|Ei)$"
+              },
+              "log_retention_hours": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "log_retention_bytes": {
+                "type": "integer"
+              },
+              "topic_partitions": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "required": [
+              "persistence_size",
+              "log_retention_hours",
+              "log_retention_bytes",
+              "topic_partitions"
+            ]
           }
         }
       }
