@@ -16,8 +16,7 @@
 
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.local_repo.common_functions import(
-    get_arch_from_sw_config,
-    get_arch_from_roles_config
+    get_arch_from_sw_config
 )
 from ansible.module_utils.local_repo.software_utils import(
     load_json,
