@@ -33,7 +33,6 @@ def validate_local_repo_config(input_file_path, data,
     """
     errors = []
     local_repo_yml = create_file_path(input_file_path, file_names["local_repo_config"])
-
     repo_names = {}
     base_repo_names = ['baseos', 'appstream']
     all_archs = ['x86_64', 'aarch64']
@@ -41,11 +40,12 @@ def validate_local_repo_config(input_file_path, data,
     for arch in all_archs:
         arch_repo_names = []
         arch_list = url_list + [url+'_'+arch for url in url_list]
+
         for repurl in arch_list:
             repos = data.get(repurl)
             if repos:
-                arch_repo_names = base_repo_names + [x.get('name') for x in repos]
-        repo_names[arch] = repo_names.get(arch, []) + arch_repo_names
+                arch_repo_names = arch_repo_names + [x.get('name') for x in repos]
+        repo_names[arch] = repo_names.get(arch, []) + arch_repo_names + base_repo_names
 
     for k,v in repo_names.items():
         if len(v) != len(set(v)):
