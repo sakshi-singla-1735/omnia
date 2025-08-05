@@ -34,7 +34,14 @@ from ansible.module_utils.basic import AnsibleModule
 
 SKIP_TYPES = ["rpm", "deb", "manifest", "pip_module", "git"]
 SKIP_PACKAGES = ["ghcr.io/k8snetworkplumbingwg/multus-cni"]
-
+KUBESPRAY_ARCH_MAP = {
+    "amd64": "x86_64",
+    "arm64": "aarch64"
+}
+OMNIA_ARCH_MAP = {
+    "x86_64": "amd64",
+    "aarch64": "arm64"
+}
 # ============================================================================================
 #                              Logging Configuration
 # ============================================================================================
@@ -1119,12 +1126,8 @@ def generate_k8_jsons_for_version(kube_version, base_path, repo_url, package_typ
             if not process_image_list(images_list_path, filetype_inv, final_k8s_data, software_name):
                 raise FileOperationError("Failed to process image list")
 
-        kube_arch_map = {
-            "amd64": "x86_64",
-            "arm64": "aarch64"
-        }
         # Write final JSON output
-        output_json_path = os.path.join(temp_output_path, f"{software_name}_v{kube_version.lstrip('v')}_{kube_arch_map[arch]}.json")
+        output_json_path = os.path.join(temp_output_path, f"{software_name}_v{kube_version.lstrip('v')}_{KUBESPRAY_ARCH_MAP[arch]}.json")
         write_json(output_json_path, final_k8s_data)
 
         logger.info(f"Successfully generated JSON for version {kube_version} at {output_json_path}")
@@ -1167,11 +1170,6 @@ def run_module():
         supports_check_mode=False
     )
 
-    kube_arch_map = {
-        "x86_64": "amd64",
-        "aarch64": "arm64"
-    }
-
     try:
         global logger, repo_url
         logger = setup_logging(module.params['log_dir'])
@@ -1194,7 +1192,7 @@ def run_module():
                     repo_url,
                     module.params['package_types'],
                     module.params['k8s_json_path'],
-                    kube_arch_map[module.params['arch']],
+                    OMNIA_ARCH_MAP[module.params['arch']],
                     module.params['n_latest'],
                     module.params['software_name'],
                     module.params['mode'],
