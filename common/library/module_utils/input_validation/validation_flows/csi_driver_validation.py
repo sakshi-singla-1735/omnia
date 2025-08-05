@@ -34,7 +34,6 @@ def validate_secret_isilon_clusters(data):
     """
 
     cluster_errors = []
-
     clusters = data.get("isilonClusters")
 
     # Check if isilonClusters is a defined, non-empty list
@@ -46,19 +45,19 @@ def validate_secret_isilon_clusters(data):
         cluster_prefix = f"Cluster {idx + 1}"
 
         # Validate clusterName
-        if not item.get("clusterName") or not isinstance(item["clusterName"], str):
+        if not isinstance(item.get("clusterName"), str) or not item["clusterName"].strip():
             cluster_errors.append(f"{cluster_prefix}: Invalid or missing 'clusterName'.")
 
         # Validate username
-        if not item.get("username") or not isinstance(item["username"], str):
+        if not isinstance(item.get("username"), str) or not item["username"].strip():
             cluster_errors.append(f"{cluster_prefix}: Invalid or missing 'username'.")
 
         # Validate password
-        if not item.get("password") or not isinstance(item["password"], str):
+        if not isinstance(item.get("password"), str) or not item["password"].strip():
             cluster_errors.append(f"{cluster_prefix}: Invalid or missing 'password'.")
 
         # Validate endpoint
-        if not item.get("endpoint") or not isinstance(item["endpoint"], str):
+        if not isinstance(item.get("endpoint"), str) or not item["endpoint"].strip():
             cluster_errors.append(f"{cluster_prefix}: Invalid or missing 'endpoint'.")
 
         # Validate endpointPort if defined
@@ -77,8 +76,13 @@ def validate_secret_isilon_clusters(data):
 
         # Validate isiPath if defined
         if "isiPath" in item:
-            if not isinstance(item["isiPath"], str) or not item["isiPath"].startswith('/'):
-                cluster_errors.append(f"{cluster_prefix}: 'isiPath' must be a valid Unix absolute path.")
+            isi_path = item["isiPath"]
+            if (
+                not isinstance(isi_path, str) or
+                not isi_path.strip() or
+                not isi_path.lstrip().startswith('/')
+            ):
+                cluster_errors.append(f"{cluster_prefix}: 'isiPath' must be a non-empty valid Unix absolute path.")
 
         # Validate isiVolumePathPermissions if defined
         if "isiVolumePathPermissions" in item:
@@ -148,10 +152,16 @@ def validate_value_file_inputs(values_data):
     if not isi_access or not isinstance(isi_access, str) or not isi_access.strip():
         add_error("isiAccessZone", isi_access, "Must be a non-empty string")
 
-    # 9. isiPath is Unix absolute path
-    isi_path = values_data.get("isiPath")
-    if not isinstance(isi_path, str) or not isi_path.startswith("/"):
-        add_error("isiPath", isi_path, "Must be a valid Unix absolute path")
+    # Validate isiPath if defined
+        if "isiPath" in item:
+            isi_path = item["isiPath"]
+            if (
+                not isinstance(isi_path, str) or
+                not isi_path.strip() or
+                not isi_path.lstrip().startswith('/')
+            ):
+                add_error(f"{cluster_prefix}: 'isiPath' must be a non-empty valid Unix absolute path.")
+
 
     # 10. isiVolumePathPermissions is a non-empty string
     permissions = values_data.get("isiVolumePathPermissions")
@@ -195,8 +205,8 @@ def process_encrypted_file(secret_file_path,vault_secret_file_path,errors):
     decrypt the file first then parse it to get data
     """
 
-    decrypted_file = decrypt_file(secret_file_path, vault_secret_file_path,)
-
+    decrypted_file = decrypt_file(secret_file_path, vault_secret_file_path)
+    errors.append(create_error_msg("decrypted_file",decrypted_file,"decrypted_file"))
     if decrypted_file:
         try:
             with open(secret_file_path, "r") as f:
@@ -228,6 +238,7 @@ def validate_powerscale_secret_and_values_file(secret_file_path, values_file_pat
 
     if secrets_file_encrypted:
         secret_data = process_encrypted_file(secret_file_path, vault_secret_file_path,errors)
+        errors.append(create_error_msg("secrete_data",secret_data,"secret"))
         if secret_data is None or secret_data is False:
                errors.append(create_error_msg(
                  "Secret File Load",
