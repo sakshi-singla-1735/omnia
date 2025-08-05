@@ -169,7 +169,7 @@
 #         tasks_from: prometheus_config_update.yml
 
 - name: Deployment of telemetry pods in service cluster
-  hosts: kube_control_plane
+  hosts: kube_control_plane[0]
   connection: ssh
   gather_facts: false
   tasks:
