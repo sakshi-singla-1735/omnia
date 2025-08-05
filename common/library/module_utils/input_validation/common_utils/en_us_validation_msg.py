@@ -156,10 +156,22 @@ SWITCH_SNMP3_PASSWORD_FAIL_MSG = ("switch_snmp3_password must be at least 3 char
 
 
 # telemetry_config.yml
-UNSUPPORTED_IDRAC_TELEMETRY_COLLECTION_TYPE= ("unsupported. "
-                                              "'prometheus' is the supported telemetry collection type.")
-FEDERATED_IDRAC_TELEMETRY_COLLECTION_FAIL= ("idrac_telemetry_support must be set to true "
-                                            "in order to enable federated_idrac_telemetry_collection.")
+UNSUPPORTED_IDRAC_TELEMETRY_COLLECTION_TYPE= ("unsupported. 'kafka' or 'prometheus' "
+                                              "is the supported telemetry collection type.")
+KAFKA_ENABLE_FEDERATED_IDRAC_TELEMETRY_COLLECTION= ("requires federated_idrac_telemetry_collection "
+                                             "to be enabled. Please rerun the playbook "
+                                             "with federated_idrac_telemetry_collection true"
+                                             "in telemetry_config.yml.")
+TELEMETRY_SERVICE_CLUSTER_ENTRY_MISSING_ROLES_CONFIG_MSG= ("requires service k8s roles to be "
+                                             "defined in roles_config.yml. Please either configure "
+                                             "service k8s roles in roles_config.yml "
+                                             "or disable federated_idrac_telemetry_collection "
+                                             "in telemetry_config.yml and rerun the playbook.")
+ENABLE_FEDERATED_IDRAC_TELEMETRY_COLLECTION=("it is recommended to set "
+                                             "federated_idrac_telemetry_collection to true "
+                                             "in telemetry_config.yml as service k8s cluster "
+                                             "is defined in roles_config.yml.")
+
 def boolean_fail_msg(value):
     """Returns a formatted message indicating boolean_fail_msg."""
     return f"{value} must be set to either true or false."

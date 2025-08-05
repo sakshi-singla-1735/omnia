@@ -1,0 +1,153 @@
+#  Copyright 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+---
+
+- name: Create Kafka headless service
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: "{{ kafka.headless_service_name }}"
+        namespace: "{{ telemetry_namespace }}"
+        labels:
+          app: "{{ kafka.app_name }}"
+      spec:
+        clusterIP: None
+        selector:
+          app: "{{ kafka.app_name }}"
+        ports:
+          - name: kafka
+            port: 9092
+
+- name: Create Kafka LoadBalancer service
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: "{{ kafka.lb_service_name }}"
+        namespace: "{{ telemetry_namespace }}"
+        labels:
+          app: "{{ kafka.app_name }}"
+      spec:
+        type: LoadBalancer
+        selector:
+          app: "{{ kafka.app_name }}"
+        ports:
+          - name: kafka
+            port: 9092
+
+- name: Deploy Kafka StatefulSet
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: apps/v1
+      kind: StatefulSet
+      metadata:
+        name: kafka
+        namespace: "{{ telemetry_namespace }}"
+      spec:
+        serviceName: "{{ kafka.headless_service_name }}"
+        replicas: 1
+        selector:
+          matchLabels:
+            app: "{{ kafka.app_name }}"
+        template:
+          metadata:
+            labels:
+              app: "{{ kafka.app_name }}"
+          spec:
+            tolerations:
+              - key: "node-role.kubernetes.io/control-plane"
+                operator: "Exists"
+                effect: "NoSchedule"
+            containers:
+              - name: "{{ kafka.container_name }}"
+                image: "{{ kafka.image }}"
+                imagePullPolicy: IfNotPresent
+                ports:
+                  - containerPort: 9092
+                  - containerPort: 9093
+                lifecycle:
+                  postStart:
+                    exec:
+                      command:
+                        - /bin/sh
+                        - -c
+                        - |
+                          cat <<EOF > /tmp/client.properties
+                          security.protocol=SSL
+                          ssl.truststore.type=PEM
+                          ssl.truststore.location=/bitnami/kafka/config/certs/kafka.truststore.pem
+                          ssl.endpoint.identification.algorithm=
+                          EOF
+                env:
+                  - name: KAFKA_PROCESS_ROLES
+                    value: "broker,controller"
+                  - name: KAFKA_NODE_ID
+                    value: "0"
+                  - name: KAFKA_CONTROLLER_QUORUM_VOTERS
+                    value: "0@localhost:{{ kafka.container_port2 }}"
+                  - name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
+                    value: "CONTROLLER:PLAINTEXT,INTERNAL:SSL"
+                  - name: KAFKA_LISTENERS
+                    value: "INTERNAL://:{{ kafka.container_port1 }},CONTROLLER://:{{ kafka.container_port2 }}"
+                  - name: KAFKA_ADVERTISED_LISTENERS
+                    value: "INTERNAL://{{ kafka.headless_service_name }}.{{ telemetry_namespace }}.svc.cluster.local:{{ kafka.container_port1 }}"
+                  - name: KAFKA_INTER_BROKER_LISTENER_NAME
+                    value: "INTERNAL"
+                  - name: KAFKA_CFG_CONTROLLER_LISTENER_NAMES
+                    value: "CONTROLLER"
+                  - name: ALLOW_PLAINTEXT_LISTENER
+                    value: "no"
+                  - name: KAFKA_TLS_ENABLE
+                    value: "yes"
+                  - name: KAFKA_TLS_TYPE
+                    value: "PEM"
+                  - name: KAFKA_TLS_CERTIFICATE_FILE
+                    value: "/bitnami/kafka/config/certs/kafka.keystore.pem"
+                  - name: KAFKA_TLS_KEY_FILE
+                    value: "/bitnami/kafka/config/certs/kafka.keystore.key"
+                  - name: KAFKA_TLS_TRUST_CERTS_FILE
+                    value: "/bitnami/kafka/config/certs/kafka.truststore.pem"
+                  - name: KAFKA_TLS_CLIENT_AUTH
+                    value: "none"
+                  - name: KAFKA_CFG_LOG_RETENTION_HOURS
+                    value: "{{ hostvars['localhost']['kafka_configurations']['log_retention_hours'] }}"
+                  - name: KAFKA_CFG_LOG_RETENTION_BYTES
+                    value: "{{ hostvars['localhost']['kafka_configurations']['log_retention_bytes'] }}"
+                  - name: KAFKA_CFG_NUM_PARTITIONS
+                    value: "{{ hostvars['localhost']['kafka_configurations']['topic_partitions'] }}"
+                volumeMounts:
+                  - name: kafka-data
+                    mountPath: /bitnami/kafka
+                  - name: kafka-tls
+                    mountPath: /bitnami/kafka/config/certs
+                    readOnly: true
+            volumes:
+              - name: kafka-tls
+                secret:
+                  secretName: "{{ kafka_secrets.name }}"
+        volumeClaimTemplates:
+          - metadata:
+              name: kafka-data
+            spec:
+              accessModes: ["ReadWriteOnce"]
+              resources:
+                requests:
+                  storage: "{{ hostvars['localhost']['kafka_configurations']['persistence_size'] }}"
+              storageClassName: "{{ storage_class_name }}"

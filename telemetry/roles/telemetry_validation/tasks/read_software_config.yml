@@ -112,6 +112,11 @@
             | selectattr('type', 'equalto', 'pip_module')
             | map(attribute='package')
             | list }}
+        kafka_tarball: >-
+          {{ telemetry_packages['service_k8s']['cluster']
+            | selectattr('type', 'equalto', 'tarball')
+            | selectattr('package', 'search', 'charts-kafka')
+            | map(attribute='package') | join }}
 
 - name: Extract python version from python package name
   ansible.builtin.set_fact:
