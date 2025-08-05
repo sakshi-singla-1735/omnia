@@ -206,7 +206,6 @@ def process_encrypted_file(secret_file_path,vault_secret_file_path,errors):
     """
 
     decrypted_file = decrypt_file(secret_file_path, vault_secret_file_path)
-    errors.append(create_error_msg("decrypted_file",decrypted_file,"decrypted_file"))
     if decrypted_file:
         try:
             with open(secret_file_path, "r") as f:
@@ -238,7 +237,6 @@ def validate_powerscale_secret_and_values_file(secret_file_path, values_file_pat
 
     if secrets_file_encrypted:
         secret_data = process_encrypted_file(secret_file_path, vault_secret_file_path,errors)
-        errors.append(create_error_msg("secrete_data",secret_data,"secret"))
         if secret_data is None or secret_data is False:
                errors.append(create_error_msg(
                  "Secret File Load",

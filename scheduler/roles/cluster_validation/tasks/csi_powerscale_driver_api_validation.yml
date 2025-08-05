@@ -16,7 +16,7 @@
 - name: Generate Base64 authentication token
   ansible.builtin.shell: >
     set -o pipefail && \
-    echo -n "{{ item.username }}:{{ item.password }}" | base64
+    echo -n "{{ hostvars['127.0.0.1']['csi_username'] }}:{{ hostvars['127.0.0.1']['csi_password'] }}" | base64
   register: auth_token
   changed_when: false
   no_log: true
