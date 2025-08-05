@@ -28,7 +28,7 @@
 
 - name: Fail if service k8s is provisioned but federated_idrac_telemetry_collection is disabled
   ansible.builtin.fail:
-    msg: "{{ enable_federated_telemetry | replace('\n', ' ')}}"
+    msg: "{{ enable_federated_telemetry_fail_msg | replace('\n', ' ')}}"
   when:
     - not federated_idrac_telemetry_collection
     - validation_output.is_all_service_roles_discovered
