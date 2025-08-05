@@ -51,7 +51,7 @@
 
 - name: Update Inventory with ansible_host information
   ansible.builtin.import_playbook: ../utils/servicetag_host_mapping.yml
-  when: federated_idrac_telemetry_collection
+  when: hostvars['localhost']['federated_idrac_telemetry_collection']
 
 - name: Validate containers are running
   hosts: oim
