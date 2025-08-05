@@ -78,4 +78,3 @@
     hostname: "{{ telemetry_host }}"
     groups: "{{ telemetry_host_group }}"
     ansible_connection: "{{ 'local' if telemetry_host == 'localhost' else 'ssh' }}"
-
