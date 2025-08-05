@@ -280,10 +280,11 @@ def parse_repo_urls(repo_config, local_repo_config_path, version_variables, vaul
     for arch in ARCH_SUFFIXES:
         omnia_key = f"omnia_repo_url_rhel_{arch}"
         user_key = f"user_repo_url_{arch}"
+        rhel_key = f"rhel_repo_url_{arch}"
 
         repo_entries[arch] = local_yaml.get(omnia_key, [])
         user_repo_entry[arch] = local_yaml.get(user_key, [])
-    rhel_repo_entry = local_yaml.get(RHEL_OS_URL, [])
+        rhel_repo_entry[arch] = local_yaml.get(rhel_key, [])
     parsed_repos = []
     vault_key_path = os.path.join(
         vault_key_path, ".local_repo_credentials_key")
@@ -317,6 +318,25 @@ def parse_repo_urls(repo_config, local_repo_config_path, version_variables, vaul
                 "ca_cert": ca_cert,
                 "client_key": client_key,
                 "client_cert": client_cert,
+                "policy": policy
+            })
+
+    for arch, repo_list in rhel_repo_entry.items():
+        for url_ in repo_list:
+            name = url_.get("name", "unknown")
+            url = url_.get("url", "")
+            gpgkey = url_.get("gpgkey")
+            policy_given = url_.get("policy", repo_config)
+            policy = REPO_CONFIG.get(policy_given)
+
+            if not is_remote_url_reachable(url):
+                return url, False
+
+            parsed_repos.append({
+                "package": name,
+                "url": url,
+                "gpgkey": gpgkey if gpgkey else "null",
+                "version": "null",
                 "policy": policy
             })
 
