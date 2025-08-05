@@ -19,7 +19,7 @@
     rocm_version: "omnia_default"
     bcm_roce_libraries_version: "omnia_default"
     intelgaudi_version: "omnia_default"
-    k8s_support: false
+    compute_k8s_support: false
     service_k8s_support: false
 
 - name: Check that the software_config.json exists
@@ -65,9 +65,9 @@
     repo_config: "{{ software_config.repo_config }}"
     software: "{{ software_config.softwares }}"
 
-- name: Check if k8s support is true
+- name: Check if compute_k8s support is true
   ansible.builtin.set_fact:
-    k8s_support: "{{ software_config.softwares | selectattr('name', 'equalto', 'k8s') | list | length > 0 }}"
+    compute_k8s_support: "{{ software_config.softwares | selectattr('name', 'equalto', 'compute_k8s') | list | length > 0 }}"
 
 - name: Check if service k8s support is true
   ansible.builtin.set_fact:

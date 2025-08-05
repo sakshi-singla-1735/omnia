@@ -37,12 +37,12 @@ supported_k8s_version:
   "v2.28.0": [1.32.5, 1.30.0]
 
 dynamic_k8s_json_folder: "/opt/omnia/k8s_dynamic_json"
-dynamic_k8s_json_file: "{{ dynamic_k8s_json_folder }}/v{{ k8s_version }}/k8s_v{{ k8s_version }}.json"
-base_k8s_json_file: "{{ project_input_path }}/config/{{ cluster_os_type }}/{{ cluster_os_version }}/k8s.json"
+dynamic_k8s_json_file: "{{ dynamic_k8s_json_folder }}/v{{ k8s_version }}/compute_k8s_v{{ k8s_version }}.json"
+base_k8s_json_file: "{{ project_input_path }}/config/{{ cluster_os_type }}/{{ cluster_os_version }}/compute_k8s.json"
 kubespray_url: "https://github.com/kubernetes-sigs/kubespray.git"
 package_type_list: ["rpm", "deb", "tarball", "image", "manifest", "pip_module", "git"]
 dynamic_k8s_json_log_dir: "/opt/omnia/log/local_repo"
-base_k8s_json_bkp_file: "{{ dynamic_k8s_json_folder }}/k8s_bkp.json"
+base_k8s_json_bkp_file: "{{ dynamic_k8s_json_folder }}/compute_k8s_bkp.json"
 dynamic_k8s_generation: false
 file_permission: "0755"
 

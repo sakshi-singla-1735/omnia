@@ -1,4 +1,4 @@
-#  Copyright 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+#  Copyright 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -31,3 +31,6 @@
 
         - name: Install powerscale driver
           ansible.builtin.include_tasks: csi_powerscale_install.yml
+
+        - name: Assign CSI as deafult storage Class
+          ansible.builtin.include_tasks: assign_csi_as_default_storage_class.yml

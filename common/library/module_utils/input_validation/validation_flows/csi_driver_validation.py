@@ -214,14 +214,15 @@ def process_encrypted_file(secret_file_path,vault_secret_file_path,errors):
                             secret_file_path, "Please check that the assoicated vault file exists"))
     return decrypted_file
 
-def validate_powerscale_secret_and_values_file(secret_file_path, values_file_path, errors):
+def validate_powerscale_secret_and_values_file(secret_file_path, values_file_path, errors, input_file_path):
     """
     Driver code to initiate the powerscale secret and values file input validation
     """
 
     #valiadte secret file inputs
     secrets_file_encrypted = validation_utils.is_file_encrypted(secret_file_path)
-    vault_secret_file_path= "/omnia/scheduler/roles/k8s_csi_powerscale_plugin/files/.csi_powerscale_secret_vault"
+    file_path = os.path.dirname(input_file_path)
+    vault_secret_file_path = os.path.join(file_path, ".csi_powerscale_secret_vault")
     #check if secret file exists
     file_exists = os.path.exists(vault_secret_file_path.strip())
 
