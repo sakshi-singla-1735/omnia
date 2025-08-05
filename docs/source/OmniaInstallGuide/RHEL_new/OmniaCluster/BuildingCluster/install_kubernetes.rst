@@ -91,4 +91,3 @@ To set up any other Kubernetes version apart from what is present as default in 
 ======================================================
 
 To set up the service Kubernetes cluster, `click here <service_cluster_k8s.html>`_.
-TEST TEST
