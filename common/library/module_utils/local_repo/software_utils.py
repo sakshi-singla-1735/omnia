@@ -11,14 +11,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# pylint: disable=import-error,no-name-in-module
+# pylint: disable=import-error,no-name-in-module,too-many-branches,too-many-statements
 
+"""
+This module util contains all custom software utilities used across custom modules
+"""
 from collections import defaultdict
 import os
 import json
 import csv
-import yaml
 import re
+import yaml
 from jinja2 import Template
 import requests
 from ansible.module_utils.local_repo.common_functions import is_encrypted, process_file
@@ -126,7 +129,8 @@ def validate_repo_mappings(yaml_data, json_data):
     return errors
 
 
-def get_json_file_path(software_name, cluster_os_type, cluster_os_version, user_json_path, arch_list):
+def get_json_file_path(software_name, cluster_os_type,
+                       cluster_os_version, user_json_path, arch_list):
     """
     Generate the file path for a JSON file based on the provided software name,
      cluster OS type, cluster OS version, and user JSON path.
@@ -184,7 +188,8 @@ def get_csv_file_path(software_name, user_csv_dir, sw_arch_map):
     return csv_paths
 
 
-def is_remote_url_reachable(remote_url, timeout=10, client_cert=None, client_key=None, ca_cert=None):
+def is_remote_url_reachable(remote_url, timeout=10,
+                            client_cert=None, client_key=None, ca_cert=None):
     """
     Check if a remote URL is reachable with or without SSL client certs.
     If SSL certs are provided, the function will attempt to use them; otherwise,
@@ -214,8 +219,6 @@ def is_remote_url_reachable(remote_url, timeout=10, client_cert=None, client_key
         return response.status_code == 200
     except Exception:
         return False
-
-from collections import defaultdict
 
 def transform_package_dict(data, sw_arch_map):
     """
@@ -258,7 +261,8 @@ def transform_package_dict(data, sw_arch_map):
     return dict(result)
 
 
-def parse_repo_urls(repo_config, local_repo_config_path, version_variables, vault_key_path, sw_arch_dict):
+def parse_repo_urls(repo_config, local_repo_config_path,
+                    version_variables, vault_key_path, sw_arch_dict):
     """
     Parses the repository URLs from the given local repository configuration file.
     Args:
