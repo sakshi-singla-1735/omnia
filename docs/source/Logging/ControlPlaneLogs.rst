@@ -49,15 +49,15 @@ Grafana Loki
 
 After `telemetry.yml <../Telemetry/index.html>`_ is run, Grafana services are installed on the OIM.
 
-    i. Get the Grafana IP using ``kubectl get svc -n grafana``.
+    1. Get the Grafana IP using ``kubectl get svc -n grafana``.
 
-    ii. Login to the Grafana UI by connecting to the cluster IP of grafana service via port 5000. That is ``http://xx.xx.xx.xx:5000/login``.
+    2. Login to the Grafana UI by connecting to the cluster IP of grafana service via port 5000. That is ``http://xx.xx.xx.xx:5000/login``.
 
-    iii. In the Explore page, select **control-plane-loki**.
+    3. In the Explore page, select **control-plane-loki**.
 
     .. image:: ../images/Grafana_Loki.png
 
-    iv. The log browser allows users to filter logs by job, node, user, etc.
+    4. The log browser allows users to filter logs by job, node, user, etc.
         Example ::
 
             (job= "cluster deployment logs") |= "nodename"
@@ -67,3 +67,16 @@ Custom dashboards can be created as per your requirement.
 
 .. |Dashboard| image:: ../images/Visualization/DashBoardIcon.png
     :height: 25px
+
+iDRAC telemetry logs collected by Prometheus pump
+---------------------------------------------------
+
+After `telemetry.yml <../Telemetry/service_cluster_telemetry.html>`_ has been executed for the service cluster, the Prometheus pump collects the iDRAC telemetry logs for each pod. To view these logs, do the following:
+
+    1. First, check if all the telemetry pods are running or not using the below command: ::
+
+        kubectl get pods -n telemetry
+
+    2. For each of the ``idrac-telemetry pod``(s), check the ``idrac_telemetry`` logs collected by the prometheus pump using the below command: ::
+
+        kubectl logs <idrac-telemetry-pod> -n telemetry -c prometheus-pump

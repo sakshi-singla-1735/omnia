@@ -31,7 +31,7 @@ Optional	","* Enables visualizations for the iDRAC telemtry data via Grafana das
 
 ``boolean``
 
-Optional	","* Set this to ``true`` to enable federated telemetry data collection using the iDRAC telemetry container. 
+Optional	","* When set to ``true``, Omnia deploys the ``idrac_telemetry_receiver``, ``mysqldb``, and ``activemq`` containers on the OIM for iDRAC telemetry data collection during the execution of the ``prepare_oim.yml`` playbook, provided that ``federated_idrac_telemetry_collection`` is set to ``false``.
 * **Accepted values**: ``true`` or ``false``
 * **Default value**: ``false``
 

@@ -17,11 +17,17 @@ Steps
 2. Execute the ``telemetry.yml`` playbook. ::
 
     cd telemetry
-    ansible-playbook telemetry.yml -i <inventory_filepath>
+    ansible-playbook telemetry.yml -i /opt/omnia_inventory/service_cluster_cluster_layout
 
 Result
 =======
 
-The ``mysqldb``, ``activemq``, ``telemetry_receiver``, and ``prometheus_pump`` containers will get deployed on the ``service_kube_nodes``.
+The iDRAC telemetry pods along with the ``mysqldb``, ``activemq``, ``telemetry_receiver``, and ``prometheus_pump`` containers will get deployed on the ``service_kube_node``(s).
+The number of iDRAC telemetry pods deployed will be number of ``service_kube_nodes`` mentioned as parents in ``roles_config.yml`` plus an extra telemetry pod to collect the metric data of OIM and the entire service cluster.
 
-.. note:: Metrics visualization using grafana is not supported for iDRAC telemetry metrics for service cluster.
+iDRAC telemetry logs collected by the Prometheus pump
+=======================================================
+
+After ``telemetry.yml`` has been executed for the service cluster, the Prometheus pump collects the iDRAC telemetry logs for each pod. To know how view these logs, `click here <../Logging/ControlPlaneLogs.html>`.
+
+.. note:: Metrics visualization using Grafana is not supported for iDRAC telemetry metrics on service cluster.
