@@ -77,6 +77,6 @@ After `telemetry.yml <../Telemetry/service_cluster_telemetry.html>`_ has been ex
 
         kubectl get pods -n telemetry
 
-    2. For each of the ``idrac-telemetry pod``(s), check the ``idrac_telemetry`` logs collected by the prometheus pump using the below command: ::
+    2. For each of the ``idrac-telemetry pod``, check the ``idrac_telemetry`` logs collected by the prometheus pump using the below command: ::
 
         kubectl logs <idrac-telemetry-pod> -n telemetry -c prometheus-pump
