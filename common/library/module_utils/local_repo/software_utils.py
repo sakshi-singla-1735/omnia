@@ -53,10 +53,10 @@ def load_json(file_path):
     try:
         with open(file_path, 'r') as file:
             return json.load(file)
-    except FileNotFoundError:
-        raise FileNotFoundError(f"Error: File '{file_path}' not found.")
-    except json.JSONDecodeError:
-        raise ValueError(f"Error: Failed to parse JSON in file '{file_path}'.")
+    except FileNotFoundError as exc:
+        raise FileNotFoundError(f"Error: File '{file_path}' not found.") from exc
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"Error: Failed to parse JSON in file '{file_path}'.") from exc
 
 
 def load_yaml(file_path):
@@ -580,32 +580,81 @@ def check_csv_existence(path):
     else:
         return False
 
+def read_status_csv(csv_path):
+    """Reads the status.csv file and returns a list of row dictionaries."""
+    with open(csv_path, mode='r', newline='') as file:
+        reader = csv.DictReader(file)
+        return [row for row in reader]
+
+def get_new_packages_not_in_status(all_input_packages, status_csv_rows):
+    """
+    Returns packages from all_input_packages that are not present in status_csv_rows.
+    Handles grouped RPM entries like 'RPMs for <group>'.
+    """
+    status_names = set()
+    rpm_status_present = False
+
+    for row in status_csv_rows:
+        name = row["name"]
+        if name.startswith("RPMs for"):
+            rpm_status_present = True
+        else:
+            status_names.add(name)
+
+    new_packages = []
+
+    # Include all RPMs if RPMs status is present
+    if rpm_status_present:
+        new_packages.extend(pkg for pkg in all_input_packages if pkg["type"] == "rpm")
+
+    # Include non-RPM packages not already in status_names
+    new_packages.extend(
+        pkg for pkg in all_input_packages
+        if pkg["type"] != "rpm" and pkg["package"] not in status_names
+    )
+
+    return new_packages
+
 
 def process_software(software, fresh_installation, json_path, csv_path, subgroup_list):
+   
     """
-    Processes the given software by parsing JSON data and returning a filtered list of items.
+    Identifies new and failed software packages for processing based on JSON input and status CSV.
 
     Parameters:
-        software (str): The name of the software.
-        fresh_installation (bool): Indicates whether it is a fresh installation.
-        json_path (str): The path to the JSON file.
-        csv_path (str): The path to the CSV file.
-        subgroup_list (list, optional): A list of subgroups to filter. Defaults to None.
+        software (str): Name of the software.
+        fresh_installation (bool): True if it's a fresh install, else False.
+        json_path (str): Path to the input JSON file.
+        csv_path (str): Path to the status CSV file.
+        subgroup_list (list): Subgroups to filter packages.
 
     Returns:
-        list: The filtered list of items.
+        tuple: (failed_tasks, new_tasks, status_csv_rows, all_input_packages)
     """
-    failed_packages = None if fresh_installation else get_failed_software(
-        csv_path)
+
+    # Step 1: Get all packages from JSON
+    all_input_packages = parse_json_data(json_path, PACKAGE_TYPES, None, subgroup_list)
+    status_csv_rows = [] if fresh_installation else read_status_csv(csv_path)
+
+    new_tasks = get_new_packages_not_in_status(all_input_packages, status_csv_rows)
+
+    # Step 2: Get failed packages
+    failed_packages = None if fresh_installation else get_failed_software(csv_path)
+
+    # Step 3: Handle RPM group entries like "RPMs for nfs"
     rpm_package_type = ['rpm']
     rpm_tasks = []
-    if failed_packages is not None and any("RPMs" in software for software in failed_packages):
-        rpm_tasks = parse_json_data(
-            json_path, rpm_package_type, None, subgroup_list)
+    if failed_packages is not None:
+        rpm_group_entries = [entry for entry in failed_packages if "RPMs" in entry]
+        if rpm_group_entries:
+            # Get all RPMs from JSON
+            rpm_tasks = parse_json_data(json_path, rpm_package_type, None, subgroup_list)
 
-    combined = parse_json_data(
-        json_path, PACKAGE_TYPES, failed_packages, subgroup_list) + rpm_tasks
-    return combined, failed_packages
+    # # Step 4: Process only failed packages (excluding RPM group entries)
+    individual_failed_packages = [pkg for pkg in failed_packages if "RPMs" not in pkg] if failed_packages else []
+    failed_tasks = parse_json_data(json_path, PACKAGE_TYPES, individual_failed_packages, subgroup_list) + rpm_tasks
+
+    return failed_tasks, new_tasks,status_csv_rows, all_input_packages
 
 
 def get_software_names(data_path):

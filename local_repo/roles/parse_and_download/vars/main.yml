@@ -20,6 +20,7 @@ csv_base_path:
   - "{{ nfs_shared_path }}/log/local_repo/x86_64"
   - "{{ nfs_shared_path }}/log/local_repo/aarch64"
 local_repo_config_path: "{{ project_input_path }}/local_repo_config.yml"
+sw_config_json_path: "{{ project_input_path }}/software_config.json"
 roles_config_path: "{{ project_input_path }}/roles_config.yml"
 user_json_file: "{{ project_input_path }}/software_config.json"
 clean_rpms: true
