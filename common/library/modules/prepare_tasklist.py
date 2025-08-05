@@ -45,7 +45,8 @@ from ansible.module_utils.local_repo.config import (
     LOCAL_REPO_CONFIG_PATH_DEFAULT,
     ROLES_CONFIG_PATH_DEFAULT,
     LOG_DIR_DEFAULT,
-    SOFTWARE_CSV_FILENAME
+    SOFTWARE_CSV_FILENAME,
+    ARCH_SUFFIXES
 )
 
 def main():
@@ -89,9 +90,12 @@ def main():
         repo_config = user_data['repo_config']
 
         # Append the CSV filename from config (e.g. "software.csv")
-        complete_csv_file_path = []
+        complete_csv_file_path = []       
         for path in csv_file_path:
-            complete_csv_file_path.append(os.path.join(path, SOFTWARE_CSV_FILENAME))
+            for arch in ARCH_SUFFIXES:
+                full_path = os.path.join(path, arch, SOFTWARE_CSV_FILENAME)
+                complete_csv_file_path.append(full_path)
+
 
         software_list = get_software_names(user_json_file)
         logger.info(f"software_list from software_config: {software_list}")
@@ -101,14 +105,25 @@ def main():
         fresh_installation = True if not check_csv_existence(complete_csv_file_path) else False
         logger.info(f"Fresh install: {fresh_installation}")
 
-        csv_softwares = []
+        csv_softwares = {}
+        new_softwares = {}
+        
         if not fresh_installation:
-            csv_softwares = get_csv_software(complete_csv_file_path)
-            logger.info(f"software from software.csv: {csv_softwares}")
+            for arch in ARCH_SUFFIXES:
+                arch_csv_paths = [
+                    os.path.join(path, arch, SOFTWARE_CSV_FILENAME)
+                    for path in csv_file_path
+                ]
+                arch_csv_software = get_csv_software(arch_csv_paths)
+                csv_softwares[arch] = arch_csv_software
+                logger.info(f"Software from {arch} CSVs: {arch_csv_software}")
 
-        new_software = [software for software in software_list if software not in csv_softwares]
-        logger.info(f"new software list: {new_software}")
-        logger.info(f"Final software_list: {software_list}")
+                new_softwares[arch] = [
+                    software for software in software_list if software not in arch_csv_software
+                ]
+                logger.info(f"New software list for {arch}: {new_softwares[arch]}")
+
+            logger.info(f"new software list: {new_softwares}")
 
         # Build a dictionary mapping software names to subgroup data, if available
         subgroup_dict, software_names = get_subgroup_dict(user_data)
@@ -132,28 +147,35 @@ def main():
                 if not json_path:
                     logger.warning(f"Skipping {software}: JSON path does not exist.")
                     continue
-
-                # If the software is new, enforce fresh installation
-                if software in new_software:
-                    fresh_installation = True
+                
+                # Check if software is new in any of its architectures
+                if new_softwares:
+                    fresh_installation = any(software in new_softwares.get(arch, []) for arch in sw_arch_map)
                 else:
-                    fresh_installation = False
+                    fresh_installation = True
 
+                logger.info(f"{software} (archs: {sw_arch_map}) - Fresh install: {fresh_installation}")
                 logger.info(f"{software}: JSON Path: {json_path}, CSV Path: {csv_path}, Fresh Install: {fresh_installation}")
                 logger.info(f"Subgroup Data: {subgroup_dict.get(software, None)}")
                 logger.info(f"Whole Subgroup Data: {subgroup_dict}")
-                failed_softwares = get_failed_software(complete_csv_file_path)
-                logger.info(f"failed_softwares: {failed_softwares}")
-                if not fresh_installation and software not in failed_softwares:
-                    continue
-
                 logger.info(f"json_path: {json_path}")
                 logger.info(f"csv_path: {csv_path}")
-                tasks, failed_packages = process_software(software, fresh_installation, json_path, csv_path, subgroup_dict.get(software, None))
-                logger.info(f"tasks: {tasks}")
-                logger.info(f"failed_packages for software {software} are {failed_packages}")
-                failed_packages = get_failed_software(csv_path)
-                logger.info(f"failed_packages: {failed_packages}")
+
+                failed_tasks,new_tasks,status_csv_rows, all_input_packages = process_software(software, fresh_installation, json_path, csv_path, subgroup_dict.get(software, None))
+                
+                logger.info(f"Processed status_csv_rows : {status_csv_rows}")
+                logger.info(f"all_input_packages : {all_input_packages}")
+                logger.info(f"Failed_tasks : {failed_tasks}")
+                logger.info(f"new_tasks : {new_tasks}")
+                
+                #Combine all tasks
+                if fresh_installation:
+                    tasks = all_input_packages
+                else:
+                    tasks = failed_tasks + new_tasks
+
+                if not tasks:
+                    continue
 
                 software_dict[software] = tasks
 
