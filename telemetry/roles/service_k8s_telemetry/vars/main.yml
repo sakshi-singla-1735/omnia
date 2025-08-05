@@ -108,5 +108,5 @@ kafka:
   telemetry_topic_name: "idrac_telemetry"
 
 # Usage: telemetry_metadata.yml
-telemetry_metadata_path: "/opt/omnia/.data/telemetry_metadata.yml"
+telemetry_metadata_path: "/opt/omnia/telemetry/.telemetry_metadata.yml"
 
