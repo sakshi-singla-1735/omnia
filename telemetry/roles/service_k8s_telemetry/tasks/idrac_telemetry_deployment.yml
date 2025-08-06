@@ -75,6 +75,7 @@
       }}
 
 - name: Wait for Kafka pod to come to ready state
+  when: hostvars['localhost']['idrac_telemetry_collection_type'] == "kafka"
   block:
     - name: Wait for Kafka pod to come to ready state
       ansible.builtin.command: >
