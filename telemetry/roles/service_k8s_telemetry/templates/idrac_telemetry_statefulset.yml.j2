@@ -33,7 +33,10 @@ spec:
           hostPath:
             path: {{ idrac_telemetry_reference_git_clone_path }}
             type: Directory
-
+        - name: kafka-tls-certs
+          secret:
+            secretName: "{{ kafka_secrets.name }}"
+ 
       hostAliases:
         - ip: "127.0.0.1"
           hostnames:
@@ -142,6 +145,9 @@ spec:
           volumeMounts:
             - mountPath: /go/src/github.com/telemetry-reference-tools
               name: telemetry-reference-tools
+            - mountPath: /extrabin/certs 
+              name: kafka-tls-certs
+              readOnly: true 
           workingDir: /go/src/github.com/telemetry-reference-tools
           env:
             - name: MESSAGEBUS_HOST
@@ -153,22 +159,13 @@ spec:
             - name: KAFKA_TOPIC
               value: "{{ kafka.telemetry_topic_name }}"
             - name: KAFKA_SKIP_VERIFY
-              value: "{{ kafka_skip_verify | default('true') | lower }}"
+              value: "{{ kafka_skip_verify | default('false') | lower }}"  
             - name: KAFKA_CACERT
-              valueFrom:
-                secretKeyRef:
-                  name: "{{ kafka_secrets.name }}"
-                  key: ca.crt
-            - name: kafka.truststore.pem
-              valueFrom:
-                secretKeyRef:
-                  name: "{{ kafka_secrets.name }}"
-                  key: kafka.keystore.pem
+              value: "kafka.truststore.pem"
+            - name: KAFKA_CLIENT_CERT
+              value: "kafka.keystore.pem"
             - name: KAFKA_CLIENT_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: "{{ kafka_secrets.name }}"
-                  key: kafka.keystore.key
+              value: "kafka.keystore.key"
           command: ["/bin/sh", "-c"]
           args: ["go run cmd/kafkapump/kafkapump.go"]
 {% endif %}

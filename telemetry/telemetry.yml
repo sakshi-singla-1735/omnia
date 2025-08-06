@@ -71,6 +71,21 @@
         - hostvars['localhost']['idrac_telemetry_support']
         - not hostvars['localhost']['federated_idrac_telemetry_collection']
 
+- name: Check if Service cluster has internet
+  hosts: kube_control_plane, kube_node
+  connection: ssh
+  any_errors_fatal: true
+  tasks:
+    - name: Validate telemetry input parameters
+      ansible.builtin.include_role:
+        name: telemetry_validation
+        tasks_from: check_service_node_internet.yml
+      when:
+        - hostvars['localhost']['idrac_telemetry_support']
+        - hostvars['localhost']['federated_idrac_telemetry_collection'] | default(false)
+        - hostvars['localhost']['groups']['kube_control_plane'] is defined
+        - hostvars['localhost']['groups']['kube_control_plane'] | length > 0
+
 - name: Validate service k8s cluster
   hosts: kube_control_plane[0]
   gather_facts: false
@@ -154,7 +169,7 @@
 #         tasks_from: prometheus_config_update.yml
 
 - name: Deployment of telemetry pods in service cluster
-  hosts: kube_control_plane
+  hosts: kube_control_plane[0]
   connection: ssh
   gather_facts: false
   tasks:
