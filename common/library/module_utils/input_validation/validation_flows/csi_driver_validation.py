@@ -62,17 +62,20 @@ def validate_secret_isilon_clusters(data):
 
         # Validate endpointPort if defined
         if "endpointPort" in item:
-            if not isinstance(item["endpointPort"], int) or not (0 < item["endpointPort"] < 65536):
-                cluster_errors.append(f"{cluster_prefix}: 'endpointPort' must be an integer between 1 and 65535.")
+            if not isinstance(item["endpointPort"], int) or not 0 < item["endpointPort"] < 65536:
+                cluster_errors.append(
+                    f"{cluster_prefix}: 'endpointPort' must be an integer between 1 and 65535.")
 
         # Validate isDefault
         if "isDefault" not in item or not isinstance(item["isDefault"], bool):
-            cluster_errors.append(f"{cluster_prefix}: 'isDefault' must be a boolean and must be defined.")
+            cluster_errors.append(
+                f"{cluster_prefix}: 'isDefault' must be a boolean and must be defined.")
 
         # Validate skipCertificateValidation if defined
         if "skipCertificateValidation" in item:
             if item["skipCertificateValidation"] is not True:
-                cluster_errors.append(f"{cluster_prefix}: 'skipCertificateValidation' must be true if defined.")
+                cluster_errors.append(
+                    f"{cluster_prefix}: 'skipCertificateValidation' must be true if defined.")
 
         # Validate isiPath if defined
         if "isiPath" in item:
@@ -82,14 +85,18 @@ def validate_secret_isilon_clusters(data):
                 not isi_path.strip() or
                 not isi_path.lstrip().startswith('/')
             ):
-                cluster_errors.append(f"{cluster_prefix}: 'isiPath' must be a non-empty valid Unix absolute path.")
+                cluster_errors.append(
+                    f"{cluster_prefix}: 'isiPath' must be a non-empty valid Unix absolute path.")
 
         # Validate isiVolumePathPermissions if defined
         if "isiVolumePathPermissions" in item:
             perms = item["isiVolumePathPermissions"]
             if not isinstance(perms, str) or not perms.strip().isdigit():
-                cluster_errors.append(f"{cluster_prefix}: 'isiVolumePathPermissions' must be a non-empty string of digits.")
-
+                msg = (
+                    f"{cluster_prefix}: 'endpointPort' must be an "
+                    "integer between 1 and 65535."
+                )
+                cluster_errors.append(msg)
     return cluster_errors
 
 def validate_value_file_inputs(values_data):
@@ -134,7 +141,7 @@ def validate_value_file_inputs(values_data):
 
     # 5. endpointPort is int in 1..65535
     endpoint_port = values_data.get("endpointPort")
-    if endpoint_port is None or not isinstance(endpoint_port, int) or not (1 <= endpoint_port <= 65535):
+    if endpoint_port is None or not isinstance(endpoint_port, int) or not 1 <= endpoint_port <= 65535:
         add_error("endpointPort", endpoint_port, "Must be between 1 and 65535")
 
     # 6. skipCertificateValidation == true
@@ -152,16 +159,10 @@ def validate_value_file_inputs(values_data):
     if not isi_access or not isinstance(isi_access, str) or not isi_access.strip():
         add_error("isiAccessZone", isi_access, "Must be a non-empty string")
 
-    # Validate isiPath if defined
-        if "isiPath" in item:
-            isi_path = item["isiPath"]
-            if (
-                not isinstance(isi_path, str) or
-                not isi_path.strip() or
-                not isi_path.lstrip().startswith('/')
-            ):
-                add_error(f"{cluster_prefix}: 'isiPath' must be a non-empty valid Unix absolute path.")
-
+    # 9. isiPath is Unix absolute path
+    isi_path = values_data.get("isiPath")
+    if not isinstance(isi_path, str) or not isi_path.startswith("/"):
+        add_error("isiPath", isi_path, "Must be a valid Unix absolute path")
 
     # 10. isiVolumePathPermissions is a non-empty string
     permissions = values_data.get("isiVolumePathPermissions")
@@ -208,14 +209,14 @@ def process_encrypted_file(secret_file_path,vault_secret_file_path,errors):
     decrypted_file = decrypt_file(secret_file_path, vault_secret_file_path)
     if decrypted_file:
         try:
-            with open(secret_file_path, "r") as f:
+            with open(secret_file_path, "r", encoding="utf-8") as f:
                 data = yaml.safe_load(f)
                 encrypt_file(secret_file_path, vault_secret_file_path)
                 return data
         except FileNotFoundError:
             errors.append(create_error_msg("File not found",
                             secret_file_path, "Please check the associated file exists"))
-        except yaml.YAMLError as e:
+        except yaml.YAMLError:
             errors.append(create_error_msg("Error loading yaml file",
                             secret_file_path, "Please check the associated file syntax"))
     else:
@@ -223,7 +224,9 @@ def process_encrypted_file(secret_file_path,vault_secret_file_path,errors):
                             secret_file_path, "Please check that the assoicated vault file exists"))
     return decrypted_file
 
-def validate_powerscale_secret_and_values_file(secret_file_path, values_file_path, errors, input_file_path):
+def validate_powerscale_secret_and_values_file(
+    secret_file_path, values_file_path,
+    errors, input_file_path):
     """
     Driver code to initiate the powerscale secret and values file input validation
     """
@@ -232,13 +235,11 @@ def validate_powerscale_secret_and_values_file(secret_file_path, values_file_pat
     secrets_file_encrypted = validation_utils.is_file_encrypted(secret_file_path)
     file_path = os.path.dirname(input_file_path)
     vault_secret_file_path = os.path.join(file_path, ".csi_powerscale_secret_vault")
-    #check if secret file exists
-    file_exists = os.path.exists(vault_secret_file_path.strip())
 
     if secrets_file_encrypted:
         secret_data = process_encrypted_file(secret_file_path, vault_secret_file_path,errors)
         if secret_data is None or secret_data is False:
-               errors.append(create_error_msg(
+            errors.append(create_error_msg(
                  "Secret File Load",
                     secret_file_path,
                    "Failed to load or parse secret.yaml file. It may be invalid or empty."
@@ -246,13 +247,15 @@ def validate_powerscale_secret_and_values_file(secret_file_path, values_file_pat
         else:
             secret_validation_errors = validate_secret_isilon_clusters(secret_data)
             if secret_validation_errors:
-               for err in secret_validation_errors:
-                    errors.append(create_error_msg("Powerscale Secret File Validation Error:", err, None))
+                for err in secret_validation_errors:
+                    errors.append(
+                        create_error_msg("Powerscale Secret File Validation Error:", err, None))
 
     #validate values file input
-    with open(values_file_path, "r") as f:
-                values_data = yaml.safe_load(f)
+    with open(values_file_path, "r", encoding="utf-8") as f:
+        values_data = yaml.safe_load(f)
     values_validation_errros = validate_value_file_inputs(values_data)
     if values_validation_errros:
         for value_err in values_validation_errros:
-          errors.append(create_error_msg(f"Powerscale Value File Validation Error: ",value_err, None))
+            errors.append(
+                create_error_msg(f"Powerscale Value File Validation Error: ",value_err, None))
