@@ -74,4 +74,3 @@
       ansible.builtin.fail:
         msg: "{{ storage_class_missing_fail_msg }}"
       when: storage_class is not defined or storage_class | length == 0
-
