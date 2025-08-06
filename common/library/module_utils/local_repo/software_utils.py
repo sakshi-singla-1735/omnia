@@ -230,6 +230,8 @@ def parse_repo_urls(repo_config, local_repo_config_path,
     """
     local_yaml = load_yaml(local_repo_config_path)
     repo_entries = {}
+    user_repo_entry = {}
+    rhel_repo_entry = {}
 
     for arch in ARCH_SUFFIXES:
         omnia_key = f"omnia_repo_url_rhel_{arch}"
@@ -243,10 +245,12 @@ def parse_repo_urls(repo_config, local_repo_config_path,
     vault_key_path = os.path.join(
         vault_key_path, ".local_repo_credentials_key")
     for arch, repo_list in user_repo_entry.items():
+        if not repo_list:
+            continue
         for url_ in repo_list:
             name = url_.get("name", "unknown")
             url = url_.get("url", "")
-            gpgkey = url_.get("gpgkey")
+            gpgkey = url_.get("gpgkey", "")
             ca_cert = url_.get("sslcacert", "")
             client_key = url_.get("sslclientkey", "")
             client_cert = url_.get("sslclientcert", "")
@@ -279,7 +283,7 @@ def parse_repo_urls(repo_config, local_repo_config_path,
         for url_ in repo_list:
             name = url_.get("name", "unknown")
             url = url_.get("url", "")
-            gpgkey = url_.get("gpgkey")
+            gpgkey = url_.get("gpgkey", "")
             policy_given = url_.get("policy", repo_config)
             policy = REPO_CONFIG.get(policy_given)
 
@@ -294,23 +298,6 @@ def parse_repo_urls(repo_config, local_repo_config_path,
                 "policy": policy
             })
 
-    for url_ in rhel_repo_entry:
-        name = url_.get("name", "unknown")
-        url = url_.get("url", "")
-        gpgkey = url_.get("gpgkey")
-        policy_given = url_.get("policy", repo_config)
-        policy = REPO_CONFIG.get(policy_given)
-        if not is_remote_url_reachable(url):
-            return url, False
-
-        parsed_repos.append({
-            "package": name,
-            "url": url,
-            "gpgkey": gpgkey if gpgkey else "null",
-            "version": "null",
-            "policy": policy
-        })
-
     seen_urls = set()
     for arch, entries in repo_entries.items():
         if not entries:
@@ -319,7 +306,7 @@ def parse_repo_urls(repo_config, local_repo_config_path,
         for repo in entries:
             name = repo.get("name", "unknown")
             url = repo.get("url", "")
-            gpgkey = repo.get("gpgkey")
+            gpgkey = repo.get("gpgkey", "")
             policy_given = repo.get("policy", repo_config)
             policy = REPO_CONFIG.get(policy_given)
 
