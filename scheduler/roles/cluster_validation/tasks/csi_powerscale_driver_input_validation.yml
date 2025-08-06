@@ -66,3 +66,4 @@
 - name: Validate powerscale ip and credential in secret.yaml file using API call to powerscale
   ansible.builtin.include_tasks: csi_powerscale_driver_api_validation.yml
   loop: "{{ clusters.isilonClusters }}"
+  no_log: true
