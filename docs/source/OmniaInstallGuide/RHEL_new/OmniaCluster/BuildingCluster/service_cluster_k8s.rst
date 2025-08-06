@@ -3,15 +3,13 @@ Deploy service Kubernetes cluster
 ==========================================
 
 Omnia deploys a service Kubernetes cluster on the designated service nodes to efficiently distribute workload and manage resources for telemetry data collection. 
-This setup reduces the processing load on the OIM node and enhances overall scalability. Each service node is mapped to a specific subset of compute nodes. 
-As a result, the service Kubernetes cluster enables a federated approach to telemetry collection where each ``service_kube_node`` is responsible for collecting telemetry data from its assigned subset of compute nodes.
+This setup reduces the processing load on the OIM node and enhances overall scalability. Each ``service_kube_node`` is responsible for collecting telemetry data from its assigned subset of compute nodes.
+Federated way of teleemtry collection improves efficiency for large-scale clusters.
 
-In order to support telemetry collection, first you need to deploy Kubernetes on the service cluster. To do so, use the ``service_k8s_cluster.yml`` playbook.
-
-Prerequisite
+Prerequisites
 ==============
 
-To deploy Kubernetes on service cluster, ensure that ``service_k8s`` is added under ``softwares`` in the ``input/software_config.json``. Refer the sample config file below: ::
+* To deploy Kubernetes on service cluster, ensure that ``service_k8s`` is added under ``softwares`` in the ``input/software_config.json``. Refer the sample config file below: ::
 
     {
         "cluster_os_type": "rhel",
@@ -36,6 +34,8 @@ To deploy Kubernetes on service cluster, ensure that ``service_k8s`` is added un
             {"name": "login_node"}
         ]
     }
+
+* In order to support telemetry collection, first you need to deploy Kubernetes on the service cluster. To do so, use the ``service_k8s_cluster.yml`` playbook.
 
 Steps
 =======
