@@ -2,7 +2,7 @@
 Set up Kubernetes on the service cluster
 ==========================================
 
-Omnia deploys a service Kubernetes cluster on the designated service nodes to efficiently distribute workload and manage resources for telemetry data collection. 
+With Omnia, you can deploy a service Kubernetes cluster on the designated service nodes to efficiently distribute workload and manage resources for telemetry data collection. 
 This setup reduces the processing load on the OIM node and enhances overall scalability. Each ``service_kube_node`` is responsible for collecting telemetry data from its assigned subset of compute nodes.
 Federated way of telemetry data collection improves efficiency for large-scale clusters.
 
@@ -45,7 +45,7 @@ Steps
 2. Fill in the service cluster details in the ``roles_config.yml``.
 
 .. csv-table:: roles_config.yml
-   :file: ../../../../Tables/service_k8s_roles.csv
+   :file: ../../../../../Tables/service_k8s_roles.csv
    :header-rows: 1
    :keepspace:
 
