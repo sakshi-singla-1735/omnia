@@ -43,7 +43,10 @@ local_repo_py_module_vars:
   beegfs:
     timeout: 7200
     nthreads: 1
-  k8s:
+  compute_k8s:
+    timeout: 7200
+    nthreads: 8
+  service_k8s:
     timeout: 7200
     nthreads: 8
   slurm:
