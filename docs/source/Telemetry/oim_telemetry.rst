@@ -1,3 +1,6 @@
+Deploy iDRAC telemetry service on the OIM
+===========================================
+
 The telemetry feature in Omnia allows you to set up a telemetry service that collects telemetry data from the eligible iDRACs in the cluster. It also facilitates the installation of `Grafana <https://grafana.com/>`_ and `Loki <https://grafana.com/oss/loki/>`_ as Podman containers.
 
 Prerequisites

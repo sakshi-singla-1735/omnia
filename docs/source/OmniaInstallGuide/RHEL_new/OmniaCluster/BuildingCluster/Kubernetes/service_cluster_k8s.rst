@@ -4,7 +4,7 @@ Deploy service Kubernetes cluster
 
 Omnia deploys a service Kubernetes cluster on the designated service nodes to efficiently distribute workload and manage resources for telemetry data collection. 
 This setup reduces the processing load on the OIM node and enhances overall scalability. Each ``service_kube_node`` is responsible for collecting telemetry data from its assigned subset of compute nodes.
-Federated way of teleemtry collection improves efficiency for large-scale clusters.
+Federated way of telemetry data collection improves efficiency for large-scale clusters.
 
 Prerequisites
 ==============
