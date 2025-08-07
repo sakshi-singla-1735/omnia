@@ -46,10 +46,22 @@ spec:
                       values:
                         - {{ kafka.app_name }}
                 topologyKey: "kubernetes.io/hostname"
-      tolerations:
-        - key: "node-role.kubernetes.io/control-plane"
-          operator: "Exists"
-          effect: "NoSchedule"
+        tolerations:
+          - key: node-role.kubernetes.io/control-plane
+            operator: Exists
+            effect: NoSchedule
+          - key: node-role.kubernetes.io/control-plane
+            operator: Exists
+            effect: NoExecute
+            tolerationSeconds: 5
+          - key: node.kubernetes.io/not-ready
+            operator: Exists
+            effect: NoExecute
+            tolerationSeconds: 5
+          - key: node.kubernetes.io/unreachable
+            operator: Exists
+            effect: NoExecute
+            tolerationSeconds: 5
       containers:
         - name: {{ kafka.container_name }}
           image: {{ kafka.image }}
