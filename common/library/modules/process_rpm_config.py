@@ -424,14 +424,14 @@ def main():
         None
     """
     module_args = {
-        "local_config": {"type": "str", "required": True},
+        "local_config": {"type": "list", "required": True},
         "log_dir": {"type": "str", "required": False, "default": "/tmp/thread_logs"}
     }
 
     module = AnsibleModule(argument_spec=module_args, supports_check_mode=False)
 
     # Get the local_config parameter from the module
-    local_config = module.params["local_config"]
+    rpm_config = module.params["local_config"]
     log_dir = module.params["log_dir"]
 
     log = setup_standard_logger(log_dir)
@@ -440,18 +440,8 @@ def main():
 
     log.info(f"Start execution time: {start_time}")
 
-
-    # Replace single quotes with double quotes to make it valid JSON
-    valid_json_str = local_config.replace("'", '"')
-
-    # Parse the string as JSON
-    try:
-        rpm_config = json.loads(valid_json_str)
-    except json.JSONDecodeError as e:
-        module.fail_json(msg=f"Error parsing JSON: {e}")
-
     # Call the function to manage RPM repositories
-    result, output = manage_rpm_repositories_multiprocess(rpm_config,log)
+    result, output = manage_rpm_repositories_multiprocess(rpm_config, log)
 
     if result is False:
         module.fail_json(msg=f"Error {output}, check {STANDARD_LOG_FILE_PATH}")

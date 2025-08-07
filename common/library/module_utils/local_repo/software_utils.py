@@ -11,14 +11,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# pylint: disable=import-error,no-name-in-module
+# pylint: disable=import-error,no-name-in-module,too-many-branches,too-many-statements
 
+"""
+This module util contains all custom software utilities used across custom modules
+"""
 from collections import defaultdict
 import os
 import json
 import csv
-import yaml
 import re
+import yaml
 from jinja2 import Template
 import requests
 from ansible.module_utils.local_repo.common_functions import is_encrypted, process_file
@@ -31,7 +34,6 @@ from ansible.module_utils.local_repo.config import (
     RPM_LABEL_TEMPLATE,
     RHEL_OS_URL,
     SOFTWARES_KEY,
-    USER_REPO_URL,
     REPO_CONFIG,
     ARCH_SUFFIXES
 )
@@ -77,52 +79,8 @@ def load_yaml(file_path):
     with open(file_path, 'r', encoding='utf-8') as file:
         return yaml.safe_load(file)
 
-
-def validate_repo_mappings(yaml_data, json_data):
-    """
-    Validates whether RPM repo names in software.json are valid repo names
-
-    Args:
-        yaml_data (dict): The YAML data containing the repository mappings.
-        json_data (str): The path to the JSON file or the JSON data
-        containing the package information.
-
-    Returns:
-        list: A list of error messages for invalid repository mappings.
-    """
-    user_repos = yaml_data.get("user_repo_url") or []
-
-    # Combine x86 and aarch64 omnia repos if they exist
-    omnia_repos = []
-
-    for arch in ARCH_SUFFIXES:
-        key = f"omnia_repo_url_rhel_{arch}"
-        if yaml_data.get(key):
-            omnia_repos.extend(yaml_data[key])
-
-    valid_repos = [repo["name"] for repo in (user_repos + omnia_repos)]
-    valid_repos.extend(['baseos', 'appstream', 'codeready-builder'])
-
-    data = load_json(json_data)
-
-    errors = []
-    for section, section_data in data.items():
-        if isinstance(section_data, dict):
-            for cluster_name, cluster_data in section_data.items():
-                for package in cluster_data:
-                    if package.get("type") == 'rpm':
-                        repo_name = package.get("repo_name")
-                        if repo_name not in valid_repos:
-                            error_msg = (
-                                f"Error: Repository '{repo_name}' for "
-                                f"package '{package['package']}' "
-                                f"in subgroup '{section}' is not found in local_repo_config.yml"
-                            )
-                            errors.append(error_msg)
-    return errors
-
-
-def get_json_file_path(software_name, cluster_os_type, cluster_os_version, user_json_path, arch_list):
+def get_json_file_path(software_name, cluster_os_type,
+                       cluster_os_version, user_json_path, arch_list):
     """
     Generate the file path for a JSON file based on the provided software name,
      cluster OS type, cluster OS version, and user JSON path.
@@ -180,7 +138,8 @@ def get_csv_file_path(software_name, user_csv_dir, sw_arch_map):
     return csv_paths
 
 
-def is_remote_url_reachable(remote_url, timeout=10, client_cert=None, client_key=None, ca_cert=None):
+def is_remote_url_reachable(remote_url, timeout=10,
+                            client_cert=None, client_key=None, ca_cert=None):
     """
     Check if a remote URL is reachable with or without SSL client certs.
     If SSL certs are provided, the function will attempt to use them; otherwise,
@@ -210,8 +169,6 @@ def is_remote_url_reachable(remote_url, timeout=10, client_cert=None, client_key
         return response.status_code == 200
     except Exception:
         return False
-
-from collections import defaultdict
 
 def transform_package_dict(data, sw_arch_map):
     """
@@ -254,7 +211,8 @@ def transform_package_dict(data, sw_arch_map):
     return dict(result)
 
 
-def parse_repo_urls(repo_config, local_repo_config_path, version_variables, vault_key_path, sw_arch_dict):
+def parse_repo_urls(repo_config, local_repo_config_path,
+                    version_variables, vault_key_path, sw_arch_dict):
     """
     Parses the repository URLs from the given local repository configuration file.
     Args:
@@ -274,15 +232,18 @@ def parse_repo_urls(repo_config, local_repo_config_path, version_variables, vaul
     repo_entries = {}
 
     for arch in ARCH_SUFFIXES:
-        key = f"omnia_repo_url_rhel_{arch}"
-        repo_entries[arch] = local_yaml.get(key, [])
-    rhel_repo_entry = local_yaml.get(RHEL_OS_URL, [])
-    user_repo_entry = local_yaml.get(USER_REPO_URL, [])
+        omnia_key = f"omnia_repo_url_rhel_{arch}"
+        user_key = f"user_repo_url_{arch}"
+        rhel_key = f"rhel_repo_url_{arch}"
+
+        repo_entries[arch] = local_yaml.get(omnia_key, [])
+        user_repo_entry[arch] = local_yaml.get(user_key, [])
+        rhel_repo_entry[arch] = local_yaml.get(rhel_key, [])
     parsed_repos = []
     vault_key_path = os.path.join(
         vault_key_path, ".local_repo_credentials_key")
-    if user_repo_entry:
-        for url_ in user_repo_entry:
+    for arch, repo_list in user_repo_entry.items():
+        for url_ in repo_list:
             name = url_.get("name", "unknown")
             url = url_.get("url", "")
             gpgkey = url_.get("gpgkey")
@@ -291,6 +252,7 @@ def parse_repo_urls(repo_config, local_repo_config_path, version_variables, vaul
             client_cert = url_.get("sslclientcert", "")
             policy_given = url_.get("policy", repo_config)
             policy = REPO_CONFIG.get(policy_given)
+
             for path in [ca_cert, client_key, client_cert]:
                 mode = "decrypt"
                 if path and is_encrypted(path):
@@ -313,6 +275,25 @@ def parse_repo_urls(repo_config, local_repo_config_path, version_variables, vaul
                 "policy": policy
             })
 
+    for arch, repo_list in rhel_repo_entry.items():
+        for url_ in repo_list:
+            name = url_.get("name", "unknown")
+            url = url_.get("url", "")
+            gpgkey = url_.get("gpgkey")
+            policy_given = url_.get("policy", repo_config)
+            policy = REPO_CONFIG.get(policy_given)
+
+            if not is_remote_url_reachable(url):
+                return url, False
+
+            parsed_repos.append({
+                "package": name,
+                "url": url,
+                "gpgkey": gpgkey if gpgkey else "null",
+                "version": "null",
+                "policy": policy
+            })
+
     for url_ in rhel_repo_entry:
         name = url_.get("name", "unknown")
         url = url_.get("url", "")
@@ -330,6 +311,7 @@ def parse_repo_urls(repo_config, local_repo_config_path, version_variables, vaul
             "policy": policy
         })
 
+    seen_urls = set()
     for arch, entries in repo_entries.items():
         if not entries:
            continue
@@ -351,6 +333,10 @@ def parse_repo_urls(repo_config, local_repo_config_path, version_variables, vaul
                rendered_url = Template(url).render(version_variables)
             except Exception:
                rendered_url = url  # fallback
+
+            if rendered_url in seen_urls:
+                continue
+            seen_urls.add(rendered_url)
 
             # Skip unreachable URLs unless they're oneapi/snoopy/nvidia
             if not any(skip_str in rendered_url for skip_str in ["oneapi", "snoopy", "nvidia"]):
@@ -385,7 +371,7 @@ def parse_repo_urls(repo_config, local_repo_config_path, version_variables, vaul
                 "policy": policy
             })
 
-    return json.dumps(parsed_repos), True
+    return parsed_repos, True
 
 def set_version_variables(user_data, software_names, cluster_os_version):
     """
