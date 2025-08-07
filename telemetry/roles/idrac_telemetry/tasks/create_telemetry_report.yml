@@ -23,6 +23,12 @@
         force: true
       when: node_host == 'oim'
 
+    - name: Delete existing telemetry report file for service node
+      ansible.builtin.file:
+        path: "{{ telemetry_report_path_sn }}"
+        state: absent
+      when: node_host != 'oim'
+
     - name: Update telemetry report for service node
       ansible.builtin.blockinfile:
         path: "{{ telemetry_report_path_sn }}"
