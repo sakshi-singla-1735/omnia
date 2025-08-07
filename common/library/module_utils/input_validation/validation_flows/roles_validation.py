@@ -365,7 +365,7 @@ def validate_roles_config(
         'service_kube_control_plane',
         'service_kube_node',
         'service_etcd',
-	'oim_ha_node',
+        'oim_ha_node',
         "kube_control_plane",
         "etcd",
         "slurm_control_plane",
