@@ -722,6 +722,11 @@ def process_tarball(package, repo_store_path, status_file_path, version_variable
         except subprocess.CalledProcessError:
             logger.error(f"Error: Package {package_name} not found at {url}")
             status = "Failed"
+        finally:
+            write_status_to_file(status_file_path, package_name, package_type, status, logger, file_lock)
+            logger.info("#" * 30 + f" {process_tarball.__name__} end " + "#" * 30)  # End of function
+
+            return status
     elif path_support is True and url_support is False:
         try:
             shutil.copy(path, tarball_path)
