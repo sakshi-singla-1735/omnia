@@ -10,6 +10,7 @@ Prerequisites
 1. Ensure that ``discovery_provision.yml`` playbook has been executed successfully and the ``bmc_group_data.csv`` file has been generated.
 2. Ensure that the ``service_k8s_cluster`` playbook has been executed successfully and Kubernetes on the service cluster is up and running. For a step-by-step guide, `click here <../OmniaInstallGuide/RHEL_new/OmniaCluster/BuildingCluster/Kubernetes/service_cluster_k8s.html>`_.
 3. For federated telemetry collection on service cluster, all BMC (iDRAC) IPs must be reachable from the service cluster nodes.
+4. In order to support telemetry collection, first you need to deploy Kubernetes on the service cluster. To do so, use the ``service_k8s_cluster.yml`` playbook.
 
 Steps
 ======

@@ -35,8 +35,6 @@ Prerequisites
         ]
     }
 
-* In order to support telemetry collection, first you need to deploy Kubernetes on the service cluster. To do so, use the ``service_k8s_cluster.yml`` playbook.
-
 Steps
 =======
 
@@ -76,4 +74,4 @@ In the command above, ``<service_cluster_layout_file_path>`` refers to the inven
 Next step
 ===========
 
-To know how to deploy the iDRAC telemetry containers on the service cluster, `click here <../../../../https://omniahpc.readthedocs.io/en/staging/Telemetry/service_cluster_telemetry.html>`_.
+To know how to deploy the iDRAC telemetry containers on the service cluster, `click here <../../../../../Telemetry/service_cluster_telemetry.html>`_.
