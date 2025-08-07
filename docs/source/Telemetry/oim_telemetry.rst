@@ -14,13 +14,13 @@ Prerequisites
 
 * Ensure that the ``discovery_provision.yml`` playbook has been executed successfully. Post execution, an inventory file called ``bmc_group_data.csv`` file is created under the ``/opt/omnia/telemetry/`` directory. This file acts as the default inventory for the ``telemetry.yml`` playbook. 
 
-* To enable telemetry support, ensure that ``prepare_oim.yml`` playbook has been executed successfully with ``idrac_telemetry_support`` set to ``true`` and ``idrac_telemetry_collection_type`` set to ``prometheus`` in the ``telemetry_config.yml`` file. This playbook deploys the containers necessary for the telemetry service. For more information, `click here <../OmniaInstallGuide/RHEL_new/prepare_oim.html#telemetry-config-yml>`_.
+* To enable telemetry support on the OIM, ensure that ``prepare_oim.yml`` playbook has been executed successfully with ``idrac_telemetry_support`` set to ``true`` and ``idrac_telemetry_collection_type`` set to ``prometheus`` in the ``telemetry_config.yml`` file. This playbook deploys the containers necessary for the telemetry service. For more information, `click here <../OmniaInstallGuide/RHEL_new/prepare_oim.html#telemetry-config-yml>`_.
 
 * To enable federated telemetry support on the service cluster, set ``federated_idrac_telemetry_collection`` to ``true`` in the ``telemetry_config.yml`` file. For more information, `click here <service_cluster_telemetry.html>`_.
 
     * In a federated setup, telemetry data from the compute nodes is collected by their corresponding parent service cluster node.    
     
-    * Additionally, the ``idrac_telemetry_receiver``, ``activemq``, ``mysqldb``, ``prometheus``, and ``prometheus_pump`` containers are deployed on the service cluster nodes to facilitate telemetry data collection. 
+    * Additionally, the ``idrac_telemetry_receiver``, ``activemq``, ``mysqldb``, ``prometheus``, and ``prometheus_pump`` containers are deployed inside the iDRAC telemetry pods to facilitate telemetry data collection. 
 
 .. csv-table:: telemetry_config.yml
    :file: ../Tables/telemetry_config.csv

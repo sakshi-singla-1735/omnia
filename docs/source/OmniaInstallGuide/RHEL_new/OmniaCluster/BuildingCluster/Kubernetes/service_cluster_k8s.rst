@@ -9,7 +9,7 @@ Federated way of telemetry data collection improves efficiency for large-scale c
 Prerequisites
 ==============
 
-* To deploy Kubernetes on service cluster, ensure that ``service_k8s`` is added under ``softwares`` in the ``input/software_config.json``. Refer the sample config file below: ::
+* To deploy Kubernetes on service cluster, ensure that ``service_k8s`` is added under ``softwares`` in the ``/opt/omnia/input/project_default/software_config.json``. Refer the sample config file below: ::
 
     {
         "cluster_os_type": "rhel",
@@ -40,20 +40,18 @@ Prerequisites
 Steps
 =======
 
-1. Run ``prepare_oim.yml`` playbook to bring up the required containers on the service cluster nodes.
+1. Run ``local_repo.yml`` playbook to download the artifacts required to set up Kubernetes on the service cluster nodes.
 
-2. Run ``local_repo.yml`` playbook to download the artifacts required to set up Kubernetes on the service cluster nodes.
-
-3. Fill in the service cluster details in the ``roles_config.yml``.
+2. Fill in the service cluster details in the ``roles_config.yml``.
 
 .. csv-table:: roles_config.yml
    :file: ../../../../Tables/service_k8s_roles.csv
    :header-rows: 1
    :keepspace:
 
-4. Run ``discovery_provision.yml`` playbook to discover and provision OS on the service cluster nodes.
+3. Run ``discovery_provision.yml`` playbook to discover and provision OS on the service cluster nodes.
 
-5. Fill up the ``omnia_config.yml`` and ``high_availability_config.yml`` (for `service cluster HA <../../HighAvailability/service_cluster_ha.html>`_) as described in the tables below:
+4. Fill up the ``omnia_config.yml`` and ``high_availability_config.yml`` (for `service cluster HA <../../HighAvailability/service_cluster_ha.html>`_) as described in the tables below:
 
 .. csv-table:: omnia_config.yml
    :file: ../../../../Tables/scheduler_k8s_rhel.csv
