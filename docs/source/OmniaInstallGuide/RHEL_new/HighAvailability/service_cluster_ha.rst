@@ -1,5 +1,5 @@
-High Availability (HA) for the Service Cluster
-================================================
+High Availability (HA) for the Service Kubernetes Cluster
+==========================================================
 
 Prerequisites
 --------------

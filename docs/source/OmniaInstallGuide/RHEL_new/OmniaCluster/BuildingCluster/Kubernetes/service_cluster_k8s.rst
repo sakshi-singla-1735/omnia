@@ -71,6 +71,27 @@ Once all the required input files are filled up, use the below commands to set u
 
 In the command above, ``<service_cluster_layout_file_path>`` refers to the inventory generated based on the ``cluster_name`` in ``/opt/omnia/omnia_inventory``. For more details, `click here <../../ViewInventory.html>`_.
 
+Additional installations
+=========================
+
+After deploying Kubernetes, you can install the following additional packages on top of the Kubernetes stack on the service cluster:
+
+1. **nfs-client-provisioner**
+
+    * NFS subdir external provisioner is an automatic provisioner that use your existing and already configured NFS server to support dynamic provisioning of Kubernetes Persistent Volumes via Persistent Volume Claims.
+    * The NFS server utilised here is the one mentioned in ``storage_config.yml``.
+    * Server IP is ``<nfs_client_params.server_ip>`` and path is ``<nfs_client_params>.<server_share_path>`` of the entry where ``k8s_share`` is set to ``true``.
+
+    Click `here <https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner>`_ for more information.
+
+2. **whereabouts-cni-plugin**
+
+    Whereabouts is an IP address management (IPAM) CNI plugin that assigns dynamic IP addresses cluster-wide in Kubernetes, ensuring no IP address collisions across nodes.
+    It uses a range of IPs and tracks assignments with backends like etcd or Kubernetes Custom Resources.
+    Omnia installs the whereabouts plugin as part of ``omnia.yml`` or ``scheduler.yml`` execution. The details of the plugin is present in the ``omnia/input/config/<cluster os>/<os version>/k8s.json`` file.
+
+    Click `here <https://github.com/k8snetworkplumbingwg/whereabouts>`_ for more information.
+
 Next step
 ===========
 

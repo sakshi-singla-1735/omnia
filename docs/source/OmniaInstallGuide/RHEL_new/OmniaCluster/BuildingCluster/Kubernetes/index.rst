@@ -3,6 +3,6 @@ Deploy Kubernetes
 
 .. toctree::
 
-    install_kubernetes
+    compute_cluster_k8s
     service_cluster_k8s
     dynamic_k8s
