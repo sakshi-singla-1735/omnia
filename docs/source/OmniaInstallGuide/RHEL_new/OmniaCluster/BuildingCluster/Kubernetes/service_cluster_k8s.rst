@@ -1,5 +1,5 @@
 ==========================================
-Deploy service Kubernetes cluster
+Set up Kubernetes on the service cluster
 ==========================================
 
 Omnia deploys a service Kubernetes cluster on the designated service nodes to efficiently distribute workload and manage resources for telemetry data collection. 
