@@ -37,13 +37,11 @@ GRP_EXIST_MSG = "A valid group must be provided."
 INVALID_SWITCH_IP_MSG = "Please provide a valid switch IPv4 address (example: 10.5.0.1)."
 GRP_ROLE_MSG = "Please associate this group with a role."
 PARENT_SERVICE_NODE_MSG = ("Group is associated with login, compiler_node,"
-                          "kube_control_plane, slurm_control_plane, service_kube_control_plane role(s).")
-# PARENT_SERVICE_ROLE_DNE_MSG = ("Parent field is only supported for the 'service_node' role,"
-#     "which is currently not supported and reserved for future use. Please remove the"
-#     " 'parent' field from this role's group definition.")
-# PARENT_SERVICE_ROLE_MSG = (" A 'service_node' role is not defined, so the 'parent' field should"
-#     " be empty for groups associated with 'worker' or 'default' roles. Note that 'service_node'"
-#     " is a reserved role for future use and is not currently valid in the role_config.yml")
+                          "kube_control_plane, slurm_control_plane, service_kube_control_plane, service_kube_node role(s).")
+PARENT_SERVICE_ROLE_DNE_MSG = ("Parent field is only supported when 'service_kube_control_plane, service_kube_node' role is defined,"
+    " Please remove the 'parent' field from this role's group definition.")
+PARENT_SERVICE_ROLE_MSG = (" A 'service_kube_control_plane, service_kube_node' role is not defined, so the 'parent' field should"
+    " be empty for groups associated with 'worker' or 'default' roles.")
 BMC_STATIC_RANGE_INVALID_MSG = ("Static range should be in the following format: "
                                "IPv4Start-IPv4End (example: 10.5.0.1-10.5.0.200).")
 OVERLAPPING_STATIC_RANGE = "bmc_detail's static_range is overlapping with other static ranges."
@@ -158,10 +156,22 @@ SWITCH_SNMP3_PASSWORD_FAIL_MSG = ("switch_snmp3_password must be at least 3 char
 
 
 # telemetry_config.yml
-UNSUPPORTED_IDRAC_TELEMETRY_COLLECTION_TYPE= ("unsupported. "
-                                              "'prometheus' is the supported telemetry collection type.")
-FEDERATED_IDRAC_TELEMETRY_COLLECTION_FAIL= ("idrac_telemetry_support must be set to true "
-                                            "in order to enable federated_idrac_telemetry_collection.")
+UNSUPPORTED_IDRAC_TELEMETRY_COLLECTION_TYPE= ("unsupported. 'kafka' or 'prometheus' "
+                                              "is the supported telemetry collection type.")
+KAFKA_ENABLE_FEDERATED_IDRAC_TELEMETRY_COLLECTION= ("requires federated_idrac_telemetry_collection "
+                                             "to be enabled. Please rerun the playbook "
+                                             "with federated_idrac_telemetry_collection true"
+                                             "in telemetry_config.yml.")
+TELEMETRY_SERVICE_CLUSTER_ENTRY_MISSING_ROLES_CONFIG_MSG= ("requires service k8s roles to be "
+                                             "defined in roles_config.yml. Please either configure "
+                                             "service k8s roles in roles_config.yml "
+                                             "or disable federated_idrac_telemetry_collection "
+                                             "in telemetry_config.yml and rerun the playbook.")
+ENABLE_FEDERATED_IDRAC_TELEMETRY_COLLECTION=("it is recommended to set "
+                                             "federated_idrac_telemetry_collection to true "
+                                             "in telemetry_config.yml as service k8s cluster "
+                                             "is defined in roles_config.yml.")
+
 def boolean_fail_msg(value):
     """Returns a formatted message indicating boolean_fail_msg."""
     return f"{value} must be set to either true or false."
