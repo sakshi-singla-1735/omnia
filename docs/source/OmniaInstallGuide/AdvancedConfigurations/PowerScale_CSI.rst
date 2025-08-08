@@ -116,29 +116,30 @@ Installation Process
 
 5. Execute the ``omnia.yml`` or ``scheduler.yml`` playbook to install the PowerScale CSI driver on the ``compute_k8s_cluster`` and ``service_cluster_k8s.yml`` to install the driver on the ``service_k8s_cluster``:
 
-.. dropdowm:: Compute Kubernetes cluster
+  .. dropdown:: Compute Kubernetes cluster
 
+    ::
+
+      cd omnia
+      ansible-playbook omnia.yml -i <inventory_filepath>
+
+    ::
+
+      cd scheduler
+      ansible-playbook scheduler.yml -i <inventory_filepath>
+
+  .. dropdown:: Service Kubernetes cluster
+
+    ::
+
+      cd scheduler
+      ansible-playbook service_k8s_cluster.yml
+
+.. note:: After running ``omnia.yml`` playbook, the ``secret.yaml`` file will be encrypted. User can use below command to decrypt and edit it if required: 
   ::
 
     cd omnia
-    ansible-playbook omnia.yml -i <inventory_filepath>
-
-  ::
-
-    cd scheduler
-    ansible-playbook scheduler.yml -i <inventory_filepath>
-
-.. dropdown:: Service Kubernetes cluster
-
-  ::
-
-    cd scheduler
-    ansible-playbook service_k8s_cluster.yml
-
-.. note:: After running ``omnia.yml`` playbook, the ``secret.yaml`` file will be encrypted. User can use below command to decrypt and edit it if required: ::
-
-         cd omnia
-         ansible-vault edit <secret.yaml filepath> --vault-password-file scheduler/roles/k8s_csi_powerscale_plugin/files/.csi_powerscale_secret_vault
+    ansible-vault edit <secret.yaml filepath> --vault-password-file /opt/omnia/input/project_default/.csi_powerscale_secret_vault
 
 .. caution:: Do not delete the vault key file ``.csi_powerscale_secret_vault``, otherwise users will not be able to decrypt the ``secret.yaml`` file anymore.
 
@@ -265,11 +266,11 @@ Use the following command to apply the manifest: ::
 
     root@node001:/opt/omnia/csi-driver-powerscale/csi-powerscale/dell-csi-helm-installer# kubectl get pvc -A
     NAMESPACE   NAME                STATUS   VOLUME           CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE
-    default     pvc-powerscale      Bound    k8s-b00f77b817   1Gi        RWX            ps01           <unset>                 27h
+    default     pvc-powerscale      Bound    csivol-853       1Gi        RWX            ps01           <unset>                 27h
 
 * User can also verify the same information from the OneFS portal. In the sample image below, it is mapped with the ``VOLUME`` entry from the above example: ``k8s-b00f77b817``:
 
-.. image:: ../../../images/CSI_OneFS.png
+.. image:: ../../images/CSI_OneFS.png
 
 Removal
 --------
