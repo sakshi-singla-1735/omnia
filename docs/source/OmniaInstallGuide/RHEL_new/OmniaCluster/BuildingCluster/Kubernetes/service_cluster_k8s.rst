@@ -78,9 +78,10 @@ After deploying Kubernetes, you can install the following additional packages on
 
 1. **nfs-client-provisioner**
 
-    * NFS subdir external provisioner is an automatic provisioner that use your existing and already configured NFS server to support dynamic provisioning of Kubernetes Persistent Volumes via Persistent Volume Claims.
-    * The NFS server utilised here is the one mentioned in ``storage_config.yml``.
-    * Server IP is ``<nfs_client_params.server_ip>`` and path is ``<nfs_client_params>.<server_share_path>`` of the entry where ``k8s_share`` is set to ``true``.
+    * NFS subdir external provisioner is an automatic provisioner that use your existing and already configured external NFS server to support dynamic provisioning of Kubernetes Persistent Volumes via Persistent Volume Claims.
+    * The NFS server utilised here is the one mentioned during ``omnia_core`` container deployment using ``omnia_startup.sh`` script.
+    * Use the same NFS server IP provided during ``omnia_startup.sh`` execution. 
+    * Path is mentioned in ``/omnia/k8s_pvc_data`` under ``{{ nfs_server_share_path }}``.
 
     Click `here <https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner>`_ for more information.
 
@@ -91,6 +92,14 @@ After deploying Kubernetes, you can install the following additional packages on
     Omnia installs the whereabouts plugin as part of ``omnia.yml`` or ``scheduler.yml`` execution. The details of the plugin is present in the ``omnia/input/config/<cluster os>/<os version>/k8s.json`` file.
 
     Click `here <https://github.com/k8snetworkplumbingwg/whereabouts>`_ for more information.
+
+3. **CSI-driver-for-PowerScale**
+
+    The CSI Driver for Dell PowerScale (formerly known as Isilon) is a Container Storage Interface (CSI) plugin that enables Kubernetes to provision and manage persistent storage using PowerScale.
+    It enables Kubernetes clusters to dynamically provision, bind, expand, snapshot, and manage volumes on a PowerScale node.
+    Omnia installs the multus plugin as part of ``omnia.yml`` or ``scheduler.yml`` execution.
+
+    Click `here <../../../../../AdvancedConfigurations/PowerScale_CSI.html>`_ for more information.
 
 Next step
 ===========

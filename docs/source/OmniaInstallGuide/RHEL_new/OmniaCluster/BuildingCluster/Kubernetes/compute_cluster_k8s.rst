@@ -148,6 +148,14 @@ After deploying Kubernetes, you can install the following additional packages on
 
     Click `here <https://github.com/k8snetworkplumbingwg/multus-cni>`_ for more information.
 
+10. **CSI-driver-for-PowerScale**
+
+    The CSI Driver for Dell PowerScale (formerly known as Isilon) is a Container Storage Interface (CSI) plugin that enables Kubernetes to provision and manage persistent storage using PowerScale.
+    It enables Kubernetes clusters to dynamically provision, bind, expand, snapshot, and manage volumes on a PowerScale node.
+    Omnia installs the multus plugin as part of ``omnia.yml`` or ``scheduler.yml`` execution.
+
+    Click `here <../../../../../AdvancedConfigurations/PowerScale_CSI.html>`_ for more information.
+
 [Optional] Dynamic Kubernetes installation
 =============================================
 
