@@ -41,7 +41,7 @@ Prerequisites
 
    *Reference values from OneFS portal:*
 
-   .. image:: ../../images/powerscale_csi.png
+   .. image:: ../../images/csi_powerscale_1.png
 
 3. Download the ``values.yaml`` files template using the following command: ::
 
@@ -112,7 +112,7 @@ Installation Process
     cd local_repo
     ansible-playbook local_repo.yml
 
-4. Add the filepath of the ``secret.yaml`` and ``values.yaml`` file to the ``csi_powerscale_driver_secret_file_path`` and ``csi_powerscale_driver_values_file_path`` variables respectively, present in the ``omnia/input/omnia_config.yml`` file.
+4. Add the filepath of the ``secret.yaml`` and ``values.yaml`` file to the ``csi_powerscale_driver_secret_file_path`` and ``csi_powerscale_driver_values_file_path`` variables respectively, present in the ``/opt/omnia/input/project_default/omnia_config.yml`` file.
 
 6. Execute the ``omnia.yml`` or ``scheduler.yml`` playbook to install the PowerScale CSI driver on the ``compute_k8s_cluster`` and ``service_cluster_k8s.yml`` to install the driver on the ``service_k8s_cluster``:
 
