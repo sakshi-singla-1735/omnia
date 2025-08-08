@@ -34,8 +34,6 @@ Prerequisites
 2. Update the following parameters in the ``secret.yaml`` file as per your cluster details and keep the rest as default values. For example:
 
     *	clusterName: <desired cluster name>
-    *	username: <username>
-    *	password: <password>
     *	endpoint: <endpoint_IP>
     .. note:: If PowerScale SmartConnect hostname is configured, user can provide the PowerScale hostname for ``endpoint``. Otherwise user can provide PowerScale IP address as well.
     *	endpointPort: <endpoint_port>
@@ -77,7 +75,9 @@ Prerequisites
 
     * isiPath: /ifs/data/csi
 
-5. Enable ``auth_basic`` for the PowerScale devices: Omnia authenticates and connects with PowerScale devices using basic authentication. To check and enable basic authentication from PowerScale's end, do the following:
+5. Ensure that ``get_config_credentials.yml`` playbook has been executed and the ``omnia_config_credentials`` file has been generated. Once that's done, add the values for ``csi_username`` and ``csi_password`` to that file.
+
+6. Enable ``auth_basic`` for the PowerScale devices: Omnia authenticates and connects with PowerScale devices using basic authentication. To check and enable basic authentication from PowerScale's end, do the following:
 
     i. Establish an SSH connection with the PowerScale node.
     ii. Execute the following command: 
@@ -114,7 +114,7 @@ Installation Process
 
 4. Add the filepath of the ``secret.yaml`` and ``values.yaml`` file to the ``csi_powerscale_driver_secret_file_path`` and ``csi_powerscale_driver_values_file_path`` variables respectively, present in the ``omnia/input/omnia_config.yml`` file.
 
-5. Execute the ``omnia.yml`` or ``scheduler.yml`` playbook to install the PowerScale CSI driver on the ``compute_k8s_cluster`` and ``service_cluster_k8s.yml`` to install the driver on the ``service_k8s_cluster``:
+6. Execute the ``omnia.yml`` or ``scheduler.yml`` playbook to install the PowerScale CSI driver on the ``compute_k8s_cluster`` and ``service_cluster_k8s.yml`` to install the driver on the ``service_k8s_cluster``:
 
   .. dropdown:: Compute Kubernetes cluster
 
