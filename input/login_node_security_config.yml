@@ -15,25 +15,36 @@
 
 # ***********************************************************************
 # DO NOT REMOVE OR COMMENT OUT ANY LINES IN THIS FILE.
-# SIMPLY APPEND THE REQUIRD VALUES AGAINST THE PARAMETER OF YOUR CHOICE.
+# SIMPLY APPEND THE REQUIRED VALUES AGAINST THE PARAMETER OF YOUR CHOICE.
 # ***********************************************************************
 
-# Maximum number of consecutive failures before lockout
+# ============================================================
+# FreeIPA-Only Login Lockout Settings
+# NOTE: The following variables ONLY apply to FreeIPA user accounts.
+#       They do NOT affect OpenLDAP or local/system users.
+# ============================================================
+
+# Maximum number of consecutive failures before lockout (FreeIPA only)
 # The default value of this variable can't be changed
 # Default value: 3
 max_failures: 3
 
-# Period (in seconds) after which the number of failed login attempts is reset
+# Period (in seconds) after which the number of failed login attempts is reset (FreeIPA only)
 # Default value: 60
 # Min: 30
 # Max: 60
 failure_reset_interval: 60
 
-# Period (in seconds) for which users are locked out
+# Period (in seconds) for which users are locked out (FreeIPA only)
 # Default value: 10
 # Min: 5
 # Max: 10
 lockout_duration: 10
+
+# ============================================================
+# Common Authentication Settings
+# NOTE: The following variables apply to BOTH FreeIPA and OpenLDAP users.
+# ============================================================
 
 # User sessions that have been idle for a specific period can be ended automatically
 # This variable sets session timeout to 3 minutes (180 seconds) by default
@@ -43,22 +54,22 @@ session_timeout: 180
 
 # Email address used for sending alerts in case of authentication failure
 # If this variable is left blank, authentication failure alerts will be disabled.
-# Multiple email address can be provided by comma separated values
+# Multiple email addresses can be provided by comma separated values
 # Example: alert_email_address: "user1@domain.com,user2@domain.com"
 alert_email_address: ""
 
 # This variable will be applicable only when alert_email_address is provided
-# SMTP server details in the cluster to sent email alerts
+# SMTP server details in the cluster to send email alerts
 # Supported only single SMTP server configuration
 # Example:
 # smtp_server:
-#   - { host: "smtp-server.domain.com", port: "25", sender_address: "alert@domain.com" }"
+#   - { host: "smtp-server.domain.com", port: "25", sender_address: "alert@domain.com" }
 smtp_server:
   - { host: "", port: "", sender_address: "" }
 
 # This variable mentions the users to whom the access will be provided
-# format of user shall be username@ip or username
-# Ex1- root@1.2.3.4 Ex2- root Ex3- root@1.2.3.4 root (if multiple user, provide space seperated values) by default empty
+# Format of user shall be username@ip or username
+# Ex1- root@1.2.3.4 Ex2- root Ex3- root@1.2.3.4 root (if multiple users, provide space-separated values)
 user: ""
 
 # This variable provides the type of access
