@@ -170,15 +170,14 @@ def is_remote_url_reachable(remote_url, timeout=10,
     except Exception:
         return False
 
-def transform_package_dict(data, sw_arch_map):
+def transform_package_dict(data, arch_val):
     """
     Transforms a dictionary of packages and organizes them by architecture.
 
     Args:
         data (dict): Dictionary of packages where each key is a software name,
                      and each value is a list of package dicts.
-        sw_arch_map (dict): Dictionary where keys are software names, and values
-                            are lists of architectures (e.g., ['x86_64', 'aarch64']).
+        arch_val: Current architecture being parsed for the software
 
     Returns:
         dict: A dictionary where each key is an architecture (e.g., 'x86_64', 'aarch64'),
@@ -205,8 +204,7 @@ def transform_package_dict(data, sw_arch_map):
                 "type": "rpm"
             })
 
-        for arch in sw_arch_map.get(sw_name, []):
-            result[arch][sw_name] = transformed_items
+        result[arch_val][sw_name] = transformed_items
 
     return dict(result)
 
