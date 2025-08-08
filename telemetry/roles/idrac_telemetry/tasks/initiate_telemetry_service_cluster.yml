@@ -140,8 +140,6 @@
 
 - name: Trigger rolling restart of StatefulSet idrac_telemetry
   when:
-    - hostvars['localhost']['idrac_telemetry_support']
-    - hostvars['localhost']['federated_idrac_telemetry_collection']
     - telemetry_idrac is defined
     - telemetry_idrac | length > 0
   block:

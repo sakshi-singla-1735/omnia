@@ -619,6 +619,18 @@ def validate_roles_config(
                                 en_us_validation_msg.PARENT_SERVICE_ROLE_DNE_MSG
                             )
                         )
+                    elif service_kube_control_plane_defined and role[name] in [k8sworker, slurmworker, default]:
+                        # If a service_kube_control_plane/service_kube_node role is present,
+                        # the parent is mandatory and the group is
+                        # associated with worker or default roles.
+                        if validation_utils.is_string_empty(groups[group].get(parent, None)):
+                            errors.append(
+                                create_error_msg(
+                                    group,
+                                    f"Group {group} should have parent defined.",
+                                    en_us_validation_msg.PARENT_SERVICE_ROLE_REQUIRED_MSG
+                                )
+                            )
                 else:
                     # Error log for if a group under a role does not exist
                     errors.append(
