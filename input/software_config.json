@@ -5,13 +5,13 @@
     "repo_config": "always",
     "softwares": [
         {"name": "amdgpu", "version": "6.3.1", "arch": ["x86_64"]},
-        {"name": "cuda", "version": "12.8.0"},
+        {"name": "cuda", "version": "12.8.0", "arch": ["x86_64","aarch64"]},
         {"name": "ofed", "version": "24.10-3.2.5.0", "arch": ["x86_64"]},
-        {"name": "openldap"},
-        {"name": "nfs"},
+        {"name": "openldap", "arch": ["x86_64","aarch64"]},
+        {"name": "nfs", "arch": ["x86_64","aarch64"]},
         {"name": "k8s", "version":"1.31.4", "arch": ["x86_64"]},
-        {"name": "service_k8s","version": "1.31.4"},
-        {"name": "slurm"}
+        {"name": "service_k8s","version": "1.31.4", "arch": ["x86_64","aarch64"]},
+        {"name": "slurm", "arch": ["x86_64","aarch64"]}
     ],
     "amdgpu": [
         {"name": "rocm", "version": "6.3.1" }
