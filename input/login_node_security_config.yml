@@ -19,7 +19,7 @@
 # ***********************************************************************
 
 # ============================================================
-# 🔐 FreeIPA-Only Login Lockout Settings
+# FreeIPA-Only Login Lockout Settings
 # NOTE: The following variables ONLY apply to FreeIPA user accounts.
 #       They do NOT affect OpenLDAP or local/system users.
 # ============================================================
