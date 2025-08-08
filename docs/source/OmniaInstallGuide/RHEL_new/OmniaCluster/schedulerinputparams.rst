@@ -12,16 +12,16 @@ The ``omnia.yml`` playbook is dependent on the inputs provided to the following 
 ``/opt/omnia/input/project_default/omnia_config.yml``
 -------------------------------------------------------
 
-.. dropdown::
+.. dropdown:: Parameters for kubernetes setup on service Kubernetes cluster
 
-   .. csv-table:: Parameters for kubernetes setup on service Kubernetes cluster
+   .. csv-table::
       :file: ../../../Tables/omnia_config_service_cluster.csv
       :header-rows: 1
       :keepspace:
 
-.. dropdown::
+.. dropdown:: Parameters for kubernetes setup on compute Kubernetes cluster
 
-   .. csv-table:: Parameters for kubernetes setup on compute Kubernetes cluster
+   .. csv-table::
       :file: ../../../Tables/omnia_config_compute_cluster.csv
       :header-rows: 1
       :keepspace:
