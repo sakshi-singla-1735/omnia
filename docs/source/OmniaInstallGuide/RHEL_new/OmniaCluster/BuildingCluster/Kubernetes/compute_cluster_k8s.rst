@@ -155,8 +155,3 @@ After deploying Kubernetes, you can install the following additional packages on
     Omnia installs the multus plugin as part of ``omnia.yml`` or ``scheduler.yml`` execution.
 
     Click `here <../../../../AdvancedConfigurations/PowerScale_CSI.html>`_ for more information.
-
-[Optional] Dynamic Kubernetes installation
-=============================================
-
-To set up any other Kubernetes version apart from what is present as default in the ``/opt/omnia/input/project_default/software_config.json`` file, `click here <dynamic_k8s.html>`_.
