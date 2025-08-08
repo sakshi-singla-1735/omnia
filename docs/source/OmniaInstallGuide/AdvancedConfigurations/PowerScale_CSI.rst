@@ -268,7 +268,7 @@ Use the following command to apply the manifest: ::
     NAMESPACE   NAME                STATUS   VOLUME           CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE
     default     pvc-powerscale      Bound    csivol-853       1Gi        RWX            ps01           <unset>                 27h
 
-* User can also verify the same information from the OneFS portal. In the sample image below, it is mapped with the ``VOLUME`` entry from the above example: ``k8s-b00f77b817``:
+* User can also verify the same information from the OneFS portal. In the sample image below, it is mapped with the ``VOLUME`` entry from the above example: ``csivol-853``:
 
 .. image:: ../../images/CSI_OneFS.png
 
