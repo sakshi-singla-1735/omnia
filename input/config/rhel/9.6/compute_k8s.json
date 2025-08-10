@@ -1,5 +1,5 @@
 {
-  "k8s": {
+  "compute_k8s": {
     "cluster": [
       {
         "package": "firewalld",

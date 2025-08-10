@@ -75,7 +75,7 @@ input_file_inventory = {
         files["omnia_config"],
         files["high_availability_config"]
     ],
-    "k8s": [
+    "compute_k8s": [
         files['roles_config'],
         files["omnia_config"],
         files["high_availability_config"]
