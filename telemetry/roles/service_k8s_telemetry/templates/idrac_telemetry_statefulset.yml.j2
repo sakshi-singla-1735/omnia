@@ -164,7 +164,9 @@ spec:
             - name: KAFKA_TOPIC
               value: "{{ kafka.telemetry_topic_name }}"
             - name: KAFKA_SKIP_VERIFY
-              value: "{{ kafka_skip_verify | default('false') | lower }}"  
+              value: "{{ kafka_skip_verify | default('false') | lower }}"
+            - name: KAFKA_PARTITION
+              value: "{{ hostvars['localhost']['kafka_configurations']['topic_partitions'] }}"
             - name: KAFKA_CACERT
               value: "kafka.truststore.pem"
             - name: KAFKA_CLIENT_CERT
