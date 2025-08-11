@@ -33,7 +33,8 @@
 
     - name: Set fact for overall status
       ansible.builtin.set_fact:
-        overall_status_dict: "{{ overall_status_dict | default({}) | combine({ item.key: {'overall_status': task_results.overall_status, 'arch': task_results.arch }}) }}" # noqa: yaml[line-length]
+        overall_status_dict: "{{ overall_status_dict | default({}) |
+         combine({item.key: {'overall_status': task_results.overall_status, 'arch': task_results.arch}}) }}"
   rescue:
     - name: Log the failure
       ansible.builtin.debug:

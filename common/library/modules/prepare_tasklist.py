@@ -144,10 +144,15 @@ def main():
             logger.info(f"csv_path(s): {csv_paths}")
             
             for json_path, csv_path in zip(json_paths, csv_paths):
+                temp_dict = {}
                 if not json_path:
                     logger.warning(f"Skipping {software}: JSON path does not exist.")
                     continue
-                
+               
+                if 'x86_64' in json_path:
+                     arch_val = 'x86_64'
+                elif 'aarch64' in json_path:
+                     arch_val = 'aarch64' 
                 # Check if software is new in any of its architectures
                 if new_softwares:
                     fresh_installation = any(software in new_softwares.get(arch, []) for arch in sw_arch_map)
@@ -162,7 +167,6 @@ def main():
                 logger.info(f"csv_path: {csv_path}")
 
                 failed_tasks,new_tasks,status_csv_rows, all_input_packages = process_software(software, fresh_installation, json_path, csv_path, subgroup_dict.get(software, None))
-                
                 logger.info(f"Processed status_csv_rows : {status_csv_rows}")
                 logger.info(f"all_input_packages : {all_input_packages}")
                 logger.info(f"Failed_tasks : {failed_tasks}")
@@ -173,13 +177,14 @@ def main():
                     tasks = all_input_packages
                 else:
                     tasks = failed_tasks + new_tasks
-
+                
                 if not tasks:
                     continue
 
-                software_dict[software] = tasks
+                temp_dict[software] = tasks
 
-        software_dict=transform_package_dict(software_dict, sw_arch_map)
+                temp_dict=transform_package_dict(temp_dict, arch_val)
+                software_dict.update(temp_dict)
         local_config, url_result = parse_repo_urls(repo_config, local_repo_config_path , version_variables, vault_key_path, sw_arch_map)
         if not url_result:
             module.fail_json(f"{local_config} is not reachable or invalid, please check and provide correct URL")
