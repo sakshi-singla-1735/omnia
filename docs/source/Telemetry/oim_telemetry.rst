@@ -8,6 +8,8 @@ Prerequisites
 
 * Redfish must be enabled in iDRAC.
 
+* iDRAC firware must be updated to the latest version. 
+
 * Datacenter license must be installed on the nodes
 
 * The BMC IP address or iDRAC IP address must be reachable from OIM.

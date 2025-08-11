@@ -45,7 +45,7 @@ After `telemetry.yml <../Telemetry/index.html>`_ is run, Grafana services are in
 
     2. Login to the Grafana UI by connecting to the cluster IP of grafana service via port 5000. That is ``http://xx.xx.xx.xx:5000/login``.
 
-    3. In the Explore page, select **control-plane-loki**.
+    3. In the Explore page, select **oim-loki**.
 
     .. image:: ../images/Grafana_Loki.png
 

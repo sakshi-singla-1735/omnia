@@ -7,11 +7,15 @@ To deploy telemetry service on the service cluster and collect iDRAC telemetry d
 Prerequisites
 ===============
 
-1. Ensure that ``discovery_provision.yml`` playbook has been executed successfully and the ``bmc_group_data.csv`` file has been generated.
-2. Ensure that the ``service_k8s_cluster`` playbook has been executed successfully and Kubernetes on the service cluster is up and running. For a step-by-step guide, `click here <../OmniaInstallGuide/RHEL_new/OmniaCluster/BuildingCluster/Kubernetes/service_cluster_k8s.html>`_.
-3. For federated telemetry collection on service cluster, all BMC (iDRAC) IPs must be reachable from the service cluster nodes.
-4. In order to support telemetry collection, first you need to deploy Kubernetes on the service cluster. To do so, use the ``service_k8s_cluster.yml`` playbook.
-5. Before running the ``telemetry.yml`` playbook for the service cluster, ensure that all the nodes mentioned in the ``<service_cluster_name>_cluster_layout`` inventory are booted up and reachable.
+* Redfish must be enabled in iDRAC.
+* All service cluster nodes should have access to the Internet.
+* iDRAC firware must be updated to the latest version. 
+* Datacenter license must be installed on the nodes
+* Ensure that ``discovery_provision.yml`` playbook has been executed successfully and the ``bmc_group_data.csv`` file has been generated.
+* Ensure that the ``service_k8s_cluster`` playbook has been executed successfully and Kubernetes on the service cluster is up and running. For a step-by-step guide, `click here <../OmniaInstallGuide/RHEL_new/OmniaCluster/BuildingCluster/Kubernetes/service_cluster_k8s.html>`_.
+* For federated telemetry collection on service cluster, all BMC (iDRAC) IPs must be reachable from the service cluster nodes.
+* In order to support telemetry collection, first you need to deploy Kubernetes on the service cluster. To do so, use the ``service_k8s_cluster.yml`` playbook.
+* Before running the ``telemetry.yml`` playbook for the service cluster, ensure that all the nodes mentioned in the ``<service_cluster_name>_cluster_layout`` inventory are booted up and reachable.
 
 Steps
 ======
@@ -63,7 +67,7 @@ After ``telemetry.yml`` has been executed for the service cluster, you can check
         
         kubectl get pods -n telemetry -l app=idrac-telemetry
 
-    .. note:: The ``idrac-telemetry-0`` pod will always be responsible for collecting the telemetry data of the management nodes (``oim_ha``, ``service_kube_control_plane``, ``login``, ``compiler_node", etc.).
+    .. note:: The ``idrac-telemetry-0`` pod will always be responsible for collecting the telemetry data of the management nodes (``oim_ha``, ``service_kube_control_plane``, ``login_node``, ``compiler_node", etc.).
 
     2. Execute the following command: ::
 
