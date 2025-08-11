@@ -106,7 +106,7 @@ kafka:
   container_port2: 9093
   image: "bitnami/kafka:3.9.0"
   telemetry_topic_name: "idrac_telemetry"
-  cluster-id: "kafka-cluster-id"
+  cluster_id: "kafka-cluster-id"
 
 # Usage: telemetry_metadata.yml
 telemetry_metadata_path: "/opt/omnia/telemetry/.telemetry_metadata.yml"
