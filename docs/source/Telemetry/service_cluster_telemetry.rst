@@ -54,13 +54,19 @@ After ``telemetry.yml`` has been executed for the service cluster, the Prometheu
 
 .. note:: Metrics visualization using Grafana is not supported for iDRAC telemetry metrics on service cluster.
 
-Accessing the ``mysqldb`` logs
-================================
+Accessing the ``mysqldb`` database
+====================================
 
-After ``telemetry.yml`` has been executed for the service cluster, you can check the ``mysqldb`` database for logs of your telemetry pods. To view these logs, do the following:
+After ``telemetry.yml`` has been executed for the service cluster, you can check the mysqldb database inside the ``mysqldb`` container. To view these logs, do the following:
 
-    1. Execute the following command: ::
+    1. Use the following command to get the names of all the telemetry pods: ::
+        
+        kubectl get pods -n telemetry -l app=idrac-telemetry
 
-        kubectl exec -it -n telemetry <iDRAC_telemetry_pod_name> -c mysqldb-- mysql -u <MYSQL_USER> -p
+    .. note:: The ``idrac-telemetry-0`` pod will always be responsible for collecting the telemetry data of the management nodes (``oim_ha``, ``service_kube_control_plane``, ``login``, ``compiler_node", etc.).
 
-    2. When prompted, enter the mysql password to log in. 
+    2. Execute the following command: ::
+
+        kubectl exec -it -n telemetry <iDRAC_telemetry_pod_name> -c mysqldb -- mysql -u <MYSQL_USER> -p
+
+    3. When prompted, enter the mysql password to log in.
