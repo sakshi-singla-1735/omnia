@@ -151,14 +151,14 @@ def determine_function(task, repo_store_path, csv_file_path, user_data, version_
         if task_type == "git":
             return process_git, [task, repo_store_path, status_file]
         if task_type == "tarball":
-            return process_tarball, [task, repo_store_path, status_file, version_variables]
+            return process_tarball, [task, repo_store_path, status_file, version_variables, arc]
         if task_type == "shell":
             return process_shell, [task, repo_store_path, status_file]
         if task_type == "ansible_galaxy_collection":
             return process_ansible_galaxy_collection, [task, repo_store_path, status_file]
         if task_type == "iso":
             return process_iso, [task, repo_store_path, status_file,
-                                 cluster_os_type, cluster_os_version, version_variables]
+                                 cluster_os_type, cluster_os_version, version_variables, arc]
         if task_type == "pip_module":
             return process_pip, [task, repo_store_path, status_file]
         if task_type == "image":
