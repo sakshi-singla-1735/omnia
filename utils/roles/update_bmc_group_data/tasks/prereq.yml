@@ -52,3 +52,29 @@
 - name: Set fact discovered_nodes for task on service nodes
   ansible.builtin.set_fact:
     discovered_nodes: "{{ query_status.query_result | list }}"
+
+- name: Include network_spec.yml
+  block:
+    - name: Include network_spec.yml
+      ansible.builtin.include_vars: "{{ network_spec_path }}"
+      register: network_spec
+      tags: init
+  rescue:
+    - name: Failed to include network_spec.yml
+      ansible.builtin.fail:
+        msg: "{{ network_spec_syntax_fail_msg }} Error: {{ network_spec.message }}"
+
+- name: Parse network_spec data
+  ansible.builtin.set_fact:
+    network_data: "{{ network_data | default({}) | combine({item.key: item.value}) }}"
+  with_dict: "{{ Networks }}"
+
+- name: Set primary_oim_bmc_ip
+  ansible.builtin.set_fact:
+    oim_bmc_ip: "{{ network_data.admin_network.primary_oim_bmc_ip }}"
+
+- name: Add OIM iDRAC IP to discovered_nodes if available
+  ansible.builtin.set_fact:
+    discovered_nodes: "{{ discovered_nodes  + [{ 'bmc_ip': oim_bmc_ip, 'group_name': '', 'parent': '' } ] }}"
+  when:
+    - admin_bmc_ip | length > 0

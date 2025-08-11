@@ -13,19 +13,10 @@
 # limitations under the License.
 ---
 
-- name: Set fact for discovered nodes
-  ansible.builtin.set_fact:
-    non_oim_nodes: >-
-      {{
-        discovered_nodes
-        | rejectattr('role', 'search', 'oim_ha_node')
-        | list
-      }}
-
 - name: Update BMC entries with group details in CSV
   update_bmc_group_entry:
     csv_path: "{{ bmc_group_csv_path }}"
-    nodes: "{{ non_oim_nodes }}"
+    nodes: "{{ discovered_nodes  + [{ 'bmc_ip': admin_bmc_ip, 'group_name': '', 'parent': '' } ] }}"
     bmc_username: "{{ bmc_username }}"
     bmc_password: "{{ bmc_password }}"
   register: bmc_result
