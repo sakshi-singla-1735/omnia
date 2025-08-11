@@ -103,10 +103,7 @@ spec:
                   name: kafka-cluster-id
                   key: cluster-id
             - name: KAFKA_CONTROLLER_QUORUM_VOTERS
-              value: >-
-                {% for i in range(cp_node_count | int) -%}
-                {{ i }}@kafka-{{ i }}.kafka-headless.telemetry.svc.cluster.local:9093{% if not loop.last %},{% endif %}
-                {% endfor %}
+              value: "{{ range(cp_node_count | int) | map('string') | map('regex_replace', '^(.*)$', '\\1@kafka-\\1.kafka-headless.telemetry.svc.cluster.local:9093') | join(',') }}"
             - name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
               value: "CONTROLLER:PLAINTEXT,INTERNAL:SSL"
             - name: KAFKA_LISTENERS
