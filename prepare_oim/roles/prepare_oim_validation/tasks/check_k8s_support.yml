@@ -95,7 +95,7 @@
         log_dir: "{{ dynamic_k8s_json_log_dir }}"
         software_name: "k8s"
         n_latest: 3
-        arch: "amd64"
+        arch: "x86_64"
         mode: "clone"
         check_version: true
       register: k8s_to_kubespray_comp_ver
