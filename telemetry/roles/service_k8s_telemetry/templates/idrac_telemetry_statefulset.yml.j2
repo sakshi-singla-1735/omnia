@@ -19,7 +19,7 @@ metadata:
   namespace: {{ telemetry_namespace }}
 spec:
   serviceName: {{ idrac_telemetry_service_name }}
-  replicas: {{ idrac_telemetry_replicas + 1 }}
+  replicas: {{ ( idrac_telemetry_replicas | int ) + 1 }}
   selector:
     matchLabels:
       app: {{ idrac_telemetry_k8s_name }}
