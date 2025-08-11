@@ -46,22 +46,22 @@ spec:
                       values:
                         - {{ kafka.app_name }}
                 topologyKey: "kubernetes.io/hostname"
-        tolerations:
-          - key: node-role.kubernetes.io/control-plane
-            operator: Exists
-            effect: NoSchedule
-          - key: node-role.kubernetes.io/control-plane
-            operator: Exists
-            effect: NoExecute
-            tolerationSeconds: 5
-          - key: node.kubernetes.io/not-ready
-            operator: Exists
-            effect: NoExecute
-            tolerationSeconds: 5
-          - key: node.kubernetes.io/unreachable
-            operator: Exists
-            effect: NoExecute
-            tolerationSeconds: 5
+      tolerations:
+        - key: node-role.kubernetes.io/control-plane
+          operator: Exists
+          effect: NoSchedule
+        - key: node-role.kubernetes.io/control-plane
+          operator: Exists
+          effect: NoExecute
+          tolerationSeconds: 5
+        - key: node.kubernetes.io/not-ready
+          operator: Exists
+          effect: NoExecute
+          tolerationSeconds: 5
+        - key: node.kubernetes.io/unreachable
+          operator: Exists
+          effect: NoExecute
+          tolerationSeconds: 5
       containers:
         - name: {{ kafka.container_name }}
           image: {{ kafka.image }}
@@ -82,13 +82,31 @@ spec:
                     ssl.truststore.location=/bitnami/kafka/config/certs/kafka.truststore.pem
                     ssl.endpoint.identification.algorithm=
                     EOF
+          command:
+            - /bin/bash
+            - -c
+            - |
+              export KAFKA_NODE_ID=$(echo $POD_NAME | grep -o '[0-9]*$')
+              export KAFKA_ADVERTISED_LISTENERS="INTERNAL://${POD_NAME}.kafka-headless.telemetry.svc.cluster.local:9092"
+              exec /opt/bitnami/scripts/kafka/entrypoint.sh /opt/bitnami/scripts/kafka/run.sh
           env:
             - name: KAFKA_PROCESS_ROLES
               value: "broker,controller"
-            - name: KAFKA_NODE_ID
-              value: "0"
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.name
+            - name: KAFKA_KRAFT_CLUSTER_ID
+              valueFrom:
+                secretKeyRef:
+                  name: kafka-cluster-id
+                  key: cluster-id
             - name: KAFKA_CONTROLLER_QUORUM_VOTERS
-              value: "0@localhost:{{ kafka.container_port2 }}"
+              value: >-
+                {% for i in range(cp_node_count | int) -%}
+                {{ i }}@kafka-{{ i }}.kafka-headless.telemetry.svc.cluster.local:9093{% if not loop.last %},{% endif %}
+                {% endfor %}
             - name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
               value: "CONTROLLER:PLAINTEXT,INTERNAL:SSL"
             - name: KAFKA_LISTENERS

@@ -59,6 +59,25 @@
           - name: kafka
             port: 9092
 
+- name: Generate cluster ID
+  command: uuidgen
+  register: cluster_id
+  no_log: true
+
+- name: Create Kafka KRaft cluster ID secret
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: "{{ kafka.cluster-id }}"
+        namespace: "{{ telemetry_namespace }}"
+      type: Opaque
+      stringData:
+        cluster-id: "{{ cluster_id.stdout }}"
+  no_log: true
+
 - name: Deploy Kafka StatefulSet
   kubernetes.core.k8s:
     state: present
