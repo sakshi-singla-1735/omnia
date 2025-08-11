@@ -34,8 +34,10 @@ kafka_secrets:
   ssl_limit: 365
   san_cn: "kafka-headless.telemetry.svc.cluster.local"
   san_dns:
-    - "*.kafka-headless.telemetry.svc.cluster.local"
-    - "*.kafka.telemetry.svc.cluster.local"
+     - "kafka-headless.telemetry.svc.cluster.local"
+     - "*.kafka-headless.telemetry.svc.cluster.local"
+     - "kafka.telemetry.svc.cluster.local"
+     - "*.kafka.telemetry.svc.cluster.local"
     - "localhost"
   san_ips:
     - "127.0.0.1"
