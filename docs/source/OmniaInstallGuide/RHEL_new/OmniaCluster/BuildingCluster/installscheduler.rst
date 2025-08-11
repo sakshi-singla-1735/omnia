@@ -26,11 +26,12 @@ To run ``omnia.yml``: ::
         ansible-playbook omnia.yml -i <inventory_file_path>
 
 .. note::
+    
     * If you want to view or edit the ``omnia_config.yml`` file, run the following command:
 
-                - ``ansible-vault view omnia_config.yml --vault-password-file .omnia_vault_key`` -- To view the file.
+        - ``ansible-vault view omnia_config.yml --vault-password-file .omnia_vault_key`` -- To view the file.
 
-                - ``ansible-vault edit omnia_config.yml --vault-password-file .omnia_vault_key`` -- To edit the file.
+        - ``ansible-vault edit omnia_config.yml --vault-password-file .omnia_vault_key`` -- To edit the file.
 
     * Use the ansible-vault view or edit commands and not the ansible-vault decrypt or encrypt commands. If you have used the ansible-vault decrypt or encrypt commands, provide 644 permission to the parameter files.
 
