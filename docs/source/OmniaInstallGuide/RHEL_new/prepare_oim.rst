@@ -1,4 +1,4 @@
-Step 6: Execute the ``prepare_oim.yml`` playbook
+Step 5: Execute the ``prepare_oim.yml`` playbook
 ==================================================
 
 The ``prepare_oim.yml`` playbook accomplishes the following tasks:

@@ -28,7 +28,7 @@ Set up Slurm
 
 **Inventory details**
 
-* All the applicable inventory groups are ``slurm_control_node``, ``slurm_node``, and ``login``.
+* All the applicable inventory groups are ``slurm_control_node``, ``slurm_node``, and ``login_node``.
 
 * The inventory file must contain:
 
@@ -48,7 +48,7 @@ Set up Slurm
 
     10.5.1.103
 
-    [login]
+    [login_node]
 
     10.5.1.105
 
