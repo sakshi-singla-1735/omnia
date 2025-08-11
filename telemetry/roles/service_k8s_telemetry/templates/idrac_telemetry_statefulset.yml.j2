@@ -42,6 +42,7 @@ spec:
           hostnames:
             - "mysqldb"
 
+      terminationGracePeriodSeconds: 3
       tolerations:
       - effect: NoExecute
         key: node.kubernetes.io/not-ready
@@ -59,6 +60,10 @@ spec:
           volumeMounts:
             - name: mysqldb-pvc
               mountPath: /var/lib/mysql/
+          lifecycle:
+                preStop:
+                  exec:
+                    command: ["/bin/sh", "-c", "mysqladmin shutdown -uroot -p${MYSQL_ROOT_PASSWORD}"]
           env:
             - name: MYSQL_DATABASE
               value: {{ mysqldb_name }}
