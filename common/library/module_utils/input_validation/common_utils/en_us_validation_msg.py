@@ -36,8 +36,7 @@ RESOURCE_MGR_ID_MSG = ("The resource_mgr_id is mandatory if the group is mapped 
 GRP_EXIST_MSG = "A valid group must be provided."
 INVALID_SWITCH_IP_MSG = "Please provide a valid switch IPv4 address (example: 10.5.0.1)."
 GRP_ROLE_MSG = "Please associate this group with a role."
-PARENT_SERVICE_NODE_MSG = ("Group is associated with login, compiler_node,"
-                          "kube_control_plane, slurm_control_plane, service_kube_control_plane, service_kube_node role(s).")
+PARENT_SERVICE_NODE_MSG = ("A group associated with the management_layer should not have a parent value.")
 PARENT_SERVICE_ROLE_DNE_MSG = ("Parent field is only supported when 'service_kube_control_plane, service_kube_node' role is defined,"
     " Please remove the 'parent' field from this role's group definition.")
 PARENT_SERVICE_ROLE_MSG = (" A 'service_kube_control_plane, service_kube_node' role is not defined, so the 'parent' field should"
