@@ -14,18 +14,16 @@ Cluster formation
 
 3. ``omnia.yml`` is a wrapper playbook comprising of:
 
-    i. ``security.yml``: This playbook sets up centralized authentication (LDAP/FreeIPA) on the cluster. For more information, `click here. <Authentication.html>`_
-    ii. ``storage.yml``: This playbook sets up storage tools like `BeeGFS <Storage/BeeGFS.html>`_ and `NFS <Storage/NFS.html>`_.
-    iii. ``scheduler.yml``: This playbook sets up job schedulers (`Slurm <install_slurm.html>`_ or `Kubernetes <install_kubernetes.html>`_) on the cluster.
-    iv. ``telemetry.yml``: This playbook sets up `Omnia telemetry and/or iDRAC telemetry <../../../../Telemetry/index.html>`_. It also installs `Grafana <https://grafana.com/>`_ and `Loki <https://grafana.com/oss/loki/>`_ as Kubernetes pods.
-    v. ``rocm_installation.yml``: This playbook sets up the `ROCm platform for AMD GPU accelerators <AMD_ROCm.html>`_.
+    * ``security.yml``: This playbook sets up centralized authentication (LDAP/FreeIPA) on the cluster. For more information, `click here. <Authentication.html>`_
+    * ``storage.yml``: This playbook sets up storage tools like `BeeGFS <Storage/BeeGFS.html>`_ and `NFS <Storage/NFS.html>`_.
+    * ``scheduler.yml``: This playbook sets up job schedulers (`Slurm <install_slurm.html>`_ or `Kubernetes <install_kubernetes.html>`_) on the cluster.
+    * ``rocm_installation.yml``: This playbook sets up the `ROCm platform for AMD GPU accelerators <AMD_ROCm.html>`_.
 
 To run ``omnia.yml``: ::
 
         ssh omnia_core
         cd /omnia
         ansible-playbook omnia.yml -i <inventory_file_path>
-
 
 .. note::
     * If you want to view or edit the ``omnia_config.yml`` file, run the following command:
