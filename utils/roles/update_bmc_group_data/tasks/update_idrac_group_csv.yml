@@ -16,7 +16,7 @@
 - name: Update BMC entries with group details in CSV
   update_bmc_group_entry:
     csv_path: "{{ bmc_group_csv_path }}"
-    nodes: "{{ discovered_nodes  + [{ 'bmc_ip': admin_bmc_ip, 'group_name': '', 'parent': '' } ] }}"
+    nodes: "{{ discovered_nodes }}"
     bmc_username: "{{ bmc_username }}"
     bmc_password: "{{ bmc_password }}"
   register: bmc_result

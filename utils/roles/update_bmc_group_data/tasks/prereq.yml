@@ -75,6 +75,6 @@
 
 - name: Add OIM iDRAC IP to discovered_nodes if available
   ansible.builtin.set_fact:
-    discovered_nodes: "{{ discovered_nodes  + [{ 'bmc_ip': oim_bmc_ip, 'group_name': '', 'parent': '' } ] }}"
+    discovered_nodes: "{{ discovered_nodes + [{'bmc_ip': oim_bmc_ip, 'group_name': '', 'parent': ''}] }}"
   when:
-    - admin_bmc_ip | length > 0
+    - oim_bmc_ip | length > 0
