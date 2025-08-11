@@ -56,11 +56,14 @@ def get_service_cluster_details():
     roles_to_hostname_dict = {}
     for record in query_result:
         service_role = record['role']
-        role = service_role.replace("service_","")
+        k8s_roles = service_role.replace("service_","")
         hostname = record['hostname']
         admin_ip = record['admin_ip']
         service_tag = record['service_tag']
-        roles_to_hostname_dict.setdefault(role, []).append([hostname,admin_ip,service_tag])
+        role_list = k8s_roles.split(',') # if node is associcated to multiple roles then spilt
+
+        for role in role_list:
+            roles_to_hostname_dict.setdefault(role, []).append([hostname,admin_ip,service_tag])
 
 
     if all(role in roles_to_hostname_dict for role in required_k8s_roles):
