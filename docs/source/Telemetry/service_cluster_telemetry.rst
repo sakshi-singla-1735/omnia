@@ -11,6 +11,7 @@ Prerequisites
 2. Ensure that the ``service_k8s_cluster`` playbook has been executed successfully and Kubernetes on the service cluster is up and running. For a step-by-step guide, `click here <../OmniaInstallGuide/RHEL_new/OmniaCluster/BuildingCluster/Kubernetes/service_cluster_k8s.html>`_.
 3. For federated telemetry collection on service cluster, all BMC (iDRAC) IPs must be reachable from the service cluster nodes.
 4. In order to support telemetry collection, first you need to deploy Kubernetes on the service cluster. To do so, use the ``service_k8s_cluster.yml`` playbook.
+5. Before running the ``telemetry.yml`` playbook for the service cluster, ensure that all the nodes mentioned in the ``<service_cluster_name>_cluster_layout`` inventory are booted up and reachable.
 
 Steps
 ======
@@ -30,7 +31,7 @@ Steps
 3. Execute the ``telemetry.yml`` playbook. ::
 
     cd telemetry
-    ansible-playbook telemetry.yml -i /opt/omnia_inventory/service_cluster_cluster_layout
+    ansible-playbook telemetry.yml -i /opt/omnia_inventory/<service_cluster_name>_cluster_layout
 
 Result
 =======
