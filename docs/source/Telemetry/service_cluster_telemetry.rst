@@ -52,3 +52,14 @@ After ``telemetry.yml`` has been executed for the service cluster, the Prometheu
         kubectl logs <idrac-telemetry-pod> -n telemetry -c prometheus-pump
 
 .. note:: Metrics visualization using Grafana is not supported for iDRAC telemetry metrics on service cluster.
+
+Accessing the ``mysqldb`` logs
+================================
+
+After ``telemetry.yml`` has been executed for the service cluster, you can check the ``mysqldb`` database for logs of your telemetry pods. To view these logs, do the following:
+
+    1. Execute the following command: ::
+
+        kubectl exec -it -n telemetry <iDRAC_telemetry_pod_name> -c mysqldb-- mysql -u <MYSQL_USER> -p
+
+    2. When prompted, enter the mysql password to log in. 
