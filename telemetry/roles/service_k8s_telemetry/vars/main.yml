@@ -37,7 +37,9 @@ kafka_secrets:
   san_cn: "kafka-headless.telemetry.svc.cluster.local"
   san_dns:
     - "kafka-headless.telemetry.svc.cluster.local"
+    - "*.kafka-headless.telemetry.svc.cluster.local"
     - "kafka.telemetry.svc.cluster.local"
+    - "*.kafka.telemetry.svc.cluster.local"
     - "localhost"
   san_ips:
     - "127.0.0.1"
@@ -47,7 +49,7 @@ omnia_nfs_share: "{{ hostvars['localhost']['oim_shared_path'] }}/omnia"
 service_cluster_idrac_telemetry_dir_path: "{{ omnia_nfs_share }}/service_cluster/telemetry/idrac_telemetry"
 dir_permissions_755: "0755"
 idrac_telemetry_github_repo: https://github.com/dell/iDRAC-Telemetry-Reference-Tools.git
-reference_tools_stable_commit: "9a1c72b"
+reference_tools_stable_commit: "fd5f384"
 idrac_telemetry_reference_git_clone_path: "{{ service_cluster_idrac_telemetry_dir_path }}/iDRAC-Telemetry-Reference-Tools"
 idrac_git_clone_error_msg: |
   Failed to clone iDRAC Telemetry GitHub repository from {{ idrac_telemetry_github_repo }}
@@ -108,6 +110,7 @@ kafka:
   container_port2: 9093
   image: "bitnami/kafka:3.9.0"
   telemetry_topic_name: "idrac_telemetry"
+  cluster_id: "kafka-cluster-id"
 
 # Usage: telemetry_metadata.yml
 telemetry_metadata_path: "/opt/omnia/telemetry/.telemetry_metadata.yml"

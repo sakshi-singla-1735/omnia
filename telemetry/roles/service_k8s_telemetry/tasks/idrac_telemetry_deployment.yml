@@ -70,6 +70,7 @@
         | dict2items
         | selectattr('value.parent_status', 'defined')
         | selectattr('value.parent_status', 'equalto', true)
+        | selectattr('value.child_groups', 'defined')
         | list
         | length
       }}

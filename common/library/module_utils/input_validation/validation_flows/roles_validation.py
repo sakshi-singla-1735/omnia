@@ -365,6 +365,7 @@ def validate_roles_config(
         'service_kube_control_plane',
         'service_kube_node',
         'service_etcd',
+        'oim_ha_node',
         "kube_control_plane",
         "etcd",
         "slurm_control_plane",
@@ -589,7 +590,7 @@ def validate_roles_config(
                         errors.append(
                             create_error_msg(
                                 group,
-                                f"Group {group} should not have parent defined.",
+                                f"Group ({group}) is mapped to management_layer.",
                                 en_us_validation_msg.PARENT_SERVICE_NODE_MSG
                             )
                         )

@@ -139,15 +139,14 @@ def main():
     all_service_roles_discovered = False
 
     try:
-        if not valid_groups_in_inventory(inventory_groups_dict):
-            module.fail_json(msg=f"Inventory validation failed. "\
-                             f"Inventory must have all service k8s groups {required_k8s_roles}")
 
-        if federated_idrac_telemetry_collection:
-            all_service_roles_discovered, db_service_roles_to_hostname = \
+        all_service_roles_discovered, db_service_roles_to_hostname = \
                 get_service_cluster_details()
+
+        # if federated_idrac_telemetry_collection, only then validate inventory and db roles
+        if federated_idrac_telemetry_collection:
             grps_to_mismatch_hosts = validate_inventory_and_db_nodes(inventory_groups_dict,
-                                                                 db_service_roles_to_hostname)
+                                                               db_service_roles_to_hostname)
             if grps_to_mismatch_hosts:
                 module.fail_json(msg=f"Inventory validation failed. "\
                         f"Invalid hosts provided in inventory {grps_to_mismatch_hosts}")

@@ -196,7 +196,7 @@
         name: idrac_telemetry
 
 - name: Initiate telemetry collection on OIM/Service Cluster
-  hosts: telemetry_group
+  hosts: oim
   gather_facts: false
   tasks:
     - name: Initiate telemetry collection

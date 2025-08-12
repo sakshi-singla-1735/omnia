@@ -19,7 +19,7 @@ metadata:
   namespace: {{ telemetry_namespace }}
 spec:
   serviceName: {{ idrac_telemetry_service_name }}
-  replicas: {{ idrac_telemetry_replicas }}
+  replicas: {{ ( idrac_telemetry_replicas | int ) + 1 }}
   selector:
     matchLabels:
       app: {{ idrac_telemetry_k8s_name }}
@@ -41,7 +41,6 @@ spec:
         - ip: "127.0.0.1"
           hostnames:
             - "mysqldb"
-
       terminationGracePeriodSeconds: 3
       tolerations:
       - effect: NoExecute
@@ -52,7 +51,6 @@ spec:
         key: node.kubernetes.io/unreachable
         operator: Exists
         tolerationSeconds: 5
-
       containers:
         - name: mysqldb
           image: {{ mysql_image }}
@@ -164,7 +162,9 @@ spec:
             - name: KAFKA_TOPIC
               value: "{{ kafka.telemetry_topic_name }}"
             - name: KAFKA_SKIP_VERIFY
-              value: "{{ kafka_skip_verify | default('false') | lower }}"  
+              value: "{{ kafka_skip_verify | default('false') | lower }}"
+            - name: KAFKA_PARTITION
+              value: "0"
             - name: KAFKA_CACERT
               value: "kafka.truststore.pem"
             - name: KAFKA_CLIENT_CERT
