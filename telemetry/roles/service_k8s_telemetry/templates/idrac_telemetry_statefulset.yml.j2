@@ -41,7 +41,6 @@ spec:
         - ip: "127.0.0.1"
           hostnames:
             - "mysqldb"
-
       terminationGracePeriodSeconds: 3
       tolerations:
       - effect: NoExecute
@@ -52,7 +51,6 @@ spec:
         key: node.kubernetes.io/unreachable
         operator: Exists
         tolerationSeconds: 5
-
       containers:
         - name: mysqldb
           image: {{ mysql_image }}

@@ -22,7 +22,6 @@
       block:
         - name: Include roles_config.yml
           ansible.builtin.include_vars: "{{ roles_config_path }}"
-          register: include_roles_config
           tags: init
       rescue:
         - name: Failed to include  roles_config.yml
