@@ -101,4 +101,3 @@
             port: "{{ prometheus_pump_port }}"
         selector:
           app: "{{ idrac_telemetry_k8s_name }}"
-
