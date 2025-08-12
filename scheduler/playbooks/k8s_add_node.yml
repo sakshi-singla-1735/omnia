@@ -16,5 +16,11 @@
 - name: Fetch facts for nodes including new nodes
   ansible.builtin.import_playbook: kubernetes_sigs.kubespray.facts
 
+- name: Set new nodes fact
+  ansible.builtin.set_fact:
+    new_nodes: "{{ hostvars[groups['kube_control_plane'][0]]['k8s_new_nodes'] }}"
+  delegate_to: localhost
+  run_once: true
+
 - name: Initiate add node
-  ansible.builtin.import_playbook: kubernetes_sigs.kubespray.scale --limit="{{ hostvars[groups['kube_control_plane'][0]]['k8s_new_nodes'] }}"
+  ansible.builtin.import_playbook: kubernetes_sigs.kubespray.scale --limit="{{ new_nodes }}"
