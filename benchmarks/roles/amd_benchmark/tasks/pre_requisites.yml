@@ -24,7 +24,7 @@
   ansible.builtin.set_fact:
     slurm_installation_status: true
   when:
-    - "'slurm_node' in group_names or 'login' in group_names"
+    - "'slurm_node' in group_names or 'login_node' in group_names"
     - "'slurmd.service' in ansible_facts.services"
     - "'running' in ansible_facts.services['slurmd.service'].state"
 

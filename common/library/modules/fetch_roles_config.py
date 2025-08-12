@@ -21,7 +21,7 @@ This module provides functions for fetching roles from an OmniDB database.
 from ansible.module_utils.basic import AnsibleModule
 
 MANAGEMENT_LAYER_ROLES = {
-    "oim_ha_node", "service_node", "login", "compiler_node", "kube_control_plane", "etcd",
+    "oim_ha_node", "service_node", "login_node", "compiler_node", "kube_control_plane", "etcd",
     "slurm_control_node", "auth_server", "service_kube_control_plane", "service_etcd", "service_kube_node"
     }
 SECOND_LAYER_ROLES = {"default", "kube_node", "slurm_node"}

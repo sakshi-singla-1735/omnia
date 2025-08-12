@@ -51,7 +51,7 @@
   when: not ( hostvars['127.0.0.1']['inventory_validation_executed'] | default(false) | bool )
 
 - name: Gather facts from all the nodes
-  hosts: login, kube_control_plane, kube_node, etcd
+  hosts: login_node, kube_control_plane, kube_node, etcd
   gather_facts: true
 
 - name: Validate scheduler input parameters
