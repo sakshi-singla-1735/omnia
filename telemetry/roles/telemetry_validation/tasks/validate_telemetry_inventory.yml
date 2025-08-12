@@ -17,6 +17,7 @@
   ansible.builtin.assert:
     that: "'kube_control_plane' in groups and 'kube_node' in groups and 'etcd' in groups"
     fail_msg: "{{ telemetry_empty_inventory_fail_msg }}"
+  when: hostvars['localhost']['federated_idrac_telemetry_collection']
 
 - name: Validate telemetry inventory for federated_idrac_telemetry_collection
   validate_telemetry_inventory:
