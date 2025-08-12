@@ -1,0 +1,79 @@
+#  Copyright 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+---
+
+- name: Generating iDRAC telemetry pods names
+  ansible.builtin.set_fact:
+    idrac_telemetry_pods: >-
+      {{
+        range(0, idrac_telemetry_replicas | int)
+        | map('regex_replace', '^', idrac_telemetry_k8s_name ~ '-')
+        | list
+      }}
+
+- name: Wait for each iDRAC telemetry pod to be ready
+  ansible.builtin.command: >
+    kubectl wait --for=condition=ready pod/{{ item }}
+    -n {{ telemetry_namespace }} --timeout={{ pod_wait_timeout }}
+  loop: "{{ idrac_telemetry_pods }}"
+  changed_when: false
+
+- name: Get service cluster node details
+  ansible.builtin.set_fact:
+    kube_cp_node: >-
+      {{ service_cluster_metadata | dict2items
+         | selectattr('value.role', 'search', '(^|,)service_kube_control_plane(,|$)')
+         | list }}
+    kube_compute_nodes: >-
+      {{ service_cluster_metadata | dict2items
+         | rejectattr('value.role', 'search', '(^|,)service_kube_control_plane(,|$)')
+         | list }}
+
+- name: Identify unassigned service nodes and idrac-telemetry pods
+  ansible.builtin.set_fact:
+    unassigned_nodes: >-
+      {{ (kube_cp_node + kube_compute_nodes)
+         | rejectattr('value.idrac_podname', 'defined')
+         | list }}
+    assigned_pods: >-
+      {{ (kube_cp_node + kube_compute_nodes)
+         | map(attribute='value.idrac_podname')
+         | select('defined') | list | default([]) }}
+
+- name: Identify unassigned telemetry pods
+  ansible.builtin.set_fact:
+    unassigned_pods: >-
+      {{ idrac_telemetry_pods | reject('in', assigned_pods) | list }}
+
+- name: Build new pod assignments for unassigned nodes
+  ansible.builtin.set_fact:
+    new_metadata_items: "{{ new_metadata_items | default([]) + [
+        {
+          item.0.key: item.0.value | combine({ 'idrac_podname': item.1 })
+        }
+      ] }}"
+  loop: "{{ unassigned_nodes | zip(unassigned_pods) | list }}"
+
+- name: Append new pod details in service_cluster metadata
+  ansible.builtin.set_fact:
+    service_cluster_metadata: "{{ service_cluster_metadata | combine(new_metadata_items | default([]) | combine, recursive=True) }}"
+
+- name: Update service_cluster metadata file
+  ansible.builtin.copy:
+    content: "{{ {'service_cluster_metadata': service_cluster_metadata} | to_nice_yaml }}"
+    dest: "{{ service_cluster_metadata_path }}"
+    force: true
+    mode: "{{ metadata_perm }}"
+  delegate_to: localhost
+  connection: local

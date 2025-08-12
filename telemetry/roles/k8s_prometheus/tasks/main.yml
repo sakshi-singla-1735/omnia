@@ -14,8 +14,7 @@
 ---
 
 - name: Check if telemetry support is required
-  when: hostvars['127.0.0.1']['telemetry_entry_present']
+  when: hostvars['127.0.0.1']['kube_prometheus_support']
   block:
     - name: Install kube prometheus stack
       ansible.builtin.include_tasks: install_kube_prometheus.yml
-      when: hostvars['localhost']['k8s_prometheus_support']

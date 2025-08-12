@@ -9,7 +9,7 @@
         {"name": "ofed", "version": "24.10-3.2.5.0"},
         {"name": "openldap"},
         {"name": "nfs"},
-        {"name": "k8s", "version":"1.31.4"},
+        {"name": "compute_k8s", "version":"1.31.4"},
         {"name": "service_k8s","version": "1.31.4"},
         {"name": "slurm"}
     ],

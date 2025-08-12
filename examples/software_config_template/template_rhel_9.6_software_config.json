@@ -13,14 +13,15 @@
         {"name": "nfs"},
         {"name": "beegfs", "version": "7.4.5"},
         {"name": "slurm"},
-        {"name": "k8s", "version": "1.31.4"},
+        {"name": "compute_k8s", "version": "1.31.4"},
         {"name": "service_k8s", "version": "1.31.4"},
         {"name": "intel_benchmarks", "version": "2024.1.0"},
         {"name": "amd_benchmarks"},
         {"name": "utils"},
         {"name": "ucx", "version": "1.15.0"},
         {"name": "openmpi", "version": "4.1.6"},
-        {"name": "racadm"}
+        {"name": "racadm"},
+        {"name": "csi_driver_powerscale", "version":"v2.14.0"}        
     ],
 
     "amdgpu": [

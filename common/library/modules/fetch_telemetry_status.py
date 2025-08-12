@@ -17,7 +17,7 @@ import os
 import yaml
 from ansible.module_utils.basic import AnsibleModule
 
-TELEMETRY_CONFIG_PATH_DEFAULT = "/opt/omnia/input/project_default/telemetry_config.yml"
+TELEMETRY_CONFIG_FILE_NAME = "telemetry_config.yml"
 
 def load_yaml(path):
     """
@@ -47,7 +47,7 @@ def main():
         and returns the status as a list.
 
     Parameters:
-       telemetry_config_path: path to telemetry_config.yml
+       input_path: path to input files
 
     Returns:
         A list containing the telemetry status.
@@ -56,12 +56,13 @@ def main():
         None
     """
     module_args = {
-        "telemetry_config_path": {
-            "type": "str", "required": False, "default": TELEMETRY_CONFIG_PATH_DEFAULT
+        "input_path": {
+            "type": "path", "required": True
         }
     }
     module = AnsibleModule(argument_spec=module_args)
-    telemetry_config_path = module.params["telemetry_config_path"]
+    input_dir_path = module.params["input_path"]
+    telemetry_config_path = os.path.join(input_dir_path, TELEMETRY_CONFIG_FILE_NAME)
     telemetry_config_data = load_yaml(telemetry_config_path)
 
     telemetry_status_list = []

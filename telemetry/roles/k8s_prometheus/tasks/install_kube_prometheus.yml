@@ -13,21 +13,20 @@
 # limitations under the License.
 ---
 
-- name: Get K8s namespace
-  ansible.builtin.command: kubectl get ns
-  changed_when: false
-  register: k8s_ns
+- name: Load service_k8s.json file
+  ansible.builtin.set_fact:
+    service_k8s_package_json: "{{ lookup('file', service_k8s_packages_file) | from_json }}"
 
-- name: Get K8s pods
-  ansible.builtin.command: kubectl get pods --all-namespaces
-  changed_when: false
-  register: k8s_pods
+- name: Set fact for kube-prometheus-stack
+  ansible.builtin.set_fact:
+    kube_prometheus_stack_pkg: "{{ service_k8s_package_json['service_k8s']['cluster'] | selectattr('type', 'equalto', 'tarball') | selectattr('package', 'search', 'kube-prometheus-stack') | map(attribute='package') | join }}" # noqa: yaml[line-length]
 
-- name: Create monitoring namespace
-  ansible.builtin.command:
-    cmd: kubectl create namespace monitoring
-  changed_when: false
-  when: "'monitoring' not in k8s_ns.stdout"
+- name: Ensure monitoring namespace exists
+  ansible.builtin.k8s:
+    api_version: v1
+    kind: Namespace
+    name: monitoring
+    state: present
 
 - name: Create directory for temp k8s files
   ansible.builtin.file:
@@ -41,8 +40,12 @@
     dest: "{{ kube_prometheus_values_file_dest }}"
     mode: "{{ file_mode }}"
 
-- name: Install kube-prometheus stack
-  ansible.builtin.command: "helm install prometheus  '{{ kube_prometheus_stack_repo }}' --namespace monitoring  -f '{{ kube_prometheus_values_file_dest }}'"
-  changed_when: true
-  when:
-    - prometheus_pod_name not in k8s_pods.stdout
+- name: Install kube-prometheus stack via Helm
+  community.kubernetes.helm:
+    name: prometheus
+    chart_ref: "{{ kube_prometheus_stack_repo }}"
+    release_namespace: monitoring
+    values_files:
+      - "{{ kube_prometheus_values_file_dest }}"
+    create_namespace: true
+    state: present

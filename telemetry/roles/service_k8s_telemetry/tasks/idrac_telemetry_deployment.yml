@@ -13,16 +13,6 @@
 #  limitations under the License.
 ---
 
-- name: Get prometheus svc IP
-  ansible.builtin.command: kubectl get svc "{{ prometheus_k8s_name }}" -n "{{ telemetry_namespace }}" -o=jsonpath='{.spec.clusterIP}'
-  changed_when: false
-  register: prometheus_svc_ip
-
-- name: Get mysqldb svc IP
-  ansible.builtin.command: kubectl get svc "{{ mysqldb_k8s_name }}" -n "{{ telemetry_namespace }}" -o=jsonpath='{.spec.clusterIP}'
-  changed_when: false
-  register: mysql_svc_ip
-
 - name: Create directory for iDRAC telemetry
   ansible.builtin.file:
     path: "{{ service_cluster_idrac_telemetry_dir_path }}"
@@ -72,104 +62,91 @@
         msg: "{{ idrac_script_git_clone_error_msg.splitlines() | join(' ') }}"
       when: clone_idrac_script is failed
 
-- name: Deploy idrac-telemetry pod
+- name: Set idrac-telemetry replica count
+  ansible.builtin.set_fact:
+    idrac_telemetry_replicas: >-
+      {{
+        service_cluster_metadata
+        | dict2items
+        | selectattr('value.parent_status', 'defined')
+        | selectattr('value.parent_status', 'equalto', true)
+        | selectattr('value.child_groups', 'defined')
+        | list
+        | length
+      }}
+
+- name: Wait for Kafka pod to come to ready state
+  when: hostvars['localhost']['idrac_telemetry_collection_type'] == "kafka"
+  block:
+    - name: Wait for Kafka pod to come to ready state
+      ansible.builtin.command: >
+        kubectl wait --for=condition=ready
+        --timeout=300s
+        -n {{ telemetry_namespace }}
+        pod -l app={{ kafka.app_name }}
+      changed_when: false
+  rescue:
+    - name: Failed - Kafka pod is not running
+      ansible.builtin.fail:
+        msg: "{{ kafka_failed_msg }}"
+
+- name: Set Kafka headless service hostname
+  ansible.builtin.set_fact:
+    kafka_service_host: "{{ kafka.headless_service_name }}.{{ telemetry_namespace }}.svc.cluster.local"
+  when: hostvars['localhost']['idrac_telemetry_collection_type'] == "kafka"
+
+- name: Set Kafka broker address (IP:PORT)
+  ansible.builtin.set_fact:
+    kafka_broker: "{{ kafka_service_host }}:{{ kafka.container_port1 }}"
+  when: hostvars['localhost']['idrac_telemetry_collection_type'] == "kafka"
+
+- name: Render and apply idrac-telemetry StatefulSet
+  kubernetes.core.k8s:
+    state: present
+    definition: "{{ lookup('template', 'idrac_telemetry_statefulset.yml.j2') }}"
+
+- name: Service for idrac telemetry
   kubernetes.core.k8s:
     state: present
     definition:
-      apiVersion: apps/v1
-      kind: Deployment
+      apiVersion: v1
+      kind: Service
       metadata:
-        name: "{{ idrac_telemetry_k8s_name }}"
+        name: "{{ idrac_telemetry_service_name }}"
         namespace: "{{ telemetry_namespace }}"
         labels:
-          app: "{{ idrac_telemetry_k8s_name }}"
+          app: "{{ idrac_telemetry_service_name }}"
       spec:
+        clusterIP: None
+        ports:
+          - name: mysql-port-1
+            port: "{{ mysqldb_container_port1 }}"
+          - name: mysql-port-2
+            port: "{{ mysqldb_container_port2 }}"
+          - name: pump-port
+            port: "{{ prometheus_pump_port }}"
         selector:
-          matchLabels:
-            app: "{{ idrac_telemetry_k8s_name }}"
-        replicas: 1
-        strategy:
-          type: RollingUpdate
-        template:
-          metadata:
-            labels:
-              app: "{{ idrac_telemetry_k8s_name }}"
-          spec:
-            volumes:
-              - name: telemetry-reference-tools
-                hostPath:
-                  path: "{{ idrac_telemetry_reference_git_clone_path }}"
-                  type: Directory
+          app: "{{ idrac_telemetry_k8s_name }}"
 
-            hostAliases:
-              - ip: "127.0.0.1"
-                hostnames:
-                  - "activemq"
-              - ip: "{{ prometheus_svc_ip.stdout }}"
-                hostnames:
-                  - "prometheus"
-              - ip: "{{ mysql_svc_ip.stdout }}"
-                hostnames:
-                  - "mysqldb"
+- name: Wait for idrac-telemetry pod to come to ready state
+  block:
+    - name: Wait for idrac-telemetry pod to come to ready state
+      ansible.builtin.command: >
+        kubectl wait --for=condition=ready
+        --timeout={{ pod_wait_timeout }}
+        -n {{ telemetry_namespace }}
+        pod -l app={{ idrac_telemetry_k8s_name }}
+      changed_when: false
+  rescue:
+    - name: Failed - idrac-telemetry pod is not running
+      ansible.builtin.fail:
+        msg: "{{ idrac_telemetry_failed_msg }}"
 
-            containers:
-              - name: activemq
-                image: "{{ activemq_image }}"
-                imagePullPolicy: "IfNotPresent"
-                ports:
-                  - containerPort: "{{ activemq_http_port_1 }}"
-                  - containerPort: "{{ activemq_http_port_2 }}"
-
-              - name: idrac-telemetry-receiver
-                image: "{{ go_image }}"
-                imagePullPolicy: "IfNotPresent"
-                volumeMounts:
-                  - mountPath: /go/src/github.com/telemetry-reference-tools
-                    name: telemetry-reference-tools
-                workingDir: /go/src/github.com/telemetry-reference-tools
-                env:
-                  - name: MESSAGEBUS_HOST
-                    value: activemq
-                  - name: MESSAGEBUS_PORT
-                    value: "{{ messagebus_http_port | string }}"
-                  - name: CONFIGUI_HTTP_PORT
-                    value: "{{ configui_http_port | string }}"
-                  - name: MYSQL_DATABASE
-                    value: "{{ mysqldb_name }}"
-                  - name: MYSQL_USER
-                    valueFrom:
-                      secretKeyRef:
-                        name: "{{ mysqldb_secrets_name }}"
-                        key: mysqldb_user
-                  - name: MYSQL_PASSWORD
-                    valueFrom:
-                      secretKeyRef:
-                        name: "{{ mysqldb_secrets_name }}"
-                        key: mysqldb_password
-                  - name: MYSQL_HOST
-                    value: mysqldb
-                  - name: MYSQL_HOST_PORT
-                    value: "{{ mysqldb_container_port1 | string }}"
-                command:
-                  - "/bin/sh"
-                  - "-c"
-                args: ["./scripts/example/idrac-telemetry-receiver.sh"]
-
-              - name: prometheus-pump
-                image: "{{ go_image }}"
-                imagePullPolicy: "IfNotPresent"
-                volumeMounts:
-                  - mountPath: /go/src/github.com/telemetry-reference-tools
-                    name: telemetry-reference-tools
-                workingDir: /go/src/github.com/telemetry-reference-tools
-                env:
-                  - name: MESSAGEBUS_HOST
-                    value: activemq
-                  - name: MESSAGEBUS_PORT
-                    value: "{{ messagebus_http_port | string }}"
-                  - name: PROMETHEUSDB_SERVER
-                    value: prometheus
-                command:
-                  - "/bin/sh"
-                  - "-c"
-                args: ["go run cmd/prometheuspump/prometheuspump.go"]
+- name: Create metadata file for telemetry
+  ansible.builtin.copy:
+    dest: "{{ telemetry_metadata_path }}"
+    content: |
+      idrac_telemetry_collection_type: {{ hostvars['localhost']['idrac_telemetry_collection_type'] }}
+    mode: "{{ metadata_perm }}"
+  delegate_to: localhost
+  register: metadata_file_created
