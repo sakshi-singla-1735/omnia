@@ -151,7 +151,7 @@ def determine_function(task, repo_store_path, csv_file_path, user_data, version_
         if task_type == "git":
             return process_git, [task, repo_store_path, status_file]
         if task_type == "tarball":
-            return process_tarball, [task, repo_store_path, status_file, version_variables, arc]
+            return process_tarball, [task, repo_store_path, status_file, version_variables, cluster_os_type, cluster_os_version, arc]
         if task_type == "shell":
             return process_shell, [task, repo_store_path, status_file]
         if task_type == "ansible_galaxy_collection":
