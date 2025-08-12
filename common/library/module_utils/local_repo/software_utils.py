@@ -501,35 +501,50 @@ def read_status_csv(csv_path):
         reader = csv.DictReader(file)
         return [row for row in reader]
 
-def get_new_packages_not_in_status(all_input_packages, status_csv_rows):
+def get_new_packages_not_in_status(json_path, csv_path, subgroup_list):
     """
-    Returns packages from all_input_packages that are not present in status_csv_rows.
+    Reads packages from a JSON file and status rows from a CSV file,
+    then returns packages from JSON that are not present in the CSV.
     Handles grouped RPM entries like 'RPMs for <group>'.
+    
+    Parameters:
+        json_path (str): Path to JSON file containing 'all_input_packages'.
+        csv_path (str): Path to CSV file containing status rows.
+    
+    Returns:
+        list: List of new packages not in the status CSV.
     """
-    status_names = set()
-    rpm_status_present = False
 
-    for row in status_csv_rows:
-        name = row["name"]
-        if name.startswith("RPMs for"):
-            rpm_status_present = True
-        else:
-            status_names.add(name)
-
+    rpm_package_type = ['rpm']
+    rpm_packages = []
+    non_rpm_packages = []
     new_packages = []
 
-    # Include all RPMs if RPMs status is present
-    if rpm_status_present:
-        new_packages.extend(pkg for pkg in all_input_packages if pkg["type"] == "rpm")
+    status_csv_content = read_status_csv(csv_path)
+    names = [row['name'] for row in status_csv_content]
+    
+    if any(name.startswith("RPMs for") for name in names):
+        rpm_packages = parse_json_data(
+            json_path, rpm_package_type, None, subgroup_list)
+        new_packages.extend(rpm_packages)
 
-    # Include non-RPM packages not already in status_names
-    new_packages.extend(
-        pkg for pkg in all_input_packages
-        if pkg["type"] != "rpm" and pkg["package"] not in status_names
-    )
+    non_rpm_packages = parse_json_data(
+        json_path, PACKAGE_TYPES, None, subgroup_list)
+   
+    for pkg in non_rpm_packages:
+        if pkg["type"] == "rpm":
+            continue
+
+        if pkg["type"] == "image":
+           pkg_prefix = pkg.get("package", "").strip()
+           prefix_found = any(name.startswith(f"{pkg_prefix}:") for name in names)
+           if not prefix_found:
+               new_packages.append(pkg)
+        else:
+            if pkg.get("package") not in names:
+                new_packages.append(pkg)
 
     return new_packages
-
 
 def process_software(software, fresh_installation, json_path, csv_path, subgroup_list):
     """
@@ -555,6 +570,7 @@ def process_software(software, fresh_installation, json_path, csv_path, subgroup
  
     combined = parse_json_data(
         json_path, PACKAGE_TYPES, failed_packages, subgroup_list) + rpm_tasks
+
     return combined, failed_packages
 
 def get_software_names(json_file_path, arch="x86_64"):

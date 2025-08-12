@@ -35,7 +35,8 @@ from ansible.module_utils.local_repo.software_utils  import (
     transform_package_dict,
     parse_repo_urls,
     set_version_variables,
-    get_subgroup_dict
+    get_subgroup_dict,
+    get_new_packages_not_in_status
 )
 
 # Import configuration constants individually (excluding fresh_installation_status)
@@ -137,6 +138,11 @@ def main():
                     is_fresh_software = software in new_softwares.get(arch, [])
                  failed_softwares = get_failed_software(software_csv_path[arch])
                  if not is_fresh_software and software not in failed_softwares:
+                    tasks_dict[software] = get_new_packages_not_in_status(json_path[arch], status_csv_path[arch], subgroup_dict.get(software, None))
+                    logger.info(f"Additional software packages: {tasks_dict}")
+                    trans=transform_package_dict(tasks_dict, arch)
+                    final_tasks_dict.update(trans)
+                    logger.info(f"Final tasklist to process: {trans}")
                     continue
 
                  tasks, failed_packages = process_software(software, is_fresh_software, json_path[arch], status_csv_path[arch], subgroup_dict.get(software, None))  
