@@ -89,6 +89,7 @@ def main():
         cluster_os_version = user_data['cluster_os_version']
         repo_config = user_data['repo_config']
 
+        final_tasks_dict = {}
         for arch in ARCH_SUFFIXES:
              software_csv_path = {}
              fresh_installation = {}
@@ -103,7 +104,7 @@ def main():
              tasks_dict = {}
 
              full_path = os.path.join(csv_file_path, arch, SOFTWARE_CSV_FILENAME)
-             fresh_installation[arch] = check_csv_existence(full_path)
+             fresh_installation[arch] = True if not check_csv_existence(full_path) else False
              software_csv_path[arch] = full_path
              logger.info(f"fresh_installation dict: {fresh_installation}")
              logger.info(f"software_csv_path: {software_csv_path}")
@@ -114,8 +115,8 @@ def main():
                  new_softwares[arch] = [
                     software for software in software_list[arch] if software not in csv_softwares[arch]
                  ]
-             logger.info(f"Existing softwares in {arch} software csv: {csv_softwares[arch]}")
-             logger.info(f"New software list for {arch}: {new_softwares[arch]}")
+             logger.info(f"Existing softwares in {arch} software csv: {csv_softwares}")
+             logger.info(f"New software list for {arch}: {new_softwares}")
              # Build a dictionary mapping software names to subgroup data, if available
              subgroup_dict, software_names = get_subgroup_dict(user_data)
              version_variables = set_version_variables(user_data, software_names, cluster_os_version)
@@ -130,26 +131,27 @@ def main():
                  if not json_path[arch]:
                     logger.warning(f"Skipping {software}: JSON path does not exist.")
                     continue
-                 if software in new_softwares[arch]:
+                 if not new_softwares:
                     is_fresh_software = True
                  else:
-                    is_fresh_software = False
-                
+                    is_fresh_software = software in new_softwares.get(arch, [])
                  failed_softwares = get_failed_software(software_csv_path[arch])
                  if not is_fresh_software and software not in failed_softwares:
                     continue
+
                  tasks, failed_packages = process_software(software, is_fresh_software, json_path[arch], status_csv_path[arch], subgroup_dict.get(software, None))  
                  logger.info(f"tasks to be processed: {tasks}")
                  logger.info(f"failed_packages : {failed_packages}")
                  tasks_dict[software] = tasks
-                 tasks_dict=transform_package_dict(tasks_dict, arch)
-                 logger.info(f"Final tasklist to process: {tasks_dict}")
+                 trans=transform_package_dict(tasks_dict, arch)
+                 logger.info(f"Final tasklist to process: {trans}")
+                 final_tasks_dict.update(trans)
         local_config, url_result = parse_repo_urls(repo_config, local_repo_config_path , version_variables, vault_key_path)
         if not url_result:
             module.fail_json(f"{local_config} is not reachable or invalid, please check and provide correct URL")
 
-        logger.info(f"Package processing completed: {software_dict}")
-        module.exit_json(changed=False, software_dict=software_dict, local_config=local_config)
+        logger.info(f"Package processing completed: {final_tasks_dict}")
+        module.exit_json(changed=False, software_dict=final_tasks_dict, local_config=local_config)
 
     except Exception as e:
         logger.error(f"Error occurred: {str(e)}")
