@@ -15,7 +15,7 @@
 
 - name: Initialise variables
   ansible.builtin.set_fact:
-    k8s_support: false
+    compute_k8s_support: false
     service_k8s_support: false
     slurm_support: false
     freeipa_support: false
@@ -58,7 +58,7 @@
 
 - name: Set k8s, slurm, freeipa and openldap support
   ansible.builtin.set_fact:
-    k8s_support: "{{ software_config.softwares | selectattr('name', 'equalto', 'k8s') | list | length > 0 }}"
+    compute_k8s_support: "{{ software_config.softwares | selectattr('name', 'equalto', 'compute_k8s') | list | length > 0 }}"
     service_k8s_support: "{{ software_config.softwares | selectattr('name', 'equalto', 'service_k8s') | list | length > 0 }}"
     slurm_support: "{{ software_config.softwares | selectattr('name', 'equalto', 'slurm') | list | length > 0 }}"
     freeipa_support: "{{ software_config.softwares | selectattr('name', 'equalto', 'freeipa') | list | length > 0 }}"

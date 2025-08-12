@@ -43,11 +43,11 @@
 
 # Validate K8s requirements for all the nodes
 - name: Fetch omnia_config.yml
-  when: k8s_support and compute_k8s_playbook is defined
+  when: compute_k8s_support and compute_k8s_playbook is defined
   ansible.builtin.include_tasks: fetch_omnia_config.yml
 
 - name: Validate K8s nodes requirements
-  when: k8s_support and compute_k8s_playbook is defined
+  when: compute_k8s_support and compute_k8s_playbook is defined
   ansible.builtin.include_tasks: k8s_validations.yml
 
 # Validate service K8s requirements for all the nodes
