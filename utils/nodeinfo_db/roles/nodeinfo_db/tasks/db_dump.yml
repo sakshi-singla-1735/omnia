@@ -13,35 +13,33 @@
 # limitations under the License.
 ---
 
-- name: Dump omnia DB data
-  when: hostvars['localhost']['postgresdb_password'] is defined
-  block:
-    - name: Extract query data from omniadb cluster.nodeinfo for {{ filename }}
-      community.postgresql.postgresql_copy:
-        db: "{{ nodeinfo_db_omniadb }}"
-        login_user: "{{ nodeinfo_db_login_user }}"
-        login_password: "{{ hostvars['localhost']['postgresdb_password'] }}"
-        src: "{{ query }}"
-        copy_to: "{{ nodeinfo_db_filename_tmp }}"
-        options:
-          format: csv
+- name: Extract query data from omniadb cluster.nodeinfo for {{ filename }}
+  community.postgresql.postgresql_copy:
+    db: "{{ nodeinfo_db_omniadb }}"
+    login_user: "{{ nodeinfo_db_login_user }}"
+    login_password: "{{ hostvars['localhost']['postgresdb_password'] }}"
+    src: "{{ query }}"
+    copy_to: "{{ nodeinfo_db_filename_tmp }}"
+    options:
+      format: csv
+  no_log: true
 
-    - name: Append columns to {{ filename }}
-      ansible.builtin.lineinfile:
-        path: "{{ nodeinfo_db_filename_tmp }}"
-        line: "{{ show_column_list }}"
-        insertafter: BOF
+- name: Append columns to {{ filename }}
+  ansible.builtin.lineinfile:
+    path: "{{ nodeinfo_db_filename_tmp }}"
+    line: "{{ show_column_list }}"
+    insertafter: BOF
 
-    - name: Copy query data to {{ filename }}
-      ansible.builtin.copy:
-        src: "{{ nodeinfo_db_filename_tmp }}"
-        dest: "{{ filename }}"
-        owner: "{{ nodeinfo_db_file_owner }}"
-        group: "{{ nodeinfo_db_file_group }}"
-        mode: "{{ nodeinfo_db_file_mode }}"
-        remote_src: true
+- name: Copy query data to {{ filename }}
+  ansible.builtin.copy:
+    src: "{{ nodeinfo_db_filename_tmp }}"
+    dest: "{{ filename }}"
+    owner: "{{ nodeinfo_db_file_owner }}"
+    group: "{{ nodeinfo_db_file_group }}"
+    mode: "{{ nodeinfo_db_file_mode }}"
+    remote_src: true
 
-    - name: Delete tmp file
-      ansible.builtin.file:
-        path: "{{ nodeinfo_db_filename_tmp }}"
-        state: absent
+- name: Delete tmp file
+  ansible.builtin.file:
+    path: "{{ nodeinfo_db_filename_tmp }}"
+    state: absent
