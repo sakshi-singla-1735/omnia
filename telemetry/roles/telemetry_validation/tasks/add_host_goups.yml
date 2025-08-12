@@ -75,7 +75,6 @@
 
 - name: Create telemetry group
   ansible.builtin.add_host:
-    hostname: "{{ item }}"
+    hostname: "{{ telemetry_host }}"
     groups: "{{ telemetry_host_group }}"
-    ansible_connection: "{{ 'local' if item == 'localhost' else 'ssh' }}"
-  loop: "{{ telemetry_host }}"
+    ansible_connection: "{{ 'local' if telemetry_host == 'localhost' else 'ssh' }}"

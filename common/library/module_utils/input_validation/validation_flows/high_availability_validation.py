@@ -704,7 +704,8 @@ def validate_high_availability_config(
         ("oim_ha", ["admin_virtual_ip_address", "active_node_service_tag", "passive_nodes"]),
         ("service_node_ha", ["service_nodes"]),
         ("slurm_head_node_ha", ["virtual_ip_address", "active_node_service_tag", "passive_nodes"]),
-        ("k8s_head_node_ha", ["virtual_ip_address", "active_node_service_tags"])
+        ("compute_k8s_head_node_ha", ["virtual_ip_address", "active_node_service_tags"]),
+        ("service_k8s_head_node_ha", ["virtual_ip_address", "active_node_service_tags"])
     ]
 
     for config_name, mandatory_fields in ha_configs:
