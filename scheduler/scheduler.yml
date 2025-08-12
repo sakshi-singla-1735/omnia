@@ -116,7 +116,7 @@
     - not hostvars[groups['kube_control_plane'][0]]['kube_vip_present']
 
 - name: Add nodes to kubernetes cluster
-  ansible.builtin.import_playbook: playbooks/k8s_add_node_install.yml  # noqa syntax-check
+  ansible.builtin.import_playbook: playbooks/k8s_add_node_install.yml
   when:
     - hostvars['127.0.0.1']['k8s_support']
     - hostvars[groups['kube_control_plane'][0]]['k8s_installation_status']
