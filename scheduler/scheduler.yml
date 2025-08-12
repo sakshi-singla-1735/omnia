@@ -19,7 +19,7 @@
   tasks:
     - name: Set dynamic run tags including k8s
       ansible.builtin.set_fact:
-        omnia_run_tags: "{{ (ansible_run_tags | default([]) + ['k8s']) | unique }}"
+        omnia_run_tags: "{{ (ansible_run_tags | default([]) + ['k8s', 'slurm']) | unique }}"
         cacheable: true
 
 - name: Invoke get_config_credentials.yml
@@ -158,12 +158,6 @@
   any_errors_fatal: true
   roles:
     - slurm
-
-- name: Install Slurm_pam
-  hosts: slurm_node,login_node
-  any_errors_fatal: true
-  roles:
-    - slurm_pam
 
 - name: Compile and install the ucx and openmpi on the nfs share of compute nodes
   hosts: slurm_control_node, kube_control_plane
