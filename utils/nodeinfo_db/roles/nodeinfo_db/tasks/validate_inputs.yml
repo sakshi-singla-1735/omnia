@@ -72,13 +72,7 @@
 
     - name: Set SQL query based on user input filter
       ansible.builtin.set_fact:
-        query_part2: >-
-          WHERE {{
-            filter_attributes | zip(filter_attributes_value) |
-            map('join', " = '") |
-            map('regex_replace', "(.*)", "\\1'") |
-            join(' AND ')
-          }}
+        query_part2: "{{ lookup('template', 'input_filter.j2') }}"
       when: filter_attributes_length == filter_attributes_value_length and filter_attributes_length != "0"
 
     - name: Set Complete query based on user input
