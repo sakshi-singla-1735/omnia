@@ -122,12 +122,11 @@ msg_collection_type_mismatch: >
 service_cluster_metadata_path: "/opt/omnia/.data/service_cluster_metadata.yml"
 cluster_layout_path: "/opt/omnia/omnia_inventory/cluster_layout"
 invalid_parent_tags_message: |
-  [ERROR] Invalid parent tags : {{ host_inventory.invalid_parent_tags }}.
-  These parent tags found in `{{ bmc_group_data_filename }}` are not of service nodes.
-  If your are adding a bmc entry in the csv file, please ensure that the parent tag is service tag of service node.
-  If service nodes are not provisioned or compute node provisioning not initiated,
-  please run discovery_provision.yml to provision service nodes and compute nodes from service nodes.
-  And then run `telemetry.yml` playbook again.
+  [ERROR] Invalid parent tag(s): {{ host_inventory.invalid_parent_tags }}.
+  These parent tag(s) found in `{{ bmc_group_data_filename }}` are not part of the Service Kubernetes cluster and were not provisioned by OMNIA.
+  If you are adding a BMC entry to the CSV file,
+  Please ensure that each parent tag mentioned in file are valid omnia provisioned Kubernetes node.
+  Update the CSV file with valid parent tag(s) and re-run telemetry.yml.
 telemetry_host_group: "telemetry_group"
 telemetry_host: >-
   {{ groups['kube_control_plane'][0]
