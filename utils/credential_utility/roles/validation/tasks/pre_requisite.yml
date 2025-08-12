@@ -76,7 +76,7 @@
 
 - name: Fetch telemetry status from telemetry_config.yml
   fetch_telemetry_status:
-    telemetry_config_path: "{{ telemetry_config_path }}"
+    input_path: "{{ input_project_dir }}"
   register: result
   when: "'telemetry' in (omnia_run_tags | default([]))
         or 'prepare_oim' in (omnia_run_tags | default([]))"

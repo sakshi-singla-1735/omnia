@@ -19,7 +19,7 @@ metadata:
   namespace: {{ telemetry_namespace }}
 spec:
   serviceName: {{ idrac_telemetry_service_name }}
-  replicas: {{ idrac_telemetry_replicas }}
+  replicas: {{ ( idrac_telemetry_replicas | int ) + 1 }}
   selector:
     matchLabels:
       app: {{ idrac_telemetry_k8s_name }}
@@ -33,7 +33,10 @@ spec:
           hostPath:
             path: {{ idrac_telemetry_reference_git_clone_path }}
             type: Directory
-
+        - name: kafka-tls-certs
+          secret:
+            secretName: "{{ kafka_secrets.name }}"
+ 
       hostAliases:
         - ip: "127.0.0.1"
           hostnames:
@@ -121,6 +124,7 @@ spec:
           command: ["/bin/sh", "-c"]
           args: ["./scripts/example/idrac-telemetry-receiver.sh"]
 
+{% if hostvars['localhost']['idrac_telemetry_collection_type'] == "prometheus" %}
         - name: prometheus-pump
           image: {{ go_image }}
           imagePullPolicy: IfNotPresent
@@ -137,6 +141,39 @@ spec:
               value: prometheus
           command: ["/bin/sh", "-c"]
           args: ["go run cmd/prometheuspump/prometheuspump.go"]
+{% elif hostvars['localhost']['idrac_telemetry_collection_type'] == "kafka" %}
+        - name: kafka-pump
+          image: {{ go_image }}
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - mountPath: /go/src/github.com/telemetry-reference-tools
+              name: telemetry-reference-tools
+            - mountPath: /extrabin/certs 
+              name: kafka-tls-certs
+              readOnly: true 
+          workingDir: /go/src/github.com/telemetry-reference-tools
+          env:
+            - name: MESSAGEBUS_HOST
+              value: 127.0.0.1
+            - name: MESSAGEBUS_PORT
+              value: "{{ messagebus_http_port }}"
+            - name: KAFKA_BROKER
+              value: "{{ kafka_broker }}"
+            - name: KAFKA_TOPIC
+              value: "{{ kafka.telemetry_topic_name }}"
+            - name: KAFKA_SKIP_VERIFY
+              value: "{{ kafka_skip_verify | default('false') | lower }}"
+            - name: KAFKA_PARTITION
+              value: "0"
+            - name: KAFKA_CACERT
+              value: "kafka.truststore.pem"
+            - name: KAFKA_CLIENT_CERT
+              value: "kafka.keystore.pem"
+            - name: KAFKA_CLIENT_KEY
+              value: "kafka.keystore.key"
+          command: ["/bin/sh", "-c"]
+          args: ["go run cmd/kafkapump/kafkapump.go"]
+{% endif %}
 
   volumeClaimTemplates:
     - metadata:

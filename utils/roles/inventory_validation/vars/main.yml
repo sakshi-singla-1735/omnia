@@ -31,7 +31,7 @@ cluster_type_unknown_msg: "Neither compute_k8s_playbook nor service_k8s_playbook
 # Usage: validate_inventory.yml
 empty_inventory_fail_msg: |
   "Failed. inventory not provided. Re-run playbook with inventory by providing -i inventory.
-  Inventory support groups are slurm_control_node, slurm_node, login, kube_control_plane, kube_node, etcd, auth_server"
+  Inventory support groups are slurm_control_node, slurm_node, login_node, kube_control_plane, kube_node, etcd, auth_server"
 cluster_layout_path: "/opt/omnia/omnia_inventory/cluster_layout"
 warning_wait_time: 30
 inventory_warn_msg: |
@@ -89,11 +89,10 @@ slurm_node_validation_success_msg: "At least one slurm_node exists in the invent
 unreachable_slurm_control_node_fail_msg: |
   "Failed. Unreachable node mentioned in inventory for slurm_control_node.
   Re-run playbook with reachable slurm_control_node."
-slurm_control_node_in_login_fail_msg: "Failed. Node mentioned in slurm_control_node group should not be present in login group"
+slurm_control_node_in_login_fail_msg: "Failed. Node mentioned in slurm_control_node group should not be present in login_node group"
 slurm_control_node_in_node_fail_msg: "Failed. Node mentioned in slurm_control_node group should not be present in slurm_node group"
-multiple_login_node_fail_msg: "Failed. Currently only one login node supported in inventory"
 login_node_warning_msg: |
-  "[WARNING] login group with ip for login node not present in the inventory.
+  "[WARNING] login_node group with ip for login_node not present in the inventory.
   Proceeding execution with provided nodes"
 slurm_node_validation_fail_msg: |
   "Failed. slurm software is present in software_config.json.

@@ -42,6 +42,7 @@
         prompt: "{{ inventory_warn_msg }}"
 
 # Validate K8s requirements for all the nodes
+
 - name: Validate K8s nodes requirements
   when: (k8s_support and (compute_k8s_playbook | default(false))) or (service_k8s_support and (service_k8s_playbook | default(false)))
   block:

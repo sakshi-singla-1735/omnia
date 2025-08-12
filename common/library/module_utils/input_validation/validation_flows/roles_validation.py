@@ -112,7 +112,7 @@ def validate_layer_group_separation(logger, roles):
     # Define layer roles
     frontend_roles = {
         "service_node",
-        "login",
+        "login_node",
         "auth_server",
         "compiler_node",
         "kube_control_plane",
@@ -312,6 +312,53 @@ def validate_k8s_cluster_name_consistency(roles, groups):
 
     return errors
 
+# Validate that the login node does not share the same group with either kube_control_plane or slurm_control_node
+def validate_login_node_group_separation(logger, roles):
+    """
+    Validates that the login node does not share the same group with either kube_control_plane or slurm_control_node.
+
+    Args:
+        logger (Logger): A logger instance.
+        roles (list): List of role dictionaries from the config.
+
+    Returns:
+        list: List of validation errors.
+    """
+    errors = []
+    login_node_groups = set()
+    control_plane_groups = set()
+    login_node_role_names = []
+    control_plane_role_names = []
+
+    for role in roles:
+        role_name = role.get("name", "")
+        role_groups = role.get("groups", [])
+
+        if role_name == "login_node":
+            login_node_groups.update(role_groups)
+            login_node_role_names.append(role_name)
+        elif role_name in ["kube_control_plane", "slurm_control_node"]:
+            control_plane_groups.update(role_groups)
+            control_plane_role_names.append(role_name)
+
+    shared_groups = login_node_groups & control_plane_groups
+    if shared_groups:
+        shared_group_str = ', '.join(shared_groups)
+        login_node_roles_str = ', '.join(login_node_role_names)
+
+        # filter the control plane roles that have shared groups with login node
+        control_plane_roles_with_shared_groups = []
+        for role in roles:
+            role_name = role.get("name", "")
+            role_groups = role.get("groups", [])
+            if role_name in ["kube_control_plane", "slurm_control_node"] and set(role_groups) & shared_groups:
+                control_plane_roles_with_shared_groups.append(role_name)
+
+        control_plane_roles_str = ', '.join(control_plane_roles_with_shared_groups)
+        msg = f"Group(s) {shared_group_str} shared between {login_node_roles_str} role and {control_plane_roles_str} roles. Make sure grops associated with {login_node_roles_str} and {control_plane_roles_str} do not overlap."
+        errors.append(create_error_msg("Roles", shared_group_str, msg))
+
+    return errors
 def validate_roles_config(
     input_file_path, data, logger, _module, _omnia_base_dir, _module_utils_base, _project_name
 ):
@@ -359,7 +406,7 @@ def validate_roles_config(
 
     roles_per_group = {}
     empty_parent_roles = {
-        "login",
+        "login_node",
         "compiler_node",
         "service_node",
         'service_kube_control_plane',
@@ -368,7 +415,7 @@ def validate_roles_config(
         'oim_ha_node',
         "kube_control_plane",
         "etcd",
-        "slurm_control_plane",
+        "slurm_control_node",
         "auth_server"
     }
 
@@ -389,6 +436,11 @@ def validate_roles_config(
 
     # Validate basic structure
     errors.extend(validate_basic_structure(data, roles, groups))
+    if errors:
+        return errors
+
+    # Validate login_node groups overlap with either kube_control_plane ir slurm_control_node
+    errors.extend(validate_login_node_group_separation(logger, roles))
     if errors:
         return errors
 
@@ -750,7 +802,7 @@ def validate_roles_config(
                             )
                         )
                     static_range_mapping[group] = static_range_value
-                
+
                 # Check overlap with admin network from network_spec
                 bmc_range = groups[group].get("bmc_details", {}).get("static_range", "")
                 overlap_errors = validation_utils.check_bmc_range_against_admin_network(

@@ -32,14 +32,14 @@
   when: not ( hostvars['127.0.0.1']['update_user_repo_executed'] | default(false) | bool )
 
 - name: Gather Cluster Facts
-  hosts: slurm_control_node, slurm_node, kube_control_plane, kube_node, auth_server, login, etcd
+  hosts: slurm_control_node, slurm_node, kube_control_plane, kube_node, auth_server, login_node, etcd
   gather_facts: true
   roles:
     - common
   tags: amd, nvidia, intel
 
 - name: Perform GPU driver and ROCm installation for AMD Accelerators
-  hosts: slurm_control_node, slurm_node, kube_control_plane, kube_node, auth_server, login, etcd
+  hosts: slurm_control_node, slurm_node, kube_control_plane, kube_node, auth_server, login_node, etcd
   gather_facts: true
   any_errors_fatal: true
   roles:
@@ -47,7 +47,7 @@
   tags: amd
 
 - name: Install Intel Gaudi drivers on nodes
-  hosts: slurm_control_node, slurm_node, kube_control_plane, kube_node, auth_server, login, etcd
+  hosts: slurm_control_node, slurm_node, kube_control_plane, kube_node, auth_server, login_node, etcd
   gather_facts: true
   any_errors_fatal: true
   roles:
