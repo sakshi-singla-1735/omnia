@@ -13,6 +13,10 @@
 # limitations under the License.
 ---
 
+- name: Define project input path
+  ansible.builtin.set_fact:
+    project_input_path: "{{ hostvars['localhost']['input_project_dir'] }}"
+
 - name: Ensure firewalld is installed and running
   ansible.builtin.dnf:
     name: firewalld

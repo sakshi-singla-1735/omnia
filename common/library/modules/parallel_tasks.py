@@ -53,7 +53,9 @@ from ansible.module_utils.local_repo.config import (
     STATUS_CSV_HEADER,
     LOCAL_REPO_CONFIG_PATH_DEFAULT,
     USER_REG_CRED_INPUT,
-    USER_REG_KEY_PATH
+    USER_REG_KEY_PATH,
+    OMNIA_CREDENTIALS_YAML_PATH,
+    OMNIA_CREDENTIALS_VAULT_PATH
 )
 
 def update_status_csv(csv_dir, software, overall_status):
@@ -233,7 +235,11 @@ def main():
         "user_json_file": {"type": "str", "required": False, "default": USER_JSON_FILE_DEFAULT},
         "show_softwares_status": {"type": "bool", "required": False, "default": False},
         "overall_status_dict": {"type": "dict", "required": False, "default": {}},
-        "local_repo_config_path": {"type": "str", "required": False, "default": LOCAL_REPO_CONFIG_PATH_DEFAULT}
+        "local_repo_config_path": {"type": "str", "required": False, "default": LOCAL_REPO_CONFIG_PATH_DEFAULT},
+        "user_reg_cred_input": {"type": "str", "required": False, "default": USER_REG_CRED_INPUT},
+        "user_reg_key_path": {"type": "str", "required": False, "default": USER_REG_KEY_PATH},
+        "omnia_credentials_yaml_path": {"type": "str", "required": False, "default": OMNIA_CREDENTIALS_YAML_PATH},
+        "omnia_credentials_vault_path": {"type": "str", "required": False, "default": OMNIA_CREDENTIALS_VAULT_PATH}
     }
     module = AnsibleModule(argument_spec=module_args, supports_check_mode=True)
     tasks = module.params["tasks"]
@@ -249,6 +255,10 @@ def main():
     show_softwares_status = module.params["show_softwares_status"]
     overall_status_dict = module.params['overall_status_dict']
     local_repo_config_path = module.params["local_repo_config_path"]
+    user_reg_cred_input = module.params["user_reg_cred_input"]
+    user_reg_key_path = module.params["user_reg_key_path"]
+    omnia_credentials_yaml_path = module.params["omnia_credentials_yaml_path"]
+    omnia_credentials_vault_path = module.params["omnia_credentials_vault_path"]
 
     # Initialize standard logger.
     slogger = setup_standard_logger(slog_file)
@@ -279,18 +289,19 @@ def main():
         slogger.info(f"Cluster OS: {cluster_os_type}")
         slogger.info(f"Version Variables: {version_variables}")
         gen_result = {}
-        if not os.path.isfile(USER_REG_KEY_PATH):
-            gen_result = generate_vault_key(USER_REG_KEY_PATH)
+        if not os.path.isfile(user_reg_key_path):
+            gen_result = generate_vault_key(user_reg_key_path)
         if gen_result is None:
-            module.fail_json(msg=f"Unable to generate local_repo key at path: {USER_REG_KEY_PATH}")
+            module.fail_json(msg=f"Unable to generate local_repo key at path: {user_reg_key_path}")
 
         overall_status, task_results = execute_parallel(
             tasks, determine_function, nthreads, repo_store_path, csv_file_path,
-            log_dir, user_data, version_variables, slogger, local_repo_config_path, timeout
+            log_dir, user_data, version_variables, slogger, local_repo_config_path, user_reg_cred_input, user_reg_key_path,
+            omnia_credentials_yaml_path, omnia_credentials_vault_path, timeout
         )
 
-        if not is_encrypted(USER_REG_CRED_INPUT):
-            process_file(USER_REG_CRED_INPUT,USER_REG_KEY_PATH,'encrypt')
+        if not is_encrypted(user_reg_cred_input):
+            process_file(user_reg_cred_input,user_reg_key_path,'encrypt')
 
         end_time = datetime.now()
         formatted_end_time = end_time.strftime("%I:%M:%S %p")

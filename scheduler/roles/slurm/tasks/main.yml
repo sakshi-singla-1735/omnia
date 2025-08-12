@@ -59,3 +59,7 @@
 - name: Fresh cluster install
   ansible.builtin.include_tasks: new_install.yml
   when: not slurmctld_status
+
+- name: Slurm pam
+  ansible.builtin.include_tasks: slurm_pam.yml
+  when: enable_slurm_pam | bool

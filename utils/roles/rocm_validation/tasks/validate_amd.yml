@@ -23,8 +23,9 @@
     file: "{{ software_config_json_file }}"
     name: user_config
 
-- name: Include vars for {{ oim_os }}
-  ansible.builtin.include_vars: "{{ role_path }}/vars/{{ oim_os }}.yml"
+- name: Set fact provision_os
+  ansible.builtin.set_fact:
+    provision_os: "{{ user_config.cluster_os_type }}"
 
 - name: Get rocm status only if amdgpu present amd_status is true
   ansible.builtin.set_fact:
@@ -41,62 +42,26 @@
     seconds: "{{ warning_time }}"
   when: not rocm_input_status
 
-- name: Check if the rocm offline repo exists
-  ansible.builtin.stat:
-    path: "{{ offline_rocm_directory }}/rocm/"
-  register: check_rocm_repo
-  when: rocm_input_status
-
 - name: Set rocm_config_status
   when:
     - rocm_input_status
-    - user_config.repo_config == 'always' or user_config.repo_config == 'partial'
-    - check_rocm_repo.stat.exists
   block:
     - name: Fetch rocm_version
       ansible.builtin.set_fact:
         rocm_version: "{{ user_config.amdgpu | selectattr('name', 'equalto', 'rocm') | map(attribute='version') | first }}"
 
-    - name: Set rocm_directory
-      ansible.builtin.set_fact:
-        rocm_directory: "{{ offline_rocm_directory }}/rocm/{{ rocm_version }}/"
+    - name: Get ROCm repository details from Pulp
+      ansible.builtin.command: "{{ pulp_bin_path }} {{ os_package_map[provision_os] }} distribution list --name rocm_{{ rocm_version }}"
+      delegate_to: localhost
+      register: check_rocm_repo
+      changed_when: false
+      no_log: true
 
-    - name: Check rocm_directory exists or not
-      ansible.builtin.stat:
-        path: "{{ rocm_directory }}"
-      register: check_rocm_dir
-
-    - name: Warning, rocm directory repo not found
-      ansible.builtin.pause:
-        prompt: "{{ rocm_repo_msg }}"
-        seconds: "{{ warning_time }}"
-      when: not check_rocm_dir.stat.exists
-
-    - name: Set rocm_config_status to true
+    - name: Set rocm_config_status based on pulp rpm distribution
       ansible.builtin.set_fact:
         rocm_config_status: true
-      when: check_rocm_dir.stat.exists
+      when: check_rocm_repo.stdout | from_json | length > 0
   rescue:
-    - name: Warning, rocm version not found
-      ansible.builtin.pause:
-        prompt: "{{ rocm_version_msg }}"
-        seconds: "{{ warning_time }}"
-
-- name: Set rocm_config_status
-  when:
-    - rocm_input_status
-    - user_config.repo_config == 'never' or user_config.repo_config == 'partial'
-    - not check_rocm_repo.stat.exists
-  block:
-    - name: Fetch rocm_version
-      ansible.builtin.set_fact:
-        rocm_version: "{{ user_config.amdgpu | selectattr('name', 'equalto', 'rocm') | map(attribute='version') | first }}"
-
-    - name: Set rocm_config_status to true
-      ansible.builtin.set_fact:
-        rocm_config_status: true
-  rescue:
-    - name: Warning, rocm version not found
-      ansible.builtin.pause:
-        prompt: "{{ rocm_version_msg }}"
-        seconds: "{{ warning_time }}"
+    - name: Log an error message
+      ansible.builtin.debug:
+        msg: " {{ rocm_repo_fail_msg }} "
