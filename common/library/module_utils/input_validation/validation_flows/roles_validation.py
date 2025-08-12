@@ -231,7 +231,7 @@ def validate_cluster_name_overlap(roles, groups):
     Validates that service cluster K8s roles do not overlap with non-service k8s roles.
     Args:
         roles (list): List of role dictionaries from the config
-        groups (dict): Dictionary of group definitions from the config
+        groups (dict): Dictionary of group definitions from the config  
     Returns:
         list: List of validation errors
     """
@@ -410,7 +410,9 @@ def validate_roles_config(
         "compiler_node",
         "service_node",
         'service_kube_control_plane',
+        'service_kube_node',
         'service_etcd',
+        'oim_ha_node',
         "kube_control_plane",
         "etcd",
         "slurm_control_node",
@@ -626,57 +628,57 @@ def validate_roles_config(
                                     en_us_validation_msg.MISSING_CLUSTER_NAME_MSG
                                 )
                             )
-                # commenting below code to skip parent validation when federated_provison false supported
-                # if group in groups:
-                #     # Validate parent field is empty for specific role cases
-                #    if role[name] in empty_parent_roles and not validation_utils.is_string_empty(
-                #         groups[group].get(parent, None)
-                #     ):
-                #         # If parent is not empty and group is associated with login_node,
-                #         #  compiler_node, service_node, kube_control_plane,
-                #         # or slurm_control_node
-                #         errors.append(
-                #             create_error_msg(
-                #                 group,
-                #                 f"Group {group} should not have parent defined.",
-                #                 en_us_validation_msg.PARENT_SERVICE_NODE_MSG
-                #             )
-                #         )
-                #     if not service_role_defined and (
-                #         role[name] == k8worker
-                #         or role[name] == slurmworker
-                #         or role[name] == default
-                #     ):
-                #         # If a service_node role is not present,
-                #         # the parent is not empty and the group is
-                #         # associated with worker or default roles.
-                #         if not validation_utils.is_string_empty(groups[group].get(parent, None)):
-                #             errors.append(
-                #                 create_error_msg(
-                #                     group,
-                #                     f"Group {group} should not have parent defined.",
-                #                     en_us_validation_msg.PARENT_SERVICE_ROLE_MSG
-                #                 )
-                #             )
-                #     elif not service_role_defined and not validation_utils.is_string_empty(
-                #         groups[group].get(parent, None)
-                #     ):
-                #         errors.append(
-                #             create_error_msg(
-                #                 group,
-                #                 f"Group {group} parent is provided.",
-                #                 en_us_validation_msg.PARENT_SERVICE_ROLE_DNE_MSG
-                #             )
-                #         )
-                # else:
-                #     # Error log for if a group under a role does not exist
-                #     errors.append(
-                #         create_error_msg(
-                #             group,
-                #             f"Group {group} does not exist.",
-                #             en_us_validation_msg.GRP_EXIST_MSG
-                #         )
-                #     )
+                # parent validation when service_kube_control_plane is defined in roles_config.yml
+                if group in groups:
+                    # Validate parent field is empty for specific role cases
+                    if role[name] in empty_parent_roles and not validation_utils.is_string_empty(
+                        groups[group].get(parent, None)
+                    ):
+                        # If parent is not empty and group is associated with login,
+                        #  compiler_node, service_node, kube_control_plane,
+                        # or slurm_control_plane
+                        errors.append(
+                            create_error_msg(
+                                group,
+                                f"Group ({group}) is mapped to management_layer.",
+                                en_us_validation_msg.PARENT_SERVICE_NODE_MSG
+                            )
+                        )
+                    if not service_kube_control_plane_defined and (
+                        role[name] == k8worker
+                        or role[name] == slurmworker
+                        or role[name] == default
+                    ):
+                        # If a service_kube_control_plane/service_kube_node role is not present,
+                        # the parent is not empty and the group is
+                        # associated with worker or default roles.
+                        if not validation_utils.is_string_empty(groups[group].get(parent, None)):
+                            errors.append(
+                                create_error_msg(
+                                    group,
+                                    f"Group {group} should not have parent defined.",
+                                    en_us_validation_msg.PARENT_SERVICE_ROLE_MSG
+                                )
+                            )
+                    elif not service_kube_control_plane_defined and not validation_utils.is_string_empty(
+                        groups[group].get(parent, None)
+                    ):
+                        errors.append(
+                            create_error_msg(
+                                group,
+                                f"Group {group} parent is provided.",
+                                en_us_validation_msg.PARENT_SERVICE_ROLE_DNE_MSG
+                            )
+                        )
+                else:
+                    # Error log for if a group under a role does not exist
+                    errors.append(
+                        create_error_msg(
+                            group,
+                            f"Group {group} does not exist.",
+                            en_us_validation_msg.GRP_EXIST_MSG
+                        )
+                    )
 
         for group in groups.keys():
 

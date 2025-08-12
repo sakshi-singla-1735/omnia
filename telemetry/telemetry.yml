@@ -115,7 +115,7 @@
 #         tasks_from: prometheus_config_update.yml
 
 - name: Deployment of telemetry pods in service cluster
-  hosts: kube_control_plane
+  hosts: kube_control_plane[0]
   connection: ssh
   gather_facts: false
   tasks:
@@ -124,15 +124,14 @@
         name: service_k8s_telemetry
 
 - name: Enable idrac telemetry in OIM
-  hosts: localhost
-  connection: local
+  hosts: telemetry_group
   gather_facts: false
   tasks:
     - name: Enable idrac telemetry
       ansible.builtin.include_role:
         name: idrac_telemetry
 
-- name: Initiate telemetry collection on OIM
+- name: Initiate telemetry collection on OIM/Service Cluster
   hosts: oim
   connection: ssh
   gather_facts: false
@@ -173,11 +172,11 @@
 #         tasks_from: prometheus_config_reload.yml
 
 - name: Telemetry report overview
-  hosts: localhost
+  hosts: telemetry_group
   connection: ssh
   gather_facts: false
   vars:
-    node_host: "{{ hostvars[inventory_hostname]['service_tag'] if inventory_hostname != 'localhost' else 'oim' }}"
+    node_host: "{{ hostvars[inventory_hostname]['inventory_hostname'] if inventory_hostname != 'localhost' else 'oim' }}"
     telemetry_report: |
           ---- Telemetry Report Overview ({{ node_host }}) ----
 
@@ -218,7 +217,8 @@
     - name: Telemetry Report Overview
       ansible.builtin.debug:
         msg: "{{ telemetry_report.splitlines() }}"
-      when: hostvars['localhost']['idrac_telemetry_support']
+      when:
+        - hostvars['localhost']['idrac_telemetry_support']
 
 - name: Detailed Telemetry Report
   hosts: localhost
@@ -230,4 +230,5 @@
     - name: Detailed Telemetry Report
       ansible.builtin.debug:
         msg: "Check the file at {{ telemetry_report_path_oim }} in omnia_core container for detailed telemetry report."
-      when: hostvars['localhost']['idrac_telemetry_support']
+      when:
+        - hostvars['localhost']['idrac_telemetry_support']
