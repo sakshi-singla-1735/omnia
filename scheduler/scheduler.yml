@@ -51,7 +51,7 @@
   when: not ( hostvars['127.0.0.1']['inventory_validation_executed'] | default(false) | bool )
 
 - name: Gather facts from all the nodes
-  hosts: login, kube_control_plane, kube_node, etcd
+  hosts: login_node, kube_control_plane, kube_node, etcd
   gather_facts: true
 
 - name: Validate scheduler input parameters
@@ -177,16 +177,10 @@
     - k8s_csi_powerscale_plugin
 
 - name: Install Slurm
-  hosts: slurm_control_node, slurm_node, login
+  hosts: slurm_control_node, slurm_node, login_node
   any_errors_fatal: true
   roles:
     - slurm
-
-- name: Install Slurm_pam
-  hosts: slurm_node,login
-  any_errors_fatal: true
-  roles:
-    - slurm_pam
 
 - name: Compile and install the ucx and openmpi on the nfs share of compute nodes
   hosts: slurm_control_node, kube_control_plane

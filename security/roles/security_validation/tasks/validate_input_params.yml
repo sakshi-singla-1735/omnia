@@ -1,4 +1,4 @@
-# Copyright 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Copyright 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -13,6 +13,10 @@
 #  limitations under the License.
 ---
 
+- name: Check if login group is present in the inventory
+  ansible.builtin.set_fact:
+    login_node_present: "{{ 'login_node' in groups }}"
+
 - name: Set authentication_system, enable_secure_login_node required value
   ansible.builtin.set_fact:
     authentication_system: "{{ authentication_system | lower }}"
@@ -25,13 +29,13 @@
     success_msg: "{{ secure_login_node_success_msg }}"
     fail_msg: "{{ secure_login_node_fail_msg }}"
 
-- name: Validate enable_secure_login_node is enabled and login group not provided
+- name: Validate enable_secure_login_node is enabled and login_node group not provided
   ansible.builtin.pause:
     seconds: "{{ warning_wait_time }}"
     prompt: "{{ secure_login_node_warning_msg }}"
   when:
     - enable_secure_login_node
-    - not login_node_required
+    - not login_node_present
 
 # - name: Validate http_proxy, https_proxy and no_proxy configured as environment variables
 #   ansible.builtin.assert:

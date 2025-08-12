@@ -1,14 +1,14 @@
 #!/bin/bash
 #####################################################################################################
 #  Omnia Login:
-#      Install required Slurm packages for Login role
+#      Install required Slurm packages for Login Node role
 #
 #####################################################################################################
 
 LOGFILE="/var/log/xcat/xcat.log"
 
 echo "--------------------------" >> "$LOGFILE"
-echo "Starting login role package installation" | tee -a "$LOGFILE"
+echo "Starting login_node role package installation" | tee -a "$LOGFILE"
 
 # Collect all packages into a single list
 ALL_PACKAGES=(
