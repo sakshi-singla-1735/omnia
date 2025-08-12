@@ -16,19 +16,5 @@
 - name: Fetch facts for nodes including new nodes
   ansible.builtin.import_playbook: kubernetes_sigs.kubespray.facts
 
-- name: Prepare and run add-node process
-  hosts: localhost
-  gather_facts: false
-  tasks:
-    - name: Get target nodes for scaling
-      ansible.builtin.set_fact:
-        scale_limit: "{{ hostvars[groups['kube_control_plane'][0]]['k8s_new_nodes'] }}"
-
-    - name: Run scale playbook with dynamic limit
-      ansible.builtin.command:
-        cmd: >
-          ansible-playbook kubernetes_sigs.kubespray.scale
-          --limit "{{ scale_limit }}"
-      environment:
-        ANSIBLE_CONFIG: "{{ ansible_config_file | default(omit) }}"
-      changed_when: false
+- name: Initiate add node
+  ansible.builtin.import_playbook: kubernetes_sigs.kubespray.scale --limit="{{ hostvars[groups['kube_control_plane'][0]]['k8s_new_nodes'] }}"
