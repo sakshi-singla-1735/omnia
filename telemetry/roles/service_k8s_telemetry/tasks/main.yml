@@ -25,9 +25,6 @@
     - name: Configure k8s secrets
       ansible.builtin.include_tasks: secrets_creation.yml
 
-    - name: Deploy Kafka broker
-      ansible.builtin.include_tasks: kafka_broker_deployment.yml
-
     # - name: Deployment of prometheus pod
     #   ansible.builtin.include_tasks: prometheus_deployment.yml
 
