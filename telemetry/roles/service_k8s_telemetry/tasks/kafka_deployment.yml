@@ -59,6 +59,36 @@
           - name: kafka
             port: 9092
 
+- name: Check if Kafka KRaft cluster ID secret exists
+  kubernetes.core.k8s_info:
+    api_version: v1
+    kind: Secret
+    name: "{{ kafka.cluster_id }}"
+    namespace: "{{ telemetry_namespace }}"
+  register: existing_cluster_id
+
+- name: Generate cluster ID
+  ansible.builtin.command: uuidgen
+  register: cluster_id
+  changed_when: false
+  when: existing_cluster_id.resources | length == 0
+  no_log: true
+
+- name: Create Kafka KRaft cluster ID secret
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: "{{ kafka.cluster_id }}"
+        namespace: "{{ telemetry_namespace }}"
+      type: Opaque
+      stringData:
+        cluster-id: "{{ cluster_id.stdout }}"
+  when: existing_cluster_id.resources | length == 0
+  no_log: true
+
 - name: Deploy Kafka StatefulSet
   kubernetes.core.k8s:
     state: present
