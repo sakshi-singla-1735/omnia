@@ -118,7 +118,7 @@ invalid_parent_tags_message: |
   Update the CSV file with valid parent tag(s) and re-run telemetry.yml.
 telemetry_host_group: "telemetry_group"
 telemetry_host: >-
-  {{ groups['kube_control_plane']
+  {{ groups['kube_control_plane'][0]
      if federated_idrac_telemetry_collection | default(false)
      else ['localhost']
   }}
