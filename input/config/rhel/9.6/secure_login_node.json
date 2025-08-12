@@ -6,7 +6,7 @@
       "type": "rpm",
       "repo_name": "snoopy"
       },
-      {"package": "mailx", "type": "rpm", "repo_name": "baseos"},
+      {"package": "s-nail", "type": "rpm", "repo_name": "baseos"},
       {"package": "postfix", "type": "rpm", "repo_name": "baseos"},
       {"package": "gcc", "type": "rpm", "repo_name": "appstream"},
       {"package": "gzip", "type": "rpm", "repo_name": "appstream"},
