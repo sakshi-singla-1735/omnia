@@ -1,7 +1,7 @@
 # Copyright 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
+# You may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
@@ -15,7 +15,7 @@
 #!/usr/bin/python
 """
 Ansible module to find the network interface in a given subnet
-and update kube_vip_interface in the kube_control_plane group
+and update kube_vip_interface and kube_vip_cidr in the kube_control_plane group
 of the inventory file.
 """
 
@@ -24,8 +24,8 @@ import re
 from ansible.module_utils.basic import AnsibleModule
 
 
-def update_kube_control_plane_block(inventory_path, hostname, matched_iface):
-    """Update or append kube_vip_interface for the given host in the kube_control_plane group."""
+def update_kube_control_plane_block(inventory_path, hostname, matched_iface, prefix_len):
+    """Update or append kube_vip_interface and kube_vip_cidr for the given host in the kube_control_plane group."""
     with open(inventory_path, 'r', encoding='utf-8') as f:
         lines = f.readlines()
 
@@ -39,13 +39,22 @@ def update_kube_control_plane_block(inventory_path, hostname, matched_iface):
             in_control_plane = stripped == "[kube_control_plane]"
 
         if in_control_plane and re.match(rf"^{re.escape(hostname)}\b", stripped):
-            if f'kube_vip_interface={matched_iface}' in stripped:
-                break
-            elif 'kube_vip_interface=' in stripped:
-                new_line = re.sub(r'kube_vip_interface=\S+', f'kube_vip_interface={matched_iface}', stripped)
-            else:
-                new_line = stripped + f' kube_vip_interface={matched_iface}'
+            # Start with the current line
+            new_line = stripped
 
+            # Update or append kube_vip_interface
+            if 'kube_vip_interface=' in new_line:
+                new_line = re.sub(r'kube_vip_interface=\S+', f'kube_vip_interface={matched_iface}', new_line)
+            else:
+                new_line += f' kube_vip_interface={matched_iface}'
+
+            # Update or append kube_vip_cidr
+            if 'kube_vip_cidr=' in new_line:
+                new_line = re.sub(r'kube_vip_cidr=\S+', f'kube_vip_cidr={prefix_len}', new_line)
+            else:
+                new_line += f' kube_vip_cidr={prefix_len}'
+
+            # Update in-memory lines
             lines[i] = new_line + "\n"
             updated = True
             break
@@ -69,6 +78,7 @@ def run_module():
     result = {
         "changed": False,
         "matched_interface": None,
+        "vip_cidr": None,
         "updated_inventory": False,
         "msg": ""
     }
@@ -82,6 +92,7 @@ def run_module():
 
     try:
         network = ipaddress.ip_network(subnet, strict=False)
+        prefix_len = network.prefixlen
         matched_iface = None
 
         for iface_name, iface_data in interfaces.items():
@@ -93,11 +104,12 @@ def run_module():
 
         if matched_iface:
             result["matched_interface"] = matched_iface
+            result["vip_cidr"] = prefix_len
             if not module.check_mode:
-                updated = update_kube_control_plane_block(inventory_path, hostname, matched_iface)
+                updated = update_kube_control_plane_block(inventory_path, hostname, matched_iface, prefix_len)
                 result["updated_inventory"] = updated
                 result["changed"] = updated
-            result["msg"] = f"Matched interface {matched_iface} and updated kube_control_plane group."
+            result["msg"] = f"Matched interface {matched_iface} with CIDR /{prefix_len} and updated kube_control_plane group."
         else:
             result["msg"] = "No matching interface found."
 
