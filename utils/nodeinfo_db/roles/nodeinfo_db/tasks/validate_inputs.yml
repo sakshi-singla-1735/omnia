@@ -72,16 +72,18 @@
 
     - name: Set SQL query based on user input filter
       ansible.builtin.set_fact:
-        query_part2: |
-          WHERE {% for name in filter_attributes %}
-            {{ name }} = '{{ filter_attributes_value[filter_attributes.index(name)] }}'
-            {% if not loop.last %} AND {% endif %}
-          {% endfor %}
+        query_part2: >-
+          WHERE {{
+            filter_attributes | zip(filter_attributes_value) |
+            map('join', " = '") |
+            map('regex_replace', "(.*)", "\\1'") |
+            join(' AND ')
+          }}
       when: filter_attributes_length == filter_attributes_value_length and filter_attributes_length != "0"
 
     - name: Set Complete query based on user input
       ansible.builtin.set_fact:
-        query: "{{ (query_part1 | default('') | string) ~ (query_part2 | default('') | string) }}"
+        query: "{{ (query_part1 | default('') | string) ~ ' ' ~ (query_part2 | default('') | string) }}"
 
   rescue:
     - name: Handle the rescue condition
