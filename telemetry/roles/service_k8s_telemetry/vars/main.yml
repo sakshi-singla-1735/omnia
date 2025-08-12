@@ -13,13 +13,6 @@
 #  limitations under the License.
 ---
 
-# Usage: kafka
-# Kafka-specific
-kafka_broker: kafka-0.kafka-headless.telemetry.svc.cluster.local:9092
-kafka_topic: idrac_telemetry
-kafka_skip_verify: true
-kafka_certs_path: /root/certs
-
 # Usage: prereq_checks.yml
 storage_class_name: "nfs-client"
 k8s_not_installed_fail_msg: "Failed. Kubernetes installation required.
