@@ -641,7 +641,7 @@ def process_ansible_galaxy_collection(file, repo_store_path, status_file_path, l
         logger.info("#" * 30 + f" {process_ansible_galaxy_collection.__name__} end " + "#" * 30)
         return status
 
-def process_tarball(package, repo_store_path, status_file_path, version_variables, logger):
+def process_tarball(package, repo_store_path, status_file_path, version_variables, cluster_os_type, cluster_os_version, arc, logger):
     """
     Process a tarball package.
 
@@ -680,7 +680,7 @@ def process_tarball(package, repo_store_path, status_file_path, version_variable
             url_support = False
 
     # Creating the local path to save the tarball
-    tarball_directory = os.path.join(repo_store_path, "offline_repo", 'cluster', 'tarball', package_name)
+    tarball_directory = os.path.join(repo_store_path, "offline_repo", 'cluster', arc.lower(), cluster_os_type, cluster_os_version, 'tarball', package_name)
 
     logger.info(f"Processing tarball to directory: {tarball_directory}")
 
@@ -747,7 +747,7 @@ def process_tarball(package, repo_store_path, status_file_path, version_variable
             return status
 
 def process_iso(package, repo_store_path, status_file_path,
-               cluster_os_type, cluster_os_version, version_variables, logger):
+               cluster_os_type, cluster_os_version, version_variables, arc, logger):
     """
     Process an ISO package.
 
@@ -791,7 +791,7 @@ def process_iso(package, repo_store_path, status_file_path,
             path_support = True
             url_support = False
 
-    iso_directory = os.path.join(repo_store_path, "offline_repo", 'cluster', cluster_os_type, cluster_os_version, 'iso', package_name)
+    iso_directory = os.path.join(repo_store_path, "offline_repo", 'cluster', arc.lower(), cluster_os_type, cluster_os_version, 'iso', package_name)
     base_path = iso_directory.strip("/")
     logger.info(f"Processing iso Package to directory: {iso_directory}")
 
