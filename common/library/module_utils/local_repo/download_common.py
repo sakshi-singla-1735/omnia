@@ -641,7 +641,7 @@ def process_ansible_galaxy_collection(file, repo_store_path, status_file_path, l
         logger.info("#" * 30 + f" {process_ansible_galaxy_collection.__name__} end " + "#" * 30)
         return status
 
-def process_tarball(package, repo_store_path, status_file_path, version_variables, arc, logger):
+def process_tarball(package, repo_store_path, status_file_path, version_variables, cluster_os_type, cluster_os_version, arc, logger):
     """
     Process a tarball package.
 
