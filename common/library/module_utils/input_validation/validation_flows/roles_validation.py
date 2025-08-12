@@ -502,9 +502,9 @@ def validate_roles_config(
     # Role service_kube_control_plane is defined in roles_config.yml,
     # verify service_k8s package entry is present in software_config.json
     # If no entry is present, then fail the input validator
-    service_kube_control_plane_defined = False
+     = False
     if validation_utils.key_value_exists(roles, name, "service_kube_control_plane"):
-        service_kube_control_plane_defined = True
+         = True
         try:
             if not validate_service_k8s_in_software_config(input_file_path):
                 errors.append(
@@ -620,7 +620,7 @@ def validate_roles_config(
                                 en_us_validation_msg.PARENT_SERVICE_ROLE_DNE_MSG
                             )
                         )
-                    elif service_kube_control_plane_defined and role[name] in [k8sworker, slurmworker, default]:
+                    elif service_kube_control_plane_defined and role[name] in [k8worker, slurmworker, default]:
                         # If a service_kube_control_plane/service_kube_node role is present,
                         # the parent is mandatory and the group is
                         # associated with worker or default roles.
