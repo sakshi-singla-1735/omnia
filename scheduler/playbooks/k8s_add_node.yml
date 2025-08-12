@@ -16,5 +16,5 @@
 - name: Fetch facts for nodes including new nodes
   ansible.builtin.import_playbook: kubernetes_sigs.kubespray.facts
 
-- name: Initiate add node
+- name: Initiate add node # noqa syntax-check
   ansible.builtin.import_playbook: kubernetes_sigs.kubespray.scale --limit="{{ hostvars[groups['kube_control_plane'][0]]['k8s_new_nodes'] }}" # noqa syntax-check
