@@ -16,7 +16,12 @@
 #!/usr/bin/python
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible.module_utils.local_repo.common_functions import load_yaml_file, get_repo_list, is_encrypted, process_file
+from ansible.module_utils.local_repo.common_functions import (
+    load_yaml_file,
+    get_repo_list,
+    is_encrypted,
+    process_file
+)
 from ansible.module_utils.local_repo.registry_utils import (
     validate_user_registry,
     check_reachability,
@@ -40,12 +45,16 @@ def main():
         argument_spec=dict(
             timeout=dict(type='int', default=5),
             config_file=dict(type='str', required=True),
+            user_reg_cred_input=dict(type='str', required=False, default=USER_REG_CRED_INPUT),
+            user_reg_key_path=dict(type='str', required=False, default=USER_REG_KEY_PATH)
         ),
         supports_check_mode=True
     )
 
     config_path = module.params['config_file']
     timeout = module.params['timeout']
+    user_reg_cred_input = module.params["user_reg_cred_input"]
+    user_reg_key_path = module.params["user_reg_key_path"]
 
     try:
         config_data = load_yaml_file(config_path)
@@ -56,10 +65,10 @@ def main():
 
     if user_registry:
         # Load credentials
-        if is_encrypted(USER_REG_CRED_INPUT):
-            process_file(USER_REG_CRED_INPUT, USER_REG_KEY_PATH, 'decrypt')
+        if is_encrypted(user_reg_cred_input):
+            process_file(user_reg_cred_input, user_reg_key_path, 'decrypt')
 
-        file2_data = load_yaml_file(USER_REG_CRED_INPUT)
+        file2_data = load_yaml_file(user_reg_cred_input)
         cred_lookup = {
             entry['name']: entry
             for entry in file2_data.get('user_registry_credential', [])

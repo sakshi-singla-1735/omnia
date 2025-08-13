@@ -137,3 +137,28 @@
   ansible.builtin.debug:
     msg: >-
       "iDRACs failed to add to mysqldb: {{ add_idrac_to_db.failed_ips | default('No failed IPs') }}"
+
+- name: Trigger rolling restart of StatefulSet idrac_telemetry
+  when:
+    - telemetry_idrac is defined
+    - telemetry_idrac | length > 0
+  block:
+    - name: Restart idrac telemetry StatefulSet
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: apps/v1
+          kind: StatefulSet
+          metadata:
+            name: "{{ idrac_telemetry_k8s_name }}"
+            namespace: "{{ telemetry_namespace }}"
+          spec:
+            template:
+              metadata:
+                annotations:
+                  kubectl.kubernetes.io/restartedAt: "{{ lookup('pipe', 'date -u +%Y-%m-%dT%H:%M:%SZ') }}"
+      register: restart_statefulset
+  rescue:
+    - name: StatefulSet restart failed
+      ansible.builtin.fail:
+        msg: "{{ idrac_telemetry_statefulset_restart_failure_msg.splitlines() | join(' ') }}"

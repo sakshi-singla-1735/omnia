@@ -19,7 +19,7 @@
   tasks:
     - name: Set dynamic run tags including k8s
       ansible.builtin.set_fact:
-        omnia_run_tags: "{{ (ansible_run_tags | default([]) + ['k8s', 'slurm']) | unique }}"
+        omnia_run_tags: "{{ (ansible_run_tags | default([]) + ['compute_k8s', 'slurm', 'csi_driver_powerscale']) | unique }}"
         cacheable: true
 
 - name: Invoke get_config_credentials.yml
@@ -51,7 +51,7 @@
   when: not ( hostvars['127.0.0.1']['inventory_validation_executed'] | default(false) | bool )
 
 - name: Gather facts from all the nodes
-  hosts: login, kube_control_plane, kube_node, etcd
+  hosts: login_node, kube_control_plane, kube_node, etcd
   gather_facts: true
 
 - name: Validate scheduler input parameters
@@ -160,17 +160,27 @@
   roles:
     - k8s_amd
 
+- name: CSI powerscale image pulling
+  hosts: kube_node, kube_control_plane
+  tasks:
+    - name: Pull images
+      ansible.builtin.include_role:
+        name: k8s_csi_powerscale_plugin
+        tasks_from: csi_powerscale_image_pull.yml
+      when:
+        - hostvars['127.0.0.1']['csi_driver_powerscale_precheck_pass'] | default(false) | bool
+
+- name: Install CSI powerscale plugin on kube control nodes
+  hosts: kube_control_plane[0]
+  gather_facts: false
+  roles:
+    - k8s_csi_powerscale_plugin
+
 - name: Install Slurm
-  hosts: slurm_control_node, slurm_node, login
+  hosts: slurm_control_node, slurm_node, login_node
   any_errors_fatal: true
   roles:
     - slurm
-
-- name: Install Slurm_pam
-  hosts: slurm_node,login
-  any_errors_fatal: true
-  roles:
-    - slurm_pam
 
 - name: Compile and install the ucx and openmpi on the nfs share of compute nodes
   hosts: slurm_control_node, kube_control_plane

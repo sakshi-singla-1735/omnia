@@ -81,8 +81,8 @@ def main():
 
     log.info(f"Start execution time cert_vault_handler: {start_time}")
 
-
-    local_repo_config = load_yaml_file(LOCAL_REPO_CONFIG_PATH_DEFAULT)
+    local_repo_path = os.path.join(vault_key_path, "local_repo_config.yml")
+    local_repo_config = load_yaml_file(local_repo_path)
     user_repos = local_repo_config.get(USER_REPO_URL, [])
     if not user_repos:
         log.info("No user repo found, proceeding without encryption")

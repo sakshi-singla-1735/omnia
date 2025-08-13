@@ -49,6 +49,10 @@
         name: telemetry_validation
         tasks_from: validation_status_check.yml
 
+- name: Update Inventory with ansible_host information
+  ansible.builtin.import_playbook: ../utils/servicetag_host_mapping.yml
+  when: hostvars['localhost']['federated_idrac_telemetry_collection']
+
 - name: Validate containers are running
   hosts: oim
   connection: ssh
@@ -91,6 +95,7 @@
       ansible.builtin.include_role:
         name: service_k8s_telemetry
         tasks_from: prereq_checks.yml
+      when: hostvars['localhost']['kube_prometheus_support'] or hostvars['localhost']['federated_idrac_telemetry_collection']
 
 # service_k8s_prereq
 - name: Initiate pre-requisites for service cluster
@@ -165,7 +170,7 @@
 #         tasks_from: prometheus_config_update.yml
 
 - name: Deployment of telemetry pods in service cluster
-  hosts: kube_control_plane
+  hosts: kube_control_plane[0]
   connection: ssh
   gather_facts: false
   tasks:
@@ -191,7 +196,7 @@
         name: idrac_telemetry
 
 - name: Initiate telemetry collection on OIM/Service Cluster
-  hosts: telemetry_group
+  hosts: oim
   gather_facts: false
   tasks:
     - name: Initiate telemetry collection

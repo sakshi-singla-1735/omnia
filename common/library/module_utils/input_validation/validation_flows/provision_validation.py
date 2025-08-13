@@ -194,7 +194,7 @@ def _validate_admin_network(network):
     # Validate network gateway
     if "network_gateway" in admin_net and admin_net["network_gateway"]:
         gateway = admin_net["network_gateway"]
-        if not validation_utils.validate_ipv4_range(gateway):
+        if not validation_utils.validate_ipv4(gateway):
             errors.append(
                 create_error_msg(
                     "admin_network.network_gateway",
@@ -252,7 +252,7 @@ def _validate_bmc_network(network):
     # Validate network gateway
     if bmc_net.get("network_gateway"):
         gateway = bmc_net["network_gateway"]
-        if not validation_utils.validate_ipv4_range(gateway):
+        if not validation_utils.validate_ipv4(gateway):
             errors.append(
                 create_error_msg(
                     "bmc_network.network_gateway",
