@@ -32,9 +32,6 @@
         msg: "{{ update_repos_fail_msg }}"
 
 - name: Install packages
-  environment:
-    http_proxy: "{{ http_proxy }}"
-    https_proxy: "{{ https_proxy }}"
   block:
 
     - name: Install pip for {{ python_version }}
@@ -42,21 +39,13 @@
         cmd: "{{ python_version }} -m ensurepip --upgrade"
       changed_when: false
 
-    - name: Install required ansible packages
-      ansible.builtin.command:
-        cmd: "{{ python_version }} -m pip install {{ ansible_name }}=={{ secure_ansible_version }} {{ cryptography_name }}=={{ cryptography_version }}"
-      changed_when: false
-
-    - name: Install required ansible jinja packages
-      ansible.builtin.command:
-        cmd: "{{ python_version }} -m pip install {{ jinja_name }}=={{ jinja_version }}"
-      changed_when: false
-
-- name: Install community_general_collection repo tarball
-  ansible.builtin.get_url:
-    url: "{{ offline_tarball_path }}/{{ ansible_galaxy_path }}"
-    dest: "/{{ ansible_galaxy_path }}"
-    mode: "{{ file_mode }}"
+    - name: Install pip packages from offline repo
+      ansible.builtin.pip:
+        name: "{{ item }}"
+        extra_args: >
+          --find-links={{ hostvars['localhost']['offline_pip_module_path'] }}/{{ item }}/
+          --no-index
+      loop: "{{ secure_login_pip_packages }}"
 
 - name: Check current environment variables
   ansible.builtin.shell: echo $PATH

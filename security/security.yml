@@ -44,7 +44,7 @@
   when: not ( hostvars['127.0.0.1']['update_inventory_executed'] | default(false) | bool )
 
 - name: Gather facts from all the nodes
-  hosts: slurm_control_node, slurm_node, slurm_dbd, login, kube_control_plane, kube_node, etcd, auth_server
+  hosts: slurm_control_node, slurm_node, slurm_dbd, login_node, kube_control_plane, kube_node, etcd, auth_server
   gather_facts: true
 
 - name: Validate security input parameters
@@ -63,7 +63,7 @@
   when: not ( hostvars['127.0.0.1']['update_user_repo_executed'] | default(false) | bool )
 
 - name: Add hosts to nodes and login nodes
-  hosts: slurm_control_node, slurm_node, kube_control_plane, kube_node, auth_server, login, etcd
+  hosts: slurm_control_node, slurm_node, kube_control_plane, kube_node, auth_server, login_node, etcd
   gather_facts: false
   any_errors_fatal: true
   roles:
@@ -71,7 +71,7 @@
   tags: freeipa
 
 - name: Validate hostname
-  hosts: slurm_control_node, slurm_node, kube_control_plane, kube_node, auth_server, login, etcd
+  hosts: slurm_control_node, slurm_node, kube_control_plane, kube_node, auth_server, login_node, etcd
   any_errors_fatal: true
   gather_facts: false
   tasks:
@@ -82,25 +82,25 @@
   tags: freeipa, ldap
 
 - name: Apply login common installation and config
-  hosts: slurm_control_node, slurm_node, kube_control_plane, kube_node, auth_server, login, etcd
+  hosts: slurm_control_node, slurm_node, kube_control_plane, kube_node, auth_server, login_node, etcd
   any_errors_fatal: true
   gather_facts: false
   roles:
-    - login_common
+    - freeipa_common
   tags: freeipa
 
 - name: Apply login server installation and config
   hosts: auth_server
   gather_facts: false
   roles:
-    - login_server
+    - freeipa_server
   tags: freeipa
 
-- name: Install FreeIPA client on login and nodes
-  hosts: slurm_control_node, slurm_node, kube_control_plane, kube_node, login, etcd:!auth_server
+- name: Install FreeIPA client on login_node and nodes
+  hosts: slurm_control_node, slurm_node, kube_control_plane, kube_node, login_node, etcd:!auth_server
   gather_facts: false
   roles:
-    - login_node
+    - freeipa_client
   tags: freeipa
 
 - name: Install openldap server and apply configurations
@@ -128,14 +128,14 @@
           when: not openldap_status
 
 - name: Apply ldap client installation and config
-  hosts: slurm_control_node, slurm_node, kube_control_plane, kube_node, auth_server, login, etcd
+  hosts: slurm_control_node, slurm_node, kube_control_plane, kube_node, auth_server, login_node, etcd
   gather_facts: false
   roles:
     - ldap_client
   tags: ldap
 
 - name: Configure secure login
-  hosts: login
+  hosts: login_node
   gather_facts: false
   roles:
     - secure_login_node

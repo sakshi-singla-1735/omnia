@@ -33,4 +33,4 @@
 
 - name: Include login node installation tasks
   ansible.builtin.include_tasks: login.yml
-  when: '"login" in group_names'
+  when: '"login_node" in group_names'

@@ -13,8 +13,8 @@
 #  limitations under the License.
 ---
 
-- name: Include login_common variables
-  ansible.builtin.include_vars: "{{ role_path }}/../login_common/vars/main.yml"
+- name: Include freeipa_common variables
+  ansible.builtin.include_vars: "{{ role_path }}/../freeipa_common/vars/main.yml"
 
 - name: Configure freeipa server
   when:
