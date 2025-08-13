@@ -20,7 +20,7 @@ Prerequisites
 Steps
 ======
 
-1. In the ``roles_config.yml`` file, specify the service tag of the ``service_kube_node`` as the parent for the compute groups from which iDRAC telemetry data should be collected.
+1. In the ``roles_config.yml`` file, specify the service tag of the ``service_kube_node`` or ``service_control_plane`` as the parent for the compute groups (``kube_node``, ``slurm_node``, and ``default``).
 2. Fill up the ``omnia_config.yml`` and ``telemetry_config.yml``:
 
     .. csv-table:: omnia_config.yml
@@ -74,3 +74,11 @@ After ``telemetry.yml`` has been executed for the service cluster, you can check
         kubectl exec -it -n telemetry <iDRAC_telemetry_pod_name> -c mysqldb -- mysql -u <MYSQL_USER> -p
 
     3. When prompted, enter the mysql password to log in.
+
+    4. To enter into the ``idrac_telemetry_db``, use the following command: ::
+
+        use idrac_telemetrydb;
+
+    5. To access the services table: ::
+        
+        Select * from services;
