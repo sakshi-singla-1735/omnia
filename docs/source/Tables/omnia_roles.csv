@@ -127,7 +127,7 @@ Login node - ``login_node``,Management, x86_64 and aarch64, "* This role is used
     groups:
       - grp0
       - grp1"
-OIM High Availability - ``oim_ha_node``,Management, x86_64,"* This role is used to configure the OIM HA node. The nodes included in this role will have the necessary tools and configurations to support the OIM HA functionality on the passive OIM nodes.
+OIM High Availability - ``oim_ha_node``,Management, "* This role is used to configure the OIM HA node. The nodes included in this role will have the necessary tools and configurations to support the OIM HA functionality on the passive OIM nodes.
 
 **Example**:
 ::
