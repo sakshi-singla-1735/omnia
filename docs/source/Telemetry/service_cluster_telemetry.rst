@@ -20,7 +20,7 @@ Prerequisites
 Steps
 ======
 
-1. In the ``roles_config.yml`` file, specify the service tag of the ``service_kube_node`` as the parent for the compute groups from which iDRAC telemetry data should be collected.
+1. In the ``roles_config.yml`` file, specify the service tag of the ``service_kube_node`` or ``service_control_plane`` as the parent for the compute groups (``kube_node``, ``slurm_node``, and ``default``).
 2. Fill up the ``omnia_config.yml`` and ``telemetry_config.yml``:
 
     .. csv-table:: omnia_config.yml
