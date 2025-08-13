@@ -1,5 +1,5 @@
-High Availability (HA) for the Kubernetes cluster
-======================================================
+High Availability (HA) for the Compute Kubernetes cluster
+===========================================================
 
 Omnia deploys a highly available Kubernetes cluster using the Kubespray container image from the Dell registry. This container contains the Kubespray ansible playbooks, which are used to deploy Kubernetes (k8s) clusters. Kubespray is an open-source tool designed for simplicity and flexibility, ensuring efficient and correct setup of Kubernetes clusters.
 
@@ -23,8 +23,8 @@ Input Parameters
 * Fill up the required parameters for Kubernetes deployment in the ``/opt/omnia/input/project_default/omnia_config.yml`` file. For the complete list of parameters, `click here <../OmniaCluster/schedulerinputparams.html#id1>`_.
 * To enable HA, fill up the required parameters in the ``/opt/omnia/input/project_default/high_availability_config.yml`` file. Use the below table as reference:
 
-    .. csv-table:: Parameters for Kubernetes HA
-        :file: ../../../Tables/k8s_ha.csv
+    .. csv-table:: Parameters for compute cluster HA
+        :file: ../../../Tables/compute_cluster_ha.csv
         :header-rows: 1
         :keepspace:
 
