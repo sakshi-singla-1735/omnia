@@ -115,30 +115,42 @@ The ``/opt/omnia/input/project_default/software_config.json`` file lists all the
 A sample of the ``software_config.json`` file for RHEL clusters is attached below: ::
 
     {
-        "cluster_os_type": "rhel",
-        "cluster_os_version": "9.6",
-        "iso_file_path": "",
-        "repo_config": "always",
-        "softwares": [
-            {"name": "amdgpu", "version": "6.3.1"},
-            {"name": "cuda", "version": "12.8.0"},
-            {"name": "ofed", "version": "24.10-3.2.5.0"},
-            {"name": "openldap"},
-            {"name": "nfs"},
-            {"name": "k8s", "version": "1.31.4"},
-            {"name": "service_k8s", "version": "1.31.4"},
-            {"name": "slurm"}
-        ],
-        "amdgpu": [
-            {"name": "rocm", "version": "6.3.1" }
-        ],
-        "slurm": [
-            {"name": "slurm_control_node"},
-            {"name": "slurm_node"},
-            {"name": "login_node"}
-        ]
-    }
+    "cluster_os_type": "rhel",
+    "cluster_os_version": "9.6",
+    "x86_64_iso_file_path": "",
+    "aarch64_iso_file_path": "",
+    "repo_config": "always",
+    "softwares": [
+        {"name": "amdgpu", "version": "6.3.1", "arch": ["x86_64"]},
+        {"name": "cuda", "version": "12.9.1", "arch": ["x86_64","aarch64"]},
+        {"name": "ofed", "version": "24.10-3.2.5.0", "arch": ["x86_64"]},
+        {"name": "freeipa", "arch": ["x86_64"]},
+        {"name": "openldap", "arch": ["x86_64","aarch64"]},
+        {"name": "secure_login_node", "arch": ["x86_64","aarch64"]},
+        {"name": "nfs", "arch": ["x86_64","aarch64"]},
+        {"name": "beegfs", "version": "7.4.5", "arch": ["x86_64"]},
+        {"name": "slurm", "arch": ["x86_64","aarch64"]},
+        {"name": "k8s", "version": "1.31.4", "arch": ["x86_64"]},
+        {"name": "service_k8s", "version": "1.31.4", "arch": ["x86_64","aarch64"]},
+        {"name": "intel_benchmarks", "version": "2024.1.0", "arch": ["x86_64","aarch64"]},
+        {"name": "amd_benchmarks", "arch": ["x86_64"]},
+        {"name": "utils", "arch": ["x86_64"]},
+        {"name": "ucx", "version": "1.15.0", "arch": ["x86_64","aarch64"]},
+        {"name": "openmpi", "version": "4.1.6", "arch": ["x86_64"]},
+        {"name": "racadm", "arch": ["x86_64"]}
+    ],
 
+    "amdgpu": [
+        {"name": "rocm", "version": "6.3.1" }
+    ],
+    "slurm": [
+        {"name": "slurm_control_node"},
+        {"name": "slurm_node"},
+        {"name": "login_node"}
+    ]
+
+    }
+   
 3. ``local_repo_config.yml``
 -------------------------------
 
