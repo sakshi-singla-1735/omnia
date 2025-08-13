@@ -12,8 +12,10 @@
 **aarch64_iso_file_path**,Mandatory,"* **Type**: string
 * Path where the user has placed the ``<aarch64>.iso`` image that needs to be provisioned on target nodes. 
 * ``aarch64_iso_file_path`` should contain the ``provision_os`` and ``provision_os_version`` values mentioned in the filename.
-* **Example**: ``/opt/omnia/input/project_default/RHEL-9.6-aarch64-dvd.iso``"
-.. note:: If ``aarch64_iso_file_path`` is set, ensure to create a group of nodes that will be provisionied using the "aarch64" ISO``."
+* **Example**: ``/opt/omnia/input/project_default/RHEL-9.6-aarch64-dvd.iso``
+
+.. note:: If  ``aarch64_iso_file_path`` is set to ``aarch64`` ISO file path, you must ensure that an OMNIA group exists containing the nodes to provision ``aarch64`` ISO."
+
 **repo_config**,Mandatory,"* **Type**: string
 * Omnia sets up a local Pulp repository on the OIM and downloads all the necessary packages or images for the cluster into this repository. The behavior of the Pulp container varies depending on the value of the ``repo_config`` parameter.
 * In case of ``always``, packages are downloaded and cached on OIM during ``local_repo.yml`` execution; compute nodes get the packages from OIM. Caching these packages allow them to be reused in future operations without needing to download them again.
