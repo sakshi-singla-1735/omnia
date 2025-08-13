@@ -16,28 +16,6 @@
 "tls_certificate_key 
      ``string``
      Optional ",The private key that matches the LDAP certificate.
-"openldap_db_username
-     ``string``
-     Required "," The username used to manage the LDAP database. 
- 
-    **Default value**: ``""admin""``"
-"openldap_db_password 
-     ``string``
-     Required "," The password used to configure and manage the LDAP database. Ensure that this value is 8 characters long.
-"
-"openldap_config_username 
-     ``string``
-     Required "," The username used to configure the LDAP database. 
- 
-    **Default value**: ``""admin""``"
-"openldap_config_password 
-     ``string``
-     Required "," The password used to configure the LDAP database. Ensure that this value is 8 characters long.
-"
-"openldap_monitor_password 
-     ``string``
-     Required "," The password used to monitor the LDAP database. Ensure that this value is 8 characters long.
-"
 "openldap_organization
      ``string``
      Required ","LDAP server is configured using organizations. They are necessary for user creation and group mapping. 

@@ -16,7 +16,7 @@ Set up Slurm
             "slurm": [
                     {"name": "slurm_control_node"},
                     {"name": "slurm_node"},
-                    {"name": "login"}
+                    {"name": "login_node"}
                 ]
 
 * Ensure to run ``local_repo.yml`` with the ``slurm`` entry present in ``software_config.json`` to download all required slurm packages.
@@ -28,13 +28,13 @@ Set up Slurm
 
 **Inventory details**
 
-* All the applicable inventory groups are ``slurm_control_node``, ``slurm_node``, and ``login``.
+* All the applicable inventory groups are ``slurm_control_node``, ``slurm_node``, and ``login_node``.
 
 * The inventory file must contain:
 
     1. Exactly 1 ``slurm_control_node``.
     2. At least 1 ``slurm_node``.
-    3. At least 1 ``login`` node (Optional).
+    3. At least 1 ``login_node`` node (Optional).
 
 
 **Sample inventory**
@@ -48,7 +48,7 @@ Set up Slurm
 
     10.5.1.103
 
-    [login]
+    [login_node]
 
     10.5.1.105
 

@@ -170,3 +170,4 @@ elfutils-libelf-devel,GNU GENERAL PUBLIC LICENSE Version 3,The elfutils-libelf-d
 bind,Apache License 2.0,"BIND (Berkeley Internet Name Domain) is a complete, highly portable implementation of the Domain Name System (DNS) protocol",9.16.23
 initscripts,GPL-2.0 license,Basic support for legacy System V init scripts,10.11.8
 gcc-gfortran,GPL-3.0 license,gfortran is a new compiler,11.5.0
+csi-powerscale driver,Apache License 2.0,CSI driver for Dell PowerScale,2.14.0
