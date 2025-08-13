@@ -39,3 +39,7 @@
 - name: Set high_availability_status
   ansible.builtin.set_fact:
     enable_oim_ha: "{{ high_availability_config.ansible_facts.oim_ha.enable_oim_ha | default(false) }}"
+
+- name: Set service_node_ha_status
+  ansible.builtin.set_fact:
+    enable_service_ha: "{{ high_availability_config.ansible_facts.service_node_ha.enable_service_ha | default(false) }}"

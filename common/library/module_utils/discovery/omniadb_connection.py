@@ -236,8 +236,12 @@ def create_filter_query(filter_dict):
 
     for col, val in filter_dict.items():
         if col == "role":
+            if isinstance(val, list):
+                pattern = '|'.join(map(str, val))
+            else:
+                pattern = str(val)
             filter_query += f" AND {col} ~* %s"
-            params.append(f".*{val}.*")
+            params.append(f".*{pattern}.*")
         else:
             filter_query += f" AND {col}=%s"
             params.append(val)

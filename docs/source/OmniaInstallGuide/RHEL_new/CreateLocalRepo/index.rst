@@ -1,4 +1,4 @@
-Step 8: Create local repositories for the cluster
+Step 7: Create local repositories for the cluster
 ==================================================
 
 The ``local_repo.yml`` playbook, invoked from inside the ``omnia_core`` container, downloads all the software packages to the Pulp container and facilitates Airgap installation (without access to public network) on the cluster nodes. The **Pulp container**, set up on an NFS share, acts as a centralized storage unit and hosts all software packages and images required and supported by Omnia. These packages or images are then accessed by the cluster nodes from that NFS share.

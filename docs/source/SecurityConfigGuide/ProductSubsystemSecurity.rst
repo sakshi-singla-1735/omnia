@@ -30,7 +30,7 @@ To perform these configurations and installations, a secure SSH channel is estab
 
 * ``auth_server``
 
-* ``login``
+* ``login_node``
 
 Authentication
 ---------------

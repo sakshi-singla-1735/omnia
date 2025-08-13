@@ -40,7 +40,7 @@
   when: not ( hostvars['127.0.0.1']['update_inventory_executed'] | default(false) | bool )
 
 - name: Gather facts from all the nodes
-  hosts: slurm_control_node, slurm_node, login, kube_control_plane, kube_node, etcd
+  hosts: slurm_control_node, slurm_node, login_node, kube_control_plane, kube_node, etcd
   gather_facts: true
 
 - name: Check if package manager is not locked
@@ -76,7 +76,7 @@
   tags: nfs_client
 
 - name: Install NFS client
-  hosts: slurm_control_node, slurm_node, kube_control_plane, kube_node, auth_server, login, etcd
+  hosts: slurm_control_node, slurm_node, kube_control_plane, kube_node, auth_server, login_node, etcd
   gather_facts: false
   roles:
     - nfs_client

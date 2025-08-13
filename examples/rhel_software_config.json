@@ -30,7 +30,7 @@
     "slurm": [
         {"name": "slurm_control_node"},
         {"name": "slurm_node"},
-        {"name": "login"}
+        {"name": "login_node"}
     ]
 
 }

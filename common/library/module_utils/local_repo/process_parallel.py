@@ -269,6 +269,10 @@ def execute_parallel(
     version_variables,
     standard_logger,
     local_repo_config_path,
+    user_reg_cred_input,
+    user_reg_key_path,
+    omnia_credentials_yaml_path,
+    omnia_credentials_vault_path,
     timeout
 ):
     """
@@ -300,10 +304,10 @@ def execute_parallel(
     config = load_yaml_file(local_repo_config_path)
     user_registries = config.get("user_registry", [])
     if user_registries:
-        if is_encrypted(USER_REG_CRED_INPUT):
-            process_file(USER_REG_CRED_INPUT, USER_REG_KEY_PATH, 'decrypt')
+        if is_encrypted(user_reg_cred_input):
+            process_file(user_reg_cred_input, user_reg_key_path, 'decrypt')
 
-        file2_data = load_yaml_file(USER_REG_CRED_INPUT)
+        file2_data = load_yaml_file(user_reg_cred_input)
         cred_lookup = {
             entry['name']: entry
             for entry in file2_data.get('user_registry_credential', [])
@@ -317,8 +321,8 @@ def execute_parallel(
                     registry["password"] = creds.get("password")
 
     try:
-        docker_username, docker_password = load_docker_credentials(OMNIA_CREDENTIALS_YAML_PATH,
-                                                                  OMNIA_CREDENTIALS_VAULT_PATH)
+        docker_username, docker_password = load_docker_credentials(omnia_credentials_yaml_path,
+                                                                  omnia_credentials_vault_path)
     except RuntimeError as e:
         raise
     # Create a pool of worker processes to handle the tasks

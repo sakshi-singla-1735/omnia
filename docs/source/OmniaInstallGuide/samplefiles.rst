@@ -20,9 +20,10 @@ inventory file
 
         10.5.1.104
 
-        [login]
+        [login_node]
 
         10.5.1.105
+        10.5.1.109
 
 
 
@@ -56,10 +57,10 @@ inventory file
 
 .. note::
 
-            * For Slurm, all the applicable inventory groups are ``slurm_control_node``, ``slurm_node``, and ``login``.
+            * For Slurm, all the applicable inventory groups are ``slurm_control_node``, ``slurm_node``, and ``login_node``.
             * For Kubernetes, all the applicable groups are ``kube_control_plane``, ``kube_node``, and ``etcd``.
             * The centralized authentication server inventory group, that is ``auth_server``, is common for both Slurm and Kubernetes.
-            * For secure login node functionality, ensure to add the ``login`` group in the provided inventory file.
+            * For secure login node functionality, ensure to add the ``login_node`` group in the provided inventory file.
 
 software_config.json for RHEL
 -------------------------------------------
@@ -97,7 +98,7 @@ software_config.json for RHEL
         "slurm": [
             {"name": "slurm_control_node"},
             {"name": "slurm_node"},
-            {"name": "login"}
+            {"name": "login_node"}
         ]
 
     }
@@ -167,15 +168,4 @@ NFS Server inventory file
     #NFS node
     [nfs]
     #node10
-
-
-Inventory for iDRAC telemetry
-------------------------------
-
-::
-
-    [idrac]
-    10.10.0.1
-
-.. note:: Only iDRAC/BMC IPs should be provided.
 

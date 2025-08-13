@@ -1,5 +1,5 @@
-Building an Omnia Cluster
-===========================
+Configuring the cluster
+=========================
 
 .. toctree::
     :maxdepth: 2
@@ -7,6 +7,6 @@ Building an Omnia Cluster
     AMD_ROCm
     Authentication
     Storage/index
-    install_kubernetes
+    Kubernetes/index
     install_slurm
     installscheduler

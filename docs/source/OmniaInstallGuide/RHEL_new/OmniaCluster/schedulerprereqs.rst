@@ -5,10 +5,10 @@ Before you build clusters
 
 * Verify that the inventory file is updated as mentioned in the `inventory sample file <../../samplefiles.html>`_.
 
-     * For Slurm, all the applicable inventory groups are ``slurm_control_node``, ``slurm_node``, and ``login``.
+     * For Slurm, all the applicable inventory groups are ``slurm_control_node``, ``slurm_node``, and ``login_node``.
      * For Kubernetes, all the applicable groups are ``kube_control_plane``, ``kube_node``, and ``etcd``.
      * The centralized authentication server inventory group, that is ``auth_server``, is common for both Slurm and Kubernetes.
-     * For secure login node functionality, ensure to add the ``login`` group in the provided inventory file.
+     * For secure login node functionality, ensure to add the ``login_node`` group in the provided inventory file.
 
 * Verify that all nodes are assigned a group. The inventory file is case-sensitive. Follow the format provided in the `sample file link <../../samplefiles.html>`_.
 

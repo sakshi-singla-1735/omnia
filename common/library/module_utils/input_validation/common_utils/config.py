@@ -175,7 +175,7 @@ TYPE_REQUIREMENTS = {
     "pip_module":["package"]
 }
 
-supported_telemetry_collection_type = ["prometheus"]
+supported_telemetry_collection_type = ["prometheus","kafka"]
 
 # used for security_config.yml login_node_security_config.yml validation
 supported_ldap_connection_type = ["TLS","SLS"]

@@ -31,7 +31,7 @@
         tasks_from: validate_input.yml
 
 - name: Running performance_profile tasks
-  hosts: slurm_control_node, slurm_node, kube_control_plane, kube_node, auth_server, login, etcd
+  hosts: slurm_control_node, slurm_node, kube_control_plane, kube_node, auth_server, login_node, etcd
   connection: ssh
   become: true
   vars_files:

@@ -81,7 +81,7 @@
       tags: firewall
 
 - name: Deny firewall rules for Slurm on compute nodes
-  when: "'slurm_node' in group_names or 'login' in group_names"
+  when: "'slurm_node' in group_names or 'login_node' in group_names"
   block:
     - name: Deny specific TCP and UDP ports for SLURM
       community.general.ufw:
