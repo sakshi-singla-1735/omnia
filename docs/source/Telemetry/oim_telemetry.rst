@@ -22,7 +22,7 @@ Prerequisites
 
     * In a federated setup, telemetry data from the compute nodes is collected by their corresponding parent service cluster node.    
     
-    * Additionally, the ``idrac_telemetry_receiver``, ``activemq``, ``mysqldb``, ``prometheus``, and ``prometheus_pump`` containers are deployed inside the iDRAC telemetry pods to facilitate telemetry data collection. 
+    * Additionally, the ``idrac_telemetry_receiver``, ``activemq``, ``mysqldb``, and ``prometheus_pump`` containers are deployed inside the iDRAC telemetry pods to facilitate telemetry data collection. 
 
 .. csv-table:: telemetry_config.yml
    :file: ../Tables/telemetry_config.csv
