@@ -3,7 +3,7 @@
 
 ``boolean``
 
-Mandatory	","* If you want iDRAC telemetry support on your OIM or service cluster, set this variable to ``true`` before executing ``prepare_oim.yml`` playbook.
+Mandatory	","* If you want iDRAC telemetry support on your OIM or service cluster, set this variable to ``true`` before executing ``prepare_oim.yml`` or ``service_k8s_cluster.yml`` playbook.
               
               * **OIM**: If you want to collect iDRAC telemetry data from the OIM, set this variable to ``true``. When set to ``true``, Omnia deploys the ``idrac_telemetry_receiver``, ``mysqldb``, and ``activemq`` containers on the OIM during the execution of the ``prepare_oim.yml`` playbook.
               * **Service cluster**:  If you want to collect iDRAC telemetry data from the service cluster nodes, set this variable and ``federated_idrac_telemetry_collection`` to ``true``. When both variables are set to ``true``, Omnia deploys the iDRAC telemetry pods on the ``service_kube_node``. These pods include the ``idrac_telemetry_receiver``, ``mysqldb``, ``prometheus_pump``, and ``activemq`` containers, and are created during the execution of the ``service_k8s_cluster.yml`` playbook.
