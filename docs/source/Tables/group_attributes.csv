@@ -26,4 +26,4 @@ Switch IP - ``ip``,Conditional mandatory,"* This attribute contains the IP addre
 Switch ports - ``ports``,Conditional mandatory,"* This attribute contains the port details of the switch connected to the rack.
 * This attribute is mandatory if switch IP is provided."
 Node architecture - ``architecture``,Mandatory,"* Architecture of the nodes.
-* Possible values: ``x86`` or ``ARM``"
+* Possible values: ``x86_64`` or ``aarch64``"

@@ -1,5 +1,5 @@
-﻿Role Name,Layer,Details
-Default - ``default``,Compute,"* Omnia assigns the default role to nodes which do not fit into any specific roles.
+﻿Role Name,Layer, Supported Architecture, Details
+Default - ``default``,Compute, x86_64 and aarch64, "* Omnia assigns the default role to nodes which do not fit into any specific roles.
 * This role is useful when you only need to provision the nodes, without assigning any specific functionality to them.
 
 **Example**:
@@ -8,7 +8,7 @@ Default - ``default``,Compute,"* Omnia assigns the default role to nodes which d
   - name: ""default""
     groups:
       - grp0"
-Slurm worker node - ``slurm_node``,Compute,"* This role is used to configure the nodes for Slurm worker. The nodes included in this role will have the necessary tools and configurations to run Slurm worker.
+Slurm worker node - ``slurm_node``,Compute, x86_64 and aarch64, "* This role is used to configure the nodes for Slurm worker. The nodes included in this role will have the necessary tools and configurations to run Slurm worker.
 * The nodes in this role can be used to run Slurm worker.
 
 **Example**:
@@ -18,7 +18,7 @@ Slurm worker node - ``slurm_node``,Compute,"* This role is used to configure the
     groups:
       - grp0
       - grp1"
-Kubernetes worker node - ``kube_node``,Compute,"* This role is used to configure the nodes for Kubernetes worker. The nodes included in this role will have the necessary tools and configurations to run Kubernetes worker.
+Kubernetes worker node - ``kube_node``,Compute, x86_64 and aarch64, "* This role is used to configure the nodes for Kubernetes worker. The nodes included in this role will have the necessary tools and configurations to run Kubernetes worker.
 * The nodes in this role can be used to run Kubernetes worker.
 
 **Example**:
@@ -28,7 +28,7 @@ Kubernetes worker node - ``kube_node``,Compute,"* This role is used to configure
     groups:
       - grp0
       - grp1"
-Service cluster Kubernetes head node- ``service_kube_control_plane``,Management,"* This role is used to configure kubernetes master on the service cluster. This role should not contain same group as of ``kube_control_plane``.
+Service cluster Kubernetes head node- ``service_kube_control_plane``,Management, x86_64, "* This role is used to configure kubernetes master on the service cluster. This role should not contain same group as of ``kube_control_plane``.
 
 *  The nodes included in this role will have the necessary tools and configurations to configure and run kubernetes master on service cluster.
 
@@ -40,7 +40,7 @@ Service cluster Kubernetes head node- ``service_kube_control_plane``,Management,
                  groups:
                         - grp0
                         - grp1"
-Service Cluster Kubernetes etcd node- ``service_etcd``,Management,"* This role is used to configure the nodes for Kubernetes etcd on service cluster.
+Service Cluster Kubernetes etcd node- ``service_etcd``,Management, x86_64, "* This role is used to configure the nodes for Kubernetes etcd on service cluster.
 
 * This role should not have same group as ``etcd`` role.
 
@@ -54,7 +54,7 @@ Service Cluster Kubernetes etcd node- ``service_etcd``,Management,"* This role i
                  groups:
                       - grp0
                       - grp1"
-Service Cluster Kubernetes worker node- ``service_kube_node``,Management,"* This role is used to configure the Kubernetes worker nodes on service cluster. This role should not have same group as ``kube_node`` role.
+Service Cluster Kubernetes worker node- ``service_kube_node``,Management, x86_64 and aarch64, "* This role is used to configure the Kubernetes worker nodes on service cluster. This role should not have same group as ``kube_node`` role.
 
 * The nodes included in this role will have the necessary tools and configurations to configure and run Kubernetes worker on service cluster.
 
@@ -66,7 +66,7 @@ Service Cluster Kubernetes worker node- ``service_kube_node``,Management,"* This
              groups:
                 - grp0
                 - grp1"
-Authentication server - ``auth_server``,Management,"* This role is used to configure the nodes for authentication. The nodes included in this role will have the necessary tools and configurations to support authentication activities.
+Authentication server - ``auth_server``,Management, x86_64 and aarch64, "* This role is used to configure the nodes for authentication. The nodes included in this role will have the necessary tools and configurations to support authentication activities.
 
 **Example**:
 ::
@@ -75,7 +75,7 @@ Authentication server - ``auth_server``,Management,"* This role is used to confi
     groups:
       - grp0
       - grp1"
-Compiler - ``compiler_node``,Management,"* This role is used to configure the nodes for compilation. The nodes included in this role will have the necessary tools and configurations to perform compilation.
+Compiler - ``compiler_node``,Management, x86_64 and aarch64, "* This role is used to configure the nodes for compilation. The nodes included in this role will have the necessary tools and configurations to perform compilation.
 * The nodes in this role can be used to compile the code.
 
 **Example**:
@@ -85,7 +85,7 @@ Compiler - ``compiler_node``,Management,"* This role is used to configure the no
     groups:
       - grp0
       - grp1"
-Kubernetes control plane - ``kube_control_plane``,Management,"* Nodes with ``kube_control_plane`` role can be added to the Kubernetes master node groups.
+Kubernetes control plane - ``kube_control_plane``,Management, x86_64, "* Nodes with ``kube_control_plane`` role can be added to the Kubernetes master node groups.
 * This role is used to configure the nodes for Kubernetes master. The nodes included in this role will have the necessary tools and configurations to run Kubernetes master.
 * The nodes in this role can be used to run the Kubernetes master. 
 
@@ -96,7 +96,7 @@ Kubernetes control plane - ``kube_control_plane``,Management,"* Nodes with ``kub
     groups:
       - grp0
       - grp1"
-Kubernetes etcd - ``etcd``,Management,"* Nodes with ``etcd`` role can be added to the Kubernetes etcd node groups.
+Kubernetes etcd - ``etcd``,Management, x86_64, "* Nodes with ``etcd`` role can be added to the Kubernetes etcd node groups.
 * This role is used to configure the nodes for Kubernetes etcd. The nodes included in this role will have the necessary tools and configurations to run Kubernetes etcd.
 * The nodes in this role can be used to run Kubernetes etcd.
 
@@ -107,7 +107,7 @@ Kubernetes etcd - ``etcd``,Management,"* Nodes with ``etcd`` role can be added t
     groups:
       - grp0
       - grp1"
-Slurm control plane - ``slurm_control_node``,Management,"* Nodes with ``slurm_control_node`` role can be added to the Slurm head node groups.
+Slurm control plane - ``slurm_control_node``,Management, x86_64, "* Nodes with ``slurm_control_node`` role can be added to the Slurm head node groups.
 * This role is used to configure the nodes for Slurm head. The nodes included in this role will have the necessary tools and configurations to run Slurm head.
 * The nodes in this role can be used to run the Slurm head. 
 
@@ -118,7 +118,7 @@ Slurm control plane - ``slurm_control_node``,Management,"* Nodes with ``slurm_co
     groups:
       - grp0
       - grp1"
-Login node - ``login_node``,Management,"* This role is used to configure the nodes for user logins. The nodes included in this role will have the necessary tools and configurations to support user login activities.
+Login node - ``login_node``,Management, x86_64 and aarch64, "* This role is used to configure the nodes for user logins. The nodes included in this role will have the necessary tools and configurations to support user login activities.
 
 **Example**:
 ::
@@ -127,7 +127,7 @@ Login node - ``login_node``,Management,"* This role is used to configure the nod
     groups:
       - grp0
       - grp1"
-OIM High Availability - ``oim_ha_node``,Management,"* This role is used to configure the OIM HA node. The nodes included in this role will have the necessary tools and configurations to support the OIM HA functionality on the passive OIM nodes.
+OIM High Availability - ``oim_ha_node``,Management, x86_64,"* This role is used to configure the OIM HA node. The nodes included in this role will have the necessary tools and configurations to support the OIM HA functionality on the passive OIM nodes.
 
 **Example**:
 ::
