@@ -20,4 +20,3 @@
       {{ telemetry_report_path_oim if node_host == 'oim' else telemetry_report_path_sn }}
     mode: "{{ filemode }}"
     force: true
-
