@@ -18,6 +18,7 @@ storage_class_name: "nfs-client"
 k8s_not_installed_fail_msg: "Failed. Kubernetes installation required.
   Execute scheduler/service_k8s_cluster.yml to install Kubernetes and re-run the playbook."
 storage_class_missing_fail_msg: "Failed. StorageClass {{ storage_class_name }} is not present in the cluster.
+  To resolve this, create the StorageClass by running scheduler/service_k8s_cluster.yml playbook."
 
 # Usage: secrets_creation.yml
 mysqldb_secrets_name: mysqldb-credentials
