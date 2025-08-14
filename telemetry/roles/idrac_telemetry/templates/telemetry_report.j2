@@ -1,6 +1,6 @@
 ===== Telemetry Summary Report =====
 
------ Telemetry Report for OIM -----
+----- Telemetry Report for {{ "OIM" if not hostvars['localhost']['federated_idrac_telemetry_collection'] else kube_control_plane_cluster_name }} -----
 
 Total IP count with Telemetry activated: {{ (db_idrac_ip_list | length) + (telemetry_idrac | length) }}
 Telemetry activated IPs List:
