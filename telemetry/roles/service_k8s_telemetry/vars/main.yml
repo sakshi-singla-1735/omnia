@@ -14,13 +14,10 @@
 ---
 
 # Usage: prereq_checks.yml
-nfs_storage_class_name: "nfs-client"
-power_scale_storage_class_name: "ps01"
+storage_class_name: "nfs-client"
 k8s_not_installed_fail_msg: "Failed. Kubernetes installation required.
   Execute scheduler/service_k8s_cluster.yml to install Kubernetes and re-run the playbook."
-storage_class_missing_fail_msg: "Failed. StorageClass {{ nfs_storage_class_name }} or
-  {{ power_scale_storage_class_name }} is not present in the cluster.
-  To resolve this, create the StorageClass by running scheduler/service_k8s_cluster.yml playbook."
+storage_class_missing_fail_msg: "Failed. StorageClass {{ storage_class_name }} is not present in the cluster.
 
 # Usage: secrets_creation.yml
 mysqldb_secrets_name: mysqldb-credentials
