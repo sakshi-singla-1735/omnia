@@ -91,6 +91,7 @@ def main():
             json_path = {}
             status_csv_path = {}
             failed_softwares = []
+            new_pkg_dict = {}
             tasks_dict = {}
 
             full_path = os.path.join(csv_file_path, arch, SOFTWARE_CSV_FILENAME)
@@ -115,35 +116,39 @@ def main():
             for software in software_list[arch]:
                 logger.info(f"Processing software: {software}")
                 json_path[arch] = get_json_file_path(software, cluster_os_type,
-                                                    cluster_os_version, user_json_file, arch)       
+                                                    cluster_os_version, user_json_file, arch)
                 status_csv_path[arch] = get_csv_file_path(software, log_dir, arch)
                 logger.info(f"json_path: {json_path}")
                 logger.info(f"status_csv_path: {status_csv_path}")
                 if not json_path[arch]:
                     logger.warning(f"Skipping {software}: JSON path does not exist.")
                     continue
-                if not new_softwares:
-                    is_fresh_software = True
-                else:
+                if not fresh_installation[arch]:
                     is_fresh_software = software in new_softwares.get(arch, [])
+                else:
+                    is_fresh_software = True
+                logger.info(f"is_fresh_software: {is_fresh_software}")
                 failed_softwares = get_failed_software(software_csv_path[arch])
-                if not is_fresh_software and software not in failed_softwares:
-                    tasks_dict[software] = get_new_packages_not_in_status(json_path[arch],
-                                                                          status_csv_path[arch],subgroup_dict.get(software, None))
-                    logger.info(f"Additional software packages: {tasks_dict}")
-                    trans=transform_package_dict(tasks_dict, arch)
-                    final_tasks_dict.update(trans)
-                    logger.info(f"Final tasklist to process: {trans}")
-                    continue
-
                 tasks, failed_packages = process_software(software, is_fresh_software, json_path[arch],
-                                                           status_csv_path[arch], subgroup_dict.get(software, None))
+                                                           status_csv_path[arch],
+                                                           subgroup_dict.get(software, None))
                 logger.info(f"tasks to be processed: {tasks}")
                 logger.info(f"failed_packages : {failed_packages}")
-                tasks_dict[software] = tasks
-                trans=transform_package_dict(tasks_dict, arch)
-                logger.info(f"Final tasklist to process: {trans}")
-                final_tasks_dict.update(trans)
+
+                if not is_fresh_software:
+                    pkgs = get_new_packages_not_in_status(json_path[arch],
+                                                          status_csv_path[arch],
+                                                          subgroup_dict.get(software, None))
+
+                    if pkgs:
+                        logger.info(f"Additional software packages for {software}: {pkgs}")
+                        tasks.extend(pkgs)
+
+                if tasks:
+                    tasks_dict[software] = tasks
+                    trans=transform_package_dict(tasks_dict, arch)
+                    logger.info(f"Final tasklist to process: {trans}")
+                    final_tasks_dict.update(trans)
         local_config, url_result = parse_repo_urls(repo_config, local_repo_config_path , version_variables, vault_key_path)
         if not url_result:
             module.fail_json(f"{local_config} is not reachable or invalid, please check and provide correct URL")

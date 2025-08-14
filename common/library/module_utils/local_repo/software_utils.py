@@ -515,25 +515,16 @@ def get_new_packages_not_in_status(json_path, csv_path, subgroup_list):
         list: List of new packages not in the status CSV.
     """
 
-    rpm_package_type = ['rpm']
-    rpm_packages = []
-    non_rpm_packages = []
+    all_packages = []
     new_packages = []
 
     status_csv_content = read_status_csv(csv_path)
     names = [row['name'] for row in status_csv_content]
     
-    if any(name.startswith("RPMs for") for name in names):
-        rpm_packages = parse_json_data(
-            json_path, rpm_package_type, None, subgroup_list)
-        new_packages.extend(rpm_packages)
-
-    non_rpm_packages = parse_json_data(
+    all_packages = parse_json_data(
         json_path, PACKAGE_TYPES, None, subgroup_list)
    
-    for pkg in non_rpm_packages:
-        if pkg["type"] == "rpm":
-            continue
+    for pkg in all_packages:
 
         if pkg["type"] == "image":
            pkg_prefix = pkg.get("package", "").strip()
