@@ -56,21 +56,7 @@
         kind: StorageClass
       register: sc_info
 
-    - name: Find default StorageClass
-      ansible.builtin.set_fact:
-        default_storage_class: "{{ item.metadata.name }}"
-      loop: "{{ sc_info.resources }}"
-      when: item.metadata.annotations['storageclass.kubernetes.io/is-default-class'] | default('false') == 'true'
-
-    - name: Set storage_class based on default_storage_class
-      ansible.builtin.set_fact:
-        storage_class: "{{ item.name }}"
-      loop:
-        - { name: "{{ power_scale_storage_class_name }}" }
-        - { name: "{{ nfs_storage_class_name }}" }
-      when: default_storage_class == item.name
-
     - name: Fail if the StorageClass does not exist - {{ storage_class_name }}
       ansible.builtin.fail:
         msg: "{{ storage_class_missing_fail_msg }}"
-      when: storage_class is not defined or storage_class | length == 0
+      when: storage_class_name not in (sc_info.resources | map(attribute='metadata.name') | list)
