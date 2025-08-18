@@ -755,7 +755,7 @@ post_setup_config() {
 
 validate_nfs_server() {
 
-        # Validate NFS server permission
+    # Validate NFS server permission
     if [ "$share_option" = "NFS" ]; then
         # Create a temporary file inside $omnia_path
         temp_file="$omnia_path/temp_file"
