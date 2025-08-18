@@ -502,9 +502,9 @@ def validate_roles_config(
     # Role service_kube_control_plane is defined in roles_config.yml,
     # verify service_k8s package entry is present in software_config.json
     # If no entry is present, then fail the input validator
-    service_kube_control_plane_defined  = False
+    service_kube_control_plane_defined = False
     if validation_utils.key_value_exists(roles, name, "service_kube_control_plane"):
-        service_kube_control_plane_defined  = True
+        service_kube_control_plane_defined = True
         try:
             if not validate_service_k8s_in_software_config(input_file_path):
                 errors.append(
