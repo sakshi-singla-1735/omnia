@@ -131,7 +131,7 @@ telemetry_host_group: "telemetry_group"
 telemetry_host: >-
   {{ groups['kube_control_plane'][0]
      if federated_idrac_telemetry_collection | default(false)
-     else ['localhost']
+     else 'localhost'
   }}
 
 # Usage: include_high_availability_config.yml
