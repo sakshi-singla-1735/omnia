@@ -77,6 +77,7 @@
       get_service_cluster_info:
         groups_info: "{{ groups_info }}"
         host_inventory: "{{ host_inventory }}"
+        bmc_group_data: "{{ hostvars['localhost']['bmc_dict_list'] | default([]) }}"
       register: service_cluster_info_output
 
     - name: Set fact for service_cluster role required and other facts

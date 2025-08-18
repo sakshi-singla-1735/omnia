@@ -85,45 +85,50 @@ def check_service_cluster_node_details(group, parent, service_cluster_node_detai
             "Please verify the input and try again."
         )
 
-def get_service_cluster_data(groups_info, service_cluster_node_details):
+def get_service_cluster_data(groups_info, service_cluster_node_details, bmc_group_data):
     """
-    Generate service cluster data from groups_info and service_cluster_node_details.
+    Generate service cluster node details by analyzing group relationships and BMC group data.
 
     This function checks the service cluster node details for each group,
-    updates the groups_info with the details, and adds child group data
-    to service_cluster_node_details.
+    and adds child group data to service_cluster_node_details. It also checks
+    if a parent has child groups in the bmc_group_data and adds them to the parent_data.
 
     Args:
         groups_info (dict): Dictionary containing group information.
         service_cluster_node_details (dict): Dictionary containing service cluster node information.
+        bmc_group_data (list): List of dictionaries containing BMC group data.
 
     Returns:
-        tuple: A tuple containing:
-            - updated groups_info (dict)
-            - updated service_cluster_node_details (dict)
-            - service_cluster_node_details_status (dict)
+        dict: Updated service_cluster_node_details.
     """
-
-
-    service_cluster_node_details_status = False
 
     for group, group_data in groups_info.items():
         parent = group_data.get('parent', '')
         status = check_service_cluster_node_details(group, parent, service_cluster_node_details)
-        service_cluster_node_details_status = service_cluster_node_details_status or status
 
         if not status:
-            groups_info[group]['service_cluster_node_details_status'] = False
             continue
 
         parent_data = service_cluster_node_details.get(parent, {})
-        parent_data.setdefault('child_groups', []).append(group)
+        parent_data.setdefault('child_groups', [])
+
+        # Add current group to child_groups
+        if group not in parent_data['child_groups']:
+            parent_data['child_groups'].append(group)
+
+        # Add child groups from bmc_group_data
+        for entry in bmc_group_data:
+            if entry.get('PARENT') == parent:
+                bmc_group = entry.get('GROUP_NAME')
+                if bmc_group and bmc_group not in parent_data['child_groups']:
+                    parent_data['child_groups'].append(bmc_group)
+
+        # Set parent_status if there are any child groups
         if parent_data['child_groups']:
             parent_data['parent_status'] = True
         service_cluster_node_details[parent] = parent_data
-        groups_info[group]['service_cluster_node_details_status'] = service_cluster_node_details_status
 
-    return groups_info, service_cluster_node_details, service_cluster_node_details_status
+    return service_cluster_node_details
 
 def main():
     """
@@ -131,7 +136,8 @@ def main():
     """
     module_args = {
         'groups_info': {'type':"dict", 'required':True},
-        'host_inventory': {'type':"list", 'required':True}
+        'host_inventory': {'type':"list", 'required':True},
+        'bmc_group_data': {'type':"list", 'required':True}
     }
 
     module = AnsibleModule(argument_spec=module_args, supports_check_mode=True)
@@ -139,15 +145,13 @@ def main():
     try:
         groups_info = module.params["groups_info"]
         host_inventory = module.params["host_inventory"]
+        bmc_group_data = module.params["bmc_group_data"]
         service_cluster_node_details = get_service_cluster_node_details(host_inventory)
-        groups_info, service_cluster_node_details, service_cluster_node_details_status  = \
-            get_service_cluster_data(groups_info, service_cluster_node_details)
+        service_cluster_node_details = get_service_cluster_data(groups_info, service_cluster_node_details, bmc_group_data)
 
         module.exit_json(
             changed=False,
-            service_cluster_node_details_status = service_cluster_node_details_status,
-            service_cluster_node_details = service_cluster_node_details,
-            groups_info = groups_info
+            service_cluster_node_details = service_cluster_node_details
         )
     except ValueError as e:
         module.fail_json(msg=str(e).replace('\n', ' '))

@@ -17,7 +17,7 @@
   ansible.builtin.set_fact:
     idrac_telemetry_pods: >-
       {{
-        range(0, idrac_telemetry_replicas | int)
+        range(0, (idrac_telemetry_replicas | int) + 1)
         | map('regex_replace', '^', idrac_telemetry_k8s_name ~ '-')
         | list
       }}
@@ -34,27 +34,62 @@
     kube_cp_node: >-
       {{ service_cluster_metadata | dict2items
          | selectattr('value.role', 'search', '(^|,)service_kube_control_plane(,|$)')
-         | list }}
+         | sort(attribute='key') | list }}
     kube_compute_nodes: >-
       {{ service_cluster_metadata | dict2items
          | rejectattr('value.role', 'search', '(^|,)service_kube_control_plane(,|$)')
          | list }}
 
+- name: Check if HA is enabled
+  ansible.builtin.set_fact:
+    ha_enabled: "{{ service_k8s_cluster_ha[0].enable_k8s_ha | default(false) }}"
+
+- name: Determine active control plane node
+  ansible.builtin.set_fact:
+    active_cp_node: >-
+      {% if ha_enabled %}
+        {{ service_k8s_cluster_ha[0].active_node_service_tags[0] }}
+      {% else %}
+        {{ kube_cp_node | map(attribute='key') | list | first }}
+      {% endif %}
+
+- name: Check if any CP node already has a pod assigned
+  ansible.builtin.set_fact:
+    assigned_kube_cp_node: >-
+      {{ kube_cp_node | map(attribute='value.idrac_podname') | select('defined') | list | length > 0 }}
+
+- name: Assign pod only if no CP node has a pod
+  ansible.builtin.set_fact:
+    unassigned_kube_cp_node: >-
+      {% if not assigned_kube_cp_node %}
+        {{ active_cp_node }}
+      {% else %}
+        {{ '' }}
+      {% endif %}
+
 - name: Identify unassigned service nodes and idrac-telemetry pods
   ansible.builtin.set_fact:
     unassigned_nodes: >-
-      {{ (kube_cp_node + kube_compute_nodes)
+      {{ kube_compute_nodes
          | rejectattr('value.idrac_podname', 'defined')
          | list }}
     assigned_pods: >-
-      {{ (kube_cp_node + kube_compute_nodes)
+      {{ kube_compute_nodes
          | map(attribute='value.idrac_podname')
          | select('defined') | list | default([]) }}
 
 - name: Identify unassigned telemetry pods
   ansible.builtin.set_fact:
     unassigned_pods: >-
-      {{ idrac_telemetry_pods | reject('in', assigned_pods) | list }}
+      {{
+            (
+              (kube_compute_nodes
+              | rejectattr('value.idrac_podname', 'defined')
+              | list)
+              +
+              [unassigned_kube_cp_node]
+            )
+          }}
 
 - name: Build new pod assignments for unassigned nodes
   ansible.builtin.set_fact:
