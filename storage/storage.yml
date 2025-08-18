@@ -77,7 +77,6 @@
   gather_facts: true
   roles:
     - nfs_server
-  tags: nfs_client
 
 - name: Copy NFS maps from localhost to all target hosts
   hosts: kube_control_plane, kube_node, etcd
@@ -93,7 +92,6 @@
 - name: Install NFS client for service and compute clusters
   hosts: kube_control_plane, kube_node, etcd
   gather_facts: false
-  tags: nfs_client
   tasks:
     - name: Include nfs_client role with multiple NFS maps
       ansible.builtin.include_role:
@@ -108,7 +106,6 @@
 - name: Install NFS client for slurm cluster
   hosts: slurm_control_node, slurm_node, auth_server, login
   gather_facts: false
-  tags: nfs_client
   roles:
     - role: nfs_client
       vars:
