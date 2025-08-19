@@ -217,7 +217,7 @@ def parse_repo_urls(repo_config, local_repo_config_path,
     for arch in ARCH_SUFFIXES:
         omnia_key = f"omnia_repo_url_rhel_{arch}"
         user_key = f"user_repo_url_{arch}"
-        rhel_key = f"rhel_repo_url_{arch}"
+        rhel_key = f"rhel_os_url_{arch}"
 
         repo_entries[arch] = local_yaml.get(omnia_key, [])
         user_repo_entry[arch] = local_yaml.get(user_key, [])
