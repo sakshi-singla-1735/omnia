@@ -41,6 +41,8 @@ PARENT_SERVICE_ROLE_DNE_MSG = ("Parent field is only supported when 'service_kub
     " Please remove the 'parent' field from this role's group definition.")
 PARENT_SERVICE_ROLE_MSG = (" A 'service_kube_control_plane, service_kube_node' role is not defined, so the 'parent' field should"
     " be empty for groups associated with 'worker' or 'default' roles.")
+PARENT_SERVICE_ROLE_REQUIRED_MSG = ("When 'service_kube_control_plane', 'service_kube_node' role is defined,"
+    " the 'parent' field is required for groups associated with 'worker' or 'default' roles.")
 BMC_STATIC_RANGE_INVALID_MSG = ("Static range should be in the following format: "
                                "IPv4Start-IPv4End (example: 10.5.0.1-10.5.0.200).")
 OVERLAPPING_STATIC_RANGE = "bmc_detail's static_range is overlapping with other static ranges."
