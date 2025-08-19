@@ -61,7 +61,7 @@ invalid_bmc_warning_msg: |
 idrac_telemetry_scripting_git_clone_path: >-
   {{  oim_idrac_telemetry_scripting_dir_path if inventory_hostname == 'localhost' else service_cluster_idrac_telemetry_dir_path }}
 service_cluster_idrac_telemetry_dir_path: "{{ omnia_nfs_share }}/service_cluster/telemetry/idrac_telemetry/iDRAC-Telemetry-Scripting"
-oim_idrac_telemetry_scripting_dir_path: "{{ omnia_nfs_share }}/telemetry/idrac_telemetry/iDRAC-Telemetry-Scripting"
+oim_idrac_telemetry_scripting_dir_path: "/opt/omnia/telemetry/idrac_telemetry/iDRAC-Telemetry-Scripting"
 
 # Usage: trigger_telemetry_collection.yml
 idrac_telemetry_container: "idrac_telemetry_receiver"
