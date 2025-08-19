@@ -17,7 +17,7 @@
   ansible.builtin.set_fact:
     idrac_telemetry_pods: >-
       {{
-        range(1, idrac_telemetry_replicas | int)
+        range(1, (idrac_telemetry_replicas | int) + 1)
         | map('regex_replace', '^', idrac_telemetry_k8s_name ~ '-')
         | list
       }}
