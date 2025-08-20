@@ -70,9 +70,6 @@ def validate_bmc_group_data(bmc_group_data, bmc_group_data_headers, federated_te
     omnia_db_bmc_ips = get_bmc_ips_from_db()
     bmc_dict_list = []
 
-    if bmc_group_data[0] != headers:
-        raise ValueError(invalid_bmc_group_data_file_msg)
-
     if not bmc_group_data[1:]:
         raise ValueError(f"Failed. No BMC entries found in BMC group data file {bmc_group_data_file}")
 
