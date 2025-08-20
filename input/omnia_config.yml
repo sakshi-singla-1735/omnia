@@ -15,7 +15,7 @@
 
 # ***********************************************************************
 # DO NOT REMOVE OR COMMENT OUT ANY LINES IN THIS FILE.
-# SIMPLY APPEND THE REQUIRD VALUES AGAINST THE PARAMETER OF YOUR CHOICE.
+# SIMPLY APPEND THE REQUIRED VALUES AGAINST THE PARAMETER OF YOUR CHOICE.
 # ***********************************************************************
 
 # -----------------------------SLURM------------------------------------------------
@@ -83,6 +83,8 @@ service_k8s_cluster:
     topology_manager_policy: "none"
     topology_manager_scope: "container"
     k8s_offline_install: true
+    csi_powerscale_driver_secret_file_path: ""
+    csi_powerscale_driver_values_file_path: ""
  
 compute_k8s_cluster:
   - cluster_name: compute_cluster
@@ -94,3 +96,5 @@ compute_k8s_cluster:
     topology_manager_policy: "none"
     topology_manager_scope: "container"
     k8s_offline_install: true
+    csi_powerscale_driver_secret_file_path: ""
+    csi_powerscale_driver_values_file_path: ""

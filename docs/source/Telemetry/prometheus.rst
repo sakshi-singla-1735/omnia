@@ -1,5 +1,5 @@
-Visualization of iDRAC telemetry metrics collected by Prometheus
-===================================================================
+Visualization of iDRAC telemetry metrics collected by Prometheus metrics exporter
+===================================================================================
 
 Via Grafana UI
 -----------------

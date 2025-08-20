@@ -53,7 +53,7 @@ Here's a sample (using mapping file) for your reference:
     Groups:
         grp0:
             location_id: SU-1.RACK-1
-            cluster_name: ""
+            cluster_name: "service_node_cluster"
             resource_mgr_id: ""
             parent: ""
             bmc_details:
@@ -61,11 +61,11 @@ Here's a sample (using mapping file) for your reference:
             switch_details:
                 ip: ""
                 ports: ""
-            architecture: "x86"
+            architecture: "x86_64"
 
         grp1:
             location_id: SU-1.RACK-2
-            cluster_name: "service_cluster"
+            cluster_name: "slurm_node_cluster"
             resource_mgr_id: ""
             parent: ""
             bmc_details:
@@ -73,7 +73,7 @@ Here's a sample (using mapping file) for your reference:
             switch_details:
                 ip: ""
                 ports: ""
-            architecture: "x86"
+            architecture: "aarch64"
 
     Roles:
         - name: "default"

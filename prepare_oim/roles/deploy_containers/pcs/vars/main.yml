@@ -76,7 +76,7 @@ stop_interval: "0s"
 stop_timeout: "60s"
 
 migration_threshold: 0
-ha_migration_threshold: 1
+ha_migration_threshold: 3
 failure_timeout: "60s"
 pcs_group: omnia
 vip_group: omnia_vip

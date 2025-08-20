@@ -34,7 +34,7 @@
 - name: Validate metadata
   ansible.builtin.include_tasks: validate_metadata.yml
 
-- name: Validate k8s json
+- name: Validate compute k8s and service k8s json
   ansible.builtin.include_tasks: validate_k8s_json.yml
 
 - name: Loop through cluster configs to generate JSON files

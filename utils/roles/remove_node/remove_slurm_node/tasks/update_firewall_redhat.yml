@@ -54,7 +54,7 @@
       tags: firewalld
 
 - name: Configure firewall rules for Slurm compute nodes
-  when: "'slurm_node' in group_names or 'login' in group_names"
+  when: "'slurm_node' in group_names or 'login_node' in group_names"
   block:
     - name: Deny Slurm-related TCP/UDP ports
       ansible.posix.firewalld:

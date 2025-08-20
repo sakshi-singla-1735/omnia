@@ -13,16 +13,6 @@
 #  limitations under the License.
 ---
 
-# Usage: main.yml
-common_plugin:
-  kubernetes_dashboard: true
-  habanalabs-device-plugin: false
-  mpi-operator: true
-  xilinx-device-plugin: true
-  nfs-subdir-external-provisioner: true
-  multus-device-plugin: true
-  whereabouts-device-plugin: true
-
 # Usage: prereq.yml
 k8s_tmp_dir: "/root/k8s"
 helm_install_fail_msg: "Failed to fetch helm path. Please verify helm installation and ensure the environment variable PATH is correctly set in the node.
