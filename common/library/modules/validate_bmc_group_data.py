@@ -49,15 +49,18 @@ def is_valid_ip(ip):
 
 def validate_bmc_group_data(bmc_group_data, bmc_group_data_headers, federated_telemetry, bmc_group_data_file):
     """
-    Validates BMC group data and extracts BMC IP addresses.
+    Validates BMC group data and returns the result along with the list of BMC IPs.
+
     Parameters:
-        bmc_group_data (list): A list of BMC group data.
-        bmc_group_data_headers (list): A list of expected headers.
-        federated_telemetry (bool): A boolean indicating whether federated telemetry is enabled.
+        bmc_group_data (list): List of BMC group data entries.
+        bmc_group_data_headers (list): List of expected headers in BMC group data.
+        federated_telemetry (bool): Flag to indicate federated telemetry collection.
+        bmc_group_data_file (str): The file containing BMC group data.
+
     Returns:
-        dict: A dictionary containing the validated BMC group data, BMC IP addresses, and other relevant information.
+        dict: A dictionary containing the validation result, list of BMC IPs and other relevant information.
     """
-    invalid_bmc_group_data_file_msg = "Invalid BMC group data file {{ bmc_group_data_file }}. Please execute discovery_provision.yml to Generate valid BMC data file."
+    invalid_bmc_group_data_file_msg = f"Invalid BMC group data file {bmc_group_data_file}. Please execute discovery_provision.yml to Generate valid BMC data file."
     if not bmc_group_data:
         raise ValueError("BMC group data is empty")
     headers = bmc_group_data[0].split(',')
