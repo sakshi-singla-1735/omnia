@@ -11,24 +11,19 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-"""
-This script setups the omniadb.
 
-The module creates the omniadb database and cluster.nodeinfo table
-"""
+# pylint: disable=import-error,no-name-in-module,line-too-long
+
+#!/usr/bin/python
+"""Ansible custom module to setup omniadb."""
 
 import sys
-from cryptography.fernet import Fernet
 import psycopg2
+from cryptography.fernet import Fernet
+from ansible.module_utils.basic import AnsibleModule
+from ansible.module_utils.discovery import omniadb_connection
 
-db_path = sys.argv[1]
-sys.path.insert(0, db_path)
-import omniadb_connection
-
-KEY_FILE_PATH = "/opt/omnia/.postgres/.postgres_pass.key"
-PASS_FILE_PATH = "/opt/omnia/.postgres/.encrypted_pwd"
-
-def create_db():
+def create_db(postgres_path):
     """
     Create a database connection to the PostgreSQL database.
 
@@ -43,11 +38,11 @@ def create_db():
         None
     """
 
-    with open(KEY_FILE_PATH, "rb") as passfile:
+    with open(f"{postgres_path}/.postgres_pass.key", "rb") as passfile:
         key = passfile.read()
     fernet = Fernet(key)
 
-    with open(PASS_FILE_PATH, "rb") as datafile:
+    with open(f"{postgres_path}/.encrypted_pwd", "rb") as datafile:
         encrypted_file_data = datafile.read()
     decrypted_pwd = fernet.decrypt(encrypted_file_data).decode()
     conn = None
@@ -128,7 +123,7 @@ def create_db_table(conn):
         cluster_name VARCHAR(30),
         parent VARCHAR(30),
         location_id VARCHAR(30),
-        architecture VARCHAR(5),
+        architecture VARCHAR(10),
         status VARCHAR(65),
         discovery_mechanism VARCHAR(65),
         bmc_mode VARCHAR(30),
@@ -146,26 +141,30 @@ def create_db_table(conn):
 
 def main():
     """
-    Executes the main function of the program.
+	Executes the main function of the program.
 
-    This function calls the `create_db` function to create a database connection.
-    It then creates a connection to the database using the `create_connection`
-    function from the `omniadb_connection` module. After that, it calls the
-    `create_db_schema` function to create the database schema and the
-    `create_db_table` function to create the database table. Finally, it closes the
-    database connection.
+	Parameters:
+		- None
 
-    Parameters:
-        None
+	Returns:
+		- None
+	"""
 
-    Returns:
-        None
-    """
-    create_db()
+    module_args = {
+        'postgres_path': {'type': 'str', 'required': True}
+    }
+    module = AnsibleModule(argument_spec=module_args, supports_check_mode=True)
+
+    postgres_path = module.params['postgres_path']
+
+    create_db(postgres_path)
+
     conn = omniadb_connection.create_connection()
     create_db_schema(conn)
     create_db_table(conn)
     conn.close()
 
-if __name__ == "__main__":
+    module.exit_json(changed=True, msg="DB changes are done")
+
+if __name__ == '__main__':
     main()

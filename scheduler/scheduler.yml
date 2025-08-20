@@ -19,7 +19,7 @@
   tasks:
     - name: Set dynamic run tags including k8s
       ansible.builtin.set_fact:
-        omnia_run_tags: "{{ (ansible_run_tags | default([]) + ['k8s', 'slurm']) | unique }}"
+        omnia_run_tags: "{{ (ansible_run_tags | default([]) + ['compute_k8s', 'slurm', 'csi_driver_powerscale']) | unique }}"
         cacheable: true
 
 - name: Invoke get_config_credentials.yml
@@ -43,6 +43,9 @@
       ansible.builtin.set_fact:
         compute_k8s_playbook: true
 
+- name: Invoke validate_config.yml to perform L1 and L2 validations for k8s
+  ansible.builtin.import_playbook: ../input_validation/validate_config.yml
+
 - name: Validate inventory
   ansible.builtin.import_playbook: ../utils/inventory_validation.yml
   when: not ( hostvars['127.0.0.1']['inventory_validation_executed'] | default(false) | bool )
@@ -60,11 +63,6 @@
       ansible.builtin.include_role:
         name: cluster_validation
         tasks_from: validation_status_check.yml
-
-- name: Invoke validate_config.yml to perform L1 and L2 validations for k8s
-  ansible.builtin.import_playbook: ../input_validation/validate_config.yml
-  when:
-    - hostvars['127.0.0.1']['k8s_support']
 
 - name: Update Repositories/Registries on nodes
   ansible.builtin.import_playbook: ../utils/update_user_repo.yml
@@ -138,20 +136,45 @@
 - name: Deploy plugins on kube control nodes
   hosts: kube_control_plane[0]
   gather_facts: false
+  vars:
+    common_plugin:
+      kubernetes_dashboard: true
+      habanalabs-device-plugin: false
+      mpi-operator: false
+      xilinx-device-plugin: false
+      nfs-subdir-external-provisioner: true
+      multus-device-plugin: true
+      whereabouts-device-plugin: true
   roles:
     - common_plugins
 
-- name: Install nvidia-container-toolkit on nodes with Nvidia GPU
-  hosts: kube_control_plane, kube_node, etcd
-  gather_facts: false
-  roles:
-    - k8s_nvidia_container_toolkit
+# - name: Install nvidia-container-toolkit on nodes with Nvidia GPU
+#   hosts: kube_control_plane, kube_node, etcd
+#   gather_facts: false
+#   roles:
+#     - k8s_nvidia_container_toolkit
 
-- name: Install Plugin only when one of nodes with AMD GPU
-  hosts: kube_control_plane, kube_node, etcd
+# - name: Install Plugin only when one of nodes with AMD GPU
+#   hosts: kube_control_plane, kube_node, etcd
+#   gather_facts: false
+#   roles:
+#     - k8s_amd
+
+- name: CSI powerscale image pulling
+  hosts: kube_node, kube_control_plane
+  tasks:
+    - name: Pull images
+      ansible.builtin.include_role:
+        name: k8s_csi_powerscale_plugin
+        tasks_from: csi_powerscale_image_pull.yml
+      when:
+        - hostvars['127.0.0.1']['csi_driver_powerscale_precheck_pass'] | default(false) | bool
+
+- name: Install CSI powerscale plugin on kube control nodes
+  hosts: kube_control_plane[0]
   gather_facts: false
   roles:
-    - k8s_amd
+    - k8s_csi_powerscale_plugin
 
 - name: Install Slurm
   hosts: slurm_control_node, slurm_node, login_node

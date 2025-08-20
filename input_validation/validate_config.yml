@@ -21,7 +21,7 @@
     - provision
     - security
     - local_repo
-    - k8s
+    - compute_k8s
     - service_k8s
     - roce
     - storage
