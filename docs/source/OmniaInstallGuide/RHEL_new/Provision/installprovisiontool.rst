@@ -3,9 +3,9 @@ Provisioning the cluster
 
 The ``discovery_provision.yml`` playbook discovers the probable bare-metal cluster nodes and provisions the minimal version of RHEL OS onto those nodes. This playbook is dependent on inputs from the following input files:
 
-* ``/opt/omnia/input/provision_config.yml``
-* ``/opt/omnia/input/provision_config_credentials.yml``
-* ``/opt/omnia/input/network_spec.yml``
+* ``/opt/omnia/input/project_default/provision_config.yml``
+* ``/opt/omnia/input/project_default/provision_config_credentials.yml``
+* ``/opt/omnia/input/project_default/network_spec.yml``
 
 .. note:: The first PXE device on target nodes should be the designated active NIC for PXE booting.
 
@@ -92,6 +92,13 @@ To deploy the Omnia provision tool, execute the following commands: ::
     * Do not delete the Omnia shared path or the NFS directory.
 
 **Next steps**:
+
+* If the squid container has been deployed on the OIM (controlled by the value of ``enable_routed_internet`` in `local_repo_config.yml <../prepare_oim.html#local-repo-config-yml>`_ during ``prepare_oim.yml`` execution), you can enable internet using squid proxy on provisioned nodes by configuring the environment variables. Use the following commands to do so: ::
+
+    export http_proxy=http://<squid_ip>:3128 
+    export https_proxy=http://<squid_ip>:3128
+
+  *In the above commands, the* ``squid_ip`` *refers to the squid container IP*
 
 * View generated node inventory in ``/opt/omnia/omnia_inventory``. For more information, `click here <../ViewInventory.html>`_.
 

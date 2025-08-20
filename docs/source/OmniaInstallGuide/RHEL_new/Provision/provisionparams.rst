@@ -1,7 +1,7 @@
 Input parameters for the provision tool
 -----------------------------------------
 
-Fill in all required parameters in ``/opt/omnia/input/provision_config.yml``, ``/opt/omnia/input/omnia_config_credentials.yml``, ``/opt/omnia/input/software_config.json``, and ``/opt/omnia/input/network_spec.yml``.
+Fill in all required parameters in ``/opt/omnia/input/project_default/provision_config.yml``, ``/opt/omnia/input/project_default/omnia_config_credentials.yml``, ``/opt/omnia/input/project_default/software_config.json``, and ``/opt/omnia/input/project_default/network_spec.yml``.
 
 .. caution:: Do not remove or comment any lines in the above mentioned ``.yml`` files.
 
@@ -14,7 +14,7 @@ Fill in all required parameters in ``/opt/omnia/input/provision_config.yml``, ``
 
 .. note::
 
-    The ``/opt/omnia/input/omnia_config_credentials.yml`` file is encrypted on the first execution of the ``discovery_provision.yml`` or ``local_repo.yml`` playbooks.
+    The ``/opt/omnia/input/project_default/omnia_config_credentials.yml`` file is encrypted on the first execution of the ``discovery_provision.yml`` or ``local_repo.yml`` playbooks.
 
       * To view the encrypted parameters: ::
 
