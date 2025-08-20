@@ -15,11 +15,7 @@
 - name: Include storage_config.yml file
   ansible.builtin.include_vars: "{{ storage_config_vars }}"
 
-- name: Print nfs_storage_name
-  ansible.builtin.debug:
-    msg: "{{ nfs_storage_name }}"
-
 - name: Install NFS client with bolt-on support
   ansible.builtin.include_tasks: nfs_client.yml
-  with_items: "{{ hostvars['127.0.0.1']['nfs_client_params'] | selectattr('nfs_name', 'equalto', nfs_storage_name) | list }}"
+  with_items: "{{ hostvars['127.0.0.1']['nfs_client_params'] }}"
   when: hostvars['127.0.0.1']['nfs_client_support']
