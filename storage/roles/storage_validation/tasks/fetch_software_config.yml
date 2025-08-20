@@ -41,7 +41,7 @@
 
 - name: Check compute k8s support
   ansible.builtin.set_fact:
-    compute_k8s_support: "{{ software_config.softwares | selectattr('name', 'equalto', 'k8s') | list | length > 0 }}"
+    compute_k8s_support: "{{ software_config.softwares | selectattr('name', 'equalto', 'compute_k8s') | list | length > 0 }}"
 
 - name: Check service k8s support
   ansible.builtin.set_fact:
