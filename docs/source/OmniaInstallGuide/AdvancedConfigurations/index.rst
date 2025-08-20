@@ -11,3 +11,4 @@ Advanced configurations
     ROCm_accelerator
     AutomatingOneAPI
     AutomatingOpenMPI
+    PowerScale_CSI

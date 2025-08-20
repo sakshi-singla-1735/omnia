@@ -22,6 +22,11 @@
         "tag": "9.3.0"
       },
       {
+        "package": "docker.io/bitnami/kafka",
+        "type": "image",
+        "tag": "3.9.0"
+      },
+      {
         "package": "python3.11",
         "type": "rpm",
         "repo_name": "appstream"
@@ -59,6 +64,22 @@
       {
         "package": "prettytable==3.14.0",
         "type": "pip_module"
+      },
+      {
+        "package": "whereabouts",
+        "url": "https://github.com/k8snetworkplumbingwg/whereabouts.git",
+        "type": "git",
+        "version": "v0.8.0"
+      },
+      {
+        "package": "ghcr.io/k8snetworkplumbingwg/whereabouts",
+        "tag": "latest",
+        "type": "image"
+      },
+      {
+        "package": "nfs-subdir-external-provisioner-4.0.18",
+        "type": "tarball",
+        "url": "https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner/releases/download/nfs-subdir-external-provisioner-4.0.18/nfs-subdir-external-provisioner-4.0.18.tgz"
       },
       {
         "package": "kubectl-v1.31.4",
@@ -238,6 +259,46 @@
       {
         "package": "ghcr.io/kube-vip/kube-vip",
         "tag": "v0.8.9",
+        "type": "image"
+      },
+      {
+          "package": "kube-prometheus-stack-75.11.0",
+          "type": "tarball",
+          "url": "https://github.com/prometheus-community/helm-charts/releases/download/kube-prometheus-stack-75.11.0/kube-prometheus-stack-75.11.0.tgz"
+      },
+      {
+        "package": "quay.io/prometheus-operator/prometheus-operator",
+        "tag": "v0.83.0",
+        "type": "image"
+      },
+      {
+        "package": "registry.k8s.io/kube-state-metrics/kube-state-metrics",
+        "tag": "v2.16.0",
+        "type": "image"
+      },
+      {
+        "package": "quay.io/prometheus-operator/prometheus-config-reloader",
+        "tag": "v0.83.0",
+        "type": "image"
+      },
+      {
+        "package": "quay.io/prometheus/alertmanager",
+        "tag": "v0.28.1",
+        "type": "image"
+      },
+      {
+        "package": "quay.io/prometheus/node-exporter",
+        "tag": "v1.9.1",
+        "type": "image"
+      },
+      {
+        "package": "quay.io/prometheus/prometheus",
+        "tag": "v3.5.0",
+        "type": "image"
+      },
+      {
+        "package": "registry.k8s.io/ingress-nginx/kube-webhook-certgen",
+        "tag": "v1.6.0",
         "type": "image"
       }
       ]

@@ -65,7 +65,7 @@ In the event that an existing Omnia cluster needs a different OS version or a fr
     10.5.0.102
     10.5.0.103
 
-    [login]
+    [login_node]
     10.5.0.104
 
     [auth_server]
@@ -85,7 +85,7 @@ In the event that an existing Omnia cluster needs a different OS version or a fr
     10.5.0.105
     10.5.0.106
 
-    [login]
+    [login_node]
     10.5.0.104
 
     [auth_server]

@@ -22,7 +22,7 @@ Choices:
      Optional
 ","* The path where separate OFED kernel modules are installed.
 * Ensure that the path provided here exists on all target nodes.
-     **Default value**: ``""/usr/src/ofa_kernel/default/include""``
+* **Default value**: ``""/usr/src/ofa_kernel/default/include""``
 "
 "beegfs_mgmt_server
      ``string``
@@ -34,8 +34,8 @@ Choices:
 "beegfs_mounts
      ``string``
      Optional
-   ","Beegfs-client file system mount location. If ``storage_yml`` is being   used to change the BeeGFS mounts location, set ``beegfs_unmount_client`` to   ``true``.
-     **Default value**: ""/mnt/beegfs""
+   ","* Beegfs-client file system mount location. If ``storage_yml`` is being   used to change the BeeGFS mounts location, set ``beegfs_unmount_client`` to   ``true``.
+* **Default value**: ""/mnt/beegfs""
 "
 "beegfs_unmount_client
      ``boolean``
@@ -64,7 +64,5 @@ Choices:
      Required
 ","* The file path (including the filename) where the ``connauthfile`` is   placed.
 * Required for Beegfs version >= 7.2.7
-
-
-     **Default values**: ``/home/connauthfile``
+* **Default values**: ``/home/connauthfile``
 "

@@ -66,3 +66,6 @@ omnia_credentials:
   visualization:
     mandatory:
       - { username: grafana_username, password: grafana_password }
+  csi_driver_powerscale:
+    mandatory:
+      - { username: csi_username, password: csi_password }
