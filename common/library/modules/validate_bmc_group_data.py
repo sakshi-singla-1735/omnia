@@ -69,6 +69,8 @@ def validate_bmc_group_data(bmc_group_data, bmc_group_data_headers, federated_te
         raise ValueError(f"Failed. Invalid headers in BMC group data file. Expected: {bmc_group_data_headers}, Found: {headers}. {invalid_bmc_group_data_file_msg}")
     omnia_db_bmc_ips = get_bmc_ips_from_db()
     bmc_dict_list = []
+    invalid_ip = []
+    external_ip = []
 
     if not bmc_group_data[1:]:
         raise ValueError(f"Failed. No BMC entries found in BMC group data file {bmc_group_data_file}")
@@ -78,11 +80,16 @@ def validate_bmc_group_data(bmc_group_data, bmc_group_data_headers, federated_te
         entry = dict(zip(headers, values))
         ip = entry.get('BMC_IP', '')
         if not is_valid_ip(ip):
-            raise ValueError(f"Failed. Invalid BMC_IP: {ip} found in {bmc_group_data_file}")
+            invalid_ip.append(ip)
         if ip not in omnia_db_bmc_ips:
             if entry.get('PARENT') or entry.get('GROUP_NAME'):
-                raise ValueError(f"Failed. BMC_IP not found in omniadb: {ip}. For EXTERNAL IPs, 'PARENT' and 'GROUP_NAME' should not be set in {bmc_group_data_file}")
+                external_ip.append(ip)
         bmc_dict_list.append(entry)
+
+    if external_ip:
+        raise ValueError(f"Failed. BMC_IP not found in omniadb: {external_ip}. For EXTERNAL IPs, 'PARENT' and 'GROUP_NAME' should not be set in {bmc_group_data_file}")
+    if invalid_ip:
+        raise ValueError(f"Failed. Invalid BMC_IP: {invalid_ip} found in {bmc_group_data_file}")
 
     result = {
         "changed": False,
