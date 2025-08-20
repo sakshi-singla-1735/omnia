@@ -27,7 +27,7 @@
   ansible.builtin.set_fact:
     bmc_group_data: "{{ lookup('file', bmc_group_data_filename).splitlines() }}"
 
-- name: Validate BMC group data headers
+- name: Validate BMC group data file
   validate_bmc_group_data:
     bmc_group_data_headers: "{{ bmc_group_data_headers }}"
     bmc_group_data: "{{ bmc_group_data }}"
