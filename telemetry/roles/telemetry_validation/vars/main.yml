@@ -131,7 +131,7 @@ telemetry_host_group: "telemetry_group"
 telemetry_host: >-
   {{ groups['kube_control_plane'][0]
      if federated_idrac_telemetry_collection | default(false)
-     else ['localhost']
+     else 'localhost'
   }}
 
 # Usage: include_high_availability_config.yml
@@ -156,6 +156,8 @@ network_spec_syntax_fail_msg: "Failed. Syntax errors present in network_spec.yml
 # Usage: check_service_node_internet.yml
 service_cluster_no_internet: "Service Cluster does not have internet access to deploy idrac telemetry collection on service cluster.
       Please enable internet on service cluster and rerun telemetry.yml."
+internet_retrialls: 5
+internet_retrialls_delay: 3
 
 # Usage: validate_telemetry_inventory.yml
 enable_federated_telemetry_fail_msg: |

@@ -14,8 +14,11 @@
 ---
 
 - name: Check if Service Node has internet
-  ansible.builtin.command: ping -c 1 8.8.8.8
+  ansible.builtin.command: "ping -c 1 -W 2 8.8.8.8"
   register: ping_result
+  retries: "{{ internet_retrialls }}"
+  delay: "{{ internet_retrialls_delay }}"
+  until: ping_result.rc == 0
   changed_when: false
   ignore_errors: true
 

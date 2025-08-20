@@ -71,6 +71,8 @@
         | selectattr('value.parent_status', 'defined')
         | selectattr('value.parent_status', 'equalto', true)
         | selectattr('value.child_groups', 'defined')
+        | selectattr('value.role', 'defined')
+        | selectattr('value.role', 'search', 'service_kube_node')
         | list
         | length
       }}
