@@ -456,6 +456,7 @@ init_container_config() {
     # Get the ssh public key.
     ssh_public_key="$(cat /root/.ssh/oim_rsa.pub)"
 
+    validate_nfs_server
 
     # Add ssh public key to the authorized_keys.
     echo -e "${GREEN} Adding ssh public key to the authorized_keys.${NC}"
@@ -750,6 +751,28 @@ post_setup_config() {
     fi
 
     init_ssh_config
+}
+
+validate_nfs_server() {
+
+    # Validate NFS server permission
+    if [ "$share_option" = "NFS" ]; then
+        # Create a temporary file inside $omnia_path
+        temp_file="$omnia_path/temp_file"
+        touch "$temp_file"
+        # Check if the file can be chown to root
+        if chown root:root "$temp_file"; then
+            rm "$temp_file"
+        else
+            echo "Error: Unable to chown file to root in $omnia_path. NFS server permission validation failed. Please ensure no_root_squash option is enabled in the NFS export configuration."
+            exit 1
+        fi
+        if [ "`ls -ld $omnia_path/omnia/ssh_config/.ssh/id_rsa | awk '{print $3 ":" $4}'`" != "root:root" ]; then
+            echo "Error: The $omnia_path/omnia/ssh_config/.ssh/id_rsa file should be owned by root:root. NFS server permission validation failed. Please verify the NFS export configuration."
+            exit 1
+        fi
+    fi
+
 }
 
 init_ssh_config() {
