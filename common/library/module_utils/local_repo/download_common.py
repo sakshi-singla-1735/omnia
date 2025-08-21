@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# pylint: disable=import-error,no-name-in-module,too-many-return-statements,too-many-statements,too-many-arguments,too-many-positional-arguments,too-many-branches,too-many-locals
+# pylint: disable=import-error,line-too-long,no-name-in-module,too-many-return-statements,too-many-statements,too-many-arguments,too-many-branches,too-many-locals
 
 """
 Handle pulp file downloads for local repository
@@ -25,7 +25,6 @@ import time
 import json
 from multiprocessing import Lock
 from jinja2 import Template
-from ansible.module_utils.local_repo.standard_logger import setup_standard_logger
 from ansible.module_utils.local_repo.parse_and_download import write_status_to_file,execute_command
 from ansible.module_utils.local_repo.rest_client import RestClient
 from ansible.module_utils.local_repo.common_functions import load_pulp_config
