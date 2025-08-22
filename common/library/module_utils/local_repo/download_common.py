@@ -774,7 +774,7 @@ def process_iso(package, repo_store_path, status_file_path,
     url_support = True
     package_name = package['package']
     package_type = package['type']
-    repository_name = "iso" + package_name
+    repository_name = "iso" + package_name + arc
 
     distribution_name = repository_name
     if 'url' in package:
