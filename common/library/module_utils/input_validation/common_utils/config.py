@@ -87,7 +87,6 @@ input_file_inventory = {
     "roce": [files["roce_plugin_config"]],
     "storage": [files["storage_config"]],
     "prepare_oim": [
-        files["software_config"],
         files["network_spec"],
         files["roles_config"]
     ],
