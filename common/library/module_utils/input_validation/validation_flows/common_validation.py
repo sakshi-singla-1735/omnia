@@ -811,29 +811,6 @@ def validate_login_node_security_config(
         validate_allowed_services(data, errors, logger)
     return errors
 
-
-def validate_site_config(
-    input_file_path, data, logger, module, omnia_base_dir, module_utils_base, project_name
-):
-    """
-    Validates the site configuration.
-
-    Args:
-        input_file_path (str): The path to the input file.
-        data (dict): The data to be validated.
-        logger (Logger): A logger instance.
-        module (Module): A module instance.
-        omnia_base_dir (str): The base directory of the Omnia configuration.
-        module_utils_base (str): The base directory of the module utils.
-        project_name (str): The name of the project.
-
-    Returns:
-        list: A list of errors encountered during validation.
-    """
-    errors = []
-    return errors
-
-
 def validate_server_spec(
     input_file_path, data, logger, module, omnia_base_dir, module_utils_base, project_name
 ):
