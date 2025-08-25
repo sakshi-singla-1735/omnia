@@ -57,6 +57,7 @@
   hosts: oim
   connection: ssh
   gather_facts: false
+  tags: always
   tasks:
     - name: Include prepare_kubespray_validation role
       ansible.builtin.include_role:
@@ -69,6 +70,7 @@
   hosts: localhost
   connection: local
   gather_facts: false
+  tags: always
   tasks:
     - name: Include create_inventory role  # noqa:role-name[path]
       ansible.builtin.include_role:
@@ -83,16 +85,9 @@
   hosts: oim
   connection: ssh
   gather_facts: false
+  tags: always
   roles:
     - role: deploy_containers/common  # noqa:role-name[path]
-    - role: deploy_containers/pcs  # noqa:role-name[path]
-      tags: pcs
-
-- name: Deploy all other containers
-  hosts: oim
-  connection: ssh
-  gather_facts: false
-  roles:
     - role: deploy_containers/pulp  # noqa:role-name[path]
       tags: pulp
 #     - role: deploy_containers/kubespray  # noqa:role-name[path]
