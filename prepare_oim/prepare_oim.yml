@@ -72,9 +72,9 @@
   gather_facts: false
   tags: always
   tasks:
-    - name: Include create_inventory role  # noqa:role-name[path]
-      ansible.builtin.include_role:
-        name: create_inventory
+    # - name: Include create_inventory role  # noqa:role-name[path]
+    #   ansible.builtin.include_role:
+    #     name: create_inventory
 
     - name: Add OIM to known hosts  # noqa:role-name[path]
       ansible.builtin.include_role:
