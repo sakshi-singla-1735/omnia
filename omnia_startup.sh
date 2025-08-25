@@ -196,7 +196,7 @@ cleanup_config(){
 
     # Remove the Omnia core configuration.
     echo -e "${BLUE} Removing Omnia core configuration.${NC}"
-    rm -rf $omnia_path/omnia/{hosts,input,log,pulp,provision,kubespray,pcs,shared_libraries,ssh_config,tmp,.data}
+    rm -rf $omnia_path/omnia/{hosts,input,log,pulp,provision,kubespray,pcs,ssh_config,tmp,.data}
 
     # Unmount the NFS shared path if the share option is NFS.
     if [ "$share_option" = "NFS" ] && [ "$nfs_type" = "external" ]; then
@@ -717,10 +717,6 @@ post_setup_config() {
     cp -r /omnia/input/* /opt/omnia/input/project_default
     rm -rf /omnia/input
     rm -rf /omnia/omnia_startup.sh"
-
-    # Copy shared libraries from /omnia to /opt/omnia/shard_libraries/ inside omnia_core container
-    echo -e "${BLUE} Copying shared libraries from container to shared_libraries folder.${NC}"
-    podman exec -u root omnia_core cp -r /omnia/shared_libraries/ /opt/omnia/
 
     # Create the .data directory if it does not exist.
     # This is where the oim_metadata.yml file is stored.
