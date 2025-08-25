@@ -91,9 +91,7 @@ input_file_inventory = {
     "prepare_oim": [
         files["software_config"],
         files["network_spec"],
-        files["roles_config"],
-        files["high_availability_config"],
-        files["telemetry_config"]
+        files["roles_config"]
     ],
     "high_availability": [files["high_availability_config"]],
     "additional_software": [files["additional_software"]],
