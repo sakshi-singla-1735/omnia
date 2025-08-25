@@ -103,22 +103,10 @@
   connection: ssh
   gather_facts: false
   roles:
-    - role: deploy_containers/provision  # noqa:role-name[path]
-      tags: provision
     - role: deploy_containers/pulp  # noqa:role-name[path]
       tags: pulp
     - role: deploy_containers/kubespray  # noqa:role-name[path]
       tags: kubespray
-    - role: deploy_containers/squid
-      tags: squid
-    - role: deploy_containers/idrac_telemetry  # noqa:role-name[path]
-      tags: idrac_telemetry
-    - role: deploy_containers/prometheus  # noqa:role-name[path]
-      tags: prometheus
-    - role: deploy_containers/grafana # noqa:role-name[path]
-      tags: grafana
-    - role: deploy_containers/loki  # noqa:role-name[path]
-      tags: loki
 
 - name: Update the kubespray metadata
   hosts: localhost
@@ -143,13 +131,6 @@
   gather_facts: false
   tags: always
   tasks:
-    - name: Add provision container host keys to known_hosts of omnia_core  # noqa:role-name[path]
-      ansible.builtin.include_role:
-        name: deploy_containers/common
-        tasks_from: add_known_hosts.yml
-      vars:
-        target_container: "omnia_provision"
-        target_port: "2223"
 
     - name: Add kubespray container host keys to known_hosts of omnia_core  # noqa:role-name[path]
       ansible.builtin.include_role:
@@ -188,25 +169,6 @@
         tasks_from: reload_pulp_nginx.yml
       when: hostvars['localhost']['pulp_protocol_https']
 
-- name: Configure provision container
-  hosts: omnia_provision
-  connection: ssh
-  tags: provision
-  tasks:
-    - name: Configure provision container and Omnia DB creation  # noqa:role-name[path]
-      ansible.builtin.include_role:
-        name: deploy_containers/provision
-        tasks_from: configure_provision_container.yml
-
-- name: Configure grafana datasource and dashboards
-  hosts: oim
-  connection: ssh
-  tags: grafana
-  tasks:
-    - name: Configure grafana datasource and dashboards # noqa:role-name[path]
-      ansible.builtin.include_role:
-        name: deploy_containers/grafana
-        tasks_from: configure_grafana.yml
 
 - name: Deploy PCS container resources
   hosts: oim

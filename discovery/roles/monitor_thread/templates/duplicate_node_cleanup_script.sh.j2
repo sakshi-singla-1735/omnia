@@ -1,6 +1,0 @@
-#!/bin/sh
-while true
-do
- {{ python_version }} "{{ provision_shared_library_path }}/monitor_thread/duplicate_node_cleanup.py" "{{ db_file_path }}"
- sleep 1800
-done
