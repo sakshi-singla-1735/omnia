@@ -72,7 +72,16 @@ run_intel_gaudi_tests: false
 # If set to true, all packages/images will be pulled from OIM local repo.
 # If set to false, all packages/images will be pulled from source via internet.
 
-#validation wrt roles config L2
+#nfs_storage_name : The nfs name should be same as one of the nfs name defined in storage_config.yml to configure the server.
+# ----------------------------CSI Driver------------------------------------------------------
+# Following csi powerscale driver input variables are mandatory only if csi_driver_powerscale entry is present in software_config.json
+# csi_powerscale_driver_secret_file_path: Absolute file path for the secret.yaml file.
+# User need to download secret.yaml file and fill required data in secret file. Provided the path of the secret file here.
+# File path for the values.yml file which will contain the Powerscale driver configuration parameters.
+# csi_powerscale_driver_values_file_path: User need to download values.yaml file and fill required data in values.yaml file. Provided the path of the values.yaml file here.
+# mention configurable values
+
+
 service_k8s_cluster:
   - cluster_name: service_cluster
     deployment: true
@@ -83,6 +92,7 @@ service_k8s_cluster:
     topology_manager_policy: "none"
     topology_manager_scope: "container"
     k8s_offline_install: true
+    nfs_storage_name: ""
     csi_powerscale_driver_secret_file_path: ""
     csi_powerscale_driver_values_file_path: ""
  
@@ -96,5 +106,6 @@ compute_k8s_cluster:
     topology_manager_policy: "none"
     topology_manager_scope: "container"
     k8s_offline_install: true
+    nfs_storage_name: ""
     csi_powerscale_driver_secret_file_path: ""
     csi_powerscale_driver_values_file_path: ""

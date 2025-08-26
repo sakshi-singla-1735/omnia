@@ -86,7 +86,7 @@ input_file_inventory = {
         files["high_availability_config"]
     ],
     "roce": [files["roce_plugin_config"]],
-    "storage": [files["storage_config"]],
+    "storage": [files["storage_config"], files["omnia_config"]],
     "proxy": [files["site_config"]],
     "prepare_oim": [
         files["software_config"],

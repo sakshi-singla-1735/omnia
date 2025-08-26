@@ -18,7 +18,9 @@
 
 - name: Get slurm share path
   ansible.builtin.set_fact:
-    omnia_share_path: "{{ nfs_client_params | selectattr('slurm_share', 'equalto', true) | map(attribute='client_share_path') | first }}"
+    omnia_share_path: "{{ nfs_client_params | map(attribute='client_share_path') | first }}"
+  when:
+    - slurm_support == true
 
 - name: Check if share path exists on each node
   ansible.builtin.stat:
