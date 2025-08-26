@@ -33,6 +33,8 @@
 # For benchmarks, either slurm_share or k8s_share will be used. Higher precedence will be given to slurm_share
 # Example for single mount file system:
 # nfs_client_params:
+# nfs_name : str ,Name of the NFS storage resource. The default is "nfs_storage_default".
+#     The user can assign any custom string to specify a different NFS storage resource.
 # - { server_ip: 10.5.0.101, server_share_path: "/mnt/share", client_share_path: "/home", client_mount_options: "nosuid,rw,sync,hard", nfs_server: true, slurm_share: true, k8s_share: true }
 # Example for supporting multiple mount points:
 # nfs_client_params:
