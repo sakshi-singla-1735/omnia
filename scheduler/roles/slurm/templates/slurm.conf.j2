@@ -32,7 +32,7 @@ NodeName={{ hostvars[host]['ansible_nodename'] | split('.') | first }} CPUs={{ h
 {% endif %}
 {% if slurm_installation_type == configless_slurm  %}
 {% if 'login_node' in groups %}
-{% for host in groups['login'] %}
+{% for host in groups['login_node'] %}
 NodeName={{ hostvars[host]['ansible_nodename'] | split('.') | first }}
 {% endfor %}
 {% endif %}
