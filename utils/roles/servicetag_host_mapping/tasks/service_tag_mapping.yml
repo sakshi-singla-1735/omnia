@@ -13,14 +13,10 @@
 #  limitations under the License.
 ---
 
-- name: Servicetag Host mapping
+- name: Servicetag Host mapping adds ansible_host to the inventory file
   servicetag_host_mapping:
     inventory_sources: "{{ [host_mapping_inventory.dest] }}"
 
 - name: Clear facts
   ansible.builtin.meta: clear_facts
-  changed_when: false
-
-- name: Refresh inventory
-  ansible.builtin.meta: refresh_inventory
   changed_when: false
