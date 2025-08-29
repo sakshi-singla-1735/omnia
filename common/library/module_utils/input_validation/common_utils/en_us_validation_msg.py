@@ -249,6 +249,9 @@ METRIC_COLLECTION_TIMEOUT_FAIL_MSG = ("should be greater than 0 and less than "
                                       "omnia_telemetry_collection_interval value")
 MOUNT_LOCATION_FAIL_MSG = "should have '/' at the end of the path"
 GRAFANA_PASSWORD_FAIL_MSG = "should not be kept 'admin'"
+TELEMETRY_VISUALIZATION_NOT_SUPPORTED_MSG = ("Visualization is not supported when "
+                                             "federated iDRAC telemetry collection is enabled. "
+                                            "Please set 'visualization_support' to False.")
 
 # security
 FILE_PATH_FAIL_MSG = "path does not exist"

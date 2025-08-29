@@ -1205,8 +1205,9 @@ def validate_telemetry_config(
 
     idrac_telemetry_support = data.get("idrac_telemetry_support")
     federated_idrac_telemetry_collection = data.get("federated_idrac_telemetry_collection")
-
     collection_type = data.get("idrac_telemetry_collection_type")
+    visualization_support = data.get("visualization_support")
+
     if idrac_telemetry_support:
         if collection_type:
             if collection_type not in config.supported_telemetry_collection_type:
@@ -1233,6 +1234,14 @@ def validate_telemetry_config(
                                     project_name,
                                     logger,
                                     module)
+
+        if federated_idrac_telemetry_collection and visualization_support:
+            errors.append(create_error_msg(
+                "Visualization support",
+                visualization_support,
+                en_us_validation_msg.TELEMETRY_VISUALIZATION_NOT_SUPPORTED_MSG
+                )
+            )
 
         if federated_idrac_telemetry_collection and not is_service_cluster_defined:
             errors.append(create_error_msg(
