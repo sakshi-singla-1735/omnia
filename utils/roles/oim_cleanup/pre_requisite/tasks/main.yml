@@ -15,6 +15,3 @@
 
 - name: Import pre-requisite tasks
   ansible.builtin.include_tasks: pre_requisite.yml
-
-- name: Check idrac_telemetry_support support
-  ansible.builtin.include_tasks: check_idrac_telemetry_support.yml

@@ -21,8 +21,3 @@ and repo_config values."
 software_config_syntax_fail_msg: "Failed. Syntax errors present in software_config.json. Fix errors and re-run playbook again."
 local_repo_config_file: "{{ input_project_dir }}/local_repo_config.yml"
 local_repo_config_syntax_fail_msg: "Failed. Syntax errors present in local_repo_config.yml. Fix errors and re-run playbook again."
-
-# Usage  check_idrac_telemetry_support.yml
-telemetry_config_file: "telemetry_config.yml"
-fail_msg_telemetry_config_file: "telemetry_config.yml file doesn't exist in the input folder."
-telemetry_config_syntax_fail_msg: "Failed. Syntax errors present in telemetry_config.yml. Fix errors and re-run playbook again. Common syntax Errors:"

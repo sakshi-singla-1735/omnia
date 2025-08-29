@@ -32,16 +32,10 @@ mandatory_credentials_msg: "Failed. Please provide valid username for mandatory 
 username_fail_msg: "Failed. Please provide valid username."
 
 omnia_credentials:
-  provision:
-    mandatory:
-      - { password: provision_password }
-      - { username: bmc_username, password: bmc_password }
-      - { username: switch_snmp3_username, password: switch_snmp3_password }
   prepare_oim:
     optional:
       - { username: docker_username, password: docker_password }
     mandatory:
-      - { password: postgresdb_password }
       - { password: pulp_password }
   local_repo:
     optional:
@@ -54,18 +48,11 @@ omnia_credentials:
       - { username: openldap_db_username, password: openldap_db_password }
       - { username: openldap_config_username, password: openldap_config_password }
       - { password: openldap_monitor_password }
-  freeipa:
-    mandatory:
-      - { password: kerberos_admin_password }
-      - { password: directory_manager_password }
   idrac_telemetry:
     mandatory:
       - { username: bmc_username, password: bmc_password }
       - { username: mysqldb_user, password: mysqldb_password }
       - { password: mysqldb_root_password }
-  visualization:
-    mandatory:
-      - { username: grafana_username, password: grafana_password }
   csi_driver_powerscale:
     mandatory:
       - { username: csi_username, password: csi_password }

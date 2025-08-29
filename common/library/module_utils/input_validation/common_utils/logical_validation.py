@@ -69,7 +69,6 @@ def validate_input_logic(
         "roce_plugin_config.yml": common_validation.validate_roce_plugin_config,
         "storage_config.yml": common_validation.validate_storage_config,
         "login_node_security_config.yml": common_validation.validate_login_node_security_config,
-        "site_config.yml": common_validation.validate_site_config,
         "roles_config.yml": roles_validation.validate_roles_config,
         "high_availability_config.yml":
             high_availability_validation.validate_high_availability_config,

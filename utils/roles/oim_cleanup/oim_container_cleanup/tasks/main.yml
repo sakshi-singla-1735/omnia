@@ -28,40 +28,11 @@
     state: started
     enabled: true
 
-- name: Cleanup pcs container
-  ansible.builtin.import_tasks: cleanup_pcs.yml
-
-- name: Cleanup provision container
-  ansible.builtin.import_tasks: cleanup_provision.yml
-
 - name: Cleanup pulp container
   ansible.builtin.import_tasks: cleanup_pulp.yml
 
-- name: Cleanup kubespray container
-  ansible.builtin.import_tasks: cleanup_kubespray.yml
-
-- name: Cleanup squid container
-  ansible.builtin.import_tasks: cleanup_squid.yml
-  when: hostvars['localhost']['enable_routed_internet']
-
-- name: Cleanup iDRAC Telemetry containers
-  when: hostvars['localhost']['idrac_telemetry_support']
-  ansible.builtin.import_tasks: cleanup_idrac_telemetry_containers.yml
-
-- name: Cleanup prometheus pump and prometheus container
-  when:
-    - hostvars['localhost']['idrac_telemetry_support']
-    - hostvars['localhost']['idrac_telemetry_collection_type'] == "prometheus"
-  ansible.builtin.import_tasks: cleanup_prometheus_containers.yml
-
-- name: Cleanup Grafana container
-  when: hostvars['localhost']['visualization_support']
-  block:
-    - name: Cleanup Grafana container
-      ansible.builtin.import_tasks: cleanup_grafana.yml
-
-    - name: Cleanup Loki and Promtail containers
-      ansible.builtin.import_tasks: cleanup_loki_promtail.yml
+# - name: Cleanup kubespray container
+#   ansible.builtin.import_tasks: cleanup_kubespray.yml
 
 - name: Remove telemetry directory if exists
   ansible.builtin.file:
