@@ -161,7 +161,7 @@ UNSUPPORTED_IDRAC_TELEMETRY_COLLECTION_TYPE= ("unsupported. 'kafka' or 'promethe
                                               "is the supported telemetry collection type.")
 KAFKA_ENABLE_FEDERATED_IDRAC_TELEMETRY_COLLECTION= ("requires federated_idrac_telemetry_collection "
                                              "to be enabled. Please rerun the playbook "
-                                             "with federated_idrac_telemetry_collection true"
+                                             "with federated_idrac_telemetry_collection true "
                                              "in telemetry_config.yml.")
 TELEMETRY_SERVICE_CLUSTER_ENTRY_MISSING_ROLES_CONFIG_MSG= ("requires service k8s roles to be "
                                              "defined in roles_config.yml. Please either configure "
