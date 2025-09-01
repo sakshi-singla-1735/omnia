@@ -172,9 +172,6 @@ ENABLE_FEDERATED_IDRAC_TELEMETRY_COLLECTION=("it is recommended to set "
                                              "federated_idrac_telemetry_collection to true "
                                              "in telemetry_config.yml as service k8s cluster "
                                              "is defined in roles_config.yml.")
-TELEMETRY_VISUALIZATION_NOT_SUPPORTED_MSG = ("Visualization is not supported when "
-                                             "federated iDRAC telemetry collection is enabled. "
-                                            "Please set 'visualization_support' to false.")
 
 def boolean_fail_msg(value):
     """Returns a formatted message indicating boolean_fail_msg."""
