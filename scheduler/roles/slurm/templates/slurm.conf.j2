@@ -30,6 +30,13 @@ NodeName=DEFAULT State=UNKNOWN
 NodeName={{ hostvars[host]['ansible_nodename'] | split('.') | first }} CPUs={{ hostvars[host]['ansible_facts']['processor_nproc'] }} Sockets={{ hostvars[host]['ansible_facts']['processor_count'] }} CoresPerSocket={{ hostvars[host]['ansible_facts']['processor_cores'] }} ThreadsPerCore={{ hostvars[host]['ansible_facts']['processor_threads_per_core'] }}
 {% endfor %}
 {% endif %}
+{% if slurm_installation_type == configless_slurm  %}
+{% if 'login_node' in groups %}
+{% for host in groups['login_node'] %}
+NodeName={{ hostvars[host]['ansible_nodename'] | split('.') | first }}
+{% endfor %}
+{% endif %}
+{% endif %}
 
 # PARTITION INFO #TODO get inventory_hostname_short for looping
 PartitionName=DEFAULT Nodes=ALL Default=YES MaxTime=INFINITE State=UP

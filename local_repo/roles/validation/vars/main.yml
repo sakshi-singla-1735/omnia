@@ -34,7 +34,7 @@ usage_message: |
 
   Example:
     ansible-playbook local_repo.yml -e "softwares=additional_software"
-    ansible-playbook local_repo.yml -e "softwares=k8s,slurm"
+    ansible-playbook local_repo.yml -e "softwares=compute_k8s,slurm"
 
   If you have NOT modified any software JSON files, you can run:
     ansible-playbook local_repo.yml"
@@ -42,8 +42,7 @@ softwares_var_not_provided: "No softwares variable provided. Skipping."
 softwares_invalid_msg: "Invalid software_name(s) found: {{ softwares_list | difference(software_names) }}. Allowed values: {{ software_names }}"
 
 # Usage: dynamic_k8s_json.yml
-# dynamic_k8s_json_file: "{{ dynamic_k8s_json_folder }}/v{{ k8s_version }}/k8s_v{{ k8s_version }}.json"
-base_k8s_json_file: "{{ project_input_path }}/config/{{ arch }}/{{ cluster_os_type }}/{{ cluster_os_version }}/k8s.json"
+base_compute_k8s_json_file: "{{ project_input_path }}/config/{{ arch }}/{{ cluster_os_type }}/{{ cluster_os_version }}/compute_k8s.json"
 base_service_k8s_json_file: "{{ project_input_path }}/config/{{ arch }}/{{ cluster_os_type }}/{{ cluster_os_version }}/service_k8s.json"
 dynamic_k8s_json_folder: "/opt/omnia/k8s_dynamic_json"
 kubespray_url: "https://github.com/kubernetes-sigs/kubespray.git"
@@ -56,6 +55,8 @@ kubeadm_package_name: "kubeadm-v1.31.4"
 # Usage: main.yml
 nfs_shared_path: "/opt/omnia"
 local_repo_config_file: "{{ project_input_path }}/local_repo_config.yml"
+user_reg_cred_input: "{{ project_input_path }}/user_registry_credential.yml"
+user_reg_key_path: "{{ project_input_path }}/.local_repo_credentials_key"
 var_mount_percentage_limit: 80
 var_mount_overuse_msg: |
   [WARNING] local_repo.yml may fail as /var mount usage has exceeded the limit of {{ var_mount_percentage_limit }}%.
@@ -96,7 +97,7 @@ software_config_softwares_fail_msg: "Failed. softwares list cannot be empty in s
 specific_softwares:
   - 'beegfs'
   - 'amdgpu'
-  - 'k8s'
+  - 'compute_k8s'
   - 'cuda'
   - 'ofed'
   - 'bcm_roce'

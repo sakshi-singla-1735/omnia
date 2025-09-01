@@ -24,7 +24,7 @@
     input_validate_tags: "{{ omnia_run_tags | default([]) | difference(['all']) if (omnia_run_tags | length) >= 2
       else omnia_run_tags | default([]) }}"
   validate_input:
-    omnia_base_dir: "{{ input_dir }}/../"
+    omnia_base_dir: "{{ (input_dir + '/../') | ansible.builtin.realpath }}"
     project_name: "{{ project_name }}"
     tag_names: "{{ input_validate_tags }}"
     module_utils_path: "{{ (role_path + '/../../../common/library/module_utils/') | ansible.builtin.realpath }}"

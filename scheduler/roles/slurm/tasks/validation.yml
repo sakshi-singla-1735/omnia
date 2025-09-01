@@ -54,7 +54,7 @@
 - name: Login list
   ansible.builtin.set_fact:
     login_node_list: "{{ (login_node_list | default([])) + ([hostvars[item]['ansible_nodename'] | split('.') | first]) }}"
-  loop: "{{ groups['login'] | default([]) }}"
+  loop: "{{ groups['login_node'] | default([]) }}"
 
 - name: Control node not part of other groups
   ansible.builtin.assert:

@@ -36,13 +36,13 @@
     - "'slurmctld.service' not in slurm_status.ansible_facts.services"
     - "'slurmdbd.service' not in slurm_status.ansible_facts.services"
 
-- name: Remove Slurm packages from login for NFS
+- name: Remove Slurm packages from login_node for NFS
   ansible.builtin.package:
     name: "{{ slurm_packages[ansible_os_family] }}"
     state: absent
   when:
     - hostvars['localhost']['slurm_installation_type'] == "nfs_share"
-    - '"login" in group_names'
+    - '"login_node" in group_names'
 
 - name: Ignore if slurm services not exists
   when: not slurm_output

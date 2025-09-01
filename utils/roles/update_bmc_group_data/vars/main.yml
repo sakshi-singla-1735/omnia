@@ -13,6 +13,8 @@
 # limitations under the License.
 ---
 
+network_spec_path: "{{ hostvars['localhost']['input_project_dir'] }}/network_spec.yml"
+network_spec_syntax_fail_msg: "Failed. Syntax errors present in network_spec.yml. Fix errors and re-run playbook again."
 empty_discover_node_msg: "No nodes found in db. Please run discovery_provision.yml first."
 bmc_group_csv_path: "/opt/omnia/telemetry/bmc_group_data.csv"
 waiting_time_30: 30

@@ -10,12 +10,21 @@ The ``omnia.yml`` playbook is dependent on the inputs provided to the following 
 .. caution:: Do not remove, edit, or comment any lines in the above mentioned input files.
 
 ``/opt/omnia/input/project_default/omnia_config.yml``
---------------------------------------------
+-------------------------------------------------------
 
-.. csv-table:: Parameters for kubernetes setup (service_k8s_cluster and compute_k8s_cluster)
-   :file: ../../../Tables/scheduler_k8s_rhel.csv
-   :header-rows: 1
-   :keepspace:
+.. dropdown:: Parameters for kubernetes setup on service Kubernetes cluster
+
+   .. csv-table::
+      :file: ../../../Tables/omnia_config_service_cluster.csv
+      :header-rows: 1
+      :keepspace:
+
+.. dropdown:: Parameters for kubernetes setup on compute Kubernetes cluster
+
+   .. csv-table::
+      :file: ../../../Tables/omnia_config_compute_cluster.csv
+      :header-rows: 1
+      :keepspace:
 
 ::
 
@@ -47,7 +56,7 @@ The ``omnia.yml`` playbook is dependent on the inputs provided to the following 
    :keepspace:
 
 ``/opt/omnia/input/project_default/security_config.yml``
-------------------------------------------------
+----------------------------------------------------------
 
 .. csv-table:: Parameters for Authentication
    :file: ../../../Tables/security_config.csv
@@ -66,7 +75,7 @@ The ``omnia.yml`` playbook is dependent on the inputs provided to the following 
 
 
 ``/opt/omnia/input/project_default/storage_config.yml``
------------------------------------------------
+----------------------------------------------------------
 
 .. csv-table:: Parameters for Storage
    :file: ../../../Tables/storage_config.csv
@@ -75,15 +84,3 @@ The ``omnia.yml`` playbook is dependent on the inputs provided to the following 
 
 
 Click here for more information on `OpenLDAP, FreeIPA <BuildingCluster/Authentication.html>`_, `BeeGFS <BuildingCluster/Storage/BeeGFS.html>`_, or `NFS <BuildingCluster/Storage/NFS.html>`_.
-
-.. note::
-
-    * The ``/opt/omnia/input/project_default/omnia_config.yml`` and ``/opt/omnia/input/project_default/security_config.yml`` input files are encrypted during the execution of ``omnia.yml`` playbook. Use the below commands to edit the encrypted input files:
-
-        * ``omnia_config.yml``: ::
-
-            ansible-vault edit omnia_config.yml --vault-password-file .omnia_vault_key
-
-        * ``security_config.yml``: ::
-
-            ansible-vault edit security_config.yml --vault-password-file .security_vault.key

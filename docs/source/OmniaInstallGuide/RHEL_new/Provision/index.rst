@@ -1,4 +1,4 @@
-Step 9: Discover and provision the cluster
+Step 8: Discover and provision the cluster
 ===========================================
 
 The ``discovery_provision.yml`` playbook achieves the following tasks:

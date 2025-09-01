@@ -33,7 +33,7 @@
         state: touch
         mode: '0644'
 
-- name: "{{ hostvars['127.0.0.1']['k8s_task_name'] }}"
+- name: "{{ hostvars['127.0.0.1']['k8s_task_name'] | default('Start Kubernetes Installations') }}"
   hosts: omnia_kubespray
   vars:
     kubespray_nfs_share: "/opt/omnia/kubespray/{{ hostvars['127.0.0.1']['cluster_var_name'] }}/{{ hostvars['127.0.0.1']['cluster_name'] }}"

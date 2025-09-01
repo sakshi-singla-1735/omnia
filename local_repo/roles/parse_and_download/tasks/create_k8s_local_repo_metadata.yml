@@ -44,7 +44,7 @@
         {{ base }}
       {% endif %}
   vars:
-    prefix: "{{ 'k8s' if software_entry.name == 'k8s' else 'service_k8s' }}"
+    prefix: "{{ 'compute_k8s' if software_entry.name == 'compute_k8s' else 'service_k8s' }}"
 
 - name: Initialize metadata if not present
   ansible.builtin.set_fact:

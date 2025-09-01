@@ -1,4 +1,4 @@
-# Copyright 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Copyright 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
     - rocm_validation
 
 - name: Perform ROCm installation for AMD Accelerators
-  hosts: slurm_control_node, slurm_node, kube_control_plane, kube_node, auth_server, login, etcd
+  hosts: slurm_control_node, slurm_node, kube_control_plane, kube_node, auth_server, login_node, etcd
   gather_facts: true
   any_errors_fatal: true
   roles:
