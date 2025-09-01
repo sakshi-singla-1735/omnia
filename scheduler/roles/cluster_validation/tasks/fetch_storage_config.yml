@@ -96,15 +96,15 @@
     share_path: "{{ nfs_client_params | map(attribute='client_share_path') | first }}"
   when:
     - k8s_support
-    - ucx_support == true or openmpi_support == true
+    - ucx_support or openmpi_support
     - not slurm_support
 
 - name: Set share_path from slurm_client_share_path when slurm_support is true and k8s_support is false
   ansible.builtin.set_fact:
     share_path: "{{ nfs_client_params | map(attribute='client_share_path') | first }}"
   when:
-    - slurm_support == true
-    - ucx_support == true or openmpi_support == true
+    - slurm_support
+    - ucx_support or openmpi_support
     - not k8s_support
 
 - name: Set share_path from slurm_client_share_path when slurm_support is true and k8s_support is false
@@ -112,4 +112,4 @@
     share_path: "{{ nfs_client_params | map(attribute='client_share_path') | first }}"
   when:
     - not slurm_support and not k8s_support
-    - ucx_support == true or openmpi_support == true
+    - ucx_support or openmpi_support
