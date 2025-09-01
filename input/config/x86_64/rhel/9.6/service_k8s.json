@@ -66,7 +66,6 @@
         "type": "pip_module"
       },
       {
-<<<<<<< HEAD:input/config/rhel/9.6/service_k8s.json
         "package": "whereabouts",
         "url": "https://github.com/k8snetworkplumbingwg/whereabouts.git",
         "type": "git",
@@ -83,10 +82,7 @@
         "url": "https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner/releases/download/nfs-subdir-external-provisioner-4.0.18/nfs-subdir-external-provisioner-4.0.18.tgz"
       },
       {
-        "package": "kubectl-v1.31.4",
-=======
         "package": "kubectl-v1.31.4-amd64",
->>>>>>> pub/local_repo_arch:input/config/x86_64/rhel/9.6/service_k8s.json
         "type": "tarball",
         "url": "https://dl.k8s.io/release/v1.31.4/bin/linux/amd64/kubectl"
       },
