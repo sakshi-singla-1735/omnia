@@ -13,7 +13,7 @@
         {"name": "nfs", "arch": ["x86_64","aarch64"]},
         {"name": "beegfs", "version": "7.4.5", "arch": ["x86_64"]},
         {"name": "slurm", "arch": ["x86_64","aarch64"]},
-        {"name": "k8s", "version": "1.31.4", "arch": ["x86_64"]},
+        {"name": "compute_k8s", "version": "1.31.4", "arch": ["x86_64"]},
         {"name": "service_k8s", "version": "1.31.4", "arch": ["x86_64","aarch64"]},
         {"name": "intel_benchmarks", "version": "2024.1.0", "arch": ["x86_64","aarch64"]},
         {"name": "amd_benchmarks", "arch": ["x86_64"]},
