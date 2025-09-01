@@ -77,34 +77,34 @@
   ansible.builtin.set_fact:
     share_path: "{{ nfs_client_params | map(attribute='client_share_path') | first }}"
   when:
-    - slurm_support == true or ucx_support == true or openmpi_support == true
+    - slurm_support or ucx_support or openmpi_support
     - nfs_client_params | length > 0
 
 # Check if both slurm_support and k8s_support are not defined for benchmarks
 - name: Fail if both slurm_support and k8s_support are not true for benchmarks
   ansible.builtin.assert:
     that:
-      - slurm_support == true or k8s_support == true
+      - slurm_support or k8s_support
     fail_msg: "{{ nfs_client_params_benchmarks_fail_msg }}"
     success_msg: "{{ nfs_client_params_benchmarks_success_msg }}"
   when:
-    - ucx_support == true or openmpi_support == true
+    - ucx_support or openmpi_support
 
 # Set share_path according to slurm_support and k8s_support for benchmarks
 - name: Set share_path from k8s_client_share_path when k8s_support is true and slurm_support is false
   ansible.builtin.set_fact:
     share_path: "{{ nfs_client_params | map(attribute='client_share_path') | first }}"
   when:
-    - k8s_support == true
-    - ucx_support == true or openmpi_support == true
+    - k8s_support
+    - ucx_support or openmpi_support
     - not slurm_support
 
 - name: Set share_path from slurm_client_share_path when slurm_support is true and k8s_support is false
   ansible.builtin.set_fact:
     share_path: "{{ nfs_client_params | map(attribute='client_share_path') | first }}"
   when:
-    - slurm_support == true
-    - ucx_support == true or openmpi_support == true
+    - slurm_support
+    - ucx_support or openmpi_support
     - not k8s_support
 
 - name: Set share_path from slurm_client_share_path when slurm_support is true and k8s_support is false
@@ -112,4 +112,4 @@
     share_path: "{{ nfs_client_params | map(attribute='client_share_path') | first }}"
   when:
     - not slurm_support and not k8s_support
-    - ucx_support == true or openmpi_support == true
+    - ucx_support or openmpi_support

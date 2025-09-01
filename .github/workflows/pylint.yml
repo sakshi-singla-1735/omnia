@@ -11,6 +11,7 @@ on:
       - pub/k8s_plugins
       - pub/compute_k8s
       - pub/service_cluster_kafka
+      - pub/storage
 
 jobs:
   build:
