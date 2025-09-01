@@ -33,10 +33,10 @@
         path: "{{ metadata_file }}"
       register: metadata_stat
 
-    - name: Set fact for already ran
+    - name: Set k8s_support_check to false if any k8s version is not default_k8s_version
       ansible.builtin.set_fact:
         k8s_support_check: false
-      when: not metadata_stat.stat.exists
+      when: (k8s_versions | select('ne', default_k8s_version) | list | length) > 0
 
     - name: Validate k8s metadata
       when: metadata_stat.stat.exists
