@@ -30,13 +30,24 @@
   when:
     - nfs_client_params | default("", true) | length < 1
 
+# Find the matching NFS entry
+- name: Find matching NFS client param
+  ansible.builtin.set_fact:
+    matched_nfs: "{{ (nfs_client_params | selectattr('nfs_name', 'equalto', nfs_storage_name) | list | first) | default({}) }}"
+  when: nfs_client_params | length > 0
+
+- name: Fail when no matching nfs_name found in nfs_client_params
+  ansible.builtin.fail:
+    msg: "No NFS entry found for nfs_storage_name={{ nfs_storage_name }} in nfs_client_params"
+  when: matched_nfs | length == 0
+
 # Get k8s nfs_server_ip and nfs_server_path
 - name: Get nfs_server details when k8s_support is true
   when: k8s_support and compute_k8s_playbook is defined
   block:
     - name: Set k8s_nfs_server_ip when k8s_support is true
       ansible.builtin.set_fact:
-        k8s_nfs_server_ip: "{{ nfs_client_params | map(attribute='server_ip') | first }}"
+        k8s_nfs_server_ip: "{{ matched_nfs.server_ip }}"
 
     - name: Change k8s_nfs_server_ip to admin_nic_ip when it is "localhost"
       ansible.builtin.set_fact:
@@ -61,24 +72,24 @@
 
     - name: Get server_share_path when k8s_support is true
       ansible.builtin.set_fact:
-        k8s_server_share_path: "{{ nfs_client_params | map(attribute='server_share_path') | first }}"
+        k8s_server_share_path: "{{ matched_nfs.server_share_path }}"
 
     - name: Fail if server_share_path is not set in storage_config.yml
       ansible.builtin.fail:
         msg: "{{ nfs_client_params_server_share_invalid_msg }}"
-      when: plugins_deployment is true and k8s_server_share_path == ''
+      when: plugins_deployment is true and (k8s_server_share_path | default('')) == ''
 
     - name: Get client_share_path when k8s_support is true
       ansible.builtin.set_fact:
-        share_path: "{{ nfs_client_params | map(attribute='client_share_path') | first }}"
+        share_path: "{{ matched_nfs.client_share_path }}"
 
 # Get slurm nfs_share_path
 - name: Get server_share_path when Slurm/UCX/OpenMPI support is true
   ansible.builtin.set_fact:
-    share_path: "{{ nfs_client_params | map(attribute='client_share_path') | first }}"
+    share_path: "{{ matched_nfs.client_share_path }}"
   when:
     - slurm_support or ucx_support or openmpi_support
-    - nfs_client_params | length > 0
+    - matched_nfs | length > 0
 
 # Check if both slurm_support and k8s_support are not defined for benchmarks
 - name: Fail if both slurm_support and k8s_support are not true for benchmarks
@@ -93,7 +104,7 @@
 # Set share_path according to slurm_support and k8s_support for benchmarks
 - name: Set share_path from k8s_client_share_path when k8s_support is true and slurm_support is false
   ansible.builtin.set_fact:
-    share_path: "{{ nfs_client_params | map(attribute='client_share_path') | first }}"
+    share_path: "{{ matched_nfs.client_share_path }}"
   when:
     - k8s_support
     - ucx_support or openmpi_support
@@ -101,7 +112,7 @@
 
 - name: Set share_path from slurm_client_share_path when slurm_support is true and k8s_support is false
   ansible.builtin.set_fact:
-    share_path: "{{ nfs_client_params | map(attribute='client_share_path') | first }}"
+    share_path: "{{ matched_nfs.client_share_path }}"
   when:
     - slurm_support
     - ucx_support or openmpi_support
@@ -109,7 +120,7 @@
 
 - name: Set share_path from slurm_client_share_path when slurm_support is true and k8s_support is false
   ansible.builtin.set_fact:
-    share_path: "{{ nfs_client_params | map(attribute='client_share_path') | first }}"
+    share_path: "{{ matched_nfs.client_share_path }}"
   when:
     - not slurm_support and not k8s_support
     - ucx_support or openmpi_support
