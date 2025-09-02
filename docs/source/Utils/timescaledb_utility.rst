@@ -24,7 +24,7 @@ To customize the local copy of the timescale DB, fill out the below parameters i
 | ``string``       | * If this value is not provided, all metric values collected will be stored.                            |
 | Optional         |                                                                                                         |
 +------------------+---------------------------------------------------------------------------------------------------------+
-| **filename**     | * Target filepath where all timescaleDB will be backed up.                                              |
+| **filename**     | * Target file path where all timescaleDB will be backed up.                                             |
 | ``string``       |                                                                                                         |
 | Required         |                                                                                                         |
 +------------------+---------------------------------------------------------------------------------------------------------+

@@ -30,7 +30,9 @@
     container_images: "{{ container_images + ['docker.io/ubuntu/squid:' + squid_tag] }}"
 
 - name: Add telemetry to container image list if telemetry_support is true
-  when: hostvars['localhost']['idrac_telemetry_support'] | default(false)
+  when:
+    - hostvars['localhost']['idrac_telemetry_support'] | default(false)
+    - not hostvars['localhost']['federated_idrac_telemetry_collection'] | default(false)
   ansible.builtin.set_fact:
     container_images: >-
       {{ container_images + [
@@ -49,3 +51,11 @@
           'docker.io/grafana/loki:' + loki_image_tag,
           'docker.io/grafana/promtail:' + promtail_image_tag
         ] }}
+
+- name: Set container_images_dict fact
+  ansible.builtin.set_fact:
+    container_images_dict: "{{ dict(container_images
+        | map('regex_replace', '[:/]', '_')
+        | map('regex_replace', '$', '.tar')
+        | zip(container_images))
+      }}"

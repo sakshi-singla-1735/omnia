@@ -20,28 +20,33 @@ These messages are used to provide user-friendly error messages during configura
 
 MISSING_CLUSTER_NAME_MSG = "Cluster name is mandatory for all kubernetes roles."
 CLUSTER_NAME_OVERLAP_MSG = "The cluster name '{0}' cannot be shared between service and compute Kubernetes roles."
+CLUSTER_NAME_INCONSISTENT_MSG = (
+    "Inconsistent 'cluster_name' values found across Service or Compute Kubernetes roles. "
+    "Each of the following role sets must use the same 'cluster_name': "
+    "[service_kube_control_plane, service_kube_node, service_etcd] and "
+    "[kube_control_plane, kube_node, etcd].")
+CLUSTER_ROLE_MISSING_MSG = (
+    "Cluster '{0}' is missing the following required Kubernetes roles: {1}.")
 MAX_NUMBER_OF_ROLES_MSG = "A max of 100 roles can be supported."
 MIN_NUMBER_OF_GROUPS_MSG = "At least 1 group is required."
 MIN_NUMBER_OF_ROLES_MSG = "At least 1 role is required."
 MAX_NUMBER_OF_ROLES_PER_GROUP_MSG = "Groups can support a maximum of 5 roles."
 RESOURCE_MGR_ID_MSG = ("The resource_mgr_id is mandatory if the group is mapped to "
-                       "kube_node or slurm_node roles.")
+                       "kube_node, slurm_node roles, service_kube_node, etcd, service_etcd roles.")
 GRP_EXIST_MSG = "A valid group must be provided."
 INVALID_SWITCH_IP_MSG = "Please provide a valid switch IPv4 address (example: 10.5.0.1)."
 GRP_ROLE_MSG = "Please associate this group with a role."
-PARENT_SERVICE_NODE_MSG = ("Group is associated with login, compiler_node, service_node, "
-                          "kube_control_plane, slurm_control_plane role(s).")
-# PARENT_SERVICE_ROLE_DNE_MSG = ("Parent field is only supported for the 'service_node' role,"
-#     "which is currently not supported and reserved for future use. Please remove the"
-#     " 'parent' field from this role's group definition.")
-# PARENT_SERVICE_ROLE_MSG = (" A 'service_node' role is not defined, so the 'parent' field should"
-#     " be empty for groups associated with 'worker' or 'default' roles. Note that 'service_node'"
-#     " is a reserved role for future use and is not currently valid in the role_config.yml")
+PARENT_SERVICE_NODE_MSG = ("A group associated with the management_layer should not have a parent value.")
+PARENT_SERVICE_ROLE_DNE_MSG = ("Parent field is only supported when 'service_kube_control_plane, service_kube_node' role is defined,"
+    " Please remove the 'parent' field from this role's group definition.")
+PARENT_SERVICE_ROLE_MSG = (" A 'service_kube_control_plane, service_kube_node' role is not defined, so the 'parent' field should"
+    " be empty for groups associated with 'worker' or 'default' roles.")
+PARENT_SERVICE_ROLE_REQUIRED_MSG = ("When 'service_kube_control_plane', 'service_kube_node' role is defined,"
+    " the 'parent' field is required for groups associated with 'worker' or 'default' roles.")
 BMC_STATIC_RANGE_INVALID_MSG = ("Static range should be in the following format: "
                                "IPv4Start-IPv4End (example: 10.5.0.1-10.5.0.200).")
 OVERLAPPING_STATIC_RANGE = "bmc_detail's static_range is overlapping with other static ranges."
 DUPLICATE_SWITCH_IP_PORT_MSG = "Please remove duplicate ports."
-
 SWITCH_DETAILS_INCOMPLETE_MSG = ("If providing switch details, please provide both the IP "
                                  "and Ports fields.")
 SWITCH_DETAILS_NO_BMC_DETAILS_MSG = ("If switch details are provided then bmc_detail's "
@@ -66,9 +71,13 @@ SERVICE_NODE_ENTRY_MISSING_ROLES_CONFIG_MSG = ("The role service_node defined in
     " but service_node entry missing in sofware_config.json, "
     "Please rerun local repo with service_node entry in software_config.json "
     "to deploy service nodes successfully")
+SERVICE_K8S_ENTRY_MISSING_SOFTWARE_CONFIG_MSG = ("The role service_kube_control_plane is defined in roles_config.yml, "
+    "but the service_k8s package entry is missing in software_config.json. "
+    "To deploy Kubernetes in the service_k8s cluster, the package must be added to software_config.json.")
 SERVICE_NODE_ENTRY_INVALID_ROLES_CONFIG_MSG = ("The 'service_node' role defined in roles_config.yml"
     " is not currently supported and is reserved for future use. Please remove or update this role"
     " to avoid configuration errors.")
+
 # provision_config.yml
 DEFAULT_LEASE_TIME_FAIL_MSG = "Please provide a valid default_lease_time."
 TIMEZONE_FAIL_MSG = ("Unsupported Timezone. Please check the timezone.txt file "
@@ -148,10 +157,22 @@ SWITCH_SNMP3_PASSWORD_FAIL_MSG = ("switch_snmp3_password must be at least 3 char
 
 
 # telemetry_config.yml
-UNSUPPORTED_IDRAC_TELEMETRY_COLLECTION_TYPE= ("unsupported. "
-                                              "'prometheus' is the supported telemetry collection type.")
-FEDERATED_IDRAC_TELEMETRY_COLLECTION_FAIL= ("idrac_telemetry_support must be set to true "
-                                            "in order to enable federated_idrac_telemetry_collection.")
+UNSUPPORTED_IDRAC_TELEMETRY_COLLECTION_TYPE= ("unsupported. 'kafka' or 'prometheus' "
+                                              "is the supported telemetry collection type.")
+KAFKA_ENABLE_FEDERATED_IDRAC_TELEMETRY_COLLECTION= ("requires federated_idrac_telemetry_collection "
+                                             "to be enabled. Please rerun the playbook "
+                                             "with federated_idrac_telemetry_collection true "
+                                             "in telemetry_config.yml.")
+TELEMETRY_SERVICE_CLUSTER_ENTRY_MISSING_ROLES_CONFIG_MSG= ("requires service k8s roles to be "
+                                             "defined in roles_config.yml. Please either configure "
+                                             "service k8s roles in roles_config.yml "
+                                             "or disable federated_idrac_telemetry_collection "
+                                             "in telemetry_config.yml and rerun the playbook.")
+ENABLE_FEDERATED_IDRAC_TELEMETRY_COLLECTION=("it is recommended to set "
+                                             "federated_idrac_telemetry_collection to true "
+                                             "in telemetry_config.yml as service k8s cluster "
+                                             "is defined in roles_config.yml.")
+
 def boolean_fail_msg(value):
     """Returns a formatted message indicating boolean_fail_msg."""
     return f"{value} must be set to either true or false."
@@ -189,17 +210,17 @@ SMTP_SERVER_FAIL_MSG = ("Failed. smtp_server details are mandatory when "
 ISO_FILE_PATH_FAIL_MSG = ("The provided ISO file path is invalid. "
                          "Please ensure that the ISO file exists at the specified iso_file_path.")
 ISO_FILE_PATH_NOT_CONTAIN_ISO_MSG = "The provided ISO file path must have the .iso extension."
-def iso_file_path_not_contain_os_msg(provision_os, provision_os_version):
+def iso_file_path_invalid_os_msg(iso_file_path, provision_os, provision_os_version):
     """Returns a formatted message indicating iso_file_path_not_contain_os_msg."""
-    return (f'Make sure iso_file_path variable in provision_config.yml contains value mentioned '
-            f'in the variables cluster_type: {provision_os} and cluster_os_version: '
+    return (f'Make sure iso_file_path: {iso_file_path} variable in software_config.json contains value mentioned '
+            f'in the variables cluster_os_type: {provision_os} and cluster_os_version: '
             f'{provision_os_version} mentioned in software_config.json')
 def os_version_fail_msg(cluster_os_type, min_version, max_version):
     """Returns a formatted message indicating os_version_fail_msg."""
     if cluster_os_type == "ubuntu":
         return (f"For OS type '{cluster_os_type}', the version must be either {min_version} or "
                 f"{max_version}.")
-    return f"For OS type '{cluster_os_type}', the version must be {min_version}."
+    return f"For OS type '{cluster_os_type}', the supported version is {min_version}."
 def software_mandatory_fail_msg(software_name):
     """Returns a formatted message indicating software_mandatory_fail_msg."""
     return (f"in software_config.json. Please add the corresponding field '{software_name}' "
@@ -270,8 +291,8 @@ BMC_VIRTUAL_IP_NOT_VALID = ("should be outside any bmc static and dynamic ranges
 FEILD_MUST_BE_EMPTY = "feild must be empty."
 DUPLICATE_VIRTUAL_IP = "is already used. Please give unique virtual ip address"
 INVALID_PASSIVE_NODE_SERVICE_TAG = "active node and passive node service tag cannot be same."
-GROUP_NOT_FOUND = "is not defined in the roles_config. Please define the group in roles_config."
-ROLE_NODE_FOUND = "is not defined in roles_config. Please define the role in roles_config."
+GROUP_NOT_FOUND = "is not defined in the roles_config.yml. Please define the group in roles_config.yml"
+ROLE_NODE_FOUND = "is not defined in roles_config.yml. Please define the role in roles_config.yml"
 DUPLICATE_ACTIVE_NODE_SERVICE_TAG = ("the service tag configured for a active node is already "
                                     "present elsewhere in the config file. ")
 DUPLICATE_PASSIVE_NODE_SERVICE_TAG = ("the service tag configured for a passive node is already "

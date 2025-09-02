@@ -28,7 +28,7 @@
 
 - name: Create a list of unique roles
   ansible.builtin.set_fact:
-    all_roles: "{{ all_roles | default([]) + item.split(',') | map('trim') | list }}"
+    all_roles: "{{ (all_roles | default([])) + ((item | default('') | string).split(',') | map('trim') | list) }}"
   loop: "{{ discovered_nodes | map(attribute='role') | select('defined') | list }}"
   when: item | length > 0
 

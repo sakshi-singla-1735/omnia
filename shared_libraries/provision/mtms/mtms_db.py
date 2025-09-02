@@ -38,15 +38,8 @@ uncorrelated_admin_start_ip = ipaddress.IPv4Address(sys.argv[9])
 location_id = sys.argv[11]
 architecture = sys.argv[12]
 role = sys.argv[13]
-if len(sys.argv) > 15:
-    PARENT = sys.argv[14]
-    cluster_name = sys.argv[15]
-elif len(sys.argv) == 15:
-    PARENT = sys.argv[14]
-    cluster_name = ""
-else:
-    PARENT = None
-    cluster_name = ""
+PARENT = sys.argv[14] 
+cluster_name = sys.argv[15]
 DISCOVERY_MECHANISM = "mtms"
 BMC_MODE = "static"
 admin_static_start_range = ipaddress.IPv4Address(admin_static_range.split('-')[0])

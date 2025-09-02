@@ -76,11 +76,11 @@ def check_and_validate_ha_role_in_roles_config(errors, roles_config_json, ha_rol
                 create_error_msg(
                     f"group: '{group}' associated for role",
                     ha_role,
-                    en_us_validation_msg.group_not_found,
+                    en_us_validation_msg.GROUP_NOT_FOUND,
                 )
             )
     else:
-        errors.append(create_error_msg("role", ha_role, en_us_validation_msg.role_node_found))
+        errors.append(create_error_msg("role", ha_role, en_us_validation_msg.ROLE_NODE_FOUND))
 
 
 def get_admin_static_dynamic_ranges(network_spec_json):
@@ -262,7 +262,7 @@ def validate_service_tag_presence(
             create_error_msg(
                 f"{config_type}",
                 active_node_service_tag,
-                en_us_validation_msg.duplicate_active_node_service_tag,
+                en_us_validation_msg.DUPLICATE_ACTIVE_NODE_SERVICE_TAG,
             )
         )
 
@@ -276,7 +276,7 @@ def validate_service_tag_presence(
                     create_error_msg(
                         f"{config_type}",
                         service_tag,
-                        en_us_validation_msg.duplicate_passive_node_service_tag,
+                        en_us_validation_msg.DUPLICATE_PASSIVE_NODE_SERVICE_TAG,
                     )
                 )
 
@@ -314,7 +314,7 @@ def validate_vip_address(
             create_error_msg(
                 f"{config_type} virtual_ip_address:",
                 vip_address,
-                en_us_validation_msg.duplicate_virtual_ip,
+                en_us_validation_msg.DUPLICATE_VIRTUAL_IP,
             )
         )
     else:
@@ -398,7 +398,7 @@ def validate_k8s_head_node_ha(
                 create_error_msg(
                     f"{config_type}",
                     common_tags,
-                    en_us_validation_msg.duplicate_active_node_service_tag,
+                    en_us_validation_msg.DUPLICATE_ACTIVE_NODE_SERVICE_TAG,
                 )
             )
 
@@ -462,6 +462,55 @@ def validate_service_node_ha(
             oim_admin_ip
         )
 
+def validate_slurm_head_node_ha(
+    errors,
+    config_type,
+    ha_data,
+    network_spec_data,
+    _roles_config_json,
+    all_service_tags,
+    ha_node_vip_list
+):
+    """
+    Validates the high availability configuration for a service node.
+
+    Parameters:
+    errors (list): A list to store error messages.
+    config_type (str): The type of high availability configuration.
+    ha_data (dict): A dictionary containing high availability data.
+    network_spec_data (dict): A dictionary containing network specification data.
+    _roles_config_json (dict): A dictionary containing roles configuration data.
+    all_service_tags (list): A list of all service tags.
+    ha_node_vip_list (list): A list of virtual IP addresses for high availability nodes.
+
+    Returns:
+    None
+    """
+    active_node_service_tag = ha_data.get("active_node_service_tag")
+    passive_nodes = ha_data.get("passive_nodes", [])
+    vip_address = ha_data.get("virtual_ip_address")
+
+    # get network_spec data
+    admin_network = network_spec_data["admin_network"]
+    admin_netmaskbits = network_spec_data["admin_netmaskbits"]
+    oim_admin_ip = network_spec_data["oim_admin_ip"]
+
+    # validate active_node_service_tag and passive_node_service_tag
+    validate_service_tag_presence(
+        errors, config_type, all_service_tags, active_node_service_tag, passive_nodes
+    )
+
+    # validate if duplicate virtual ip address is present
+    if vip_address:
+        validate_vip_address(
+            errors,
+            config_type,
+            vip_address,
+            ha_node_vip_list,
+            admin_network,
+            admin_netmaskbits,
+            oim_admin_ip
+        )
 
 def validate_oim_ha(
     errors,
@@ -519,7 +568,7 @@ def validate_oim_ha(
                     errors.append(create_error_msg(
                         f"{config_type} bmc_virtual_ip_address conflict with roles_config",
                         bmc_virtual_ip,
-                        en_us_validation_msg.bmc_virtual_ip_not_valid
+                        en_us_validation_msg.BMC_VIRTUAL_IP_NOT_VALID
                     ))
 
         bmc_vip_conflict_dynamic = False
@@ -546,7 +595,7 @@ def validate_oim_ha(
             errors.append(create_error_msg(
                 f"{config_type} bmc_virtual_ip_address conflict with network_spec",
                 bmc_virtual_ip,
-                en_us_validation_msg.bmc_virtual_ip_not_valid
+                en_us_validation_msg.BMC_VIRTUAL_IP_NOT_VALID
             ))
 
 # Dispatch table maps config_type to validation handler
@@ -554,7 +603,7 @@ ha_validation = {
     "service_node_ha": validate_service_node_ha,
     # Add more config_type functions here as needed
     "oim_ha": validate_oim_ha,
-    # "slurm_head_node_ha":validation_slurm_head_node_ha # TODO: Add slurm head node validation
+    "slurm_head_node_ha": validate_slurm_head_node_ha,
     "service_k8s_cluster_ha": validate_k8s_head_node_ha,
     "compute_k8s_cluster_ha": validate_k8s_head_node_ha
 }
@@ -655,7 +704,8 @@ def validate_high_availability_config(
         ("oim_ha", ["admin_virtual_ip_address", "active_node_service_tag", "passive_nodes"]),
         ("service_node_ha", ["service_nodes"]),
         ("slurm_head_node_ha", ["virtual_ip_address", "active_node_service_tag", "passive_nodes"]),
-        ("k8s_head_node_ha", ["virtual_ip_address", "active_node_service_tags"])
+        ("compute_k8s_head_node_ha", ["virtual_ip_address", "active_node_service_tags"]),
+        ("service_k8s_head_node_ha", ["virtual_ip_address", "active_node_service_tags"])
     ]
 
     for config_name, mandatory_fields in ha_configs:

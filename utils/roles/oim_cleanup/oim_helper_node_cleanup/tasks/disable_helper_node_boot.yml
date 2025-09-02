@@ -94,6 +94,9 @@
       no_log: true
 
   rescue:
-    - name: Fail if boot mode setting or boot source disable failed
-      ansible.builtin.fail:
+    - name: Warn if boot mode or boot source disable failed, ignore and proceed
+      ansible.builtin.debug:
         msg: "{{ bootmode_failure_msg_template }}"
+
+    - name: Continue play without failing
+      ansible.builtin.meta: clear_host_errors

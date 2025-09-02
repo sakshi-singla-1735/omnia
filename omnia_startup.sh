@@ -92,14 +92,14 @@ display_supported_use_cases() {
     echo -e "${BLUE} Please choose the type of Omnia shared path in Omnia Infrastructure Manager (OIM): ${NC}"
     echo -e "${BLUE} It is recommended to use a external NFS share for the Omnia shared path. ${NC}"
     echo -e "${BLUE} If you are not using NFS, make sure enough space is available on the disk. ${NC}"
-    echo -e "${YELLOW} Using a Extrenal NFS share is mandatory for Omnia shared path if you are planning to have high availability in OIM or require a hierarchical cluster. ${NC}"
+    echo -e "${YELLOW} Using a Extrenal NFS share is mandatory for Omnia shared path if you are planning to have high availability in OIM or require K8s service cluster. ${NC}"
     echo -e "\nSupported Use Cases:\n"
 
     # Table content
     {
         echo -e "Share Option\tType\tDescription\tAdditional Info"
         echo -e "${GREEN}NFS\tExternal\tExternal NFS server(outside OIM) created by user\tMust be reachable from OIM and service nodes. Mounts on OIM. Recommended for HA and hierarchical clusters.${NC}"
-        echo -e "NFS\tInternal\tNFS server created by user in OIM\tUsed only for flat provisioning. No HA or hierarchical support. No mount performed."
+        echo -e "NFS\tInternal\tNFS server created by user in OIM\tUsed only for flat provisioning. No HA or k8s service cluster support. No mount performed."
         echo -e "Local\tDisk\tDisk storage in OIM\tUsed only for flat provisioning. No HA or hierarchical support."
     } | column -t -s $'\t'
 }
@@ -196,7 +196,7 @@ cleanup_config(){
 
     # Remove the Omnia core configuration.
     echo -e "${BLUE} Removing Omnia core configuration.${NC}"
-    rm -rf $omnia_path/omnia/{hosts,input,log,offline_repo,omnia_inventory,pulp,provision,kubespray,pcs,services,shared_libraries,ssh_config,tmp,images,.data}
+    rm -rf $omnia_path/omnia/{hosts,input,log,pulp,provision,kubespray,pcs,shared_libraries,ssh_config,tmp,.data}
 
     # Unmount the NFS shared path if the share option is NFS.
     if [ "$share_option" = "NFS" ] && [ "$nfs_type" = "external" ]; then
@@ -456,6 +456,7 @@ init_container_config() {
     # Get the ssh public key.
     ssh_public_key="$(cat /root/.ssh/oim_rsa.pub)"
 
+    validate_nfs_server
 
     # Add ssh public key to the authorized_keys.
     echo -e "${GREEN} Adding ssh public key to the authorized_keys.${NC}"
@@ -600,6 +601,40 @@ validate_oim() {
     echo -e "${GREEN} Podman socket has been enabled and started.${NC}"
 }
 
+# Checks if the required directories for Omnia are present.
+# This function iterates over a list of required directories/files and checks if each one exists.
+check_required_directories() {
+    required_paths=(
+        "$omnia_path/omnia"
+        "$omnia_path/omnia/ssh_config/.ssh"
+        "$omnia_path/omnia/log/core/container"
+        "$omnia_path/omnia/hosts"
+        "$omnia_path/omnia/pulp/pulp_ha"
+    )
+
+    missing_paths=()
+
+    for path in "${required_paths[@]}"; do
+        if [ ! -e "$path" ]; then  # Checks both files and directories
+            missing_paths+=("$path")
+        fi
+    done
+
+    if [ "${#missing_paths[@]}" -ne 0 ]; then
+        echo -e "${RED}Error: The following required files or directories are missing:${NC}"
+        echo -e "${RED}${missing_paths[*]}${NC}"
+        echo -e "User can not Retain Existing configuration"
+        echo
+        echo -e "${YELLOW}Instructions:${NC}"
+        echo -e "${YELLOW}* Backup any existing files if required${NC}"
+        echo -e "${YELLOW}* Run ./omnia_startup.sh and choose:${NC}"
+        echo -e "${YELLOW}    Options:${NC}"
+        echo -e "${YELLOW}      -> Reinstall the container${NC}"
+        echo -e "${YELLOW}      -> Overwrite and create new configuration${NC}"
+        exit 1
+    fi
+}
+
 # Sets up the Omnia core container.
 # This function pulls the Omnia core Docker image and runs the container.
 # It defines the container options and runs the container.
@@ -680,7 +715,7 @@ post_setup_config() {
     podman exec -u root omnia_core bash -c "
     mkdir -p /opt/omnia/input/project_default
     cp -r /omnia/input/* /opt/omnia/input/project_default
-    rm -rf /omnia/input 
+    rm -rf /omnia/input
     rm -rf /omnia/omnia_startup.sh"
 
     # Copy shared libraries from /omnia to /opt/omnia/shard_libraries/ inside omnia_core container
@@ -718,6 +753,28 @@ post_setup_config() {
     init_ssh_config
 }
 
+validate_nfs_server() {
+
+    # Validate NFS server permission
+    if [ "$share_option" = "NFS" ]; then
+        # Create a temporary file inside $omnia_path
+        temp_file="$omnia_path/temp_file"
+        touch "$temp_file"
+        # Check if the file can be chown to root
+        if chown root:root "$temp_file"; then
+            rm "$temp_file"
+        else
+            echo "Error: Unable to chown file to root in $omnia_path. NFS server permission validation failed. Please ensure no_root_squash option is enabled in the NFS export configuration."
+            exit 1
+        fi
+        if [ "`ls -ld $omnia_path/omnia/ssh_config/.ssh/id_rsa | awk '{print $3 ":" $4}'`" != "root:root" ]; then
+            echo "Error: The $omnia_path/omnia/ssh_config/.ssh/id_rsa file should be owned by root:root. NFS server permission validation failed. Please verify the NFS export configuration."
+            exit 1
+        fi
+    fi
+
+}
+
 init_ssh_config() {
     touch $HOME/.ssh/known_hosts
     # Add entry to /root/.ssh/known_hosts file to prevent errors caused by Known host
@@ -752,8 +809,8 @@ start_container_session() {
                 - Use the playbook /omnia/utils/oim_cleanup.yml to safely remove the shared directory and Omnia containers (except the core container).
                 - If you need to delete the core container or redeploy the core container with new input configs, please rerun the omnia_startup.sh script.
                 - Provide any file paths (ISO, mapping files, etc.) that are mentioned in input files in the /opt/omnia directory.
-                - The domain name that will be used for Omnia is $domain_name, if you wish to change the domain name please cleanup Omnia, 
-                  change the Omnia Infrastructure Manager's domain name and rerun omnia_startup.sh. 
+                - The domain name that will be used for Omnia is $domain_name, if you wish to change the domain name please cleanup Omnia,
+                  change the Omnia Infrastructure Manager's domain name and rerun omnia_startup.sh.
 
     --------------------------------------------------------------------------------------------------------------------------------------------------
     ${NC}"
@@ -852,6 +909,7 @@ main() {
                 # If the user wants to retain existing configuration, call the remove_container function
                 if [ "$choice" = "1" ]; then
                     fetch_config
+                    check_required_directories
                     remove_container
                     setup_container
                     init_ssh_config

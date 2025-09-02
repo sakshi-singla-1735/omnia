@@ -20,9 +20,10 @@ inventory file
 
         10.5.1.104
 
-        [login]
+        [login_node]
 
         10.5.1.105
+        10.5.1.109
 
 
 
@@ -56,10 +57,10 @@ inventory file
 
 .. note::
 
-            * For Slurm, all the applicable inventory groups are ``slurm_control_node``, ``slurm_node``, and ``login``.
+            * For Slurm, all the applicable inventory groups are ``slurm_control_node``, ``slurm_node``, and ``login_node``.
             * For Kubernetes, all the applicable groups are ``kube_control_plane``, ``kube_node``, and ``etcd``.
             * The centralized authentication server inventory group, that is ``auth_server``, is common for both Slurm and Kubernetes.
-            * For secure login node functionality, ensure to add the ``login`` group in the provided inventory file.
+            * For secure login node functionality, ensure to add the ``login_node`` group in the provided inventory file.
 
 software_config.json for RHEL
 -------------------------------------------
@@ -74,21 +75,32 @@ software_config.json for RHEL
         "softwares": [
             {"name": "amdgpu", "version": "6.3.1"},
             {"name": "cuda", "version": "12.8.0"},
-            {"name": "ofed", "version": "24.10-1.1.4.0"},
-            {"name": "service_node" },
+            {"name": "ofed", "version": "24.10-3.2.5.0"},
+            {"name": "freeipa"},
             {"name": "openldap"},
+            {"name": "secure_login_node"},
             {"name": "nfs"},
-            {"name": "k8s", "version":"1.31.4"},
-            {"name": "slurm"}
+            {"name": "beegfs", "version": "7.4.5"},
+            {"name": "slurm"},
+            {"name": "k8s", "version": "1.31.4"},
+            {"name": "service_k8s", "version": "1.31.4"},
+            {"name": "intel_benchmarks", "version": "2024.1.0"},
+            {"name": "amd_benchmarks"},
+            {"name": "utils"},
+            {"name": "ucx", "version": "1.15.0"},
+            {"name": "openmpi", "version": "4.1.6"},
+            {"name": "racadm"}
         ],
+
         "amdgpu": [
             {"name": "rocm", "version": "6.3.1" }
         ],
         "slurm": [
             {"name": "slurm_control_node"},
             {"name": "slurm_node"},
-            {"name": "login"}
+            {"name": "login_node"}
         ]
+
     }
 
 
@@ -135,9 +147,9 @@ pxe_mapping_file.csv
 
 ::
 
-    SERVICE_TAG,HOSTNAME,ADMIN_MAC,ADMIN_IP,BMC_IP
-    XXXXXXX,n1,xx:yy:zz:aa:bb:cc,10.5.0.101,10.3.0.101
-    XXXXXXX,n2,aa:bb:cc:dd:ee:ff,10.5.0.102,10.3.0.102
+    GROUP_NAME,SERVICE_TAG,HOSTNAME,ADMIN_MAC,ADMIN_IP,BMC_IP
+    grp0,ABCD12,n1,xx:yy:zz:aa:bb:cc,10.5.0.101,10.3.0.101
+    grp0,ABCD34,n2,aa:bb:cc:dd:ee:ff,10.5.0.102,10.3.0.102
 
 
 powervault_inventory
@@ -156,15 +168,4 @@ NFS Server inventory file
     #NFS node
     [nfs]
     #node10
-
-
-Inventory for iDRAC telemetry
-------------------------------
-
-::
-
-    [idrac]
-    10.10.0.1
-
-.. note:: Only iDRAC/BMC IPs should be provided.
 

@@ -23,7 +23,7 @@ All work on Omnia should be done in a `fork of the repository <https://help.gith
 Issue branch
 ------------
 
-`Create a new branch <https://help.github.com/en/desktop/contributing-to-projects/creating-a-branch-for-your-work>`_ on your fork of the repository. All contributions should be branched from devel.::
+`Create a new branch <https://help.github.com/en/desktop/contributing-to-projects/creating-a-branch-for-your-work>`_ on your fork of the repository. All contributions should be branched from devel. ::
 
         git checkout devel
         git checkout -b <new-branch-name>
@@ -40,7 +40,7 @@ Commit changes
     git commit -s
 
 
-Ensure you have your user name and e-mail set. The ``--signoff | -s`` option will use the configured user name and e-mail, so it is important to configure it before the first time you commit. Check the following references:
+Ensure that your username and email address are properly configured. The ``--signoff | -s`` option will use the configured user name and e-mail, so it is important to configure it before the first time you commit. Check the following references:
 
     * `Setting up your github user name <https://help.github.com/articles/setting-your-username-in-git/>`_
 

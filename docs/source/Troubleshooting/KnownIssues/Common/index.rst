@@ -14,4 +14,3 @@ This topic highlights the common known issues related to:
     Security
     Storage
     HA
-    Hierarchical

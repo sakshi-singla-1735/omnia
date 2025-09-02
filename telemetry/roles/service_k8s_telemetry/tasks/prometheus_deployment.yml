@@ -62,7 +62,7 @@
           matchLabels:
             app: "{{ prometheus_k8s_name }}"
         serviceName: "{{ prometheus_k8s_name }}"
-        replicas: "{{ statefulset_replicas }}"
+        replicas: "{{ prometheus_replicas }}"
         template:
           metadata:
             labels:

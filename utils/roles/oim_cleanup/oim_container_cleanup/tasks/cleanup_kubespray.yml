@@ -61,5 +61,9 @@
   ansible.builtin.file:
     path: "{{ item }}"
     state: absent
+    force: true
+  register: directory_deletion
+  until: directory_deletion is not failed
+  retries: "{{ max_retries }}"
   loop: "{{ kubespray_cleanup_directory }}"
   when: kubespray_container_list is defined
