@@ -1199,8 +1199,8 @@ def validate_telemetry_config(
 
     idrac_telemetry_support = data.get("idrac_telemetry_support")
     federated_idrac_telemetry_collection = data.get("federated_idrac_telemetry_collection")
-
     collection_type = data.get("idrac_telemetry_collection_type")
+
     if idrac_telemetry_support:
         if collection_type:
             if collection_type not in config.supported_telemetry_collection_type:
