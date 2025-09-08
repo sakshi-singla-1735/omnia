@@ -13,13 +13,16 @@
 # limitations under the License.
 ---
 
-# - name: Invoke ochami installation playbook
-#   ansible.builtin.import_playbook: /opt/omnia/openchami/deployment-recipes/dell/podman-quadlets/configs.yaml
-#   vars:
-#     cluster_name: ''
-#     cluster_domain: ''
-#     cluster_boot_ip: ''
-#     cluster_boot_interface: ''
-#     coredhcp_dhcp_pool: ''
-#     coredhcp_netmask: ''
-#     coredhcp_lease_duration: ''
+- name: Invoke ochami installation playbook
+  ansible.builtin.import_playbook: /opt/omnia/openchami/deployment-recipes/dell/podman-quadlets/configs.yaml
+  vars:
+    cluster_name: "{{ hostvars['oim']['cluster_name'] }}"
+    cluster_domain: "{{ hostvars['oim']['cluster_domain'] }}"
+    cluster_boot_ip: "{{ hostvars['oim']['cluster_boot_ip'] }}"
+    cluster_boot_interface: "{{ hostvars['oim']['cluster_boot_interface'] }}"
+    coredhcp_dhcp_pool: "{{ hostvars['oim']['coredhcp_dhcp_pool'] }}"
+    coredhcp_netmask: "{{ hostvars['oim']['coredhcp_netmask'] }}"
+    coredhcp_lease_duration: "{{ hostvars['oim']['coredhcp_lease_duration'] }}"
+    ochami_work_dir: "{{ hostvars['oim']['ochami_work_dir'] }}"
+    data_oci_dir: "{{ hostvars['oim']['data_oci_dir'] }}"
+    data_s3_dir: "{{ hostvars['oim']['data_s3_dir'] }}"

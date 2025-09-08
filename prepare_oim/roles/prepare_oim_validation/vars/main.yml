@@ -57,6 +57,8 @@ admin_nic_fail_msg: "NIC '{{ admin_nic }}' does not exist on the system. Provide
 admin_nic_success_msg: "NIC '{{ admin_nic }}' exists on the system."
 admin_nic_ip_fail_msg: "IP '{{ admin_nic_ip }}' is not assigned to NIC '{{ admin_nic }}'. Please configure the admin IP in OIM and re-run the playbook."
 admin_nic_ip_success_msg: "IP '{{ admin_nic_ip }}' is assigned to NIC '{{ admin_nic }}'."
+provision_config: "{{ input_project_dir }}/provision_config.yml"
+provision_config_syntax_fail_msg: "Failed. Syntax errors present in provision_config.yml. Fix errors and re-run playbook again."
 
 # Usage: validate_credentials.yml
 min_length: 8

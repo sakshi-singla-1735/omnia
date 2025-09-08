@@ -1,0 +1,65 @@
+# Copyright 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+---
+
+- name: Create openchami directory
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: "{{ dir_permissions_755 }}"
+  with_items:
+    - "{{ openchami_clone_path }}"
+    - "{{ openchami_log_dir }}"
+
+- name: Verify the openchami clone status
+  ansible.builtin.stat:
+    path: "{{ openchami_clone_path }}/deployment-recipes/dell/podman-quadlets"
+  register: clone_status
+
+- name: Clone the openchami repository
+  ansible.builtin.git:
+    repo: "{{ openchami_git_repo }}"
+    dest: "{{ openchami_clone_path }}"
+    version: "{{ openchami_git_version }}"
+  register: clone_openchami
+  until: clone_openchami is not failed
+  retries: "{{ clone_retry }}"
+  delay: "{{ clone_delay }}"
+  when: not clone_status.stat.exists
+
+- name: Load the openchami configs vars
+  ansible.builtin.template:
+    src: "{{ openchami_config_vars_template }}"
+    dest: "{{ openchami_config_vars_path }}"
+    mode: "{{ dir_permissions_644 }}"
+
+- name: Deploy openchami containers
+  ansible.builtin.shell: |
+    set -o pipefail
+    ansible-playbook {{ openchami_clone_path }}/deployment-recipes/dell/podman-quadlets/configs.yaml \
+    -i {{ openchami_clone_path }}/deployment-recipes/dell/podman-quadlets/inventory -v \
+    --extra-vars "@{{ openchami_config_vars_path }}" -v | \
+    /usr/bin/tee {{ openchami_configs_log_path }}
+  async: 3600  # Set async timeout (e.g., 1 hour)
+  poll: 0  # Non-blocking (continue the playbook without waiting for completion)
+  register: openchami_deploy  # Register the result to capture job ID
+  changed_when: true
+
+- name: Wait for the openchami installation to finish. Logs can be checked at {{ openchami_configs_log_path }}
+  ansible.builtin.async_status:
+    jid: "{{ openchami_deploy.ansible_job_id }}"  # Job ID from the previous task
+  register: job_result
+  until: job_result.finished
+  retries: "{{ job_retry }}"  # Retry the task {{ job_retry }} times
+  delay: "{{ job_delay }}"   # Wait {{ job_delay }} seconds between retries

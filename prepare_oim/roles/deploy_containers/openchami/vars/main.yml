@@ -18,5 +18,15 @@ openchami_git_repo: https://github.com/abhishek-sa1/deployment-recipes.git
 openchami_clone_path: /opt/omnia/openchami
 openchami_git_version: main
 dir_permissions_755: 0755
-ochami_host_group: ochami
-oim_host_port: 2222
+dir_permissions_644: 644
+openchami_log_dir: /opt/omnia/logs/openchami
+openchami_configs_log_path: "{{ openchami_log_dir }}/configs.log"
+ochami_work_dir: "/opt/omnia/openchami/workdir"
+data_oci_dir: "/opt/omnia/openchami/data/oci"
+data_s3_dir: "/opt/omnia/openchami/data/s3"
+clone_retry: "5"
+clone_delay: "10"
+job_retry: "60"
+job_delay: "30"
+openchami_config_vars_path: "/opt/omnia/openchami/configs.yaml"
+openchami_config_vars_template: "{{ role_path }}/templates/configs.yaml.j2"

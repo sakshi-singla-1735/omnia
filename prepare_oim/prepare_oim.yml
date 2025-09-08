@@ -40,7 +40,6 @@
   ansible.builtin.import_playbook: ../utils/create_container_group.yml
   vars:
     oim_group: true
-    omnia_provision_group: true
   tags: always
 
 - name: Prepare OIM Validation and Configure Known Hosts
@@ -81,23 +80,25 @@
         name: deploy_containers/common
         tasks_from: add_known_hosts.yml
 
-- name: Deploy the PCS container
+- name: Deploy the pulp container
   hosts: oim
   connection: ssh
   gather_facts: false
-  tags: always
   roles:
     - role: deploy_containers/common  # noqa:role-name[path]
+      tags: always
     - role: deploy_containers/pulp  # noqa:role-name[path]
       tags: pulp
-    # - role: deploy_containers/ochami  # noqa:role-name[path]
-    #   tags: ochami
 #     - role: deploy_containers/kubespray  # noqa:role-name[path]
 #       tags: kubespray
 
-# - name: Import ochami installation playbook
-#   ansible.builtin.import_playbook: playbooks/ochami_install.yml
-#   tags: always
+- name: Deploy the openchami container
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  roles:
+    - role: deploy_containers/openchami  # noqa:role-name[path]
+      tags: openchami
 
 # - name: Update the kubespray metadata
 #   hosts: localhost
