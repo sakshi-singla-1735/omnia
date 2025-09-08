@@ -30,18 +30,16 @@ INPUT_VALIDATOR_LOG_PATH = '/opt/omnia/log/core/playbooks/'
 files = {
     "k8s_access_config": "k8s_access_config.yml",
     "local_repo_config": "local_repo_config.yml",
-    "login_node_security_config": "login_node_security_config.yml",
     "network_spec": "network_spec.yml",
     "omnia_config": "omnia_config.yml",
     "passwordless_ssh_config": "passwordless_ssh_config.yml",
     "provision_config": "provision_config.yml",
-    "roce_plugin_config": "roce_plugin_config.yml",
     "security_config": "security_config.yml",
-    "server_spec": "server_spec.yml",
     "software_config": "software_config.json",
     "storage_config": "storage_config.yml",
     "telemetry_config": "telemetry_config.yml",
     "roles_config": "roles_config.yml",
+    "functional_groups_config": "functional_groups_config.yml",
     "high_availability_config": "high_availability_config.yml",
     "additional_software": "additional_software.json"
 }
@@ -58,14 +56,12 @@ input_file_inventory = {
         files["provision_config"],
         files["network_spec"],
         files["software_config"],
-        files["roles_config"],
+        files["functional_groups_config"],
         files["high_availability_config"]
     ],
-    "server_spec": [files["server_spec"]],
     "security": [
         files["software_config"],
         files["security_config"],
-        files["login_node_security_config"],
         files["passwordless_ssh_config"]
     ],
     "telemetry": [files["telemetry_config"]],
@@ -84,11 +80,10 @@ input_file_inventory = {
         files["omnia_config"],
         files["high_availability_config"]
     ],
-    "roce": [files["roce_plugin_config"]],
     "storage": [files["storage_config"]],
     "prepare_oim": [
         files["network_spec"],
-        files["roles_config"]
+        files["functional_groups_config"]
     ],
     "high_availability": [files["high_availability_config"]],
     "additional_software": [files["additional_software"]],
@@ -96,10 +91,8 @@ input_file_inventory = {
         files["passwordless_ssh_config"],
         files["local_repo_config"],
         files["network_spec"],
-        files["server_spec"],
         files["omnia_config"],
         files["security_config"],
-        files["login_node_security_config"],
         files["telemetry_config"],
         files["provision_config"],
         files["roce_plugin_config"],
@@ -171,7 +164,7 @@ TYPE_REQUIREMENTS = {
 
 supported_telemetry_collection_type = ["prometheus","kafka"]
 
-# used for security_config.yml login_node_security_config.yml validation
+# used for security_config.yml validation
 supported_ldap_connection_type = ["TLS","SLS"]
 EMAIL_MAX_LENGTH = 320
 EMAIL_SEARCH_KEY = "@"
