@@ -651,6 +651,16 @@ check_required_directories() {
 # It defines the container options and runs the container.
 setup_container() {
     container_name="omnia_core"
+    # Print message for pulling the Omnia core docker image.
+    # echo -e "${BLUE} Pulling the Omnia core image.${NC}"
+
+    # Pull the Omnia core docker image.
+    # if podman pull omnia_core:latest; then
+    #     echo -e "${GREEN} Omnia core image has been pulled.${NC}"
+    # else
+    #     echo -e "${RED} Failed to pull Omnia core image.${NC}"
+    # fi
+
     echo "==> Setting up $container_name systemd service"
 
     # SELinux option handling
@@ -672,13 +682,13 @@ After=network-online.target
 
 [Service]
 Restart=always
-RestartSec=10
+RestartSec=5
 
 ExecStart=/usr/bin/podman run --rm \\
     --name $container_name \\
     --hostname $container_name \\
     --network host \\
-    --cap-add AUDIT_WRITE \\
+    --cap-add CAP_AUDIT_WRITE \\
     -v $omnia_path/omnia:/opt/omnia${selinux_option} \\
     -v $omnia_path/omnia/ssh_config/.ssh:/root/.ssh${selinux_option} \\
     -v $omnia_path/omnia/log/core/container:/var/log${selinux_option} \\
@@ -850,8 +860,6 @@ start_container_session() {
     ssh omnia_core
 }
 
-# ...existing code...
-
 show_help() {
     echo "Usage: $0 [--install | --uninstall | --help]"
     echo "  --install     Install and start the Omnia core container"
@@ -978,6 +986,9 @@ install_omnia_core() {
     fi
 }
 
+# Main function to check if omnia_core container is already running.
+# If yes, ask the user if they want to enter the container or reinstall.
+# If no, set it up.
 main() {
     case "$1" in
         --install|-i)
@@ -997,4 +1008,5 @@ main() {
     esac
 }
 
+# Call the main function
 main "$1"
