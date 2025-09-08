@@ -95,11 +95,11 @@ input_file_inventory = {
         files["security_config"],
         files["telemetry_config"],
         files["provision_config"],
-        files["roce_plugin_config"],
         files["k8s_access_config"],
         files["software_config"],
         files["storage_config"],
         files["roles_config"],
+        files["functional_groups_config"],
         files["high_availability_config"]
     ],
 }
