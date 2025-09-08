@@ -13,13 +13,13 @@
 # limitations under the License.
 ---
 
-- name: Invoke ochami installation playbook
-  ansible.builtin.import_playbook: /opt/omnia/openchami/deployment-recipes/dell/podman-quadlets/configs.yaml
-  vars:
-    cluster_name: ''
-    cluster_domain: ''
-    cluster_boot_ip: ''
-    cluster_boot_interface: ''
-    coredhcp_dhcp_pool: ''
-    coredhcp_netmask: ''
-    coredhcp_lease_duration: ''
+# - name: Invoke ochami installation playbook
+#   ansible.builtin.import_playbook: /opt/omnia/openchami/deployment-recipes/dell/podman-quadlets/configs.yaml
+#   vars:
+#     cluster_name: ''
+#     cluster_domain: ''
+#     cluster_boot_ip: ''
+#     cluster_boot_interface: ''
+#     coredhcp_dhcp_pool: ''
+#     coredhcp_netmask: ''
+#     coredhcp_lease_duration: ''
