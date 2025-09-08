@@ -306,7 +306,7 @@ init_container_config() {
 
             # Check if the Omnia shared path is absolute path and path exists.
             if [[ "$omnia_path" != /* ]] || [ ! -d "$omnia_path" ]; then
-                echo -e "${RED} Omnia shared path is not an absolute path or does not exist! Please re-run omnia_startup.sh with valid Omnia shared path${NC}"
+                echo -e "${RED} Omnia shared path is not an absolute path or does not exist! Please re-run omnia.sh with valid Omnia shared path${NC}"
                 exit 1
             fi
             ;;
@@ -388,7 +388,7 @@ init_container_config() {
 
             if is_local_ip "$nfs_server_ip"; then
                 echo -e "${RED} Error: NFS server $nfs_server_ip is a local IP.${NC}"
-                echo -e "${RED} Please provide an external NFS server IP or re-run omnia_startup.sh with valid options.${NC}"
+                echo -e "${RED} Please provide an external NFS server IP or re-run omnia.sh with valid options.${NC}"
                 exit 1
             fi
 
@@ -638,7 +638,7 @@ check_required_directories() {
         echo
         echo -e "${YELLOW}Instructions:${NC}"
         echo -e "${YELLOW}* Backup any existing files if required${NC}"
-        echo -e "${YELLOW}* Run ./omnia_startup.sh and choose:${NC}"
+        echo -e "${YELLOW}* Run ./omnia.sh and choose:${NC}"
         echo -e "${YELLOW}    Options:${NC}"
         echo -e "${YELLOW}      -> Reinstall the container${NC}"
         echo -e "${YELLOW}      -> Overwrite and create new configuration${NC}"
@@ -673,7 +673,7 @@ setup_container() {
     cat > /etc/systemd/system/${container_name}.service <<EOF
 # ===============================================================
 # $container_name systemd Service (direct container launch)
-# Generated dynamically by omnia_startup.sh
+# Generated dynamically by omnia.sh
 # ===============================================================
 [Unit]
 Description=${container_name^} Container
@@ -757,7 +757,7 @@ post_setup_config() {
     mkdir -p /opt/omnia/input/project_default
     cp -r /omnia/input/* /opt/omnia/input/project_default
     rm -rf /omnia/input
-    rm -rf /omnia/omnia_startup.sh"
+    rm -rf /omnia/omnia.sh"
 
     # Copy shared libraries from /omnia to /opt/omnia/shard_libraries/ inside omnia_core container
     echo -e "${BLUE} Copying shared libraries from container to shared_libraries folder.${NC}"
@@ -848,10 +848,10 @@ start_container_session() {
             It's important to note:
                 - Files placed in the shared directory should not be manually deleted.
                 - Use the playbook /omnia/utils/oim_cleanup.yml to safely remove the shared directory and Omnia containers (except the core container).
-                - If you need to delete the core container or redeploy the core container with new input configs, please rerun the omnia_startup.sh script.
+                - If you need to delete the core container or redeploy the core container with new input configs, please rerun the omnia.sh script.
                 - Provide any file paths (ISO, mapping files, etc.) that are mentioned in input files in the /opt/omnia directory.
                 - The domain name that will be used for Omnia is $domain_name, if you wish to change the domain name please cleanup Omnia,
-                  change the Omnia Infrastructure Manager's domain name and rerun omnia_startup.sh.
+                  change the Omnia Infrastructure Manager's domain name and rerun omnia.sh.
 
     --------------------------------------------------------------------------------------------------------------------------------------------------
     ${NC}"
