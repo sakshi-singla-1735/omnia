@@ -69,8 +69,6 @@ def main():
 
     if telemetry_config_data["idrac_telemetry_support"]:
         telemetry_status_list.append("idrac_telemetry")
-    if telemetry_config_data["visualization_support"]:
-        telemetry_status_list.append("visualization")
 
     module.exit_json(
             changed=False,
