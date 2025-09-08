@@ -196,7 +196,7 @@ cleanup_config(){
 
     # Remove the Omnia core configuration.
     echo -e "${BLUE} Removing Omnia core configuration.${NC}"
-    rm -rf $omnia_path/omnia/{hosts,input,log,pulp,provision,kubespray,pcs,ssh_config,tmp,.data}
+    rm -rf $omnia_path/omnia/{hosts,input,log,pulp,provision,kubespray,pcs,shared_libraries,ssh_config,tmp,.data}
 
     # Unmount the NFS shared path if the share option is NFS.
     if [ "$share_option" = "NFS" ] && [ "$nfs_type" = "external" ]; then
@@ -232,8 +232,19 @@ remove_container() {
 
     # Remove the container.
     echo -e "${BLUE} Removing the Omnia core container.${NC}"
-    if podman rm -f omnia_core; then
+    if systemctl stop omnia_core.service; then
         echo -e "${GREEN} Omnia core container has been removed.${NC}"
+
+    # Remove the omnia_core.service file.
+        rm -f /etc/systemd/system/omnia_core.service
+        systemctl daemon-reload
+        systemctl reset-failed omnia_core.service
+    # check if service is removed
+        if systemctl status omnia_core.service >/dev/null 2>&1; then
+            echo -e "${RED} Failed to remove Omnia core service.${NC}"
+        else
+            echo -e "${GREEN} Omnia core service has been removed.${NC}"
+        fi    
     else
         echo -e "${RED} Failed to remove Omnia core container.${NC}"
     fi
@@ -639,50 +650,70 @@ check_required_directories() {
 # This function pulls the Omnia core Docker image and runs the container.
 # It defines the container options and runs the container.
 setup_container() {
+    container_name="omnia_core"
+    echo "==> Setting up $container_name systemd service"
 
-    # Print message for pulling the Omnia core docker image.
-    echo -e "${BLUE} Pulling the Omnia core image.${NC}"
-
-    # Pull the Omnia core docker image.
-    # if podman pull omnia_core:latest; then
-    #     echo -e "${GREEN} Omnia core image has been pulled.${NC}"
-    # else
-    #     echo -e "${RED} Failed to pull Omnia core image.${NC}"
-    # fi
-
-    # Run the Omnia core container.
-    echo -e "${GREEN} Running the Omnia core container.${NC}"
-
+    # SELinux option handling
     selinux_option=":z"
-
     if [ "$share_option" = "NFS" ] && [ "$nfs_type" = "external" ]; then
         selinux_option=""
     fi
 
-    # Define the container options.
-    OPTIONS="-d --restart=always"
-    OPTIONS+=" --hostname omnia_core"
-    OPTIONS+=" -v $omnia_path/omnia:/opt/omnia$selinux_option"
-    OPTIONS+=" -v $omnia_path/omnia/ssh_config/.ssh:/root/.ssh$selinux_option"
-    OPTIONS+=" -v $omnia_path/omnia/log/core/container:/var/log$selinux_option"
-    OPTIONS+=" -v $omnia_path/omnia/hosts:/etc/hosts$selinux_option"
-    OPTIONS+=" -v $omnia_path/omnia/pulp/pulp_ha:/root/.config/pulp$selinux_option"
-    OPTIONS+=" --net=host"
-    OPTIONS+=" --name omnia_core"
-    OPTIONS+=" --cap-add=CAP_AUDIT_WRITE"
+    # --- Generate systemd service file ---
+    cat > /etc/systemd/system/${container_name}.service <<EOF
+# ===============================================================
+# $container_name systemd Service (direct container launch)
+# Generated dynamically by omnia_startup.sh
+# ===============================================================
+[Unit]
+Description=${container_name^} Container
+Requires=network-online.target
+After=network-online.target
 
-    # Run the container.
-    if podman run $OPTIONS omnia_core:latest; then
-        echo -e "${GREEN} Omnia core container has been started.${NC}"
-    else
-        echo -e "${RED} Failed to start Omnia core container.${NC}"
-        echo -e "${RED} Make sure the Omnia core image is present.${NC}"
+[Service]
+Restart=always
+RestartSec=10
+
+ExecStart=/usr/bin/podman run --rm \\
+    --name $container_name \\
+    --hostname $container_name \\
+    --network host \\
+    --cap-add AUDIT_WRITE \\
+    -v $omnia_path/omnia:/opt/omnia${selinux_option} \\
+    -v $omnia_path/omnia/ssh_config/.ssh:/root/.ssh${selinux_option} \\
+    -v $omnia_path/omnia/log/core/container:/var/log${selinux_option} \\
+    -v $omnia_path/omnia/hosts:/etc/hosts${selinux_option} \\
+    -v $omnia_path/omnia/pulp/pulp_ha:/root/.config/pulp${selinux_option} \\
+    $container_name:latest
+
+ExecStop=/usr/bin/podman stop -t 5 $container_name
+ExecStopPost=/usr/bin/podman rm -f $container_name
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+    # --- Reload systemd and enable service ---
+    systemctl daemon-reload
+    systemctl enable --now ${container_name}.service
+    echo "==> ${container_name}.service deployed and started"
+
+    # Wait for the container to be running
+    echo "Waiting for $container_name container to start..."
+    for i in {1..30}; do
+        if podman ps --format '{{.Names}}' | grep -qw "$container_name"; then
+            echo "$container_name container is running."
+            break
+        else
+            sleep 1
+        fi
+    done
+
+    # If container is still not running after timeout, exit with error
+    if ! podman ps --format '{{.Names}}' | grep -qw "$container_name"; then
+        echo -e "${RED}Error: $container_name container failed to start.${NC}"
         exit 1
     fi
-
-    # Waiting for container to be ready
-    sleep 2
-
 }
 
 # This function sets up the configuration for the Omnia core.
@@ -717,6 +748,10 @@ post_setup_config() {
     cp -r /omnia/input/* /opt/omnia/input/project_default
     rm -rf /omnia/input
     rm -rf /omnia/omnia_startup.sh"
+
+    # Copy shared libraries from /omnia to /opt/omnia/shard_libraries/ inside omnia_core container
+    echo -e "${BLUE} Copying shared libraries from container to shared_libraries folder.${NC}"
+    podman exec -u root omnia_core cp -r /omnia/shared_libraries/ /opt/omnia/
 
     # Create the .data directory if it does not exist.
     # This is where the oim_metadata.yml file is stored.
@@ -815,11 +850,16 @@ start_container_session() {
     ssh omnia_core
 }
 
+# ...existing code...
 
-# Main function to check if omnia_core container is already running.
-# If yes, ask the user if they want to cleanup or reinstall.
-# If no, set it up.
-main() {
+show_help() {
+    echo "Usage: $0 [--install | --uninstall | --help]"
+    echo "  --install     Install and start the Omnia core container"
+    echo "  --uninstall   Uninstall the Omnia core container and clean up configuration"
+    echo "  --help        Show this help message"
+}
+
+install_omnia_core() {
     # Check if any other containers with 'omnia' in their name are running
     other_containers=$(podman ps -a --format '{{.Names}}' | grep -E 'omnia' | grep -v 'omnia_core')
 
@@ -846,7 +886,7 @@ main() {
             echo -e "${GREEN} Do you want to:${NC}"
             PS3="Select the option number: "
 
-            select opt in "Enter omnia_core container" "Reinstall the container" "Delete the container and configurations" "Exit"; do
+            select opt in "Enter omnia_core container" "Reinstall the container" "Exit"; do
                 case $opt in
                     "Enter omnia_core container")
                         choice=1
@@ -854,10 +894,6 @@ main() {
                         ;;
                     "Reinstall the container")
                         choice=2
-                        break
-                        ;;
-                    "Delete the container and configurations")
-                        choice=3
                         break
                         ;;
                     "Exit")
@@ -915,10 +951,6 @@ main() {
                     cleanup_omnia_core
                     setup_omnia_core
                 fi
-
-            # If the user wants to cleanup, call the cleanup function
-            elif [ "$choice" = "3" ]; then
-                cleanup_omnia_core
             fi
         else
             # If omnia_core container exists and is not running call the remove_container function
@@ -946,5 +978,23 @@ main() {
     fi
 }
 
-# Call the main function
-main
+main() {
+    case "$1" in
+        --install|-i)
+            install_omnia_core
+            ;;
+        --uninstall|-u)
+            cleanup_omnia_core
+            ;;
+        --help|-h|"")
+            show_help
+            ;;
+        *)
+            echo "Unknown option: $1"
+            show_help
+            exit 1
+            ;;
+    esac
+}
+
+main "$1"
