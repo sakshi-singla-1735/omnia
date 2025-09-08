@@ -16,12 +16,12 @@
             "cluster_name": {
               "type": "string",
               "pattern": "^$|^[a-zA-Z0-9_]+$",
-              "description": "Name of the cluster. Mandatory for service and compute kubernetes roles like 'service_kube_control_plane', 'service_kube_node', 'service_etcd', 'kube_control_plane', 'etcd', 'kube_node'."
+              "description": "Name of the cluster. Mandatory for service and compute kubernetes roles like 'service_kube_node', 'kube_node'."
             },
             "parent": {
               "type": "string",
               "pattern": "^[a-zA-Z0-9,]*$",
-              "description": "List of service tag of associated active service node(s). This field will be empty for group of nodes which is associated with 'login_node', 'compiler_node', 'service_node', 'service_kube_control_plane', 'service_etcd', 'service_kube_node', 'kube_control_plane', 'etcd', 'slurm_control_plane'. If 'service_node' role is not defined, then value will be empty for worker and default role."
+              "description": "List of service tag of associated active service node(s). This field will be empty for group of nodes which is associated with 'service_kube_node', 'kube_node', 'slurm_control_plane', 'slurm_node', 'login_node', 'compiler_node'."
             },
             "architecture": {
                 "type": "string",
