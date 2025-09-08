@@ -90,8 +90,14 @@
     - role: deploy_containers/common  # noqa:role-name[path]
     - role: deploy_containers/pulp  # noqa:role-name[path]
       tags: pulp
+    - role: deploy_containers/ochami  # noqa:role-name[path]
+      tags: ochami
 #     - role: deploy_containers/kubespray  # noqa:role-name[path]
 #       tags: kubespray
+
+- name: Import ochami installation playbook
+  ansible.builtin.import_playbook: playbooks/ochami_install.yml
+  tags: always
 
 # - name: Update the kubespray metadata
 #   hosts: localhost
