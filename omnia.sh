@@ -866,7 +866,7 @@ start_container_session() {
                 - If you need to  redeploy the core container with new input configs, please rerun the omnia.sh script with --install option.
                 - Provide any file paths (ISO, mapping files, etc.) that are mentioned in input files in the /opt/omnia directory.
                 - The domain name that will be used for Omnia is $domain_name, if you wish to change the domain name please cleanup Omnia,
-                  change the Omnia Infrastructure Manager's domain name and rerun omnia.sh.
+                  change the Omnia Infrastructure Manager's domain name and rerun omnia.sh script with --install option.
 
     --------------------------------------------------------------------------------------------------------------------------------------------------
     ${NC}"
