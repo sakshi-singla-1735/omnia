@@ -13,23 +13,11 @@
 # limitations under the License.
 ---
 
-- name: Set_fact for fetch omnia config credentials
-  hosts: localhost
-  connection: local
-  tags: always
-  tasks:
-    - name: Set dynamic run tags including 'provision'
-      when: not config_file_status | default(false) | bool
-      ansible.builtin.set_fact:
-        omnia_run_tags: "{{ (ansible_run_tags | default([]) + ['provision']) | unique }}"
-        cacheable: true
+# Usage: check_prerequisites.yml
+lc_check_fail_msg: "Failed. LC is not ready. Retry again after LC is ready"
 
-- name: Invoke get_config_credentials.yml
-  ansible.builtin.import_playbook: ../utils/credential_utility/get_config_credentials.yml
-
-- name: Deploy OS via idrac
-  hosts: bmc
-  connection: local
-  gather_facts: false
-  roles:
-    - idrac
+# Usage: configure_pxe_boot.yml
+active_nic_fail_msg: "No host active nic present for the device. Please check the host connection for the server and retry again."
+provision_os_msg: "OS provisioning is initiated. Wait for installation to complete for all servers."
+pxe_provisioning_fail_msg: "OS provisioning using PXE failed. This could be due to outdated NIC firmware. Re-run idrac.yml after fixing the issue"
+retries_count: 3
