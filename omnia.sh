@@ -660,23 +660,6 @@ check_required_directories() {
 # It defines the container options and runs the container.
 setup_container() {
     container_name="omnia_core"
-    # Print message for pulling the Omnia core docker image.
-    # Fail if image is not found. podman inspect can be used to check if image exists locally.
-    if podman inspect omnia_core:latest >/dev/null 2>&1; then
-        echo -e "${BLUE} Omnia core image already exists locally, skipping pull.${NC}"
-    else
-        echo -e "${BLUE} Omnia core image not found locally.${NC}"
-        exit 1
-    fi
-    # echo -e "${BLUE} Pulling the Omnia core image.${NC}"
-
-    # Pull the Omnia core docker image.
-    # if podman pull omnia_core:latest; then
-    #     echo -e "${GREEN} Omnia core image has been pulled.${NC}"
-    # else
-    #     echo -e "${RED} Failed to pull Omnia core image.${NC}"
-    # fi
-
     echo "==> Setting up $container_name container"
 
     # SELinux option handling
@@ -890,9 +873,26 @@ show_help() {
 }
 
 install_omnia_core() {
+    # Print message for pulling the Omnia core docker image.
+    # echo -e "${BLUE} Pulling the Omnia core image.${NC}"
+
+    # Pull the Omnia core docker image.
+    # if podman pull omnia_core:latest; then
+    #     echo -e "${GREEN} Omnia core image has been pulled.${NC}"
+    # else
+    #     echo -e "${RED} Failed to pull Omnia core image.${NC}"
+    # fi
+    # Fail if image is not found. podman inspect can be used to check if image exists locally.
+    if podman inspect omnia_core:latest >/dev/null 2>&1; then
+        echo -e "${BLUE} Omnia core image already exists locally, skipping pull.${NC}"
+    else
+        echo -e "${BLUE} Omnia core image not found locally.${NC}"
+        exit 1
+    fi
+
     # Check if any other containers with 'omnia' in their name are running
     other_containers=$(podman ps -a --format '{{.Names}}' | grep -E 'omnia' | grep -v 'omnia_core')
-
+   
     # If there are any, exit
     if [ -n "$other_containers" ]; then
         echo -e "${RED} Failed to intiatiate omnia_core container cleanup. There are other omnia container running.${NC}"
