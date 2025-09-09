@@ -17,7 +17,6 @@
 python_version: "python3.11"
 oim_host_port: "22"
 oim_host_group: "oim"
-ochami_host_group: "ochami"
 kubespray_ssh_port:
   "v2.26.0": "2226"
   "v2.27.0": "2227"

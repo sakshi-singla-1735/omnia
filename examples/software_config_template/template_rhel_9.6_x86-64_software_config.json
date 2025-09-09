@@ -3,7 +3,7 @@
     "cluster_os_version": "9.6",
     "repo_config": "always",
     "softwares": [
-        {"name": "cuda", "version": "12.8.0"},
+        {"name": "cuda", "version": "12.9.1"},
         {"name": "ofed", "version": "24.10-3.2.5.0"},
         {"name": "openldap"},
         {"name": "nfs"},
