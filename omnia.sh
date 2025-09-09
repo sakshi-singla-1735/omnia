@@ -196,7 +196,7 @@ cleanup_config(){
 
     # Remove the Omnia core configuration.
     echo -e "${BLUE} Removing Omnia core configuration.${NC}"
-    rm -rf $omnia_path/omnia/{hosts,input,log,pulp,provision,kubespray,pcs,shared_libraries,ssh_config,tmp,.data}
+    rm -rf $omnia_path/omnia/{hosts,input,log,pulp,provision,kubespray,pcs,ssh_config,tmp,.data}
 
     # Unmount the NFS shared path if the share option is NFS.
     if [ "$share_option" = "NFS" ] && [ "$nfs_type" = "external" ]; then
@@ -234,6 +234,14 @@ remove_container() {
     echo -e "${BLUE} Removing the Omnia core container.${NC}"
     if systemctl stop omnia_core.service; then
         echo -e "${GREEN} Omnia core container has been removed.${NC}"
+        # Remove the systemd generator symlinks.
+        echo -e "${GREEN} Cleaning up systemd generator symlinks.${NC}"
+        rm -f /run/systemd/generator/omnia_core.service
+        rm -f /run/systemd/generator/multi-user.target.wants/omnia_core.service
+        rm -f /run/systemd/generator/default.target.wants/omnia_core.service
+
+        echo -e "${GREEN} Cleaning up omnia_core.container.${NC}"
+        rm -f /etc/containers/systemd/omnia_core.container
 
     # Remove the omnia_core.service file.
         rm -f /etc/systemd/system/omnia_core.service
@@ -647,7 +655,8 @@ check_required_directories() {
 }
 
 # Sets up the Omnia core container.
-# This function pulls the Omnia core Docker image and runs the container.
+# This function pulls the Omnia core Podman image and runs the container.
+# Creates a Quadlet service for the container and also creates a metadata file.
 # It defines the container options and runs the container.
 setup_container() {
     container_name="omnia_core"
@@ -661,54 +670,91 @@ setup_container() {
     #     echo -e "${RED} Failed to pull Omnia core image.${NC}"
     # fi
 
-    echo "==> Setting up $container_name systemd service"
+    echo "==> Setting up $container_name container"
 
     # SELinux option handling
-    selinux_option=":z"
+    selinux_option=":Z"
     if [ "$share_option" = "NFS" ] && [ "$nfs_type" = "external" ]; then
         selinux_option=""
     fi
 
-    # --- Generate systemd service file ---
-    cat > /etc/systemd/system/${container_name}.service <<EOF
+    # --- Generate Quadlet container file ---
+    cat > /etc/containers/systemd/${container_name}.container <<EOF
 # ===============================================================
-# $container_name systemd Service (direct container launch)
+# $container_name Quadlet Service
 # Generated dynamically by omnia.sh
 # ===============================================================
 [Unit]
 Description=${container_name^} Container
-Requires=network-online.target
-After=network-online.target
+
+[Container]
+ContainerName=${container_name}
+HostName=${container_name}
+Image=${container_name}:latest
+Network=host
+
+# Capabilities
+AddCapability=CAP_AUDIT_WRITE
+
+# Volumes
+Volume=${omnia_path}/omnia:/opt/omnia${selinux_option}
+Volume=${omnia_path}/omnia/ssh_config/.ssh:/root/.ssh${selinux_option}
+Volume=${omnia_path}/omnia/log/core/container:/var/log${selinux_option}
+Volume=${omnia_path}/omnia/hosts:/etc/hosts${selinux_option}
+Volume=${omnia_path}/omnia/pulp/pulp_ha:/root/.config/pulp${selinux_option}
 
 [Service]
 Restart=always
-RestartSec=5
-
-ExecStart=/usr/bin/podman run --rm \\
-    --name $container_name \\
-    --hostname $container_name \\
-    --network host \\
-    --cap-add CAP_AUDIT_WRITE \\
-    -v $omnia_path/omnia:/opt/omnia${selinux_option} \\
-    -v $omnia_path/omnia/ssh_config/.ssh:/root/.ssh${selinux_option} \\
-    -v $omnia_path/omnia/log/core/container:/var/log${selinux_option} \\
-    -v $omnia_path/omnia/hosts:/etc/hosts${selinux_option} \\
-    -v $omnia_path/omnia/pulp/pulp_ha:/root/.config/pulp${selinux_option} \\
-    $container_name:latest
-
-ExecStop=/usr/bin/podman stop -t 5 $container_name
-ExecStopPost=/usr/bin/podman rm -f $container_name
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=multi-user.target default.target
+
 EOF
 
-    # --- Reload systemd and enable service ---
-    systemctl daemon-reload
-    systemctl enable --now ${container_name}.service
-    echo "==> ${container_name}.service deployed and started"
+    # Create the .data directory if it does not exist.
+    # This is where the oim_metadata.yml file is stored.
+    echo -e "${GREEN} Creating the .data directory if it does not exist.${NC}"
+    mkdir -p "$omnia_path/omnia/.data"
 
-    # Wait for the container to be running
+    oim_metadata_file="$omnia_path/omnia/.data/oim_metadata.yml"
+
+    if [ ! -f "$oim_metadata_file" ]; then
+        echo -e "${GREEN} Creating oim_metadata file${NC}"
+        {
+            echo "oim_crt: \"podman\""
+            echo "oim_shared_path: $omnia_path"
+            echo "omnia_version: $omnia_release"
+            echo "oim_hostname: $(hostname)"
+            echo "oim_node_name: $(hostname -s)"
+            echo "domain_name: $domain_name"
+            echo "omnia_core_hashed_passwd: $hashed_passwd"
+            echo "omnia_share_option: $share_option"
+        } >> "$oim_metadata_file"
+        if [ "$share_option" = "NFS" ]; then
+            {
+            echo "nfs_server_ip: $nfs_server_ip"
+            echo "nfs_server_share_path: $nfs_server_share_path"
+            echo "nfs_type: $nfs_type"
+        } >> "$oim_metadata_file"
+        fi
+    fi
+
+    # --- Remove old service if exists ---
+    if systemctl list-unit-files | grep -q "${container_name}.service"; then
+        systemctl stop ${container_name}.service
+        systemctl disable ${container_name}.service
+        rm -f /etc/systemd/system/${container_name}.service
+    fi
+
+    # --- Reload systemd so Quadlet generates the service ---
+    systemctl daemon-reexec
+    systemctl daemon-reload
+    systemctl start ${container_name}.service
+
+    # --- Start the container via Quadlet ---
+    echo "==> ${container_name} container deployed and starting via Quadlet"
+
+    # --- Wait for container to be running ---
     echo "Waiting for $container_name container to start..."
     for i in {1..30}; do
         if podman ps --format '{{.Names}}' | grep -qw "$container_name"; then
@@ -719,9 +765,9 @@ EOF
         fi
     done
 
-    # If container is still not running after timeout, exit with error
     if ! podman ps --format '{{.Names}}' | grep -qw "$container_name"; then
         echo -e "${RED}Error: $container_name container failed to start.${NC}"
+        rm -rf "$omnia_path/omnia/.data/oim_metadata.yml"
         exit 1
     fi
 }
@@ -758,38 +804,6 @@ post_setup_config() {
     cp -r /omnia/input/* /opt/omnia/input/project_default
     rm -rf /omnia/input
     rm -rf /omnia/omnia.sh"
-
-    # Copy shared libraries from /omnia to /opt/omnia/shard_libraries/ inside omnia_core container
-    echo -e "${BLUE} Copying shared libraries from container to shared_libraries folder.${NC}"
-    podman exec -u root omnia_core cp -r /omnia/shared_libraries/ /opt/omnia/
-
-    # Create the .data directory if it does not exist.
-    # This is where the oim_metadata.yml file is stored.
-    echo -e "${GREEN} Creating the .data directory if it does not exist.${NC}"
-    mkdir -p "$omnia_path/omnia/.data"
-
-    oim_metadata_file="$omnia_path/omnia/.data/oim_metadata.yml"
-
-    if [ ! -f "$oim_metadata_file" ]; then
-        echo -e "${GREEN} Creating oim_metadata file${NC}"
-        {
-            echo "oim_crt: \"podman\""
-            echo "oim_shared_path: $omnia_path"
-            echo "omnia_version: $omnia_release"
-            echo "oim_hostname: $(hostname)"
-            echo "oim_node_name: $(hostname -s)"
-            echo "domain_name: $domain_name"
-            echo "omnia_core_hashed_passwd: $hashed_passwd"
-            echo "omnia_share_option: $share_option"
-        } >> "$oim_metadata_file"
-        if [ "$share_option" = "NFS" ]; then
-            {
-            echo "nfs_server_ip: $nfs_server_ip"
-            echo "nfs_server_share_path: $nfs_server_share_path"
-            echo "nfs_type: $nfs_type"
-        } >> "$oim_metadata_file"
-        fi
-    fi
 
     init_ssh_config
 }
@@ -848,7 +862,7 @@ start_container_session() {
             It's important to note:
                 - Files placed in the shared directory should not be manually deleted.
                 - Use the playbook /omnia/utils/oim_cleanup.yml to safely remove the shared directory and Omnia containers (except the core container).
-                - If you need to delete the core container or redeploy the core container with new input configs, please rerun the omnia.sh script.
+                - If you need to delete the core container or redeploy the core container with new input configs, please rerun the omnia.sh script with --install option.
                 - Provide any file paths (ISO, mapping files, etc.) that are mentioned in input files in the /opt/omnia directory.
                 - The domain name that will be used for Omnia is $domain_name, if you wish to change the domain name please cleanup Omnia,
                   change the Omnia Infrastructure Manager's domain name and rerun omnia.sh.
@@ -862,9 +876,9 @@ start_container_session() {
 
 show_help() {
     echo "Usage: $0 [--install | --uninstall | --help]"
-    echo "  --install     Install and start the Omnia core container"
-    echo "  --uninstall   Uninstall the Omnia core container and clean up configuration"
-    echo "  --help        Show this help message"
+    echo "  -i, --install     Install and start the Omnia core container"
+    echo "  -u, --uninstall   Uninstall the Omnia core container and clean up configuration"
+    echo "  -h, --help        More information about usage"
 }
 
 install_omnia_core() {
