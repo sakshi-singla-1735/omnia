@@ -67,9 +67,17 @@
         msg: "{{ openchami_smd_status.stdout_lines }}"
         verbosity: 2
 
+    - name: Verify s3 bucket
+      ansible.builtin.command: s3cmd ls
+      changed_when: false
+      register: s3_bucket_output
+      failed_when: false
+
     - name: Set openchami_install_status
       ansible.builtin.set_fact:
         openchami_install_status: true
       when:
         - openchami_bss_status.rc == 0
         - openchami_smd_status.rc == 0
+        - s3_bucket_output.rc == 0
+        - '"s3://boot-images" in s3_bucket_output.stdout' 
