@@ -21,7 +21,7 @@
         {"name": "ucx", "version": "1.15.0"},
         {"name": "openmpi", "version": "4.1.6"},
         {"name": "racadm"},
-        {"name": "csi_driver_powerscale", "version":"v2.14.0"}        
+        {"name": "csi_driver_powerscale", "version":"v2.14.0"}
     ],
 
     "amdgpu": [
@@ -32,4 +32,5 @@
         {"name": "slurm_node"},
         {"name": "login_node"}
     ]
+
 }
