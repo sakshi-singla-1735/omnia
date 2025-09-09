@@ -1,0 +1,75 @@
+# Copyright 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+---
+
+- name: Initialize openchami_install_status
+  ansible.builtin.set_fact:
+    openchami_install_status: false
+
+- name: Generate access token
+  ansible.builtin.shell: sudo bash -lc 'gen_access_token'
+  register: access_token_result
+  changed_when: false
+  failed_when: false
+
+- name: Set ochami_env
+  ansible.builtin.set_fact:
+    ochami_env: "{{ { cluster_env_key: access_token_result.stdout } }}"
+  when: access_token_result.rc == 0
+
+- name: Verify ochami installation
+  environment: "{{ ochami_env }}"
+  when: access_token_result.rc == 0
+  block:
+    - name: Verify ochami dependencies
+      ansible.builtin.shell:
+        systemctl list-dependencies openchami.target
+      register: openchami_dependencies
+      changed_when: false
+
+    - name: Openchami dependencies output
+      ansible.builtin.debug:
+        msg: "{{ openchami_dependencies.stdout_lines }}"
+        verbosity: 2
+
+    - name: Verify ochami bss status
+      ansible.builtin.shell:
+        ochami bss service status
+      register: openchami_bss_status
+      changed_when: false
+      failed_when: false
+
+    - name: Openchami bss status output
+      ansible.builtin.debug:
+        msg: "{{ openchami_bss_status.stdout_lines }}"
+        verbosity: 2
+
+    - name: Verify ochami smd status
+      ansible.builtin.shell:
+        ochami smd service status
+      register: openchami_smd_status
+      changed_when: false
+      failed_when: false
+
+    - name: Openchami smd status output
+      ansible.builtin.debug:
+        msg: "{{ openchami_smd_status.stdout_lines }}"
+        verbosity: 2
+
+    - name: Set openchami_install_status
+      ansible.builtin.set_fact:
+        openchami_install_status: true
+      when:
+        - openchami_bss_status.rc == 0
+        - openchami_smd_status.rc == 0

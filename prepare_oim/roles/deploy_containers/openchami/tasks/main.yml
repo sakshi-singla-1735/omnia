@@ -15,3 +15,4 @@
 
 - name: Deploy openchami
   ansible.builtin.include_tasks: deploy_openchami.yml
+  when: not hostvars['oim']['openchami_install_status']
