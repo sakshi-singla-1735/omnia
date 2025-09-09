@@ -93,7 +93,7 @@
 #       tags: kubespray
 
 - name: Verify openchami install status
-  hosts: localhost
+  hosts: oim
   connection: local
   gather_facts: false
   tags: openchami
