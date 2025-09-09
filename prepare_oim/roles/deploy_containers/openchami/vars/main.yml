@@ -13,22 +13,24 @@
 # limitations under the License.
 ---
 
-# Usage: main.yml
+# Usage: deploy_openchami.yml
 openchami_git_repo: https://github.com/abhishek-sa1/deployment-recipes.git
 openchami_clone_path: /opt/omnia/openchami/deployment-recipes
 openchami_git_version: devel
+clone_retry: "5"
+clone_delay: "10"
 dir_permissions_755: 0755
 dir_permissions_644: 644
 openchami_log_dir: /opt/omnia/logs/openchami
 openchami_configs_log_path: "{{ openchami_log_dir }}/configs.log"
 openchami_inventory_template: "{{ role_path }}/templates/inventory.yaml.j2"
 openchami_inventory_file: "{{ openchami_clone_path }}/dell/podman-quadlets/inventory/01-ochami"
+openchami_config_vars_path: "/opt/omnia/openchami/configs_vars.yaml"
+openchami_config_vars_template: "{{ role_path }}/templates/configs.yaml.j2"
+job_retry: "60"
+job_delay: "30"
+
+#vars passed to openchami installation
 ochami_work_dir: "{{ oim_shared_path }}/omnia/openchami/workdir"
 data_oci_dir: "{{ oim_shared_path }}/omnia/openchami/data/oci"
 data_s3_dir: "{{ oim_shared_path }}/omnia/openchami/data/s3"
-clone_retry: "5"
-clone_delay: "10"
-job_retry: "60"
-job_delay: "30"
-openchami_config_vars_path: "/opt/omnia/openchami/configs_vars.yaml"
-openchami_config_vars_template: "{{ role_path }}/templates/configs.yaml.j2"
