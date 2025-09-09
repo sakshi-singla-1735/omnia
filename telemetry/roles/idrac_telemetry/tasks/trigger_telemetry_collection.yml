@@ -23,10 +23,9 @@
   block:
     - name: Restart telemetry-collector
       containers.podman.podman_container:
-        name: "{{ item }}"
+        name: "{{ idrac_telemetry_container }}"
         state: started
         restart: true
-      loop: "{{ telemetry_containers }}"
   rescue:
     - name: Telemetry container restart failed
       ansible.builtin.fail:
