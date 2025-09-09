@@ -1,0 +1,124 @@
+#  Copyright 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+---
+
+- name: Generating iDRAC telemetry pods names
+  ansible.builtin.set_fact:
+    idrac_telemetry_pods: >-
+      {{
+        range(1, (idrac_telemetry_replicas | int) + 1)
+        | map('regex_replace', '^', idrac_telemetry_k8s_name ~ '-')
+        | list
+      }}
+
+- name: Wait for each iDRAC telemetry pod to be ready
+  ansible.builtin.command: >
+    kubectl wait --for=condition=ready pod/{{ item }}
+    -n {{ telemetry_namespace }} --timeout={{ pod_wait_timeout }}
+  loop: "{{ idrac_telemetry_pods }}"
+  changed_when: false
+
+- name: Get service cluster node details
+  ansible.builtin.set_fact:
+    kube_cp_node: >-
+      {{ service_cluster_metadata | dict2items
+         | selectattr('value.role', 'search', '(^|,)service_kube_control_plane(,|$)')
+         | sort(attribute='key') | list }}
+    kube_compute_nodes: >-
+      {{ service_cluster_metadata | dict2items
+         | rejectattr('value.role', 'search', '(^|,)service_kube_control_plane(,|$)')
+         | list }}
+
+- name: Check if HA is enabled
+  ansible.builtin.set_fact:
+    ha_enabled: "{{ service_k8s_cluster_ha[0].enable_k8s_ha | default(false) }}"
+
+- name: Determine active control plane node
+  ansible.builtin.set_fact:
+    active_cp_node: >-
+      {{
+        (service_k8s_cluster_ha[0].active_node_service_tags[0] | trim)
+        if ha_enabled
+        else (kube_cp_node | map(attribute='key') | list | first | trim)
+      }}
+
+- name: Check if any CP node already has a pod assigned
+  ansible.builtin.set_fact:
+    assigned_kube_cp_node: >-
+      {{ kube_cp_node | map(attribute='value.idrac_podname') | select('defined') | list | length > 0 }}
+
+- name: Assign pod only if no CP node has a pod
+  ansible.builtin.set_fact:
+    unassigned_kube_cp_node: >-
+      {{
+        (kube_cp_node
+         | selectattr('key', 'equalto', active_cp_node)
+         | list)
+        if not assigned_kube_cp_node else []
+      }}
+
+- name: Identify unassigned service nodes and idrac-telemetry pods
+  ansible.builtin.set_fact:
+    unassigned_compute_nodes: >-
+      {{
+        (kube_compute_nodes
+         | rejectattr('value.idrac_podname', 'defined')
+         | list)
+      }}
+    assigned_pods: >-
+      {{
+        kube_compute_nodes
+        | map(attribute='value.idrac_podname')
+        | select('defined')
+        | list
+        | default([])
+      }}
+
+- name: Identify unassigned telemetry pods
+  ansible.builtin.set_fact:
+    unassigned_pods: >-
+      {{ idrac_telemetry_pods | reject('in', assigned_pods) | list }}
+
+- name: Assign idrac_telemetry pod to management layer
+  ansible.builtin.set_fact:
+    new_metadata_items: "{{ new_metadata_items | default([]) + [
+        { unassigned_kube_cp_node.0.key:
+            unassigned_kube_cp_node.0.value | combine({'idrac_podname': 'idrac-telemetry-0'})
+        }
+      ] }}"
+  when:
+    - unassigned_kube_cp_node | length > 0
+    - "'idrac-telemetry-0' not in assigned_pods"
+
+- name: Build new pod assignments for unassigned nodes
+  ansible.builtin.set_fact:
+    new_metadata_items: "{{ new_metadata_items | default([]) + [
+        {
+          item.0.key: item.0.value | combine({ 'idrac_podname': item.1 })
+        }
+      ] }}"
+  loop: "{{ unassigned_compute_nodes | zip(unassigned_pods) | list }}"
+
+- name: Append new pod details in service_cluster metadata
+  ansible.builtin.set_fact:
+    service_cluster_metadata: "{{ service_cluster_metadata | combine(new_metadata_items | default([]) | combine, recursive=True) }}"
+
+- name: Update service_cluster metadata file
+  ansible.builtin.copy:
+    content: "{{ {'service_cluster_metadata': service_cluster_metadata} | to_nice_yaml }}"
+    dest: "{{ service_cluster_metadata_path }}"
+    force: true
+    mode: "{{ metadata_perm }}"
+  delegate_to: localhost
+  connection: local

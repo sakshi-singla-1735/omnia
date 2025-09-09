@@ -22,7 +22,6 @@ exclude_paths:
   - utils/roles/oim_cleanup/vars/rocky.yml
   - scheduler/roles/k8s_start_services/files/k8s_dashboard_admin.yaml
   - scheduler/playbooks/k8s_add_node.yml
-  - scheduler/playbooks/k8s_install.yml
   - "*ubuntu*"
   - "*rocky*"
 

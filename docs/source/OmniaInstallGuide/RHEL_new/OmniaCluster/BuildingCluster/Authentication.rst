@@ -4,7 +4,7 @@ Centralized authentication on the cluster
 The security feature allows cluster admin users to set up FreeIPA or OpenLDAP in order to allow or deny access to the user(s).
 
 Configuring FreeIPA/OpenLDAP security
-______________________________________
+--------------------------------------
 
 **Prerequisites**
 
@@ -44,10 +44,10 @@ The wrapper playbook ``omnia.yml`` handles execution of the security or authenti
     cd security
     ansible-playbook security.yml -i inventory
 
-The provided inventory should contain ``auth_server`` and ``login`` [optional] groups. The inventory file is case-sensitive. Follow the format provided in the `sample files <../../../samplefiles.html#inventory-file>`_.
+The provided inventory should contain ``auth_server`` and ``login_node`` [optional] groups. The inventory file is case-sensitive. Follow the format provided in the `sample files <../../../samplefiles.html#inventory-file>`_.
 
     * Do not include the IP of the OIM or local host in the ``auth_server`` group of the inventory file.
-    * For `secure login node functionality <Authentication.html#configuring-login-node-security>`_, ensure to add the ``login`` group in the provided inventory file. To customize the security features on the login node, update the desired parameters in ``/opt/omnia/input/project_default/login_node_security_config.yml``.
+    * For `secure login node functionality <Authentication.html#configuring-login-node-security>`_, ensure to add the ``login_node`` group in the provided inventory file. To customize the security features on the login node, update the desired parameters in ``/opt/omnia/input/project_default/login_node_security_config.yml``.
     * If a subsequent run of ``security.yml`` fails, the ``/opt/omnia/input/project_default/security_config.yml`` file will be unencrypted.
 
 .. note:: Installation of OpenLDAP server or FreeIPA server on OIM is not supported.
@@ -139,7 +139,7 @@ ________________________________
 
 * Run ``local_repo.yml`` to create an offline repository of all utilities used to secure the login node. For more information, `click here. <../../CreateLocalRepo/index.html>`_
 
-* For secure login node functionality, ensure to add the ``login`` group in the provided inventory file.
+* For secure login node functionality, ensure to add the ``login_node`` group in the provided inventory file.
 
 Enter the following parameters in ``/opt/omnia/input/project_default/login_node_security_config.yml``.
 

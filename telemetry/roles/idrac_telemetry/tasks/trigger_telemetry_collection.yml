@@ -13,10 +13,21 @@
 # limitations under the License.
 ---
 
-# Initiate iDRAC collection
-- name: Initiate telemetry-collector
-  containers.podman.podman_container_exec:
-    name: "{{ idrac_telemetry_container }}"
-    command: "/bin/bash {{ idrac_telemetry_receiver_entry_script }}"
-    detach: true
-  when: hostvars['localhost']['idrac_telemetry_support']
+# Restart iDRAC telemetry container
+- name: Restart iDRAC telemetry container
+  when:
+    - hostvars['localhost']['idrac_telemetry_support']
+    - not hostvars['localhost']['federated_idrac_telemetry_collection']
+    - hostvars['localhost']['telemetry_idrac'] is defined
+    - hostvars['localhost']['telemetry_idrac'] | length > 0
+  block:
+    - name: Restart telemetry-collector
+      containers.podman.podman_container:
+        name: "{{ item }}"
+        state: started
+        restart: true
+      loop: "{{ telemetry_containers }}"
+  rescue:
+    - name: Telemetry container restart failed
+      ansible.builtin.fail:
+        msg: "{{ idrac_telemetry_restart_failure_msg.splitlines() | join(' ') }}"

@@ -36,28 +36,20 @@ Logs pertaining to actions taken during ``discovery_provision.yml``  can be view
 .. note::  As long as a node has been added to a cluster by Omnia, deployment events taking place on the node will be updated in ``/var/log/xcat/cluster.log``.
 
 
-Telemetry logs
----------------
-
-Logs pertaining to actions taken by Omnia or iDRAC telemetry can be viewed in ``/var/log/messages``. Each log entry is tagged "omnia_telemetry". Log entries typically follow this format. ::
-
-    <Date time> <Node name> omnia_telemetry[<Process ID>]: <name of file>:<name of method throwing error>: <Error message>
-
-
 Grafana Loki
 --------------
 
 After `telemetry.yml <../Telemetry/index.html>`_ is run, Grafana services are installed on the OIM.
 
-    i. Get the Grafana IP using ``kubectl get svc -n grafana``.
+    1. Get the Grafana IP using ``kubectl get svc -n grafana``.
 
-    ii. Login to the Grafana UI by connecting to the cluster IP of grafana service via port 5000. That is ``http://xx.xx.xx.xx:5000/login``.
+    2. Login to the Grafana UI by connecting to the cluster IP of grafana service via port 5000. That is ``http://xx.xx.xx.xx:5000/login``.
 
-    iii. In the Explore page, select **control-plane-loki**.
+    3. In the Explore page, select **oim-loki**.
 
     .. image:: ../images/Grafana_Loki.png
 
-    iv. The log browser allows users to filter logs by job, node, user, etc.
+    4. The log browser allows users to filter logs by job, node, user, etc.
         Example ::
 
             (job= "cluster deployment logs") |= "nodename"

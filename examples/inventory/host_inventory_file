@@ -7,7 +7,7 @@ node1
 node3
 node4
 
-[login]
+[login_node]
 node5
 
 #General Cluster Storage

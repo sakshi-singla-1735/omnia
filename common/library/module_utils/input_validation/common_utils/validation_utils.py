@@ -482,6 +482,22 @@ def key_value_exists(list_of_dicts, key, value) -> bool:
             return True
     return False
 
+def validate_ipv4(ip: str) -> bool:
+    """
+    Validates if the given IP is a valid IPv4 address.
+
+    Args:
+        ip (str): The given IP address to be validated
+
+    Returns:
+        bool: True if valid IPv4 address, False otherwise.
+    """
+    try:
+        ipaddress.IPv4Address(ip)
+        return True
+    except ipaddress.AddressValueError:
+        return False
+
 def validate_ipv4_range(ip_range) -> bool:
     """
     Validates if the given IP range is a valid IPv4 range.

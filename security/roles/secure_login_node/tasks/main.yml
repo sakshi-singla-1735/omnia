@@ -13,15 +13,15 @@
 #  limitations under the License.
 ---
 
-- name: Include login_common variables
-  ansible.builtin.include_vars: "{{ role_path }}/../login_common/vars/main.yml"
+- name: Include freeipa_common variables
+  ansible.builtin.include_vars: "{{ role_path }}/../freeipa_common/vars/main.yml"
 
 - name: Initialize freeipa_status
   ansible.builtin.set_fact:
     freeipa_client_status: false
 
 - name: Include pre-requisite file to fetch ipa client status
-  ansible.builtin.include_tasks: "{{ role_path }}/../login_node/tasks/check_prerequisites.yml"
+  ansible.builtin.include_tasks: "{{ role_path }}/../freeipa_client/tasks/check_prerequisites.yml"
   when:
     - os_leap not in ansible_distribution | lower
     - hostvars['127.0.0.1']['authentication_system'] == 'freeipa'

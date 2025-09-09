@@ -11,12 +11,13 @@
         {"name": "openldap"},
         {"name": "nfs"},
         {"name": "slurm"},
-        {"name": "k8s", "version": "1.31.4"},
+        {"name": "compute_k8s", "version": "1.31.4"},
         {"name": "service_k8s", "version": "1.31.4"},
         {"name": "utils"},
         {"name": "ucx", "version": "1.15.0"},
         {"name": "openmpi", "version": "4.1.6"},
-        {"name": "racadm"}
+        {"name": "racadm"},
+        {"name": "csi_driver_powerscale", "version":"v2.14.0"}        
     ],
 
     "amdgpu": [
@@ -25,7 +26,7 @@
     "slurm": [
         {"name": "slurm_control_node"},
         {"name": "slurm_node"},
-        {"name": "login"}
+        {"name": "login_node"}
     ]
 
 }

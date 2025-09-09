@@ -113,8 +113,6 @@ def main():
 
     input_file_dict = { fetch.file_name_from_path(file_path): file_path for file_path in input_files }
 
-    # module.exit_json(json_files_dict=json_files_dict, yml_files_dict=yml_files_dict, schema_files_dict=schema_files_dict)
-
     if not input_files:
         error_message = f"yml and json files not found in directory: {input_dir_path}"
         logger.error(error_message)

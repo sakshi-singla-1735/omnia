@@ -1,4 +1,4 @@
-# Copyright 2023 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Copyright 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -74,11 +74,11 @@
   ansible.builtin.set_fact:
     unreachable_login: "{{ unreachable_login + [item] }}"
   when:
-    - groups['login'] is defined
-    - groups['login'] | length >= 1
+    - groups['login_node'] is defined
+    - groups['login_node'] | length >= 1
     - item not in ansible_play_hosts
   run_once: true
-  with_items: "{{ groups['login'] }}"
+  with_items: "{{ groups['login_node'] }}"
 
 - name: Login node not reachable
   ansible.builtin.fail:

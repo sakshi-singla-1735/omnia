@@ -76,20 +76,32 @@
   ansible.builtin.include_tasks: "{{ role_path }}/../../../../common/tasks/common/validate_image_tars.yml"
   when: (enable_oim_ha or enable_service_ha or 'service_node' in roles_data)
 
-- name: Fetch hierarchical data
+- name: Fetch hierarchical data when service_node defined
   check_hierarchical_provision:
     groups_roles_info: "{{ groups_roles_info }}"
     service_node_ha_data: "{{ service_node_ha_data }}"
   register: hierarchical_output
-  when: '"management_layer" not in ansible_run_tags'
+  when:
+    - '"management_layer" not in ansible_run_tags'
+    - "'service_node' in roles_data"
 
-- name: Set fact for service_node role required and other facts
+- name: Set fact for booted service_nodes
   ansible.builtin.set_fact:
-    service_role_required: "{{ 'true' if 'service_node' in roles_groups_data else 'false' }}"
-    oim_ha_role_required: "{{ 'true' if 'oim_ha_node' in roles_groups_data else 'false' }}"
     booted_service_nodes_data: "{{ hierarchical_output.booted_service_nodes_data | default({}) }}"
     hierarchical_provision_status: "{{ hierarchical_output.hierarchical_provision_status | default(false) }}"
     groups_roles_info: "{{ hierarchical_output.groups_roles_info | default(groups_roles_info) }}"
+  when:
+    - "'service_node' in roles_data"
+
+- name: Set fact for hierarchical_provision_status when service_node not defined
+  ansible.builtin.set_fact:
+    hierarchical_provision_status: false
+  when: "'service_node' not in roles_data"
+
+- name: Set fact for service_node role required
+  ansible.builtin.set_fact:
+    service_role_required: "{{ 'true' if 'service_node' in roles_groups_data else 'false' }}"
+    oim_ha_role_required: "{{ 'true' if 'oim_ha_node' in roles_groups_data else 'false' }}"
 
 - name: Create and update service node metadata file
   ansible.builtin.copy:
@@ -97,6 +109,8 @@
     content: "{{ {'service_nodes_metadata': booted_service_nodes_data} | to_yaml }}"
     mode: "{{ metadata_perm }}"
     force: true
+  when:
+    - "'service_node' in roles_data"
 
 - name: Get the group(s) for OIM HA
   when:
