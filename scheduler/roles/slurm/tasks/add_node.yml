@@ -26,7 +26,6 @@
 
 - name: Include common tasks
   ansible.builtin.include_tasks: common.yml
-  when: '"slurm_node" in group_names'
 
 - name: Include compute installation tasks
   ansible.builtin.include_tasks: compute.yml

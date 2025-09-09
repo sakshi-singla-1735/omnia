@@ -120,6 +120,7 @@ def main():
 
     # Run L1 and L2 validation if user included a tag and extra var files.
     # Or user only had tags and no extra var files.
+    error_bucket = []
     for tag_name in tag_names:
         for name in input_file_inventory.get(tag_name, []):
             fname, _ = os.path.splitext(name)
@@ -155,9 +156,9 @@ def main():
                             })
 
             # Validate the logic of the input file (L2) if L1 is success
-            logic_status = False
+            logic_status = True
             if schema_status:
-                logic_status = validate.logic({
+                errors = validate.logic({
                             "input_file_path": input_file_path,
                             "module_utils_base": module_utils_base,
                             "omnia_base_dir": omnia_base_dir,
@@ -165,7 +166,11 @@ def main():
                             "logger": logger,
                             "module": module,
                         })
-
+                if errors:
+                    error_bucket = error_bucket + errors
+                    logic_status = False
+                else:
+                    logic_status = True
             # Append the validation status for the input file
             if (schema_status and logic_status):
                 validation_status["Passed"].append(input_file_path)
@@ -188,15 +193,17 @@ def main():
     status_bool = all(vstatus)
     status_str = "completed" if status_bool else "failed"
 
-    message = (f"Input validation {status_str} for: {project_name} input configuration(s)."
-               f"Tag(s) run: {tag_names}. "
-               f"Look at the logs for more details: filename={log_file_name}")
+    message = [f"Input validation {status_str} for: {project_name} input configuration(s).",
+               f"Tag(s) run: {tag_names}. ",
+               f"Look at the logs for more details: filename={log_file_name}"]
 
     module.exit_json(failed=not status_bool,
-        msg=message,
-        log_file_name=log_file_name,
-        passed_files=list(set(validation_status['Passed'])),
-        failed_files=list(set(validation_status['Failed']))
+        error_msg=message,
+        log_file=log_file_name,
+        errors=error_bucket,
+        valid_files=list(set(validation_status['Passed'])),
+        invalid_files=list(set(validation_status['Failed'])),
+        tags=tag_names
         )
 
 
