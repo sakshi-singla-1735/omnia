@@ -32,6 +32,10 @@ mandatory_credentials_msg: "Failed. Please provide valid username for mandatory 
 username_fail_msg: "Failed. Please provide valid username."
 
 omnia_credentials:
+  provision:
+    mandatory:
+      - { password: provision_password }
+      - { username: bmc_username, password: bmc_password }
   prepare_oim:
     optional:
       - { username: docker_username, password: docker_password }
