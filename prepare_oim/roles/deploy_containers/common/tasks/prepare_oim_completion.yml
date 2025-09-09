@@ -21,8 +21,9 @@
   with_items: "{{ omnia_service_path }}"
 
 - name: Start the omnia.target service
-  ansible.builtin.service:
+  ansible.builtin.systemd:
     name: omnia.target
+    daemon_reload: true
     state: started
     enabled: true
 
