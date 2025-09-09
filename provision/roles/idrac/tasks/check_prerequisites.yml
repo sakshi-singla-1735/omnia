@@ -22,6 +22,7 @@
     idrac_ip: "{{ inventory_hostname }}"
     idrac_user: "{{ bmc_username }}"
     idrac_password: "{{ bmc_password }}"
+    validate_certs: false
   register: lc_check_status
 
 - name: LC not available
@@ -35,4 +36,5 @@
     idrac_ip: "{{ inventory_hostname }}"
     idrac_user: "{{ bmc_username }}"
     idrac_password: "{{ bmc_password }}"
+    validate_certs: false
   register: idrac_info
