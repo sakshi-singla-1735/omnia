@@ -24,7 +24,7 @@
 
 - name: Verify the openchami clone status
   ansible.builtin.stat:
-    path: "{{ openchami_clone_path }}/deployment-recipes/dell/podman-quadlets"
+    path: "{{ openchami_clone_path }}/dell/podman-quadlets"
   register: clone_status
 
 - name: Clone the openchami repository
@@ -47,8 +47,8 @@
 - name: Deploy openchami containers
   ansible.builtin.shell: |
     set -o pipefail
-    ansible-playbook {{ openchami_clone_path }}/deployment-recipes/dell/podman-quadlets/configs.yaml \
-    -i {{ openchami_clone_path }}/deployment-recipes/dell/podman-quadlets/inventory -v \
+    ansible-playbook {{ openchami_clone_path }}/dell/podman-quadlets/configs.yaml \
+    -i {{ openchami_clone_path }}/dell/podman-quadlets/inventory -v \
     --extra-vars "@{{ openchami_config_vars_path }}" -v | \
     /usr/bin/tee {{ openchami_configs_log_path }}
   async: 3600  # Set async timeout (e.g., 1 hour)

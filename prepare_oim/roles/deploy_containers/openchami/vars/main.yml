@@ -15,7 +15,7 @@
 
 # Usage: main.yml
 openchami_git_repo: https://github.com/abhishek-sa1/deployment-recipes.git
-openchami_clone_path: /opt/omnia/openchami
+openchami_clone_path: /opt/omnia/openchami/deployment-recipes
 openchami_git_version: devel
 dir_permissions_755: 0755
 dir_permissions_644: 644
