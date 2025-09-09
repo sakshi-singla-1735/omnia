@@ -177,7 +177,7 @@
   connection: ssh
   tags: always
   tasks:
-    - name: Omnia service deployment
+    - name: Omnia service deployment # noqa:role-name[path]
       ansible.builtin.include_role:
         name: deploy_containers/common
         tasks_from: omnia_service.yml
