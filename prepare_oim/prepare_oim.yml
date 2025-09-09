@@ -94,7 +94,7 @@
 
 - name: Verify openchami install status
   hosts: oim
-  connection: local
+  connection: ssh
   gather_facts: false
   tags: openchami
   tasks:
