@@ -97,7 +97,7 @@
   connection: local
   gather_facts: false
   tags: openchami
-  roles:
+  tasks:
     - name: Verify openchami installation
       ansible.builtin.include_role:
         name: deploy_containers/openchami  # noqa:role-name[path]
