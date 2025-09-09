@@ -35,4 +35,4 @@
 
 - name: Prepare oim completion
   ansible.builtin.debug:
-    msg: "{{ prepare_oim_completion_msg }}"
+    msg: "{{ prepare_oim_completion_msg.splitlines() | join(' ') }}"
