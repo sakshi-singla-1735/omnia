@@ -96,6 +96,7 @@
   hosts: localhost
   connection: local
   gather_facts: false
+  tags: openchami
   roles:
     - name: Verify openchami installation
       ansible.builtin.include_role:
