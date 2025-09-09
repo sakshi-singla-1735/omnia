@@ -12,7 +12,6 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 ---
-
 - name: Inventory not provided
   ansible.builtin.fail:
     msg: "{{ empty_inventory_fail_msg }}"
@@ -49,3 +48,6 @@
     mode: "{{ host_mapping_inventory.mode }}"
   delegate_to: localhost
   connection: local
+
+- name: Refresh inventory
+  ansible.builtin.meta: refresh_inventory

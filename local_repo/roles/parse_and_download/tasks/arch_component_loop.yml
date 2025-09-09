@@ -13,14 +13,14 @@
 # limitations under the License.
 ---
 
-- name: Check JSON syntax of {{ json_file.path }}
-  ansible.builtin.command:
-    cmd: "jq . {{ json_file.path }}"
-  register: json_check
-  ignore_errors: true
-  changed_when: true
-
-- name: Display JSON errors of {{ json_file.path }}
-  ansible.builtin.fail:
-    msg: "{{ json_check.stderr_lines }}"
-  when: json_check.rc != 0
+- name: Process each component under {{ arch_item.key }}
+  ansible.builtin.include_tasks: execute_parallel_tasks.yml
+  no_log: true
+  loop: "{{ components }}"
+  loop_control:
+    loop_var: comp_item
+  vars:
+    item:
+      arch: "{{ arch_item.key }}"
+      key: "{{ comp_item.key }}"
+      value: "{{ comp_item.value }}"

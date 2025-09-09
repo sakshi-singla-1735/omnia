@@ -251,6 +251,11 @@
         "type": "image"
       },
       {
+        "package": "public.ecr.aws/xilinx_dcg/k8s-device-plugin",
+        "tag": "1.3.0",
+        "type": "image"
+      },
+      {
         "package": "nvcr.io/nvidia/k8s-device-plugin",
         "tag": "v0.14.4",
         "type": "image"
