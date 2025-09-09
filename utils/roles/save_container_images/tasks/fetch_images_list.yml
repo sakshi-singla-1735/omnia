@@ -36,13 +36,3 @@
           'docker.io/library/golang:' + golang_tag,
           'docker.io/prom/prometheus:' + prometheus_tag
         ] }}
-
-- name: Add telemetry to container image list if visualization_support is true
-  when: visualization_support | default(false)
-  ansible.builtin.set_fact:
-    base_container_images: >-
-      {{ base_container_images + [
-          'docker.io/grafana/grafana:' + grafana_image_tag,
-          'docker.io/grafana/loki:' + loki_image_tag,
-          'docker.io/grafana/promtail:' + promtail_image_tag
-        ] }}
