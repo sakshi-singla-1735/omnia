@@ -21,6 +21,8 @@ dir_permissions_755: 0755
 dir_permissions_644: 644
 openchami_log_dir: /opt/omnia/logs/openchami
 openchami_configs_log_path: "{{ openchami_log_dir }}/configs.log"
+openchami_inventory_template: "{{ role_path }}/templates/inventory.yaml.j2"
+openchami_inventory_file: "{{ openchami_clone_path }}/dell/podman-quadlets/inventory/01-ochami"
 ochami_work_dir: "{{ oim_shared_path }}/omnia/openchami/workdir"
 data_oci_dir: "{{ oim_shared_path }}/omnia/openchami/data/oci"
 data_s3_dir: "{{ oim_shared_path }}/omnia/openchami/data/s3"
