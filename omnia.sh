@@ -661,6 +661,13 @@ check_required_directories() {
 setup_container() {
     container_name="omnia_core"
     # Print message for pulling the Omnia core docker image.
+    # Fail if image is not found. podman inspect can be used to check if image exists locally.
+    if podman inspect omnia_core:latest >/dev/null 2>&1; then
+        echo -e "${BLUE} Omnia core image already exists locally, skipping pull.${NC}"
+    else
+        echo -e "${BLUE} Omnia core image not found locally.${NC}"
+        exit 1
+    fi
     # echo -e "${BLUE} Pulling the Omnia core image.${NC}"
 
     # Pull the Omnia core docker image.
@@ -862,11 +869,11 @@ start_container_session() {
             It's important to note:
                 - Files placed in the shared directory should not be manually deleted.
                 - Use the playbook /omnia/utils/oim_cleanup.yml to safely remove the shared directory and Omnia containers (except the core container).
-                - If you need to delete the core container, please run the omnia.sh script with --uninstall option. 
+                - If you need to delete the core container, please run the omnia.sh --uninstall script. 
                 - If you need to  redeploy the core container with new input configs, please rerun the omnia.sh script with --install option.
                 - Provide any file paths (ISO, mapping files, etc.) that are mentioned in input files in the /opt/omnia directory.
                 - The domain name that will be used for Omnia is $domain_name, if you wish to change the domain name please cleanup Omnia,
-                  change the Omnia Infrastructure Manager's domain name and rerun omnia.sh script with --install option.
+                  change the Omnia Infrastructure Manager's domain name and rerun omnia.sh.
 
     --------------------------------------------------------------------------------------------------------------------------------------------------
     ${NC}"
