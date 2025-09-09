@@ -90,6 +90,9 @@ squid_firewall_ports:
   - "{{ squid_proxy_port }}/tcp"
 
 # Usage: prepare_oim_completion.yml
+omnia_service_path:
+  - { src: "{{ role_path }}/templates/omnia.service.j2", dest: "/etc/systemd/system/omnia.target", mode: "0644" }
+
 telemetry_dir: "/opt/omnia/telemetry"
 dir_permissions_755: "0755"
 bmc_group_data_filename: "{{ telemetry_dir }}/bmc_group_data.csv"
