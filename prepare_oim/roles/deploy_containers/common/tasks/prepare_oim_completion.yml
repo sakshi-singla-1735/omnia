@@ -13,20 +13,6 @@
 #  limitations under the License.
 ---
 
-- name: Create omnia.target service
-  ansible.builtin.template:
-    src: "{{ item.src }}"
-    dest: "{{ item.dest }}"
-    mode: "{{ item.mode }}"
-  with_items: "{{ omnia_service_path }}"
-
-- name: Start the omnia.target service
-  ansible.builtin.systemd:
-    name: omnia.target
-    daemon_reload: true
-    state: started
-    enabled: true
-
 - name: Create directory if it doesn't exist
   ansible.builtin.file:
     path: "{{ telemetry_dir }}"

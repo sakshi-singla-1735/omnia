@@ -172,6 +172,16 @@
         tasks_from: reload_pulp_nginx.yml
       when: hostvars['localhost']['pulp_protocol_https']
 
+- name: Omnia service deployment
+  hosts: oim
+  connection: ssh
+  tags: always
+  tasks:
+    - name: Omnia service deployment
+      ansible.builtin.include_role:
+        name: deploy_containers/common
+        tasks_from: omnia_service.yml
+
 - name: Prepare oim completion
   hosts: localhost
   connection: local
