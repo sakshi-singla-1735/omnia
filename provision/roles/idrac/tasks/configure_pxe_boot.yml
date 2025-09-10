@@ -42,8 +42,8 @@
     - name: Configure boot order for PXE booting of 1 active_nic
       dellemc.openmanage.idrac_bios:
         idrac_ip: "{{ inventory_hostname }}"
-        idrac_user: "{{ bmc_username }}"
-        idrac_password: "{{ bmc_password }}"
+        idrac_user: "{{ hostvars['localhost']['bmc_username'] }}"
+        idrac_password: "{{ hostvars['localhost']['bmc_password'] }}"
         validate_certs: false
         attributes:
           SetBootOrderEn: NIC.PxeDevice.1-1,NIC.PxeDevice.2-1,NIC.PxeDevice.3-1,NIC.PxeDevice.4-1
@@ -57,8 +57,8 @@
     - name: Configure boot order for PXE booting of 2 active_nic
       dellemc.openmanage.idrac_bios:
         idrac_ip: "{{ inventory_hostname }}"
-        idrac_user: "{{ bmc_username }}"
-        idrac_password: "{{ bmc_password }}"
+        idrac_user: "{{ hostvars['localhost']['bmc_username'] }}"
+        idrac_password: "{{ hostvars['localhost']['bmc_password'] }}"
         validate_certs: false
         attributes:
           SetBootOrderEn: NIC.PxeDevice.1-1,NIC.PxeDevice.2-1,NIC.PxeDevice.3-1,NIC.PxeDevice.4-1
@@ -73,8 +73,8 @@
     - name: Configure boot order for PXE booting of 3 active_nic
       dellemc.openmanage.idrac_bios:
         idrac_ip: "{{ inventory_hostname }}"
-        idrac_user: "{{ bmc_username }}"
-        idrac_password: "{{ bmc_password }}"
+        idrac_user: "{{ hostvars['localhost']['bmc_username'] }}"
+        idrac_password: "{{ hostvars['localhost']['bmc_password'] }}"
         validate_certs: false
         attributes:
           SetBootOrderEn: NIC.PxeDevice.1-1,NIC.PxeDevice.2-1,NIC.PxeDevice.3-1,NIC.PxeDevice.4-1
@@ -90,8 +90,8 @@
     - name: Configure boot order for PXE booting of 4 active_nic
       dellemc.openmanage.idrac_bios:
         idrac_ip: "{{ inventory_hostname }}"
-        idrac_user: "{{ bmc_username }}"
-        idrac_password: "{{ bmc_password }}"
+        idrac_user: "{{ hostvars['localhost']['bmc_username'] }}"
+        idrac_password: "{{ hostvars['localhost']['bmc_password'] }}"
         validate_certs: false
         attributes:
           SetBootOrderEn: NIC.PxeDevice.1-1,NIC.PxeDevice.2-1,NIC.PxeDevice.3-1,NIC.PxeDevice.4-1
@@ -110,8 +110,8 @@
         - name: Retry configuring boot order for PXE booting
           dellemc.openmanage.idrac_bios:
             idrac_ip: "{{ inventory_hostname }}"
-            idrac_user: "{{ bmc_username }}"
-            idrac_password: "{{ bmc_password }}"
+            idrac_user: "{{ hostvars['localhost']['bmc_username'] }}"
+            idrac_password: "{{ hostvars['localhost']['bmc_password'] }}"
             validate_certs: false
             attributes:
               SetBootOrderEn: NIC.PxeDevice.1-1,NIC.PxeDevice.2-1,NIC.PxeDevice.3-1,NIC.PxeDevice.4-1

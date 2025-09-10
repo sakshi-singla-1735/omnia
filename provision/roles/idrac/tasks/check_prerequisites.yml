@@ -20,7 +20,7 @@
 - name: Show status of the Lifecycle Controller
   dellemc.openmanage.idrac_lifecycle_controller_status_info:
     idrac_ip: "{{ inventory_hostname }}"
-    idrac_user: "{{ bmc_username }}"
+    idrac_user: "{{ hostvars['localhost']['bmc_username'] }}"
     idrac_password: "{{ bmc_password }}"
     validate_certs: false
   register: lc_check_status
@@ -34,7 +34,7 @@
 - name: Get system inventory
   dellemc.openmanage.idrac_system_info:
     idrac_ip: "{{ inventory_hostname }}"
-    idrac_user: "{{ bmc_username }}"
+    idrac_user: "{{ hostvars['localhost']['bmc_username'] }}"
     idrac_password: "{{ bmc_password }}"
     validate_certs: false
   register: idrac_info
