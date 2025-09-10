@@ -63,7 +63,6 @@ def validate_input_logic(
         "telemetry_config.yml": common_validation.validate_telemetry_config,
         "security_config.yml": common_validation.validate_security_config,
         "passwordless_ssh_config.yml": common_validation.validate_usernames,
-        "k8s_access_config.yml": common_validation.validate_usernames,
         "storage_config.yml": common_validation.validate_storage_config,
         "roles_config.yml": roles_validation.validate_roles_config,
         "high_availability_config.yml":

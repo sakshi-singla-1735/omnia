@@ -294,7 +294,7 @@ DUPLICATE_PASSIVE_NODE_SERVICE_TAG = ("the service tag configured for a passive 
 def user_name_duplicate(duplicate_usernames):
     """Returns error message for duplicate usernames found in configuration files."""
     return (f'duplicate username detected {duplicate_usernames}. Check that usernames are unique '
-            f'in k8s_access_config.yml and passwordless_ssh_config.yml')
+            f'in passwordless_ssh_config.yml')
 
 # addtional_software
 ADDITIONAL_SOFTWARE_FAIL_MSG = "The additional_software is mandatory in additional_software.json"
