@@ -34,14 +34,6 @@
     - not hostvars['localhost']['federated_idrac_telemetry_collection']
     - hostvars['localhost']['idrac_telemetry_collection_type'] == "prometheus"
 
-- name: Add visualization-related ports on host firewalld
-  ansible.posix.firewalld:
-    port: "{{ item }}"
-    state: enabled
-    permanent: true
-  loop: "{{ visualization_firewall_ports }}"
-  when: hostvars['localhost']['visualization_support']
-
 - name: Reload firewalld to apply changes
   ansible.builtin.command: firewall-cmd --reload
   changed_when: true

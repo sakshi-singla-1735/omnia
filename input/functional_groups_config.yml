@@ -27,11 +27,11 @@
 #   grpN:                 - <Mandatory> "grpN" -  User defined name of the group. Range for N is 0-99
 #     cluster_name:       - <Conditional Mandatory> Name of the cluster to which the group belongs. This input is case-sensitive. This will remain empty for groups which are not associated with any kubernetes functional_groups.
 #     location_id:        - <Mandatory> SU-<n>.RACK-<n> Scalable unit and rack number range is 0-99. This input is case-sensitive. Please use uppercase letters only.
-#     parent:             - <Conditional Mandatory> list of service tag of associated active service node(s).
-#                         - This field will be empty for group of nodes which is associated with ‘login_node’, ‘compiler_node’, ‘service_node’,
-#                         - ‘auth_server’, ‘service_kube_control_plane’, 'service_etcd', ‘kube_control_plane’, ‘etcd’, 'slurm_control_node’.
-#                         - If ‘service’ functional_group is not defined, then value will be empty for worker and default functional_group.
-#     architecture        - <Mandatory> architecture of the nodes - x86 or ARM
+#     parent:             - <Conditional Mandatory> list of service tag of associated active service kube node(s).
+#                         - This field will be empty for group of nodes which is associated with ‘login_node’, ‘compiler_node’, ‘service_kube_node’,
+#                         - 'slurm_control_node’.
+#                         - If ‘service_kube_node’ functional_group is not defined, then value will be empty for worker and default functional_group.
+#     architecture        - <Mandatory> architecture of the nodes - x86_64 or aarch64
 #
 
 groups:
@@ -39,13 +39,19 @@ groups:
     location_id: SU-1.RACK-1
     cluster_name: ""
     parent: ""
-    architecture: "x86"
+    architecture: "x86_64"
 
   # grp1:
   #   location_id: SU-1.RACK-2
   #   cluster_name: ""
   #   parent: ""
-  #   architecture: "x86"
+  #   architecture: "x86_64"
+
+  # grp3:
+  #   location_id: SU-1.RACK-3
+  #   cluster_name: ""
+  #   parent: ""
+  #   architecture: "aarch64"
 
 #************************************************************************************************************************
 #  functional_groups

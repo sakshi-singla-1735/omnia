@@ -14,7 +14,7 @@
 ---
 
 - name: Pre-checks for service cluster k8s
-  when: hostvars['localhost']['kube_prometheus_support'] or hostvars['localhost']['federated_idrac_telemetry_collection']
+  when: hostvars['localhost']['federated_idrac_telemetry_collection']
   block:
     - name: Install python
       ansible.builtin.package:
