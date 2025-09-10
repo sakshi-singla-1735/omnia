@@ -47,7 +47,6 @@
         validate_certs: false
         attributes:
           SetBootOrderEn: NIC.PxeDevice.1-1,NIC.PxeDevice.2-1,NIC.PxeDevice.3-1,NIC.PxeDevice.4-1
-          UefiBootSeq: NIC.PxeDevice.1-1,NIC.PxeDevice.2-1,NIC.PxeDevice.3-1,NIC.PxeDevice.4-1
           PxeDev1Interface: "{{ active_nic[0] }}"
       register: deploy_os_pxe1
       until: not deploy_os_pxe1.failed
@@ -62,7 +61,6 @@
         validate_certs: false
         attributes:
           SetBootOrderEn: NIC.PxeDevice.1-1,NIC.PxeDevice.2-1,NIC.PxeDevice.3-1,NIC.PxeDevice.4-1
-          UefiBootSeq: NIC.PxeDevice.1-1,NIC.PxeDevice.2-1,NIC.PxeDevice.3-1,NIC.PxeDevice.4-1
           PxeDev1Interface: "{{ active_nic[0] }}"
           PxeDev2Interface: "{{ active_nic[1] }}"
       register: deploy_os_pxe2
@@ -78,7 +76,6 @@
         validate_certs: false
         attributes:
           SetBootOrderEn: NIC.PxeDevice.1-1,NIC.PxeDevice.2-1,NIC.PxeDevice.3-1,NIC.PxeDevice.4-1
-          UefiBootSeq: NIC.PxeDevice.1-1,NIC.PxeDevice.2-1,NIC.PxeDevice.3-1,NIC.PxeDevice.4-1
           PxeDev1Interface: "{{ active_nic[0] }}"
           PxeDev2Interface: "{{ active_nic[1] }}"
           PxeDev3Interface: "{{ active_nic[2] }}"
@@ -95,7 +92,6 @@
         validate_certs: false
         attributes:
           SetBootOrderEn: NIC.PxeDevice.1-1,NIC.PxeDevice.2-1,NIC.PxeDevice.3-1,NIC.PxeDevice.4-1
-          UefiBootSeq: NIC.PxeDevice.1-1,NIC.PxeDevice.2-1,NIC.PxeDevice.3-1,NIC.PxeDevice.4-1
           PxeDev1Interface: "{{ active_nic[0] }}"
           PxeDev2Interface: "{{ active_nic[1] }}"
           PxeDev3Interface: "{{ active_nic[2] }}"
@@ -115,7 +111,6 @@
             validate_certs: false
             attributes:
               SetBootOrderEn: NIC.PxeDevice.1-1,NIC.PxeDevice.2-1,NIC.PxeDevice.3-1,NIC.PxeDevice.4-1
-              UefiBootSeq: NIC.PxeDevice.1-1,NIC.PxeDevice.2-1,NIC.PxeDevice.3-1,NIC.PxeDevice.4-1
           register: deploy_os_pxe_retry
       rescue:
         - name: OS provisioning failed using PXE
