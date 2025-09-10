@@ -39,7 +39,7 @@ pulp_env_arg_list:
   - "PULP_CONTENT_WORKERS=10"
   - "PULP_GUNICORN_TIMEOUT=30"
   - "PULP_API_WORKERS_MAX_REQUESTS=1000"
-  - "PULP_API_WORKERS_MAX_REQUESTS_JITTER=50"  
+  - "PULP_API_WORKERS_MAX_REQUESTS_JITTER=50"
 pulp_deployed_msg: "The {{ pulp_container_name }} container has been successfully deployed."
 pulp_deployed_fail_msg:
   The deployment of the {{ pulp_container_name }} container has failed. To resolve this issue,

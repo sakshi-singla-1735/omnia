@@ -34,26 +34,6 @@
 
 - name: Deploy Pulp container and check deployment status
   block:
-    # - name: Deploy the Pulp container
-    #   containers.podman.podman_container:
-    #     name: "{{ pulp_container_name }}"
-    #     image: "{{ pulp_image }}"
-    #     state: present
-    #     restart_policy: "no"
-    #     hostname: "{{ pulp_container_name }}"
-    #     volumes: "{{ volumes_https }}"
-    #     privileged: true
-    #     device:
-    #       - "{{ device_name }}"
-    #     ports:
-    #       - "{{ pulp_port_https }}"
-    #     cmd_args: "{{ arg_list }}"
-
-    # - name: Start the Pulp container
-    #   containers.podman.podman_container:
-    #     name: "{{ pulp_container_name }}"
-    #     state: started
-
     - name: Create quadlet file
       ansible.builtin.template:
         src: "https_quadlet.j2"
@@ -64,7 +44,7 @@
     - name: Reload daemon if changes
       ansible.builtin.systemd_service:
         daemon_reload: true
-      when: quad_out.changed
+      when: quad_out.changed # noqa: no-handler
 
     - name: Make sure container unit is running
       ansible.builtin.systemd_service:
@@ -77,7 +57,7 @@
       ansible.builtin.systemd_service:
         state: restarted
         name: "{{ pulp_container_name }}"
-      when: quad_out.changed
+      when: quad_out.changed # noqa: no-handler
       no_log: true
 
     - name: Check if Pulp container is running after deployment
