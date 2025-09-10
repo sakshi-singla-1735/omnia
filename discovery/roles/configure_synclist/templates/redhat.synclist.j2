@@ -1,8 +1,0 @@
-{{ syncfiles_share_path }}/conf/pip.conf -> /etc/pip.conf
-{{ syncfiles_share_path }}/conf/dnf.conf -> /etc/dnf/dnf.conf
-{{ syncfiles_share_path }}/repos/* -> /etc/yum.repos.d/*
-
-{% if pulp_protocol == 'https' %}
-{{ syncfiles_share_path }}/certs/pulp_webserver.crt -> /etc/pki/ca-trust/source/anchors/
-{% endif %}
-

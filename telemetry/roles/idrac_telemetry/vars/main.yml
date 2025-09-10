@@ -64,14 +64,10 @@ service_cluster_idrac_telemetry_dir_path: "{{ omnia_nfs_share }}/service_cluster
 oim_idrac_telemetry_scripting_dir_path: "/opt/omnia/telemetry/idrac_telemetry/iDRAC-Telemetry-Scripting"
 
 # Usage: trigger_telemetry_collection.yml
-telemetry_containers:
-  - "idrac_telemetry_receiver"
-  - "prometheus_pump"
+idrac_telemetry_container: "idrac_telemetry_receiver"
 idrac_telemetry_receiver_entry_script: "/usr/local/bin/idrac_telemetry_receiver_init.sh"
 idrac_telemetry_restart_failure_msg: |
-  Failed to restart idrac_telemetry container idrac_telemetry_receiver or prometheus_pump.
-  Please check the logs using the command `podman logs idrac_telemetry_receiver or
-  podman logs prometheus_pump` and try again later.
+  Failed to restart idrac_telemetry_receiver container. Please check the logs using the command `podman logs idrac_telemetry_receiver` and try again later.
 
 # Usage: prometheus_config_reload.yml
 prometheus_reload:
