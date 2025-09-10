@@ -36,7 +36,7 @@
   containers.podman.podman_container:
     name: "{{ item }}"
     state: absent
-    force: true
+    force_delete: true
   loop: "{{ openchami_containers }}"
   failed_when: false
 
@@ -44,7 +44,6 @@
   containers.podman.podman_volume:
     name: "{{ item }}"
     state: absent
-    force: true
   loop: "{{ openchami_volumes }}"
   failed_when: false
 
