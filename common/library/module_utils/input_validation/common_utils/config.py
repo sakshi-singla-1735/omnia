@@ -28,7 +28,6 @@ INPUT_VALIDATOR_LOG_PATH = '/opt/omnia/log/core/playbooks/'
 
 # dict to hold the file names. If any file's name changes just change it here.
 files = {
-    "k8s_access_config": "k8s_access_config.yml",
     "local_repo_config": "local_repo_config.yml",
     "network_spec": "network_spec.yml",
     "omnia_config": "omnia_config.yml",
@@ -95,7 +94,6 @@ input_file_inventory = {
         files["security_config"],
         files["telemetry_config"],
         files["provision_config"],
-        files["k8s_access_config"],
         files["software_config"],
         files["storage_config"],
         files["roles_config"],
@@ -106,7 +104,7 @@ input_file_inventory = {
 
 expected_versions = {
     "amdgpu": "6.3.1",
-    "cuda": "12.8.0",
+    "cuda": "12.9.1",
     "ofed": "24.10-1.1.4.0",
     "beegfs": "7.4.5",
     "intel_benchmarks": "2024.1.0",

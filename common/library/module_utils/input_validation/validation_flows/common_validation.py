@@ -98,15 +98,6 @@ def validate_software_config(
                     )
                 )
 
-    iso_file_path = data.get("iso_file_path", "")
-    not_valid_iso_msg = validation_utils.verify_iso_file(
-        iso_file_path, cluster_os_type, cluster_os_version
-    )
-    if not_valid_iso_msg:
-        errors.append(
-            create_error_msg(
-                "iso_file_path", iso_file_path, not_valid_iso_msg))
-
     #software groups and subgroups l2 validation
     # Check for the additional software field
     if "additional_software" in data:
@@ -376,17 +367,11 @@ def validate_security_config(
     )
     software_list = get_software_names(software_config_json)
     authentication_type = ""
-    required = {"openldap","freeipa"}
+    required = {"openldap"}
 
-    matches = required.intersection(software_list)
-    if len(matches) == 2:
-        errors.append(
-                create_error_msg(authentication_type,
-                                 "software",
-                                 en_us_validation_msg.FREEIPA_AND_OPENLDAP_TRUE_FAIL_MSG)
-            )
-    elif matches:
-        authentication_type = next(iter(matches))
+    matches = [value for value in required if value in software_list]
+    if matches:
+        authentication_type = matches[0]
         logger.info(f"{authentication_type}: "
                     f"{en_us_validation_msg.AUTHENTICATION_SYSTEM_SUCCESS_MSG}")
     else:
@@ -400,10 +385,6 @@ def validate_security_config(
             "openldap_organizational_unit",
         ]
         validate_openldap_input_params(authentication_type, mandatory_fields, data, errors, logger)
-
-    elif authentication_type == "freeipa":
-        mandatory_fields = ["domain_name","realm_name"]
-        validate_freeapi_input_params(authentication_type, mandatory_fields, data, errors, logger)
 
     return errors
 
@@ -552,7 +533,7 @@ def validate_storage_config(
     return errors
 
 
-# for k8s_access_config.yml and passwordless_ssh_config.yml this is run
+# for  passwordless_ssh_config.yml this is run
 def validate_usernames(
     input_file_path, data, logger, module, omnia_base_dir, module_utils_base, project_name
 ):
@@ -573,16 +554,6 @@ def validate_usernames(
     """
     errors = []
 
-    k8s_access_config_file_path = create_file_path(
-        input_file_path, file_names["k8s_access_config"]
-    )
-    k8s_access_config_json = validation_utils.load_yaml_as_json(
-        k8s_access_config_file_path,
-        omnia_base_dir,
-        project_name,
-        logger,
-        module,
-    )
     passwordless_ssh_config_file_path = create_file_path(
         input_file_path, file_names["passwordless_ssh_config"]
     )
@@ -594,14 +565,12 @@ def validate_usernames(
         module,
     )
 
-    k8s_user_name = k8s_access_config_json["user_name"]
     pw_ssh_user_name = passwordless_ssh_config_json["user_name"]
 
-    k8s_user_name = k8s_user_name.split(",")
     pw_ssh_user_name = pw_ssh_user_name.split(",")
 
     # Combine all usernames into a single list
-    all_usernames = k8s_user_name + pw_ssh_user_name
+    all_usernames = pw_ssh_user_name
 
     # Create a dictionary to store the count of each username
     username_count = {}

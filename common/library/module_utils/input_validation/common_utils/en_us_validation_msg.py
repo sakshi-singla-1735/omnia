@@ -94,8 +94,6 @@ PXE_MAPPING_FILE_PATH_FAIL_MSG = ("File path is invalid. Please ensure the file 
                                  "not a directory.")
 PXE_MAPPING_FILE_EXT_FAIL_MSG = ("File path is invalid. Please ensure that the file ends with "
                                  ".csv extension")
-NTP_SUPPORT_EMPTY_MSG = "The ntp_support must have a boolean value set to either true or false."
-DISK_PARTITION_FAIL_MSG = "Duplicate mount points found in disk_partition configuration"
 CLUSTER_OS_FAIL_MSG = "Cluster OS must be 'rhel' for RHEL Omnia Infrastructure Manager"
 
 # local_repo.yml
@@ -193,11 +191,8 @@ OPENLDAP_ORGANIZATION_FAIL_MSG = ("openldap_organization is empty. "
 OPENLDAP_ORGANIZATIONAL_UNIT_FAIL_MSG = ("openldap_organizational_unit is empty. "
                                          "Please provide a openldap_organizational_unit value.")
 AUTHENTICATION_SYSTEM_FAIL_MSG = ("[WARNING] authentication_system variable in security_config.yml "
-                                 "should be either openldap or freeipa")
+                                 "should be openldap")
 AUTHENTICATION_SYSTEM_SUCCESS_MSG = "authentication_system variable successfully validated"
-FREEIPA_AND_OPENLDAP_TRUE_FAIL_MSG = ("Both freeipa and openldap "
-                                      "are present in software_config.json. "
-                                      "Please give only one of them in software_config.json")
 LDAP_CERT_PATH_FAIL_MSG = "Failed, LDAP certificate path doesn't exist."
 ALERT_EMAIL_WARNING_MSG = ("[WARNING] alert_email_address is empty. "
                            "Authentication failure alerts won't be configured.")
@@ -207,14 +202,7 @@ SMTP_SERVER_FAIL_MSG = ("Failed. smtp_server details are mandatory when "
                         "alert_email_address provide in login_node_security_config.yml.")
 
 # software_config.json
-ISO_FILE_PATH_FAIL_MSG = ("The provided ISO file path is invalid. "
-                         "Please ensure that the ISO file exists at the specified iso_file_path.")
-ISO_FILE_PATH_NOT_CONTAIN_ISO_MSG = "The provided ISO file path must have the .iso extension."
-def iso_file_path_invalid_os_msg(iso_file_path, provision_os, provision_os_version):
-    """Returns a formatted message indicating iso_file_path_not_contain_os_msg."""
-    return (f'Make sure iso_file_path: {iso_file_path} variable in software_config.json contains value mentioned '
-            f'in the variables cluster_os_type: {provision_os} and cluster_os_version: '
-            f'{provision_os_version} mentioned in software_config.json')
+
 def os_version_fail_msg(cluster_os_type, min_version, max_version):
     """Returns a formatted message indicating os_version_fail_msg."""
     if cluster_os_type == "ubuntu":
@@ -301,7 +289,7 @@ DUPLICATE_PASSIVE_NODE_SERVICE_TAG = ("the service tag configured for a passive 
 def user_name_duplicate(duplicate_usernames):
     """Returns error message for duplicate usernames found in configuration files."""
     return (f'duplicate username detected {duplicate_usernames}. Check that usernames are unique '
-            f'in k8s_access_config.yml and passwordless_ssh_config.yml')
+            f'in passwordless_ssh_config.yml')
 
 # addtional_software
 ADDITIONAL_SOFTWARE_FAIL_MSG = "The additional_software is mandatory in additional_software.json"

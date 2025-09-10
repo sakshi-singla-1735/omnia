@@ -13,20 +13,6 @@
 # limitations under the License.
 ---
 
-- name: Create container group
-  hosts: localhost
-  connection: local
-  roles:
-    - create_container_group
-
-- name: Validate containers are running
-  hosts: oim
-  connection: ssh
-  tasks:
-    - name: Validate kubespray container is running
-      ansible.builtin.include_role:
-        name: create_container_group
-        tasks_from: validate_kubespray_container.yml
-      when:
-        - omnia_kubespray_validation | default(false) | bool
-        - hostvars['localhost']['k8s_support']
+- name: Deploy openchami
+  ansible.builtin.include_tasks: deploy_openchami.yml
+  when: not hostvars['oim']['openchami_install_status']

@@ -1,31 +1,22 @@
 {
     "cluster_os_type": "rhel",
     "cluster_os_version": "9.6",
-    "iso_file_path": "",
     "repo_config": "always",
     "softwares": [
-        {"name": "amdgpu", "version": "6.3.1", "arch": ["x86_64"]},
-        {"name": "cuda", "version": "12.8.0", "arch": ["x86_64","aarch64"]},
+        {"name": "cuda", "version": "12.9.1", "arch": ["x86_64","aarch64"]},
         {"name": "ofed", "version": "24.10-3.2.5.0", "arch": ["x86_64"]},
-        {"name": "freeipa", "arch": ["x86_64"]},
         {"name": "openldap", "arch": ["x86_64"]},
         {"name": "nfs", "arch": ["x86_64","aarch64"]},
+        {"name": "compute_k8s", "version":"1.31.4", "arch": ["x86_64"]},
+        {"name": "service_k8s","version": "1.31.4", "arch": ["x86_64"]},
         {"name": "slurm", "arch": ["x86_64","aarch64"]},
-        {"name": "k8s", "version": "1.31.4", "arch": ["x86_64"]},
-        {"name": "service_k8s", "version": "1.31.4", "arch": ["x86_64"]},
-        {"name": "utils", "arch": ["x86_64"]},
         {"name": "ucx", "version": "1.15.0", "arch": ["x86_64"]},
-        {"name": "openmpi", "version": "4.1.6", "arch": ["x86_64"]},
-        {"name": "racadm", "arch": ["x86_64"]}
-    ],
-
-    "amdgpu": [
-        {"name": "rocm", "version": "6.3.1" }
+        {"name": "openmpi", "version": "4.1.6", "arch": ["x86_64"]}
     ],
     "slurm": [
         {"name": "slurm_control_node"},
         {"name": "slurm_node"},
-        {"name": "login"}
+        {"name": "login_node"}
     ]
 
 }
