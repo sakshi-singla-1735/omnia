@@ -62,17 +62,6 @@ def validate_provision_config(
     )
     errors.extend(software_errors)
 
-    # Validate disk partition duplicates
-    if "disk_partition" in data:
-        mount_points = [partition.get("mount_point") for partition in data["disk_partition"]]
-        unique_mount_points = set(mount_points)
-        if len(mount_points) != len(unique_mount_points):
-            errors.append(
-                create_error_msg(
-                    "disk_partition", input_file_path, en_us_validation_msg.DISK_PARTITION_FAIL_MSG
-                )
-            )
-
     # Validate language setting
     language = data.get("language", "")
     if not language:
@@ -113,16 +102,6 @@ def validate_provision_config(
             )
         )
 
-    # Validate NTP support
-    ntp_support = data["ntp_support"]
-    if ntp_support is None or ntp_support == "":
-        errors.append(
-            create_error_msg(
-                "ntp_support", ntp_support, en_us_validation_msg.NTP_SUPPORT_EMPTY_MSG
-            )
-        )
-
-    return errors
 
 
 def validate_network_spec(
