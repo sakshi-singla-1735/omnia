@@ -3,7 +3,7 @@
     "cluster": [
       { "package": "cuda",
         "type": "iso",
-        "url": "https://developer.download.nvidia.com/compute/cuda/12.8.0/local_installers/cuda-repo-rhel9-12-8-local-12.8.0_570.86.10-1.x86_64.rpm",
+        "url": "https://developer.download.nvidia.com/compute/cuda/12.9.1/local_installers/cuda-repo-rhel9-12-9-local-12.9.1_575.57.08-1.x86_64.rpm",
         "path": ""
       },
       { "package": "dkms",

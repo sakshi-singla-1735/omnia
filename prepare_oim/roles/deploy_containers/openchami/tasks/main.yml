@@ -1,4 +1,4 @@
-# Copyright 2025 Intel Corporation.
+# Copyright 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,11 +13,6 @@
 # limitations under the License.
 ---
 
-- name: Check if telemetry support is required
-  when: hostvars['127.0.0.1']['telemetry_entry_present']
-  block:
-    - name: Check if Gaudi Prometheus metric exporter need to be deployed
-      when: hostvars['127.0.0.1']['prometheus_gaudi_support']
-      block:
-        - name: Deploy Gaudi metric exporter
-          ansible.builtin.import_tasks: deploy_gaudi_metric_exporter.yml
+- name: Deploy openchami
+  ansible.builtin.include_tasks: deploy_openchami.yml
+  when: not hostvars['oim']['openchami_install_status']

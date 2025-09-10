@@ -232,8 +232,27 @@ remove_container() {
 
     # Remove the container.
     echo -e "${BLUE} Removing the Omnia core container.${NC}"
-    if podman rm -f omnia_core; then
+    if systemctl stop omnia_core.service; then
         echo -e "${GREEN} Omnia core container has been removed.${NC}"
+        # Remove the systemd generator symlinks.
+        echo -e "${GREEN} Cleaning up systemd generator symlinks.${NC}"
+        rm -f /run/systemd/generator/omnia_core.service
+        rm -f /run/systemd/generator/multi-user.target.wants/omnia_core.service
+        rm -f /run/systemd/generator/default.target.wants/omnia_core.service
+
+        echo -e "${GREEN} Cleaning up omnia_core.container.${NC}"
+        rm -f /etc/containers/systemd/omnia_core.container
+
+    # Remove the omnia_core.service file.
+        rm -f /etc/systemd/system/omnia_core.service
+        systemctl daemon-reload
+        systemctl reset-failed omnia_core.service
+    # check if service is removed
+        if systemctl status omnia_core.service >/dev/null 2>&1; then
+            echo -e "${RED} Failed to remove Omnia core service.${NC}"
+        else
+            echo -e "${GREEN} Omnia core service has been removed.${NC}"
+        fi    
     else
         echo -e "${RED} Failed to remove Omnia core container.${NC}"
     fi
@@ -295,7 +314,7 @@ init_container_config() {
 
             # Check if the Omnia shared path is absolute path and path exists.
             if [[ "$omnia_path" != /* ]] || [ ! -d "$omnia_path" ]; then
-                echo -e "${RED} Omnia shared path is not an absolute path or does not exist! Please re-run omnia_startup.sh with valid Omnia shared path${NC}"
+                echo -e "${RED} Omnia shared path is not an absolute path or does not exist! Please re-run omnia.sh --install with valid Omnia shared path${NC}"
                 exit 1
             fi
             ;;
@@ -377,7 +396,7 @@ init_container_config() {
 
             if is_local_ip "$nfs_server_ip"; then
                 echo -e "${RED} Error: NFS server $nfs_server_ip is a local IP.${NC}"
-                echo -e "${RED} Please provide an external NFS server IP or re-run omnia_startup.sh with valid options.${NC}"
+                echo -e "${RED} Please provide an external NFS server IP or re-run omnia.sh --install with valid options.${NC}"
                 exit 1
             fi
 
@@ -627,7 +646,7 @@ check_required_directories() {
         echo
         echo -e "${YELLOW}Instructions:${NC}"
         echo -e "${YELLOW}* Backup any existing files if required${NC}"
-        echo -e "${YELLOW}* Run ./omnia_startup.sh and choose:${NC}"
+        echo -e "${YELLOW}* Run ./omnia.sh --install and choose:${NC}"
         echo -e "${YELLOW}    Options:${NC}"
         echo -e "${YELLOW}      -> Reinstall the container${NC}"
         echo -e "${YELLOW}      -> Overwrite and create new configuration${NC}"
@@ -636,53 +655,111 @@ check_required_directories() {
 }
 
 # Sets up the Omnia core container.
-# This function pulls the Omnia core Docker image and runs the container.
+# This function pulls the Omnia core Podman image and runs the container.
+# Creates a Quadlet service for the container and also creates a metadata file.
 # It defines the container options and runs the container.
 setup_container() {
+    container_name="omnia_core"
+    echo "==> Setting up $container_name container"
 
-    # Print message for pulling the Omnia core docker image.
-    echo -e "${BLUE} Pulling the Omnia core image.${NC}"
-
-    # Pull the Omnia core docker image.
-    # if podman pull omnia_core:latest; then
-    #     echo -e "${GREEN} Omnia core image has been pulled.${NC}"
-    # else
-    #     echo -e "${RED} Failed to pull Omnia core image.${NC}"
-    # fi
-
-    # Run the Omnia core container.
-    echo -e "${GREEN} Running the Omnia core container.${NC}"
-
+    # SELinux option handling
     selinux_option=":z"
-
     if [ "$share_option" = "NFS" ] && [ "$nfs_type" = "external" ]; then
         selinux_option=""
     fi
 
-    # Define the container options.
-    OPTIONS="-d --restart=always"
-    OPTIONS+=" --hostname omnia_core"
-    OPTIONS+=" -v $omnia_path/omnia:/opt/omnia$selinux_option"
-    OPTIONS+=" -v $omnia_path/omnia/ssh_config/.ssh:/root/.ssh$selinux_option"
-    OPTIONS+=" -v $omnia_path/omnia/log/core/container:/var/log$selinux_option"
-    OPTIONS+=" -v $omnia_path/omnia/hosts:/etc/hosts$selinux_option"
-    OPTIONS+=" -v $omnia_path/omnia/pulp/pulp_ha:/root/.config/pulp$selinux_option"
-    OPTIONS+=" --net=host"
-    OPTIONS+=" --name omnia_core"
-    OPTIONS+=" --cap-add=CAP_AUDIT_WRITE"
+    # --- Generate Quadlet container file ---
+    cat > /etc/containers/systemd/${container_name}.container <<EOF
+# ===============================================================
+# $container_name Quadlet Service
+# Generated dynamically by omnia.sh
+# ===============================================================
+[Unit]
+Description=${container_name^} Container
 
-    # Run the container.
-    if podman run $OPTIONS omnia_core:latest; then
-        echo -e "${GREEN} Omnia core container has been started.${NC}"
-    else
-        echo -e "${RED} Failed to start Omnia core container.${NC}"
-        echo -e "${RED} Make sure the Omnia core image is present.${NC}"
-        exit 1
+[Container]
+ContainerName=${container_name}
+HostName=${container_name}
+Image=${container_name}:latest
+Network=host
+
+# Capabilities
+AddCapability=CAP_AUDIT_WRITE
+
+# Volumes
+Volume=${omnia_path}/omnia:/opt/omnia${selinux_option}
+Volume=${omnia_path}/omnia/ssh_config/.ssh:/root/.ssh${selinux_option}
+Volume=${omnia_path}/omnia/log/core/container:/var/log${selinux_option}
+Volume=${omnia_path}/omnia/hosts:/etc/hosts${selinux_option}
+Volume=${omnia_path}/omnia/pulp/pulp_ha:/root/.config/pulp${selinux_option}
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=multi-user.target default.target
+
+EOF
+
+    # Create the .data directory if it does not exist.
+    # This is where the oim_metadata.yml file is stored.
+    echo -e "${GREEN} Creating the .data directory if it does not exist.${NC}"
+    mkdir -p "$omnia_path/omnia/.data"
+
+    oim_metadata_file="$omnia_path/omnia/.data/oim_metadata.yml"
+
+    if [ ! -f "$oim_metadata_file" ]; then
+        echo -e "${GREEN} Creating oim_metadata file${NC}"
+        {
+            echo "oim_crt: \"podman\""
+            echo "oim_shared_path: $omnia_path"
+            echo "omnia_version: $omnia_release"
+            echo "oim_hostname: $(hostname)"
+            echo "oim_node_name: $(hostname -s)"
+            echo "domain_name: $domain_name"
+            echo "omnia_core_hashed_passwd: $hashed_passwd"
+            echo "omnia_share_option: $share_option"
+        } >> "$oim_metadata_file"
+        if [ "$share_option" = "NFS" ]; then
+            {
+            echo "nfs_server_ip: $nfs_server_ip"
+            echo "nfs_server_share_path: $nfs_server_share_path"
+            echo "nfs_type: $nfs_type"
+        } >> "$oim_metadata_file"
+        fi
     fi
 
-    # Waiting for container to be ready
-    sleep 2
+    # --- Remove old service if exists ---
+    if systemctl list-unit-files | grep -q "${container_name}.service"; then
+        systemctl stop ${container_name}.service
+        systemctl disable ${container_name}.service
+        rm -f /etc/systemd/system/${container_name}.service
+    fi
 
+    # --- Reload systemd so Quadlet generates the service ---
+    systemctl daemon-reexec
+    systemctl daemon-reload
+    systemctl start ${container_name}.service
+
+    # --- Start the container via Quadlet ---
+    echo "==> ${container_name} container deployed and starting via Quadlet"
+
+    # --- Wait for container to be running ---
+    echo "Waiting for $container_name container to start..."
+    for i in {1..30}; do
+        if podman ps --format '{{.Names}}' | grep -qw "$container_name"; then
+            echo "$container_name container is running."
+            break
+        else
+            sleep 1
+        fi
+    done
+
+    if ! podman ps --format '{{.Names}}' | grep -qw "$container_name"; then
+        echo -e "${RED}Error: $container_name container failed to start.${NC}"
+        rm -rf "$omnia_path/omnia/.data/oim_metadata.yml"
+        exit 1
+    fi
 }
 
 # This function sets up the configuration for the Omnia core.
@@ -716,35 +793,7 @@ post_setup_config() {
     mkdir -p /opt/omnia/input/project_default
     cp -r /omnia/input/* /opt/omnia/input/project_default
     rm -rf /omnia/input
-    rm -rf /omnia/omnia_startup.sh"
-
-    # Create the .data directory if it does not exist.
-    # This is where the oim_metadata.yml file is stored.
-    echo -e "${GREEN} Creating the .data directory if it does not exist.${NC}"
-    mkdir -p "$omnia_path/omnia/.data"
-
-    oim_metadata_file="$omnia_path/omnia/.data/oim_metadata.yml"
-
-    if [ ! -f "$oim_metadata_file" ]; then
-        echo -e "${GREEN} Creating oim_metadata file${NC}"
-        {
-            echo "oim_crt: \"podman\""
-            echo "oim_shared_path: $omnia_path"
-            echo "omnia_version: $omnia_release"
-            echo "oim_hostname: $(hostname)"
-            echo "oim_node_name: $(hostname -s)"
-            echo "domain_name: $domain_name"
-            echo "omnia_core_hashed_passwd: $hashed_passwd"
-            echo "omnia_share_option: $share_option"
-        } >> "$oim_metadata_file"
-        if [ "$share_option" = "NFS" ]; then
-            {
-            echo "nfs_server_ip: $nfs_server_ip"
-            echo "nfs_server_share_path: $nfs_server_share_path"
-            echo "nfs_type: $nfs_type"
-        } >> "$oim_metadata_file"
-        fi
-    fi
+    rm -rf /omnia/omnia.sh"
 
     init_ssh_config
 }
@@ -803,10 +852,11 @@ start_container_session() {
             It's important to note:
                 - Files placed in the shared directory should not be manually deleted.
                 - Use the playbook /omnia/utils/oim_cleanup.yml to safely remove the shared directory and Omnia containers (except the core container).
-                - If you need to delete the core container or redeploy the core container with new input configs, please rerun the omnia_startup.sh script.
+                - If you need to delete the core container, please run the omnia.sh script with --uninstall option.
+                - If you need to  redeploy the core container with new input configs, please rerun the omnia.sh script with --install option.
                 - Provide any file paths (ISO, mapping files, etc.) that are mentioned in input files in the /opt/omnia directory.
                 - The domain name that will be used for Omnia is $domain_name, if you wish to change the domain name please cleanup Omnia,
-                  change the Omnia Infrastructure Manager's domain name and rerun omnia_startup.sh.
+                  change the Omnia Infrastructure Manager's domain name and rerun omnia.sh script with --install option.
 
     --------------------------------------------------------------------------------------------------------------------------------------------------
     ${NC}"
@@ -815,14 +865,34 @@ start_container_session() {
     ssh omnia_core
 }
 
+show_help() {
+    echo "Usage: $0 [--install | --uninstall | --help]"
+    echo "  -i, --install     Install and start the Omnia core container"
+    echo "  -u, --uninstall   Uninstall the Omnia core container and clean up configuration"
+    echo "  -h, --help        More information about usage"
+}
 
-# Main function to check if omnia_core container is already running.
-# If yes, ask the user if they want to cleanup or reinstall.
-# If no, set it up.
-main() {
+install_omnia_core() {
+    # Print message for pulling the Omnia core docker image.
+    # echo -e "${BLUE} Pulling the Omnia core image.${NC}"
+
+    # Pull the Omnia core docker image.
+    # if podman pull omnia_core:latest; then
+    #     echo -e "${GREEN} Omnia core image has been pulled.${NC}"
+    # else
+    #     echo -e "${RED} Failed to pull Omnia core image.${NC}"
+    # fi
+    # Fail if image is not found. podman inspect can be used to check if image exists locally.
+    if podman inspect omnia_core:latest >/dev/null 2>&1; then
+        echo -e "${BLUE} Omnia core image already exists locally, skipping pull.${NC}"
+    else
+        echo -e "${BLUE} Omnia core image not found locally.${NC}"
+        exit 1
+    fi
+
     # Check if any other containers with 'omnia' in their name are running
     other_containers=$(podman ps -a --format '{{.Names}}' | grep -E 'omnia' | grep -v 'omnia_core')
-
+   
     # If there are any, exit
     if [ -n "$other_containers" ]; then
         echo -e "${RED} Failed to intiatiate omnia_core container cleanup. There are other omnia container running.${NC}"
@@ -846,7 +916,7 @@ main() {
             echo -e "${GREEN} Do you want to:${NC}"
             PS3="Select the option number: "
 
-            select opt in "Enter omnia_core container" "Reinstall the container" "Delete the container and configurations" "Exit"; do
+            select opt in "Enter omnia_core container" "Reinstall the container" "Exit"; do
                 case $opt in
                     "Enter omnia_core container")
                         choice=1
@@ -854,10 +924,6 @@ main() {
                         ;;
                     "Reinstall the container")
                         choice=2
-                        break
-                        ;;
-                    "Delete the container and configurations")
-                        choice=3
                         break
                         ;;
                     "Exit")
@@ -915,10 +981,6 @@ main() {
                     cleanup_omnia_core
                     setup_omnia_core
                 fi
-
-            # If the user wants to cleanup, call the cleanup function
-            elif [ "$choice" = "3" ]; then
-                cleanup_omnia_core
             fi
         else
             # If omnia_core container exists and is not running call the remove_container function
@@ -946,5 +1008,27 @@ main() {
     fi
 }
 
+# Main function to check if omnia_core container is already running.
+# If yes, ask the user if they want to enter the container or reinstall.
+# If no, set it up.
+main() {
+    case "$1" in
+        --install|-i)
+            install_omnia_core
+            ;;
+        --uninstall|-u)
+            cleanup_omnia_core
+            ;;
+        --help|-h|"")
+            show_help
+            ;;
+        *)
+            echo "Unknown option: $1"
+            show_help
+            exit 1
+            ;;
+    esac
+}
+
 # Call the main function
-main
+main "$1"
