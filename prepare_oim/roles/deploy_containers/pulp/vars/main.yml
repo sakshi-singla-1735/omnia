@@ -93,7 +93,7 @@ volumes_https:
   - "{{ pulp_shared_path }}/pulp_ha:/root/.config/pulp{{ selinux_option }}"
   - "{{ pulp_shared_path }}/nginx/nginx.conf:/etc/nginx/nginx.conf:ro{{ selinux_option | replace(':', ',') }}"
 pulp_container_port_https: "2225"
-pulp_port_https: "2225:443"
+pulp_port_https: "2225:2225"
 
 # Usage: nginx_conf.j2
 nginx_template_vars:

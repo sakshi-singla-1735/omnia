@@ -6,6 +6,7 @@ Exec=/init
 ContainerName={{ pulp_container_name }}
 AddDevice={{ device_name }}
 HostName={{ pulp_container_name }}
+PodmanArgs=--privileged
 # Volumes
 {% for vol in volumes_https %}
 Volume={{ vol }}
