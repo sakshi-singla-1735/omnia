@@ -21,7 +21,7 @@
   dellemc.openmanage.idrac_lifecycle_controller_status_info:
     idrac_ip: "{{ inventory_hostname }}"
     idrac_user: "{{ hostvars['localhost']['bmc_username'] }}"
-    idrac_password: "{{ bmc_password }}"
+    idrac_password: "{{ hostvars['localhost']['bmc_password'] }}"
     validate_certs: false
   register: lc_check_status
 
@@ -35,6 +35,6 @@
   dellemc.openmanage.idrac_system_info:
     idrac_ip: "{{ inventory_hostname }}"
     idrac_user: "{{ hostvars['localhost']['bmc_username'] }}"
-    idrac_password: "{{ bmc_password }}"
+    idrac_password: "{{ hostvars['localhost']['bmc_password'] }}"
     validate_certs: false
   register: idrac_info
