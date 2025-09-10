@@ -69,3 +69,8 @@
   until: job_result.finished
   retries: "{{ job_retry }}"  # Retry the task {{ job_retry }} times
   delay: "{{ job_delay }}"   # Wait {{ job_delay }} seconds between retries
+
+- name: Delete the openchami vars
+  ansible.builtin.file:
+    path: "{{ openchami_config_vars_path }}"
+    state: absent

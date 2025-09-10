@@ -32,7 +32,7 @@
   environment: "{{ ochami_env }}"
   when: access_token_result.rc == 0
   block:
-    - name: Verify ochami dependencies
+    - name: Verify ochami dependencies # noqa: command-instead-of-module
       ansible.builtin.command:
         systemctl list-dependencies openchami.target
       register: openchami_dependencies
