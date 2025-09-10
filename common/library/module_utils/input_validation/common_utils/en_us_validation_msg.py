@@ -94,8 +94,6 @@ PXE_MAPPING_FILE_PATH_FAIL_MSG = ("File path is invalid. Please ensure the file 
                                  "not a directory.")
 PXE_MAPPING_FILE_EXT_FAIL_MSG = ("File path is invalid. Please ensure that the file ends with "
                                  ".csv extension")
-NTP_SUPPORT_EMPTY_MSG = "The ntp_support must have a boolean value set to either true or false."
-DISK_PARTITION_FAIL_MSG = "Duplicate mount points found in disk_partition configuration"
 CLUSTER_OS_FAIL_MSG = "Cluster OS must be 'rhel' for RHEL Omnia Infrastructure Manager"
 
 # local_repo.yml
