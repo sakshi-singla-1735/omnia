@@ -191,11 +191,8 @@ OPENLDAP_ORGANIZATION_FAIL_MSG = ("openldap_organization is empty. "
 OPENLDAP_ORGANIZATIONAL_UNIT_FAIL_MSG = ("openldap_organizational_unit is empty. "
                                          "Please provide a openldap_organizational_unit value.")
 AUTHENTICATION_SYSTEM_FAIL_MSG = ("[WARNING] authentication_system variable in security_config.yml "
-                                 "should be either openldap or freeipa")
+                                 "should be openldap")
 AUTHENTICATION_SYSTEM_SUCCESS_MSG = "authentication_system variable successfully validated"
-FREEIPA_AND_OPENLDAP_TRUE_FAIL_MSG = ("Both freeipa and openldap "
-                                      "are present in software_config.json. "
-                                      "Please give only one of them in software_config.json")
 LDAP_CERT_PATH_FAIL_MSG = "Failed, LDAP certificate path doesn't exist."
 ALERT_EMAIL_WARNING_MSG = ("[WARNING] alert_email_address is empty. "
                            "Authentication failure alerts won't be configured.")
