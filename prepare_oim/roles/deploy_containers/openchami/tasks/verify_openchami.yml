@@ -18,14 +18,14 @@
     openchami_install_status: false
 
 - name: Generate access token
-  ansible.builtin.shell: sudo bash -lc 'gen_access_token'
+  ansible.builtin.command: sudo bash -lc 'gen_access_token'
   register: access_token_result
   changed_when: false
   failed_when: false
 
 - name: Set ochami_env
   ansible.builtin.set_fact:
-    ochami_env: "{{ { cluster_env_key: access_token_result.stdout } }}"
+    ochami_env: "{{ {cluster_env_key: access_token_result.stdout} }}"
   when: access_token_result.rc == 0
 
 - name: Verify ochami installation
@@ -33,7 +33,7 @@
   when: access_token_result.rc == 0
   block:
     - name: Verify ochami dependencies
-      ansible.builtin.shell:
+      ansible.builtin.command:
         systemctl list-dependencies openchami.target
       register: openchami_dependencies
       changed_when: false
@@ -44,7 +44,7 @@
         verbosity: 2
 
     - name: Verify ochami bss status
-      ansible.builtin.shell:
+      ansible.builtin.command:
         ochami bss service status
       register: openchami_bss_status
       changed_when: false
@@ -56,7 +56,7 @@
         verbosity: 2
 
     - name: Verify ochami smd status
-      ansible.builtin.shell:
+      ansible.builtin.command:
         ochami smd service status
       register: openchami_smd_status
       changed_when: false
@@ -80,4 +80,4 @@
         - openchami_bss_status.rc == 0
         - openchami_smd_status.rc == 0
         - s3_bucket_output.rc == 0
-        - '"s3://boot-images" in s3_bucket_output.stdout' 
+        - '"s3://boot-images" in s3_bucket_output.stdout'
