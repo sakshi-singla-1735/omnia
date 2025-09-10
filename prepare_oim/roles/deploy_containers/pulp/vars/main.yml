@@ -33,6 +33,13 @@ arg_list:
   - "-e PULP_GUNICORN_TIMEOUT=30"
   - "-e PULP_API_WORKERS_MAX_REQUESTS=1000"
   - "-e PULP_API_WORKERS_MAX_REQUESTS_JITTER=50"
+pulp_env_arg_list:
+  - "PULP_WORKERS=10"
+  - "PULP_API_WORKERS=10"
+  - "PULP_CONTENT_WORKERS=10"
+  - "PULP_GUNICORN_TIMEOUT=30"
+  - "PULP_API_WORKERS_MAX_REQUESTS=1000"
+  - "PULP_API_WORKERS_MAX_REQUESTS_JITTER=50"  
 pulp_deployed_msg: "The {{ pulp_container_name }} container has been successfully deployed."
 pulp_deployed_fail_msg:
   The deployment of the {{ pulp_container_name }} container has failed. To resolve this issue,
@@ -86,7 +93,7 @@ volumes_https:
   - "{{ pulp_shared_path }}/pulp_ha:/root/.config/pulp{{ selinux_option }}"
   - "{{ pulp_shared_path }}/nginx/nginx.conf:/etc/nginx/nginx.conf:ro{{ selinux_option | replace(':', ',') }}"
 pulp_container_port_https: "2225"
-pulp_port_https: "2225:2225"
+pulp_port_https: "2225:443"
 
 # Usage: nginx_conf.j2
 nginx_template_vars:
