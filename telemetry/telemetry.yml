@@ -36,8 +36,6 @@
   ansible.builtin.import_playbook: ../utils/create_container_group.yml
   vars:
     oim_group: true
-    omnia_provision_group: true
-    omnia_provision_validation: true
 
 - name: Validate telemetry input parameters
   hosts: localhost
@@ -48,28 +46,6 @@
       ansible.builtin.include_role:
         name: telemetry_validation
         tasks_from: validation_status_check.yml
-
-- name: Update Inventory with ansible_host information
-  ansible.builtin.import_playbook: ../utils/servicetag_host_mapping.yml
-  when: hostvars['localhost']['federated_idrac_telemetry_collection']
-
-- name: Validate containers are running
-  hosts: oim
-  connection: ssh
-  tasks:
-    - name: Validate telemetry container is running
-      ansible.builtin.include_role:
-        name: telemetry_validation
-        tasks_from: validate_telemetry_container.yml
-      loop:
-        - "activemq"
-        - "idrac_telemetry_receiver"
-        - "mysqldb"
-      loop_control:
-        loop_var: telemetry_container
-      when:
-        - hostvars['localhost']['idrac_telemetry_support']
-        - not hostvars['localhost']['federated_idrac_telemetry_collection']
 
 - name: Check if Service cluster has internet
   hosts: kube_control_plane, kube_node
@@ -120,55 +96,6 @@
       when:
         - idrac_telemetry_support
 
-# - name: Update Repositories/Registries on nodes
-#   ansible.builtin.import_playbook: ../utils/update_user_repo.yml
-#   when: not ( hostvars['127.0.0.1']['update_user_repo_executed'] | default(false) | bool )
-
-- name: Configure oim ha node for telemetry
-  hosts: oim_ha_node,active_oim_node
-  connection: ssh
-  gather_facts: false
-  roles:
-    - oim_ha_node_config
-
-# Commenting service node tasks. This will be enabled in future
-# - name: Render template for telemetry
-#   hosts: localhost
-#   connection: local
-#   gather_facts: false
-#   tasks:
-#     - name: Render template for telemetry
-#       ansible.builtin.include_role:
-#         name: service_node_config
-#         tasks_from: render_telemetry_template.yml
-
-# - name: Configure service nodes for telemetry
-#   hosts: sn_admin
-#   connection: ssh
-#   gather_facts: false
-#   roles:
-#     - service_node_config
-
-# - name: Deployment of telemetry container in service node
-#   hosts: sn_active
-#   connection: ssh
-#   gather_facts: false
-#   tasks:
-#     - name: Deployment of telemetry container in service node
-#       ansible.builtin.include_role:
-#         name: service_node_config
-#         tasks_from: pcs_container_deployment.yml
-
-# - name: Update prometheus configuration in OIM
-#   hosts: oim
-#   connection: ssh
-#   gather_facts: false
-#   tasks:
-#     - name: Render PCS template for telemetry
-#       ansible.builtin.include_role:
-#         name: service_node_config
-#         tasks_from: prometheus_config_update.yml
-
 - name: Deployment of telemetry pods in service cluster
   hosts: kube_control_plane[0]
   connection: ssh
@@ -194,42 +121,6 @@
     - name: Enable idrac telemetry
       ansible.builtin.include_role:
         name: idrac_telemetry
-
-- name: Initiate telemetry collection on OIM/Service Cluster
-  hosts: oim
-  gather_facts: false
-  tasks:
-    - name: Initiate telemetry collection
-      ansible.builtin.include_role:
-        name: idrac_telemetry
-        tasks_from: trigger_telemetry_collection.yml
-
-# - name: Enable idrac telemetry in SN
-#   hosts: sn_active
-#   connection: ssh
-#   gather_facts: false
-#   tasks:
-#     - name: Enable idrac telemetry
-#       ansible.builtin.include_role:
-#         name: idrac_telemetry
-
-#     - name: Initiate telemetry collection
-#       ansible.builtin.include_role:
-#         name: idrac_telemetry
-#         tasks_from: trigger_telemetry_collection.yml
-#       when:
-#         - telemetry_idrac is defined
-#         - (telemetry_idrac | length > 0)
-
-# - name: Reload prometheus config
-#   hosts: localhost
-#   connection: local
-#   gather_facts: false
-#   tasks:
-#     - name: Reload prometheus config
-#       ansible.builtin.include_role:
-#         name: idrac_telemetry
-#         tasks_from: prometheus_config_reload.yml
 
 - name: Telemetry report overview
   hosts: telemetry_group

@@ -543,7 +543,7 @@ def validate_storage_config(
     return errors
 
 
-# for k8s_access_config.yml and passwordless_ssh_config.yml this is run
+# for  passwordless_ssh_config.yml this is run
 def validate_usernames(
     input_file_path, data, logger, module, omnia_base_dir, module_utils_base, project_name
 ):
@@ -564,16 +564,6 @@ def validate_usernames(
     """
     errors = []
 
-    k8s_access_config_file_path = create_file_path(
-        input_file_path, file_names["k8s_access_config"]
-    )
-    k8s_access_config_json = validation_utils.load_yaml_as_json(
-        k8s_access_config_file_path,
-        omnia_base_dir,
-        project_name,
-        logger,
-        module,
-    )
     passwordless_ssh_config_file_path = create_file_path(
         input_file_path, file_names["passwordless_ssh_config"]
     )
@@ -585,14 +575,12 @@ def validate_usernames(
         module,
     )
 
-    k8s_user_name = k8s_access_config_json["user_name"]
     pw_ssh_user_name = passwordless_ssh_config_json["user_name"]
 
-    k8s_user_name = k8s_user_name.split(",")
     pw_ssh_user_name = pw_ssh_user_name.split(",")
 
     # Combine all usernames into a single list
-    all_usernames = k8s_user_name + pw_ssh_user_name
+    all_usernames = pw_ssh_user_name
 
     # Create a dictionary to store the count of each username
     username_count = {}
