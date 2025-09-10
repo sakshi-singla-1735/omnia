@@ -369,9 +369,9 @@ def validate_security_config(
     authentication_type = ""
     required = {"openldap"}
 
-    matches = required.intersection(software_list)
+    matches = [value for value in required if value in software_list]
     if matches:
-        authentication_type = next(iter(matches))
+        authentication_type = matches[0]
         logger.info(f"{authentication_type}: "
                     f"{en_us_validation_msg.AUTHENTICATION_SYSTEM_SUCCESS_MSG}")
     else:
