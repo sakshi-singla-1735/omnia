@@ -85,8 +85,8 @@
       tags: always
     - role: deploy_containers/pulp  # noqa:role-name[path]
       tags: pulp
-#     - role: deploy_containers/kubespray  # noqa:role-name[path]
-#       tags: kubespray
+    - role: deploy_containers/kubespray  # noqa:role-name[path]
+      tags: kubespray
 
 - name: Verify openchami install status
   hosts: oim
