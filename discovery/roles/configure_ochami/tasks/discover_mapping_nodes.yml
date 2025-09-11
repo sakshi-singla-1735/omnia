@@ -21,15 +21,11 @@
   vars:
     nodes: "{{ read_mapping_file.dict | dict2items }}"
 
-- name: Include nodes.yaml
-  ansible.builtin.include_vars: "{{ openchami_nodes_vars_path }}"
-
 - name: Deploy openchami containers
   ansible.builtin.shell: |
     set -o pipefail
     ansible-playbook {{ openchami_clone_path }}/dell/podman-quadlets/smd.yaml \
     -i {{ openchami_clone_path }}/dell/podman-quadlets/inventory -v \
-    -e "nodes={{ nodes }}" \
     --extra-vars "@{{ openchami_config_vars_path }}" -v | \
     /usr/bin/tee {{ openchami_smd_log_path }}
   async: 3600  # Set async timeout (e.g., 1 hour)
