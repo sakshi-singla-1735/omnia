@@ -117,7 +117,7 @@
         tasks_from: create_kubespray_metadata.yml
       loop: "{{ hostvars['localhost']['k8s_versions'] | default([]) }}"
       loop_control:
-         loop_var: k8s_version
+        loop_var: k8s_version
       when:
         - hostvars['localhost']['k8s_support'] | default(false)
         - (hostvars[groups['oim'][0]]['kubespray_container_status']['containers'] | default([])) | length > 0
