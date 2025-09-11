@@ -13,29 +13,21 @@
 # limitations under the License.
 ---
 
-- name: Load the openchami nodes.yaml
-  ansible.builtin.template:
-    src: "{{ openchami_nodes_template }}"
-    dest: "{{ openchami_nodes_vars_path }}"
-    mode: "{{ dir_permissions_644 }}"
-  vars:
-    nodes: "{{ read_mapping_file.dict | dict2items }}"
-
-- name: Discover nodes using mapping
+- name: Configure bss
   ansible.builtin.shell: |
     set -o pipefail
-    ansible-playbook {{ openchami_clone_path }}/dell/podman-quadlets/smd.yaml \
+    ansible-playbook {{ openchami_clone_path }}/dell/podman-quadlets/bss.yaml \
     -i {{ openchami_clone_path }}/dell/podman-quadlets/inventory -v \
     --extra-vars "@{{ openchami_config_vars_path }}" -v | \
-    /usr/bin/tee {{ openchami_smd_log_path }}
+    /usr/bin/tee {{ openchami_bss_log_path }}
   async: 3600  # Set async timeout (e.g., 1 hour)
   poll: 0  # Non-blocking (continue the playbook without waiting for completion)
-  register: openchami_smd  # Register the result to capture job ID
+  register: openchami_bss  # Register the result to capture job ID
   changed_when: true
 
-- name: Wait for the discover nodes to finish. Logs can be checked at {{ openchami_smd_log_path }}
+- name: Wait for the configuring bss to finish. Logs can be checked at {{ openchami_bss_log_path }}
   ansible.builtin.async_status:
-    jid: "{{ openchami_smd.ansible_job_id }}"  # Job ID from the previous task
+    jid: "{{ openchami_bss.ansible_job_id }}"  # Job ID from the previous task
   register: job_result
   until: job_result.finished
   retries: "{{ job_retry }}"  # Retry the task {{ job_retry }} times

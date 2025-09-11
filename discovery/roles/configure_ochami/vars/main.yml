@@ -20,6 +20,8 @@ openchami_nodes_vars_path: "{{ openchami_clone_path }}/dell/podman-quadlets/inve
 dir_permissions_644: "0644"
 openchami_log_dir: /opt/omnia/log/openchami
 openchami_smd_log_path: "{{ openchami_log_dir }}/smd.log"
+openchami_bss_log_path: "{{ openchami_log_dir }}/bss.log"
+openchami_cloud_init_log_path: "{{ openchami_log_dir }}/cloud_init.log"
 openchami_config_vars_path: "{{ openchami_share_path }}/configs_vars.yaml"
 job_retry: "60"
 job_delay: "30"
