@@ -924,6 +924,7 @@ install_omnia_core() {
         echo -e "${RED} Failed to intiatiate omnia_core container cleanup. There are other omnia container running.${NC}"
         echo -e "${GREEN} Execute oim_cleanup.yml first to cleanup all containers.${NC}"
         ssh omnia_core
+        exit 1
     fi
 
     # Check if the omnia_core container is already running
