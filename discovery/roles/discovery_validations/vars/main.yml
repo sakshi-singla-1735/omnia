@@ -41,5 +41,5 @@ file_mode: "0644"
 
 # Usage: validate_mapping_mechanism.yml
 invalid_mapping_fail_msg: |
-  "Failed. pxe_mapping_file_path {{ pxe_mapping_file_path }} provided in provision_config.yml does not exist.
+  "Failed. pxe_mapping_file_path should be a valid path in provision_config.yml.
   Please provide valid path and re-run the playbook."
