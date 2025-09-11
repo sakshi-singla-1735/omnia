@@ -31,27 +31,24 @@
 #                         - This field will be empty for group of nodes which is associated with ‘login_node’, ‘compiler_node’, ‘service_kube_node’,
 #                         - 'slurm_control_node’.
 #                         - If ‘service_kube_node’ functional_group is not defined, then value will be empty for worker and default functional_group.
-#     architecture        - <Mandatory> architecture of the nodes - x86_64 or aarch64
 #
+# NOTE: Each group should be mapped to only one functional_group. Multiple groups should not be mapped to the same functional_group.
 
 groups:
   grp0:
     location_id: SU-1.RACK-1
     cluster_name: ""
     parent: ""
-    architecture: "x86_64"
 
   # grp1:
   #   location_id: SU-1.RACK-2
   #   cluster_name: ""
   #   parent: ""
-  #   architecture: "x86_64"
 
-  # grp3:
+  # grp2:
   #   location_id: SU-1.RACK-3
   #   cluster_name: ""
   #   parent: ""
-  #   architecture: "aarch64"
 
 #************************************************************************************************************************
 #  functional_groups
@@ -66,17 +63,19 @@ groups:
 
 # This table lists the functional_groups and the layers they belong to in the cluster.
 
-# +---------------------------+-----------------+     +-----------------------+-------------+
-# | Functional Group Name     | Layer           |     | Functional Group Name  | Layer       |
-# +---------------------------+-----------------+     +-----------------------+-------------+
-# |  service_kube_node        | management      |     | default               | compute      |
-# |  login_node               | management      |     | kube_node             | compute      |
-# |  compiler_node            | management      |     | slurm_node            | compute      |
-# |  slurm_control_node       | management      |     |                       |              |
-# +---------------------------+-----------------+     +-----------------------+--------------+
+# +----------------------------------+-------------------+     +------------------------+--------------+
+# | Functional Group Name            | Layer             |     | Functional Group Name  | Layer        |
+# +----------------------------------+-------------------+     +------------------------+--------------+
+# |  service_kube_node_x86_64        | management        |     | default_x86_64         | compute      |
+# |  login_node_x86_64               | management        |     | default_aarch64        | compute      |
+# |  login_node_aarch64              | management        |     | slurm_node_x86_64      | compute      |
+# |  login_compiler_node_x86_64      | management        |     | slurm_node_aarch64     |              | 
+# |  login_compiler_node_aarch64     | management        |     |                        |              |
+# |  slurm_control_node_x86_64       | management        |     |                        |              |
+# +----------------------------------+-------------------+     +------------------------+--------------+
 
-# Default Role:
-# -------------
+# Default Role: (x86_64 / aarch64)
+# -------------------------------------------------------------------------------------------------
 #
 # This functional_group is provided to cover the default functional_group of the cluster.
 #
@@ -86,15 +85,22 @@ groups:
 #
 # This functional_group belongs to the compute layer.
 #
+# Note: Ensure that each group is only mapped to one functional_group. Having multiple groups mapped to the same functional_group can lead to unexpected behavior.
+
 functional_groups:
-  - name: "default"
+
+  - name: "default_x86_64"
     groups:
       - grp0
+      - grp1
 
+  # - name: "default_aarch64"
+  #   groups:
+  #     - grp2
 
 #
 # Service k8s Worker Role: Service Cluster Kubernetes worker node groups to add into service cluster k8s functional_group can be provided in this functional_group
-# ------------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------------------------
 #
 # This functional_group is used to configure the nodes for Kubernetes worker on service cluster.
 #
@@ -106,32 +112,13 @@ functional_groups:
 # The nodes in this functional_group can be used to run Kubernetes worker on service cluster.
 #
 # Service k8s Worker Role: Service Cluster Kubernetes worker node groups to add into service cluster k8s functional_group can be provided in this functional_group
-  # - name: "service_kube_node"
-  #   groups:
-  #     - grp1
-  #     - grp2
-
-
-#
-# K8s Worker Role: Kubernetes worker node groups to add into k8s functional_group can be provided in this functional_group
-# -----------------------------------------------------------------------------------------------
-#
-# This functional_group is used to configure the nodes for Kubernetes worker. It belongs to the compute layer.
-#
-# The nodes included in this functional_group will have the necessary tools and
-# configurations to run Kubernetes worker.
-#
-# The nodes in this functional_group can be used to run Kubernetes worker.
-#
-# K8s Worker Role: Kubernetes worker groups to add into k8s worker functional_group can be provided in this functional_group
-  # - name: "kube_node"
+  # - name: "service_kube_node_x86_64"
   #   groups:
   #     - grp3
-  #     - grp4
 
 #
 # Slurm Head Role: Slurm head node groups to add into Slurm functional_group can be provided in this functional_group
-# ------------------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------------------------
 #
 # This functional_group is used to configure the nodes for Slurm head. It belongs to the management layer.
 #
@@ -142,13 +129,12 @@ functional_groups:
 # This functional_group belongs to the compute layer.
 #
 # Slurm Head Role: Slurm head groups to add into slurm_control_node functional_group can be provided in this functional_group
-  # - name: "slurm_control_node"
+  # - name: "slurm_control_node_x86_64"
   #   groups:
   #     - grp5
-  #     - grp6
 
 #
-# Slurm Worker Role: Slurm worker node groups to add into Slurm functional_group can be provided in this functional_group
+# Slurm Worker Role: (x86_64 / aarch64)
 # ------------------------------------------------------------------------------------------------
 #
 # This functional_group is used to configure the nodes for Slurm worker. It belongs to the compute layer.
@@ -159,14 +145,17 @@ functional_groups:
 # The nodes in this functional_group can be used to run Slurm worker.
 #
 # Slurm Worker Role: Slurm worker groups to add into Slurm functional_group can be provided in this functional_group
-  # - name: "slurm_node"
+  # - name: "slurm_node_x86_64"
+  #   groups:
+  #     - grp6
+
+  # - name: "slurm_node_aarch64"
   #   groups:
   #     - grp7
-  #     - grp8
 
 #
-# Login Node Role:
-# -----------
+# Login Node Role: (x86_64 / aarch64)
+# ----------------------------------------------------------------------------------------------
 #
 # This functional_group is used to configure the nodes for user logins. It belongs to the management layer.
 #
@@ -175,14 +164,17 @@ functional_groups:
 #
 # The user is not allowed to change the name of this functional_group.
 #
-  # - name: "login_node"
+  # - name: "login_node_x86_64"
+  #   groups:
+  #     - grp8
+
+  # - name: "login_node_aarch64"
   #   groups:
   #     - grp9
 
-
 #
-# Compiler Node Role:
-# --------------
+# Login_Compiler Node Role: (x86_64 / aarch64)
+# ------------------------------------------------------------------------------------------------
 #
 # This functional_group is used to configure the nodes for compilation. It belongs to the management layer.
 #
@@ -192,6 +184,10 @@ functional_groups:
 # The nodes in this functional_group can be used to compile the code.
 #
 # Compiler Node Role: Compiler groups to add into compiler_node functional_group can be provided in this functional_group
-  # - name: "compiler_node"
+  # - name: "login_compiler_node_x86_64"
   #   groups:
-  #     - grp9
+  #     - grp10
+
+  # - name: "login_compiler_node_aarch64"
+  #   groups:
+  #     - grp11
