@@ -32,6 +32,10 @@
     state: absent
   loop: "{{ systemd_files }}"
 
+- name: Reload systemd daemon
+  ansible.builtin.systemd:
+    daemon_reload: true
+
 - name: Remove OpenChami containers
   containers.podman.podman_container:
     name: "{{ item }}"
