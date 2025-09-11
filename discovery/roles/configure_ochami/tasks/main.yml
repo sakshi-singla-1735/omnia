@@ -13,9 +13,5 @@
 # limitations under the License.
 ---
 
-clone_retry: "5"
-clone_delay: "10"
-dir_permissions_755: "0755"
-dir_permissions_644: "0644"
-job_retry: "60"
-job_delay: "30"
+- name: Discover mappping nodes
+  ansible.builtin.include_tasks: discover_mapping_nodes.yml

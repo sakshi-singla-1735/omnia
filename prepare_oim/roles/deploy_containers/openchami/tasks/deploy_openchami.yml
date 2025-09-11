@@ -55,6 +55,8 @@
     set -o pipefail
     ansible-playbook {{ openchami_clone_path }}/dell/podman-quadlets/configs.yaml \
     -i {{ openchami_clone_path }}/dell/podman-quadlets/inventory -v \
+    -e "minio_s3_username={{ minio_s3_username }}" \
+    -e "minio_s3_password={{ minio_s3_password }}" \
     --extra-vars "@{{ openchami_config_vars_path }}" -v | \
     /usr/bin/tee {{ openchami_configs_log_path }}
   async: 3600  # Set async timeout (e.g., 1 hour)
@@ -69,8 +71,3 @@
   until: job_result.finished
   retries: "{{ job_retry }}"  # Retry the task {{ job_retry }} times
   delay: "{{ job_delay }}"   # Wait {{ job_delay }} seconds between retries
-
-- name: Delete the openchami vars
-  ansible.builtin.file:
-    path: "{{ openchami_config_vars_path }}"
-    state: absent

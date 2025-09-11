@@ -1,0 +1,14 @@
+nodes:
+{% for item in nodes %}
+- name: "{{ item.HOSTNAME }}"
+  xname: "{{ item.SERVICE_TAG }}"
+  nid: "{{ loop.index }}"
+  group: "{{ item.GROUP_NAME }}"
+  bmc_mac: "{{ item.BMC_MAC }}"
+  bmc_ip: "{{ item.BMC_IP }}"
+  interfaces:
+  - mac_addr: "{{ item.ADMIN_MAC }}"
+    ip_addrs:
+    - name: management
+      ip_addr: "{{ item.ADMIN_IP }}"
+{% endfor %}

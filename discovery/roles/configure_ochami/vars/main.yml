@@ -13,9 +13,12 @@
 # limitations under the License.
 ---
 
-clone_retry: "5"
-clone_delay: "10"
-dir_permissions_755: "0755"
+openchami_nodes_template: "{{ role_path }}/templates/nodes.yaml.j2"
+openchami_share_path: /opt/omnia/openchami
+openchami_nodes_vars_path: "{{ openchami_share_path }}/workdir/nodes.yaml"
 dir_permissions_644: "0644"
+openchami_log_dir: /opt/omnia/log/openchami
+openchami_smd_log_path: "{{ openchami_log_dir }}/smd.log"
+openchami_config_vars_path: "{{ openchami_share_path }}/configs_vars.yaml"
 job_retry: "60"
 job_delay: "30"

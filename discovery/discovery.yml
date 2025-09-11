@@ -15,7 +15,6 @@
 
 - name: Set_fact for fetch omnia config credentials
   hosts: localhost
-  tags: management_layer
   connection: local
   tasks:
     - name: Set dynamic run tags including 'provision'
@@ -27,14 +26,18 @@
 - name: Invoke validate_config.yml to perform L1 and L2 validations
   when: not config_file_status | default(false) | bool
   ansible.builtin.import_playbook: ../input_validation/validate_config.yml
-  tags: management_layer
 
 - name: Invoke get_config_credentials.yml
   when: not config_file_status | default(false) | bool
   ansible.builtin.import_playbook: ../utils/credential_utility/get_config_credentials.yml
-  tags: management_layer
 
 - name: Include input project directory
   when: not project_dir_status | default(false) | bool
   ansible.builtin.import_playbook: ../utils/include_input_dir.yml
-  tags: management_layer
+
+- name: Validate discovery parameters
+  hosts: localhost
+  connection: local
+  roles:
+    - discovery_validations
+    - configure_ochami
