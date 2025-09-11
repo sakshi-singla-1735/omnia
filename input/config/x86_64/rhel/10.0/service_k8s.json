@@ -1,6 +1,56 @@
 {
-  "compute_k8s": {
-    "cluster": [
+    "service_k8s": {
+      "cluster": [
+      {
+        "package": "docker.io/library/golang",
+        "type": "image",
+        "tag": "1.24"
+      },
+      {
+        "package": "docker.io/rmohr/activemq",
+        "type": "image",
+        "tag": "5.15.9"
+      },
+      {
+        "package": "docker.io/prom/prometheus",
+        "type": "image",
+        "tag": "v3.4.1"
+      },
+      {
+        "package": "docker.io/library/mysql",
+        "type": "image",
+        "tag": "9.3.0"
+      },
+      {
+        "package": "docker.io/bitnami/kafka",
+        "type": "image",
+        "tag": "3.9.0"
+      },
+      {
+        "package": "python3.12",
+        "type": "rpm",
+        "repo_name": "appstream"
+      },
+      {
+        "package": "kubernetes==33.1.0",
+        "type": "pip_module"
+      },
+      {
+        "package": "PyMySQL==1.1.2",
+        "type": "pip_module"
+      },
+      {
+        "package": "cryptography==45.0.7",
+        "type": "pip_module"
+      },
+      {
+        "package": "omsdk==1.2.518",
+        "type": "pip_module"
+      },
+      {
+        "package": "cffi==1.17.1",
+        "type": "pip_module"
+      },
       {
         "package": "firewalld",
         "type": "rpm",
@@ -10,40 +60,6 @@
         "package": "python3-firewall",
         "type": "rpm",
         "repo_name": "baseos"
-      },
-      {
-        "package": "nvidia-container-toolkit",
-        "type": "rpm",
-        "repo_name": "nvidia-repo"
-      },
-      {
-        "package": "python3.11",
-        "type": "rpm",
-        "repo_name": "appstream"
-      },
-      {
-        "package": "rocm-device-plugin",
-        "type": "manifest",
-        "url": "https://raw.githubusercontent.com/ROCm/k8s-device-plugin/r1.16/k8s-ds-amdgpu-dp.yaml"
-      },
-      {
-        "package": "mpi-operator-v0.6.0",
-        "type": "manifest",
-        "url": "https://raw.githubusercontent.com/kubeflow/mpi-operator/v0.6.0/deploy/v2beta1/mpi-operator.yaml"
-      },
-      {
-        "package": "xilinx-device-plugin",
-        "type": "manifest",
-        "url": "https://raw.githubusercontent.com/Xilinx/FPGA_as_a_Service/2023.2/k8s-device-plugin/k8s-device-plugin.yml"
-      },
-      {
-        "package": "multus-daemonset",
-        "type": "manifest",
-        "url": "https://raw.githubusercontent.com/k8snetworkplumbingwg/multus-cni/master/deployments/multus-daemonset.yml"
-      },
-      {
-        "package": "kubernetes==32.0.1",
-        "type": "pip_module"
       },
       {
         "package": "prettytable==3.14.0",
@@ -56,22 +72,32 @@
         "version": "v0.8.0"
       },
       {
-        "package": "kubectl-v1.31.4",
+        "package": "ghcr.io/k8snetworkplumbingwg/whereabouts",
+        "tag": "latest",
+        "type": "image"
+      },
+      {
+        "package": "nfs-subdir-external-provisioner-4.0.18",
+        "type": "tarball",
+        "url": "https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner/releases/download/nfs-subdir-external-provisioner-4.0.18/nfs-subdir-external-provisioner-4.0.18.tgz"
+      },
+      {
+        "package": "kubectl-v1.31.4-amd64",
         "type": "tarball",
         "url": "https://dl.k8s.io/release/v1.31.4/bin/linux/amd64/kubectl"
       },
       {
-        "package": "kubelet-v1.31.4",
+        "package": "kubelet-v1.31.4-amd64",
         "type": "tarball",
         "url": "https://dl.k8s.io/release/v1.31.4/bin/linux/amd64/kubelet"
       },
       {
-        "package": "kubeadm-v1.31.4",
+        "package": "kubeadm-v1.31.4-amd64",
         "type": "tarball",
         "url": "https://dl.k8s.io/release/v1.31.4/bin/linux/amd64/kubeadm"
       },
       {
-        "package": "calicoctl-v3.29.3",
+        "package": "calicoctl-v3.29.3-amd64",
         "type": "tarball",
         "url": "https://github.com/projectcalico/calico/releases/download/v3.29.3/calicoctl-linux-amd64"
       },
@@ -81,17 +107,17 @@
         "url": "https://github.com/projectcalico/calico/archive/v3.29.3.tar.gz"
       },
       {
-        "package": "crictl-v1.31.1",
+        "package": "crictl-v1.31.1-amd64",
         "type": "tarball",
         "url": "https://github.com/kubernetes-sigs/cri-tools/releases/download/v1.31.1/crictl-v1.31.1-linux-amd64.tar.gz"
       },
       {
-        "package": "etcd-v3.5.16",
+        "package": "etcd-v3.5.16-amd64",
         "type": "tarball",
         "url": "https://github.com/etcd-io/etcd/releases/download/v3.5.16/etcd-v3.5.16-linux-amd64.tar.gz"
       },
       {
-        "package": "cni-v1.4.1",
+        "package": "cni-v1.4.1-amd64",
         "type": "tarball",
         "url": "https://github.com/containernetworking/plugins/releases/download/v1.4.1/cni-plugins-linux-amd64-v1.4.1.tgz"
       },
@@ -101,34 +127,19 @@
         "url": "https://github.com/opencontainers/runc/releases/download/v1.2.6/runc.amd64"
       },
       {
-        "package": "nerdctl-v2.0.5",
+        "package": "nerdctl-v2.0.5-amd64",
         "type": "tarball",
         "url": "https://github.com/containerd/nerdctl/releases/download/v2.0.5/nerdctl-2.0.5-linux-amd64.tar.gz"
       },
       {
-        "package": "containerd-v2.0.5",
+        "package": "containerd-v2.0.5-amd64",
         "type": "tarball",
         "url": "https://github.com/containerd/containerd/releases/download/v2.0.5/containerd-2.0.5-linux-amd64.tar.gz"
       },
       {
-        "package": "helm-v3.16.4",
+        "package": "helm-v3.16.4-amd64",
         "type": "tarball",
         "url": "https://get.helm.sh/helm-v3.16.4-linux-amd64.tar.gz"
-      },
-      {
-        "package": "nvidia-device-plugin",
-        "type": "tarball",
-        "url": "https://nvidia.github.io/k8s-device-plugin/stable/nvidia-device-plugin-0.14.4.tgz"
-      },
-      {
-        "package": "spark-operator-v1beta2-1.3.8-3.1.1",
-        "type": "tarball",
-        "url": "https://github.com/GoogleCloudPlatform/spark-on-k8s-operator/archive/refs/tags/v1beta2-1.3.8-3.1.1.tar.gz"
-      },
-      {
-        "package": "nfs-subdir-external-provisioner-4.0.18",
-        "type": "tarball",
-        "url": "https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner/releases/download/nfs-subdir-external-provisioner-4.0.18/nfs-subdir-external-provisioner-4.0.18.tgz"
       },
       {
         "package": "public.ecr.aws/xilinx_dcg/k8s-device-plugin",
@@ -241,55 +252,55 @@
         "type": "image"
       },
       {
-        "package": "docker.io/rocm/k8s-device-plugin",
-        "tag": "latest",
-        "type": "image"
-      },
-      {
-        "package": "docker.io/mpioperator/mpi-operator",
-        "tag": "0.6.0",
-        "type": "image"
-      },
-      {
-        "package": "public.ecr.aws/xilinx_dcg/k8s-device-plugin",
-        "tag": "1.3.0",
-        "type": "image"
-      },
-      {
-        "package": "nvcr.io/nvidia/k8s-device-plugin",
-        "tag": "v0.14.4",
-        "type": "image"
-      },
-      {
-        "package": "nvcr.io/nvidia/gpu-feature-discovery",
-        "tag": "v0.8.2",
-        "type": "image"
-      },
-      {
         "package": "registry.k8s.io/sig-storage/nfs-subdir-external-provisioner",
         "tag": "v4.0.2",
-        "type": "image"
-      },
-      {
-        "package": "ghcr.io/k8snetworkplumbingwg/multus-cni",
-        "tag": "v4.1.4-thick",
-        "type": "image"
-      },
-      {
-        "package": "ghcr.io/k8snetworkplumbingwg/multus-cni",
-        "tag": "snapshot",
-        "type": "image"
-      },
-      {
-        "package": "ghcr.io/k8snetworkplumbingwg/whereabouts",
-        "tag": "latest",
         "type": "image"
       },
       {
         "package": "ghcr.io/kube-vip/kube-vip",
         "tag": "v0.8.9",
         "type": "image"
+      },
+      {
+          "package": "kube-prometheus-stack-75.11.0",
+          "type": "tarball",
+          "url": "https://github.com/prometheus-community/helm-charts/releases/download/kube-prometheus-stack-75.11.0/kube-prometheus-stack-75.11.0.tgz"
+      },
+      {
+        "package": "quay.io/prometheus-operator/prometheus-operator",
+        "tag": "v0.83.0",
+        "type": "image"
+      },
+      {
+        "package": "registry.k8s.io/kube-state-metrics/kube-state-metrics",
+        "tag": "v2.16.0",
+        "type": "image"
+      },
+      {
+        "package": "quay.io/prometheus-operator/prometheus-config-reloader",
+        "tag": "v0.83.0",
+        "type": "image"
+      },
+      {
+        "package": "quay.io/prometheus/alertmanager",
+        "tag": "v0.28.1",
+        "type": "image"
+      },
+      {
+        "package": "quay.io/prometheus/node-exporter",
+        "tag": "v1.9.1",
+        "type": "image"
+      },
+      {
+        "package": "quay.io/prometheus/prometheus",
+        "tag": "v3.5.0",
+        "type": "image"
+      },
+      {
+        "package": "registry.k8s.io/ingress-nginx/kube-webhook-certgen",
+        "tag": "v1.6.0",
+        "type": "image"
       }
-    ]
-  }
+      ]
+   }
 }
