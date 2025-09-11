@@ -902,16 +902,28 @@ install_omnia_core() {
     if podman inspect omnia_core:latest >/dev/null 2>&1; then
         echo -e "${BLUE} Omnia core image already exists locally, skipping pull.${NC}"
     else
-        echo -e "${BLUE} Omnia core image not found locally.${NC}"
+        echo -e "${RED}ERROR: Omnia core image not found locally.${NC}"
+        echo ""
+        echo -e "${YELLOW}To resolve this, please follow these steps:${NC}"
+        echo -e "1. Clone the Omnia Artifactory repository:"
+        echo -e "   git clone https://github.com/dell/omnia-artifactory -b omnia-container"
+        echo -e "2. Navigate to the repository directory:"
+        echo -e "   cd omnia-artifactory"
+        echo -e "3. Build the core image locally:"
+        echo -e "   ./build_images.sh core omnia_branch=<version/branch_name>"
+        echo -e "4. After building the image, re-run this script:"
+        echo -e "   ./omnia.sh --install"
         exit 1
     fi
 
     # Check if any other containers with 'omnia' in their name are running
-    other_omnia=$(podman ps -a --format '{{.Names}}' | grep -E 'omnia' | grep -v 'omnia_core')
-    if [ -n "$other_omnia" ]; then
-        echo -e "${RED}Failed to intiatiate omnia_core container cleanup. There are other omnia container running: $other_omnia${NC}"
-        echo -e "${GREEN}Run oim_cleanup.yml first to remove them.${NC}"
-        exit 1
+    other_containers=$(podman ps -a --format '{{.Names}}' | grep -E 'omnia' | grep -v 'omnia_core')
+
+    # If there are any, exit
+    if [ -n "$other_containers" ]; then
+        echo -e "${RED} Failed to intiatiate omnia_core container cleanup. There are other omnia container running.${NC}"
+        echo -e "${GREEN} Execute oim_cleanup.yml first to cleanup all containers.${NC}"
+        ssh omnia_core
     fi
 
     # Check if the omnia_core container is already running
