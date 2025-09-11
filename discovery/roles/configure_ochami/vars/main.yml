@@ -15,6 +15,7 @@
 
 openchami_nodes_template: "{{ role_path }}/templates/nodes.yaml.j2"
 openchami_share_path: /opt/omnia/openchami
+openchami_clone_path: "{{ openchami_share_path }}/deployment-recipes"
 openchami_nodes_vars_path: "{{ openchami_share_path }}/workdir/nodes.yaml"
 dir_permissions_644: "0644"
 openchami_log_dir: /opt/omnia/log/openchami
