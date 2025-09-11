@@ -1,0 +1,8 @@
+[Unit]
+Description=Top-level target for Omnia Core and OpenCHAMI
+Requires=omnia_core.service openchami.target pulp.service
+After=network.target
+Wants=network-online.target
+ 
+[Install]
+WantedBy=multi-user.target
