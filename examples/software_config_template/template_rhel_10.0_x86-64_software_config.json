@@ -1,14 +1,13 @@
 {
     "cluster_os_type": "rhel",
-    "cluster_os_version": "9.6",
+    "cluster_os_version": "10.0",
     "repo_config": "always",
     "softwares": [
-        {"name": "cuda", "version": "12.9.1"},
+        {"name": "cuda", "version": "13.0.1"},
         {"name": "ofed", "version": "24.10-3.2.5.0"},
         {"name": "openldap"},
         {"name": "nfs"},
         {"name": "slurm"},
-        {"name": "compute_k8s", "version": "1.31.4"},
         {"name": "service_k8s", "version": "1.31.4"},
         {"name": "ucx", "version": "1.15.0"},
         {"name": "openmpi", "version": "4.1.6"},

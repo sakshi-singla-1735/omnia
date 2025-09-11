@@ -367,17 +367,11 @@ def validate_security_config(
     )
     software_list = get_software_names(software_config_json)
     authentication_type = ""
-    required = {"openldap","freeipa"}
+    required = {"openldap"}
 
-    matches = required.intersection(software_list)
-    if len(matches) == 2:
-        errors.append(
-                create_error_msg(authentication_type,
-                                 "software",
-                                 en_us_validation_msg.FREEIPA_AND_OPENLDAP_TRUE_FAIL_MSG)
-            )
-    elif matches:
-        authentication_type = next(iter(matches))
+    matches = [value for value in required if value in software_list]
+    if matches:
+        authentication_type = matches[0]
         logger.info(f"{authentication_type}: "
                     f"{en_us_validation_msg.AUTHENTICATION_SYSTEM_SUCCESS_MSG}")
     else:
@@ -391,10 +385,6 @@ def validate_security_config(
             "openldap_organizational_unit",
         ]
         validate_openldap_input_params(authentication_type, mandatory_fields, data, errors, logger)
-
-    elif authentication_type == "freeipa":
-        mandatory_fields = ["domain_name","realm_name"]
-        validate_freeapi_input_params(authentication_type, mandatory_fields, data, errors, logger)
 
     return errors
 
