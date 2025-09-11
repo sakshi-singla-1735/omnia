@@ -14,20 +14,6 @@
 ---
 
 
-- name: Remove s3 bucket efi if exists
-  ansible.builtin.shell: |
-    s3cmd del s3://efi
-  register: delete_efi
-  failed_when: false
-  changed_when: "'Deleted:' in delete_efi.stdout"
-
-- name: Remove s3 bucket boot-images if exists
-  ansible.builtin.shell: |
-    s3cmd del s3://boot-images
-  register: delete_boot
-  failed_when: false
-  changed_when: "'Deleted:' in delete_boot.stdout"
-
 - name: Remove OpenChami packages
   ansible.builtin.dnf:
     name: "{{ openchami_packages }}"
