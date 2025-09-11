@@ -14,7 +14,7 @@
 ---
 
 # Usage: main.yml
-python_version: "python3.11"
+python_version: "python3.12"
 oim_host_port: "22"
 oim_host_group: "oim"
 kubespray_ssh_port:

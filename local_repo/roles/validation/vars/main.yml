@@ -114,9 +114,9 @@ cluster_os_version_fail_msg_fedora: "Failed. The supported values of cluster_os_
 valid_cluster_os_type:
   - 'fedora'
 rhel_valid_os_versions:
-  - '9.6'
+  - '10.0'
 rocky_valid_os_versions:
-  - '9.4'
+  - '10.0'
 
 valid_repo_config:
   - 'always'

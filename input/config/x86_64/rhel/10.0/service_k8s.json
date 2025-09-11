@@ -27,20 +27,20 @@
         "tag": "3.9.0"
       },
       {
-        "package": "python3.11",
+        "package": "python3.12",
         "type": "rpm",
         "repo_name": "appstream"
       },
       {
-        "package": "kubernetes==32.0.1",
+        "package": "kubernetes==33.1.0",
         "type": "pip_module"
       },
       {
-        "package": "PyMySQL==1.1.1",
+        "package": "PyMySQL==1.1.2",
         "type": "pip_module"
       },
       {
-        "package": "cryptography==44.0.1",
+        "package": "cryptography==45.0.7",
         "type": "pip_module"
       },
       {
