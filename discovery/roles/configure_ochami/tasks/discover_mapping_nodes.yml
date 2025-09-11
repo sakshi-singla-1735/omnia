@@ -19,7 +19,7 @@
     dest: "{{ openchami_nodes_vars_path }}"
     mode: "{{ dir_permissions_644 }}"
   vars:
-    nodes: "{{ read_mapping_file.list }}"
+    nodes: "{{ read_mapping_file.dict | dict2items }}"
 
 - name: Include nodes.yaml
   ansible.builtin.include_vars: "{{ openchami_nodes_vars_path }}"
@@ -44,4 +44,3 @@
   until: job_result.finished
   retries: "{{ job_retry }}"  # Retry the task {{ job_retry }} times
   delay: "{{ job_delay }}"   # Wait {{ job_delay }} seconds between retries
-
