@@ -16,7 +16,7 @@
 openchami_nodes_template: "{{ role_path }}/templates/nodes.yaml.j2"
 openchami_share_path: /opt/omnia/openchami
 openchami_clone_path: "{{ openchami_share_path }}/deployment-recipes"
-openchami_nodes_vars_path: "{{ openchami_clone_path }}/dell/podaman-quadlets/inventory/group_vars/nodes.yaml"
+openchami_nodes_vars_path: "{{ openchami_clone_path }}/dell/podman-quadlets/inventory/group_vars/ochami"
 dir_permissions_644: "0644"
 openchami_log_dir: /opt/omnia/log/openchami
 openchami_smd_log_path: "{{ openchami_log_dir }}/smd.log"
