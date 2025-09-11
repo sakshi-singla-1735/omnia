@@ -1,0 +1,15 @@
+---
+- name: Include metadata vars
+  ansible.builtin.include_vars: "{{ omnia_metadata_file }}"
+  register: include_metadata
+  no_log: true
+
+- name: Include global variables from comman folder
+  ansible.builtin.include_vars: "{{ role_path }}/../../../common/vars/openchami_image_cmd.yml"
+  register: ochami_image_global_vars
+
+- name: Invoking build base image playbook
+  ansible.builtin.include_tasks: build_base_image.yml
+
+- name: Invoking build rhel compute image playbooks
+  ansible.builtin.include_tasks: build_compute_image.yml

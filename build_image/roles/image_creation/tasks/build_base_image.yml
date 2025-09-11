@@ -1,0 +1,60 @@
+---
+
+# - name: Ensure log directory exists
+#   ansible.builtin.file:
+#     path: "{{ openchami_log_dir }}"
+#     state: directory
+#     mode: "0755"
+
+# - name: Ensure base_image.log is absent if it was a directory
+#   ansible.builtin.file:
+#     path: "{{ openchami_base_image_log_path }}"
+#     state: absent
+
+- name: Create base_image.log as a file
+  ansible.builtin.file:
+    path: "{{ openchami_base_image_log_path }}"
+    state: touch
+    mode: "{{ dir_permissions_644 }}"
+
+- name: Load the openchami image vars
+  ansible.builtin.template:
+    src: "{{ openchami_base_image_vars_template }}"
+    dest: "{{ openchami_base_image_vars_path }}"
+    mode: "{{ dir_permissions_644 }}"
+
+- name: Invoking openchami playbook for rhel-base image build
+  ansible.builtin.shell: |
+    set -o pipefail
+    ansible-playbook {{ openchami_clone_path }}/deployment-recipes/dell/podman-quadlets/image.yaml \
+    -i {{ openchami_clone_path }}/deployment-recipes/dell/podman-quadlets/inventory/01-ochami -v \
+    --extra-vars "@{{ openchami_base_image_vars_path }}" \
+    --tags base_image -v | \
+    /usr/bin/tee {{ openchami_base_image_log_path }}
+  async: 3600  # Set async timeout (e.g., 1 hour)
+  poll: 0  # Non-blocking (continue the playbook without waiting for completion)
+  register: base_image_build
+
+- name: Wait for rhel-base image OpenCHAMI jobs to finish
+  async_status:
+    jid: "{{ base_image_build.ansible_job_id }}"
+  register: job_result
+  until: job_result.finished
+  retries: "{{ job_retry }}"
+  delay: "{{ job_delay }}"
+
+# - name: Wait for rhel-base image OpenCHAMI jobs to finish
+#   async_status:
+#     jid: "{{ base_image_build.ansible_job_id }}"
+#   register: job_result
+#   until: job_result.finished
+#   retries: 120
+#   delay: 30
+#   rescue:
+#     - name: Handle failure
+#       debug:
+#         msg: "Error waiting for OpenCHAMI job to finish: {{ job_result }}"
+#       failed_when: true
+#     - name: Log error
+#       ansible.builtin.shell: |
+#         echo "Error waiting for OpenCHAMI job to finish: {{ job_result }}" >> {{ openchami_base_image_log_path }}
