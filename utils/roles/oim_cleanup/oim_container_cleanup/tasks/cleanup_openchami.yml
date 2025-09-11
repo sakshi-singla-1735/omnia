@@ -13,6 +13,14 @@
 # limitations under the License.
 ---
 
+
+- name: Remove s3 bucket efi if exists
+  ansible.builtin.shell: |
+    s3cmd del s3://efi
+  register: delete_efi
+  failed_when: false
+  changed_when: "'Deleted:' in delete_efi.stdout"
+  
 - name: Remove OpenChami packages
   ansible.builtin.dnf:
     name: "{{ openchami_packages }}"
@@ -83,18 +91,19 @@
     immediate: true
   loop: "{{ podman_interfaces }}"
 
-- name: Remove s3 buckets
+- name: Remove s3 bucket boot-images if exists
   ansible.builtin.shell: |
-    s3cmd del s3://efi || true
-    s3cmd del s3://boot-images || true
+    s3cmd del s3://boot-images
+  register: delete_boot
   failed_when: false
+  changed_when: "'Deleted:' in delete_boot.stdout"
 
 - name: Remove regctl config and binary
   ansible.builtin.file:
     path: "{{ item }}"
     state: absent
   loop: "{{ regctl_files }}"
-  
+
 - name: Remove OpenChami config directories
   ansible.builtin.file:
     path: "{{ item }}"
