@@ -886,7 +886,17 @@ install_omnia_core() {
     if podman inspect omnia_core:latest >/dev/null 2>&1; then
         echo -e "${BLUE} Omnia core image already exists locally, skipping pull.${NC}"
     else
-        echo -e "${BLUE} Omnia core image not found locally.${NC}"
+        echo -e "${RED}ERROR: Omnia core image not found locally.${NC}"
+        echo ""
+        echo -e "${YELLOW}To resolve this, please follow these steps:${NC}"
+        echo -e "1. Clone the Omnia Artifactory repository:"
+        echo -e "   git clone https://github.com/dell/omnia-artifactory -b omnia-container"
+        echo -e "2. Navigate to the repository directory:"
+        echo -e "   cd omnia-artifactory"
+        echo -e "3. Build the core image locally:"
+        echo -e "   ./build_images.sh core omnia_branch=<version/branch_name>"
+        echo -e "4. After building the image, re-run this script:"
+        echo -e "   ./omnia.sh --install"
         exit 1
     fi
 
