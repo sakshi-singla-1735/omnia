@@ -15,3 +15,9 @@
 
 - name: Discover mappping nodes
   ansible.builtin.include_tasks: discover_mapping_nodes.yml
+
+- name: Configure bss
+  ansible.builtin.include_tasks: configure_bss.yml
+
+- name: Configure cloud_init
+  ansible.builtin.include_tasks: configure_cloud_init.yml
