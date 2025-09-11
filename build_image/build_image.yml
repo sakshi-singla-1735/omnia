@@ -25,4 +25,3 @@
   gather_facts: false
   roles:
     - image_creation
-  
