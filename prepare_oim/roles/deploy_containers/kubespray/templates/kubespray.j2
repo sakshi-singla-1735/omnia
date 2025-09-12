@@ -13,11 +13,6 @@ AddCapability=AUDIT_WRITE
 Volume={{ vol }}
 {% endfor %}
 
-# Environment Variables
-{% for env_var in kubespray_env_vars | default([]) %}
-Environment={{ env_var }}
-{% endfor %}
-
 PodmanArgs=--restart no
 
 [Install]
