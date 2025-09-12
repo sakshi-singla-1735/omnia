@@ -40,7 +40,7 @@
   ansible.builtin.shell: |
     set -o pipefail
     ansible-playbook {{ openchami_clone_path }}/dell/podman-quadlets/image.yaml \
-    -i {{ openchami_clone_path }}/deployment-recipes/dell/podman-quadlets/inventory/01-ochami -v \
+    -i {{ openchami_clone_path }}/dell/podman-quadlets/inventory -v \
     --extra-vars "@{{ openchami_base_image_vars_path }}" \
     --tags base_image -v | \
     /usr/bin/tee {{ openchami_base_image_log_path }}
