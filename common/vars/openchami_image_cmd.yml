@@ -1,19 +1,19 @@
 rhel_base_image_name: "rhel-base"
 
 base_image_commands:
-  - "dracut --add 'dmsquash-live livenet network-manager' --install '/usr/lib/systemd/systemd-sysroot-fstab-check' --kver $(basename /lib/modules/*) -N -f --logfile /tmp/dracut.log 2>/dev/null"
+  - "dracut --add 'dmsquash-live livenet network-manager' --install '/usr/lib/systemd/systemd-sysroot-fstab-check' --kver $(basename /lib/modules/*) -N -f --logfile /tmp/dracut.log 2>/dev/null"   # noqa: yaml[line-length]
   - "echo DRACUT LOG:; cat /tmp/dracut.log"
 
 default_compute_commands:
   - "useradd -mG wheel -p '$6$VHdSKZNm$O3iFYmRiaFQCemQJjhfrpqqV7DdHBi5YpY6Aq06JSQpABPw.3d8PQ8bNY9NuZSmDv7IL/TsrhRJ6btkgKaonT.' testuser"
 
 login_node_compute_commands:
- - "useradd -mG wheel -p '$6$VHdSKZNm$O3iFYmRiaFQCemQJjhfrpqqV7DdHBi5YpY6Aq06JSQpABPw.3d8PQ8bNY9NuZSmDv7IL/TsrhRJ6btkgKaonT.' testuser"
- - "groupadd -r slurm"
- - "useradd -r -g slurm -d /var/lib/slurm -s /sbin/nologin slurm"
- - "mkdir -p /var/log/slurm /var/run/slurm /var/spool/slurmd /etc/slurm /var/lib/slurm"
- - "chown -R slurm:slurm /var/log/slurm /var/run/slurm /var/spool/slurmd /etc/slurm /var/lib/slurm"
- - "chmod 755 /var/log/slurm /var/run/slurm /var/spool/slurmd /etc/slurm /var/lib/slurm"
+  - "useradd -mG wheel -p '$6$VHdSKZNm$O3iFYmRiaFQCemQJjhfrpqqV7DdHBi5YpY6Aq06JSQpABPw.3d8PQ8bNY9NuZSmDv7IL/TsrhRJ6btkgKaonT.' testuser"
+  - "groupadd -r slurm"
+  - "useradd -r -g slurm -d /var/lib/slurm -s /sbin/nologin slurm"
+  - "mkdir -p /var/log/slurm /var/run/slurm /var/spool/slurmd /etc/slurm /var/lib/slurm"
+  - "chown -R slurm:slurm /var/log/slurm /var/run/slurm /var/spool/slurmd /etc/slurm /var/lib/slurm"
+  - "chmod 755 /var/log/slurm /var/run/slurm /var/spool/slurmd /etc/slurm /var/lib/slurm"
 
 # login_compute_commands:
 # k8s_head_compute_commands:
@@ -29,7 +29,6 @@ base_image_pacakges:
   - dracut-live
   - dracut-network
   - squashfs-tools
-    
 
 compute_images_dict:
   default:
@@ -51,5 +50,5 @@ compute_images_dict:
 
 rhel_repos:
   - { name: 'RHEL10_Epel', url: 'https://dl.fedoraproject.org/pub/epel/10.0/Everything/x86_64/', gpg: 'https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-10' }
-  - { name: 'RHEL10_BaseOS', url: 'http://linuxlib.us.dell.com/pub/redhat/RHEL10/10.0/BaseOS/x86_64/os/', gpg: 'http://linuxlib.us.dell.com/pub/Distros/RedHat/RHEL10/10.0/BaseOS/x86_64/os/RPM-GPG-KEY-redhat-beta' }
-  - { name: 'RHEL10_AppStream', url: 'http://linuxlib.us.dell.com/pub/redhat/RHEL10/10.0/AppStream/x86_64/os/', gpg: 'http://linuxlib.us.dell.com/pub/Distros/RedHat/RHEL10/10.0/AppStream/x86_64/os/RPM-GPG-KEY-redhat-beta' }
+  - { name: 'RHEL10_BaseOS', url: '', gpg: '' }
+  - { name: 'RHEL10_AppStream', url: '', gpg: '' }
