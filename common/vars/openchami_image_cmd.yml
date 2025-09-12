@@ -1,14 +1,5 @@
 rhel_base_image_name: "rhel-base"
 
-base_image_pacakges:
-  - systemd
-  - systemd-udev
-  - kernel
-  - dracut
-  - dracut-live
-  - dracut-network
-  - squashfs-tools
-    
 base_image_commands:
   - "dracut --add 'dmsquash-live livenet network-manager' --install '/usr/lib/systemd/systemd-sysroot-fstab-check' --kver $(basename /lib/modules/*) -N -f --logfile /tmp/dracut.log 2>/dev/null"
   - "echo DRACUT LOG:; cat /tmp/dracut.log"
@@ -30,6 +21,16 @@ login_node_compute_commands:
 
 # ------------------------------------------ temporary ---------------------
 
+base_image_pacakges:
+  - systemd
+  - systemd-udev
+  - kernel
+  - dracut
+  - dracut-live
+  - dracut-network
+  - squashfs-tools
+    
+
 compute_images_dict:
   default:
     functional_group: "default"
@@ -47,15 +48,6 @@ compute_images_dict:
       - traceroute
       - vim
       - wget
-
-# base_image_pacakges:
-#     - systemd
-#     - systemd-udev
-#     - kernel
-#     - dracut
-#     - dracut-live
-#     - dracut-network
-#     - squashfs-tools
 
 rhel_repos:
   - { name: 'RHEL10_Epel', url: 'https://dl.fedoraproject.org/pub/epel/10.0/Everything/x86_64/', gpg: 'https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-10' }

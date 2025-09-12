@@ -18,48 +18,15 @@
 # SIMPLY APPEND THE REQUIRED VALUES AGAINST THE PARAMETER OF YOUR CHOICE.
 # ***********************************************************************
 
-#*************************************************************************************************************************
-# groups
-#*************************************************************************************************************************
-# functional_groups_config.yml file takes input parameters for the composable functional_groups and groups.
-# This file contains Roles and Groups used by the omnia for cluster formation.
-# Groups: - Groups will contain the list of groups defined by the user. User must define atleast one group.
-#   grpN:                 - <Mandatory> "grpN" -  User defined name of the group. Range for N is 0-99
-#     cluster_name:       - <Conditional Mandatory> Name of the cluster to which the group belongs. This input is case-sensitive. This will remain empty for groups which are not associated with any kubernetes functional_groups.
-#     location_id:        - <Mandatory> SU-<n>.RACK-<n> Scalable unit and rack number range is 0-99. This input is case-sensitive. Please use uppercase letters only.
-#     parent:             - <Conditional Mandatory> list of service tag of associated active service kube node(s).
-#                         - This field will be empty for group of nodes which is associated with ‘login_node’, ‘compiler_node’, ‘service_kube_node’,
-#                         - 'slurm_control_node’.
-#                         - If ‘service_kube_node’ functional_group is not defined, then value will be empty for worker and default functional_group.
-#
-# NOTE: Each group should be mapped to only one functional_group. Multiple groups should not be mapped to the same functional_group.
-
-groups:
-  grp0:
-    location_id: SU-1.RACK-1
-    cluster_name: ""
-    parent: ""
-
-  # grp1:
-  #   location_id: SU-1.RACK-2
-  #   cluster_name: ""
-  #   parent: ""
-
-  # grp2:
-  #   location_id: SU-1.RACK-3
-  #   cluster_name: ""
-  #   parent: ""
-
 #************************************************************************************************************************
 #  functional_groups
 #************************************************************************************************************************
-# Atleast one functional_group is mandatory, and User is not allowed to change the name of the functional_groups.
-# Maximum number of functional_groups supported are 100.
-# Note: Nested functional_groups and groups are not supported.
+# Note: Nested functional_groups are not supported.
 # The functional_groups are case sensitive
 #   - name:                           - <Mandatory> Name of the functional_group, can be any of the following Omnia defined functional_groups.
-#     groups:                         - <Mandatory> list of groups defined by the user
-#
+#     location_id:        - <Mandatory> SU-<n>.RACK-<n> Scalable unit and rack number range is 0-99. This input is case-sensitive. Please use uppercase letters only.
+#     cluster_name:       - <Conditional Mandatory> Name of the cluster to which the group belongs. This input is case-sensitive. This will remain empty for groups which are not associated with any kubernetes functional_groups.
+#     parent:             - <Conditional Mandatory> list of service tag of associated active service kube node(s).
 
 # This table lists the functional_groups and the layers they belong to in the cluster.
 
@@ -74,7 +41,7 @@ groups:
 # |  slurm_control_node_x86_64       | management        |     |                        |              |
 # +----------------------------------+-------------------+     +------------------------+--------------+
 
-# Default Role: (x86_64 / aarch64)
+# Default functional_groups: (x86_64 / aarch64)
 # -------------------------------------------------------------------------------------------------
 #
 # This functional_group is provided to cover the default functional_group of the cluster.
@@ -83,23 +50,20 @@ groups:
 # If user wants to just provision the group of nodes without associating with any functional_group,
 # then the default functional_group can be used.
 #
-# This functional_group belongs to the compute layer.
-#
-# Note: Ensure that each group is only mapped to one functional_group. Having multiple groups mapped to the same functional_group can lead to unexpected behavior.
 
 functional_groups:
-
   - name: "default_x86_64"
-    groups:
-      - grp0
-      - grp1
+    location_id: SU-1.RACK-1
+    cluster_name: ""
+    parent: ""
 
   # - name: "default_aarch64"
-  #   groups:
-  #     - grp2
+  #   location_id: SU-1.RACK-1
+  #   cluster_name: ""
+  #   parent: ""
 
 #
-# Service k8s Worker Role: Service Cluster Kubernetes worker node groups to add into service cluster k8s functional_group can be provided in this functional_group
+# Service k8s Worker functional_groups: Service Cluster Kubernetes worker node groups to add into service cluster k8s functional_group can be provided in this functional_group
 # ---------------------------------------------------------------------------------------------------
 #
 # This functional_group is used to configure the nodes for Kubernetes worker on service cluster.
@@ -111,13 +75,14 @@ functional_groups:
 #
 # The nodes in this functional_group can be used to run Kubernetes worker on service cluster.
 #
-# Service k8s Worker Role: Service Cluster Kubernetes worker node groups to add into service cluster k8s functional_group can be provided in this functional_group
+# Service k8s Worker functional_groups: Service Cluster Kubernetes worker node groups to add into service cluster k8s functional_group can be provided in this functional_group
   # - name: "service_kube_node_x86_64"
-  #   groups:
-  #     - grp3
+  #   location_id: SU-1.RACK-1
+  #   cluster_name: ""
+  #   parent: ""
 
 #
-# Slurm Head Role: Slurm head node groups to add into Slurm functional_group can be provided in this functional_group
+# Slurm Head functional_groups: Slurm head node groups to add into Slurm functional_group can be provided in this functional_group
 # -----------------------------------------------------------------------------------------------------
 #
 # This functional_group is used to configure the nodes for Slurm head. It belongs to the management layer.
@@ -128,13 +93,14 @@ functional_groups:
 # The nodes in this functional_group can be used to run Slurm head.
 # This functional_group belongs to the compute layer.
 #
-# Slurm Head Role: Slurm head groups to add into slurm_control_node functional_group can be provided in this functional_group
+# Slurm Head functional_groups: Slurm head groups to add into slurm_control_node functional_group can be provided in this functional_group
   # - name: "slurm_control_node_x86_64"
-  #   groups:
-  #     - grp5
+  #   location_id: SU-1.RACK-1
+  #   cluster_name: ""
+  #   parent: ""
 
 #
-# Slurm Worker Role: (x86_64 / aarch64)
+# Slurm Worker functional_groups: (x86_64 / aarch64)
 # ------------------------------------------------------------------------------------------------
 #
 # This functional_group is used to configure the nodes for Slurm worker. It belongs to the compute layer.
@@ -144,17 +110,19 @@ functional_groups:
 #
 # The nodes in this functional_group can be used to run Slurm worker.
 #
-# Slurm Worker Role: Slurm worker groups to add into Slurm functional_group can be provided in this functional_group
+# Slurm Worker functional_groups: Slurm worker groups to add into Slurm functional_group can be provided in this functional_group
   # - name: "slurm_node_x86_64"
-  #   groups:
-  #     - grp6
+  #   location_id: SU-1.RACK-1
+  #   cluster_name: ""
+  #   parent: ""
 
   # - name: "slurm_node_aarch64"
-  #   groups:
-  #     - grp7
+  #   location_id: SU-1.RACK-1
+  #   cluster_name: ""
+  #   parent: ""
 
 #
-# Login Node Role: (x86_64 / aarch64)
+# Login Node functional_groups: (x86_64 / aarch64)
 # ----------------------------------------------------------------------------------------------
 #
 # This functional_group is used to configure the nodes for user logins. It belongs to the management layer.
@@ -165,15 +133,17 @@ functional_groups:
 # The user is not allowed to change the name of this functional_group.
 #
   # - name: "login_node_x86_64"
-  #   groups:
-  #     - grp8
+  #   location_id: SU-1.RACK-1
+  #   cluster_name: ""
+  #   parent: ""
 
   # - name: "login_node_aarch64"
-  #   groups:
-  #     - grp9
+  #   location_id: SU-1.RACK-1
+  #   cluster_name: ""
+  #   parent: ""
 
 #
-# Login_Compiler Node Role: (x86_64 / aarch64)
+# Login_Compiler Node functional_groups: (x86_64 / aarch64)
 # ------------------------------------------------------------------------------------------------
 #
 # This functional_group is used to configure the nodes for compilation. It belongs to the management layer.
@@ -183,11 +153,13 @@ functional_groups:
 #
 # The nodes in this functional_group can be used to compile the code.
 #
-# Compiler Node Role: Compiler groups to add into compiler_node functional_group can be provided in this functional_group
+# Compiler Node functional_groups: Compiler groups to add into compiler_node functional_group can be provided in this functional_group
   # - name: "login_compiler_node_x86_64"
-  #   groups:
-  #     - grp10
+  #   location_id: SU-1.RACK-1
+  #   cluster_name: ""
+  #   parent: ""
 
   # - name: "login_compiler_node_aarch64"
-  #   groups:
-  #     - grp11
+  #   location_id: SU-1.RACK-1
+  #   cluster_name: ""
+  #   parent: ""
