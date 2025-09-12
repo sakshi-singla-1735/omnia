@@ -46,3 +46,8 @@
 
 - name: Include gather_facts playbook
   ansible.builtin.include_tasks: gather_fact_resolution.yml
+
+- name: Install sshpass
+  ansible.builtin.package:
+    name: sshpass
+    state: present

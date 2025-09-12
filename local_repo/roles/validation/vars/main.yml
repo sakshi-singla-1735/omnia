@@ -50,7 +50,7 @@ package_type_list: ["rpm", "deb", "tarball", "image", "manifest", "pip_module", 
 dynamic_k8s_json_log_dir: "/opt/omnia/log/local_repo"
 
 # Usage: validate_k8s_json.yml
-kubeadm_package_name: "kubeadm-v1.31.4"
+kubeadm_package_name: "kubeadm-v1.31.4-amd64"
 
 # Usage: main.yml
 nfs_shared_path: "/opt/omnia"
