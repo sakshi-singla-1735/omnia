@@ -42,13 +42,13 @@
   ansible.builtin.template:
     src: "{{ openchami_config_vars_template }}"
     dest: "{{ openchami_config_vars_path }}"
-    mode: "{{ dir_permissions_644 }}"
+    mode: "{{ file_permissions_644 }}"
 
 - name: Load the openchami inventory
   ansible.builtin.template:
     src: "{{ openchami_inventory_template }}"
     dest: "{{ openchami_inventory_file }}"
-    mode: "{{ dir_permissions_644 }}"
+    mode: "{{ file_permissions_644 }}"
 
 - name: Deploy openchami containers
   ansible.builtin.shell: |

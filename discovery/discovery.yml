@@ -34,10 +34,47 @@
 - name: Include input project directory
   when: not project_dir_status | default(false) | bool
   ansible.builtin.import_playbook: ../utils/include_input_dir.yml
+  vars:
+    openchami_vars_suppport: true
+
+- name: Create oim group and provision group
+  ansible.builtin.import_playbook: ../utils/create_container_group.yml
+  vars:
+    oim_group: true
+  tags: always
 
 - name: Validate discovery parameters
   hosts: localhost
   connection: local
   roles:
     - discovery_validations
+
+- name: Configure auth for openchami
+  hosts: oim
+  connection: ssh
+  tasks:
+    - name: Openchami cluster authentication
+      ansible.builtin.include_tasks: "{{ playbook_dir }}/../common/tasks/common/openchami_auth.yml"
+      vars:
+        oim_node_name: "{{ hostvars['localhost']['oim_node_name'] }}"
+
+- name: Discover nodes
+  hosts: localhost
+  connection: local
+  roles:
     - configure_ochami
+
+- name: Configure bss and cloud-init
+  hosts: oim
+  connection: ssh
+  tasks:
+    - name: Configure bss
+      ansible.builtin.include_role:
+        name: configure_ochami
+        tasks_from: configure_bss.yml
+      with_items: "{{ hostvars['localhost']['functional_groups'] | map(attribute='name') | list }}"
+
+    - name: Configure cloud-init
+      ansible.builtin.include_role:
+        name: configure_ochami
+        tasks_from: configure_cloud_init.yml

@@ -20,7 +20,7 @@ openchami_git_version: devel
 clone_retry: "5"
 clone_delay: "10"
 dir_permissions_755: "0755"
-dir_permissions_644: "0644"
+file_permissions_644: "0644"
 openchami_log_dir: /opt/omnia/log/openchami
 openchami_configs_log_path: "{{ openchami_log_dir }}/configs.log"
 openchami_inventory_template: "{{ role_path }}/templates/inventory.yaml.j2"

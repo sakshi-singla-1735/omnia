@@ -13,9 +13,13 @@
 # limitations under the License.
 ---
 
-clone_retry: "5"
-clone_delay: "10"
-dir_permissions_755: "0755"
-file_permissions_644: "0644"
-job_retry: "60"
-job_delay: "30"
+- name: Include provision_config.yml
+  block:
+    - name: Include provision_config.yml
+      ansible.builtin.include_vars: "{{ item.path }}"
+      register: include_input
+      tags: init
+  rescue:
+    - name: Failed to include provision_config.yml
+      ansible.builtin.fail:
+        msg: "{{ input_syntax_fail_msg }} Error: {{ include_input.message }}"

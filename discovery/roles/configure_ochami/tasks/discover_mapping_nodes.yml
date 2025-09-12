@@ -13,11 +13,14 @@
 # limitations under the License.
 ---
 
+- name: Include openchami vars
+  ansible.builtin.include_vars: "{{ openchami_config_vars_path }}"
+
 - name: Load the openchami nodes.yaml
   ansible.builtin.template:
     src: "{{ openchami_nodes_template }}"
     dest: "{{ openchami_nodes_vars_path }}"
-    mode: "{{ dir_permissions_644 }}"
+    mode: "{{ file_permissions_644 }}"
   vars:
     nodes: "{{ read_mapping_file.dict | dict2items }}"
 

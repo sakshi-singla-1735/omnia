@@ -20,11 +20,18 @@
     bmc_password: "{{ hostvars['localhost']['bmc_password'] }}"
   no_log: true
 
-# - name: Include composable role data
-#   ansible.builtin.include_tasks: include_functional_groups_config.yml
+- name: Include discovery inputs
+  ansible.builtin.include_tasks: include_inputs.yml
+  with_items: "{{ discovery_inputs }}"
 
-- name: Include provision configuration variables
-  ansible.builtin.include_tasks: include_provision_config.yml
+- name: Include software config
+  ansible.builtin.include_tasks: include_software_config.yml
+
+# - name: Parse network_spec data
+#   ansible.builtin.set_fact:
+#     network_data: "{{ network_data | default({}) | combine({item.key: item.value}) }}"
+#   with_dict: "{{ Networks }}"
+
 
 - name: Check if discovery mechanism is mapping
   ansible.builtin.include_tasks: validate_mapping_mechanism.yml

@@ -36,3 +36,10 @@
   ansible.builtin.fail:
     msg: "{{ project_dir_not_exist_fail_msg }}"
   when: not verify_project_dir.stat
+
+- name: Include common vars
+  ansible.builtin.include_vars: "{{ role_path }}/../../../common/vars/common_vars.yml"
+
+- name: Include openchami vars
+  ansible.builtin.include_vars: "{{ role_path }}/../../../common/vars/openchami_vars.yml"
+  when: openchami_vars_suppport | default(false)
