@@ -32,7 +32,7 @@ k8s_nfs_share: "/opt/omnia/kubespray/{{ hostvars['127.0.0.1']['cluster_var_name'
 python_package_name: "{{ hostvars['localhost']['python_package'] }}"
 pip_packages:
   - name: kubernetes
-    version: 32.0.1
+    version: 33.1.0
   - name: prettytable
     version: 3.14.0
 
