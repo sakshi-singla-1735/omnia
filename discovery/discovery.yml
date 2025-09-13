@@ -58,23 +58,8 @@
       vars:
         oim_node_name: "{{ hostvars['localhost']['oim_node_name'] }}"
 
-- name: Discover nodes
-  hosts: localhost
-  connection: local
-  roles:
-    - configure_ochami
-
-- name: Configure bss and cloud-init
+- name: Discover nodes, configure bss and cloud-init
   hosts: oim
   connection: ssh
-  tasks:
-    - name: Configure bss
-      ansible.builtin.include_role:
-        name: configure_ochami
-        tasks_from: configure_bss.yml
-      with_items: "{{ hostvars['localhost']['functional_groups'] | map(attribute='name') | list }}"
-
-    - name: Configure cloud-init
-      ansible.builtin.include_role:
-        name: configure_ochami
-        tasks_from: configure_cloud_init.yml
+  roles:
+    - configure_ochami
