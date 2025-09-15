@@ -27,8 +27,6 @@ loki_image_tag: "3.5.1"
 promtail_image_tag: "3.5.1"
 container_images:
   - "omnia_core:{{ container_tag }}"
-  - "omnia_pcs:{{ container_tag }}"
-  - "omnia_provision:{{ container_tag }}"
   - "docker.io/pulp/pulp:{{ pulp_tag }}"
 
 # Usage: validate_image_tars.yml

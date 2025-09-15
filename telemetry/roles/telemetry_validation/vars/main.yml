@@ -20,7 +20,7 @@ fail_msg_telemetry_config_file: "telemetry_config.yml file doesn't exist."
 pause_time_15: 15
 bmc_group_data_filename: "/opt/omnia/telemetry/bmc_group_data.csv"
 warning_telemetry_support_false: |
-  "[WARNING] kube_prometheus_support, idrac_telemetry_support and visualization_support are false in telemetry_config.yml.
+  "[WARNING] idrac_telemetry_support are false in telemetry_config.yml.
   Omnia does not deploy telemetry feature if none of the support category is true."
 telemetry_config_syntax_fail_msg: "Failed. Syntax errors present in telemetry_config.yml. Fix errors and re-run playbook again."
 warning_idrac_telemetry_support_false: |
@@ -35,18 +35,6 @@ warning_idrac_telemetry_support_true: |
   Make sure that Redfish is enabled and the iDRAC has a datacenter license.
   Also, ensure that the firmware version is greater than 4 for iDRAC9 or greater than 1 for iDRAC10."
 
-# # Usage: include_provision_config.yml
-# provision_config_file: "{{ input_project_dir }}/provision_config.yml"
-# fail_msg_provision_config_file: "provision_config.yml file doesn't exist."
-# fail_timezone_msg: "Failed. Incorrect timezone provided. Please check the file timezone.txt in discovery/roles/discovery_validations/common/files/ folder."
-
-# Usage: validate_k8s_prometheus.yml
-k8s_prom_gaudi_inventory_fail_msg: "Inventory comprising kube_control_plane, kube_node and etcd groups should be passed  \
-  when kube_prometheus_support is true in telemetry_config.yml."
-kube_control_plane_group_fail_msg: "kube_control_plane group should contain atleast 1 node in inventory"
-kube_node_group_fail_msg: "kube_node group should contain atleast 1 node in inventory"
-etcd_group_fail_msg: "etcd group should contain atleast 1 node in inventory"
-etcd_odd_entry_fail_msg: "etcd group should have odd number of nodes in inventory"
 
 # Usage: validate_image_tars.yml
 # noqa: yaml[line-length]
@@ -72,33 +60,10 @@ k8s_packages_file: "{{ input_project_dir }}/config/{{ software_config.cluster_os
 downloaded_sw_log_csv: "/opt/omnia/log/local_repo/software.csv"
 software_config_syntax_fail_msg: "Failed. Syntax errors present in software_config.json. Fix errors and re-run playbook again."
 
-# # Usage: validate_prometheus_gaudi.yaml
-# fail_msg_k8s_prometheus_support_false: "Failed. k8s_prometheus_support must be true when prometheus_gaudi_support is true in telemetry_config.yml."
-# fail_msg_prometheus_gaudi_support: "Failed. prometheus_gaudi_support is only available for cluster_os_type: ubuntu and cluster_os_version: 22.04 , 24.04. \
-# Please update prometheus_gaudi_support to false in telemetry_config.yml."
-
-# # Usage: validate_site_config.yml
-# site_config_file: "{{ input_project_dir }}/site_config.yml"
-# invalid_proxy_failure_msg: "Failed. Both http_proxy and https_proxy should be set for proxy variable provided in site_config.yml"
-# # proxy_env_fail_msg: "Failed. The values for http_proxy {{ proxy[0].http_proxy }} and https_proxy {{ proxy[0].https_proxy }} in the
-# # proxy variable of the site_config.yml should be set as environment variables http_proxy and https_proxy in the Omnia Infrastructure Manager.
-# # The no_proxy environment variable should include the Omnia Infrastructure Manager hostname and the admin network IP address."
-# update_repos_fail_msg: "Failed to update repos. Verify proxy configuration in Omnia Infrastructure Manager for acccessing internet."
-# oim_os_redhat: "redhat"
-# oim_os_rocky: "rocky"
-# oim_os_ubuntu: "ubuntu"
-# repo_retries: 5
-# repo_delay: 10
-# dnf_conf_path: "/etc/dnf/dnf.conf"
-
 # Usage: validate_idrac_inventory.yml
 bmc_group_data_file_not_found_msg: "Failed. The BMC data file: {{ bmc_group_data_filename }} does not exist.
  Please execute discovery_provision.yml to Generate BMC data file."
 bmc_group_data_headers: "BMC_IP,GROUP_NAME,PARENT"
-bmc_group_data_invalid_msg: "Failed. Invalid BMC data file: {{ bmc_group_data_filename }}.
- Please execute discovery_provision.yml to Generate BMC data file."
-bmc_group_data_invalid_ip_msg: "Failed. Invalid BMC IP present in the file: {{ bmc_group_data_filename }}. BMC IP"
-bmc_group_data_empty_msg: "Failed. No BMC entries found in BMC group data file {{ bmc_group_data_filename }}."
 
 # Usage: validate_telemetry_container.yml
 telemetry_container_status_msg: "Telemetry container Status: {{ telemetry_container_status.containers[0].State.Status }}"

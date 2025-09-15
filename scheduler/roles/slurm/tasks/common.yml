@@ -30,7 +30,7 @@
     - name: Update hosts file for all slurm groups
       ansible.builtin.lineinfile:
         dest: "{{ hosts_file_dest }}"
-        line: "{{ hostvars[item].node_ip }} {{ hostvars[item]['ansible_fqdn'] }}
+        line: "{{ hostvars[item].node_ip | default(hostvars[item]['ansible_default_ipv4']['address']) }} {{ hostvars[item]['ansible_fqdn'] }}
          {{ hostvars[item]['ansible_nodename'] | split('.') | first }}"
         state: present
         create: true

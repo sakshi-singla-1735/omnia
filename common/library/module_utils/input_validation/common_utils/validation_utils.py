@@ -50,7 +50,6 @@ def load_yaml_as_json(yaml_file, omnia_base_dir, project_name, logger, module):
         error_message = f"File {yaml_file} not found"
         logger.error(error_message)
         module.fail_json(msg=error_message)
-        raise FileNotFoundError(error_message)
     except yaml.YAMLError as e:
         error_parts = []
         error_parts.append(f"Syntax error when loading YAML file '{yaml_file}'")
@@ -333,36 +332,6 @@ def validate_default_lease_time(default_lease_time):
         bool: True if the default lease time is valid, False otherwise.
     """
     return 21600 <= int(default_lease_time) <= 31536000
-
-
-def verify_iso_file(iso_file_path, provision_os, provision_os_version):
-    """
-    Verifies if the ISO file path is valid.
-
-    Args:
-        iso_file_path (str): The path to the ISO file.
-        provision_os (str): The provision OS.
-        provision_os_version (str): The provision OS version.
-
-    Returns:
-        str: An error message if the ISO file path is invalid, empty string otherwise.
-    """
-    if ".iso" not in iso_file_path:
-        return en_us_validation_msg.ISO_FILE_PATH_NOT_CONTAIN_ISO_MSG
-
-    iso_path_lower = iso_file_path.lower()
-    os_name_matches = provision_os.lower() in iso_path_lower
-    version_matches = provision_os_version in iso_path_lower
-
-    if not (os_name_matches and version_matches):
-        return en_us_validation_msg.iso_file_path_invalid_os_msg(
-            iso_file_path, provision_os, provision_os_version
-        )
-
-    if not verify_path(iso_file_path):
-        return en_us_validation_msg.ISO_FILE_PATH_FAIL_MSG
-
-    return ""
 
 
 # validate timezone (input_tz: str, available_timezone_file_path: str) -> bool

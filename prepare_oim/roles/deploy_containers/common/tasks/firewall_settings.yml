@@ -33,59 +33,6 @@
     enabled: true
   tags: always
 
-- name: Add xCAT-related ports on host firewalld
-  ansible.posix.firewalld:
-    port: "{{ item }}"
-    state: enabled
-    permanent: true
-  loop: "{{ xcat_firewall_ports }}"
-  tags: provision
-
-- name: Add PCS-related ports on host firewalld
-  ansible.posix.firewalld:
-    port: "{{ item }}"
-    state: enabled
-    permanent: true
-  loop: "{{ pcs_firewall_ports }}"
-  tags: pcs
-
-- name: Add iDRAC-telemetry related ports on host firewalld
-  ansible.posix.firewalld:
-    port: "{{ item }}"
-    state: enabled
-    permanent: true
-  loop: "{{ idrac_firewall_ports }}"
-  when: hostvars['localhost']['idrac_telemetry_support']
-  tags: idrac_telemetry
-
-- name: Add Prometheus-related ports on host firewalld
-  ansible.posix.firewalld:
-    port: "{{ item }}"
-    state: enabled
-    permanent: true
-  loop: "{{ prometheus_firewall_ports }}"
-  when:
-    - hostvars['localhost']['idrac_telemetry_support']
-    - hostvars['localhost']['idrac_telemetry_collection_type'] == "prometheus"
-  tags: prometheus
-
-- name: Add visualization-related ports on host firewalld
-  ansible.posix.firewalld:
-    port: "{{ item }}"
-    state: enabled
-    permanent: true
-  loop: "{{ visualization_firewall_ports }}"
-  when: hostvars['localhost']['visualization_support']
-  tags: grafana
-
-- name: Enable PCS-related services
-  ansible.posix.firewalld:
-    service: "{{ item }}"
-    state: enabled
-    permanent: true
-  loop: "{{ pcs_firewall_services }}"
-  tags: pcs
-
 - name: Enable NFS-related services
   ansible.posix.firewalld:
     service: "{{ item }}"
@@ -96,24 +43,6 @@
     - omnia_share_option == 'NFS'
     - nfs_type == 'internal'
   tags: always
-
-- name: Set fact for squid proxy port
-  ansible.builtin.set_fact:
-    squid_proxy_port: "{{ squid_proxy_port }}"
-
-- name: Add squid-related ports on host firewalld
-  ansible.posix.firewalld:
-    port: "{{ item }}"
-    state: enabled
-    permanent: true
-  loop: "{{ squid_firewall_ports }}"
-
-- name: Add NTP service to firewalld
-  ansible.posix.firewalld:
-    service: "{{ ntp_firewall_service }}"
-    permanent: true
-    state: enabled
-    immediate: true
 
 - name: Reload firewalld to apply changes
   ansible.builtin.command: firewall-cmd --reload
