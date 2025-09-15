@@ -91,7 +91,6 @@ warning_msg_local_repo: "[WARNING] Omnia will remove any package/software confli
 
 # Usage: validate_software_config_json.yml
 sw_config_json_path: "{{ project_input_path }}/software_config.json"
-default_archs: "{{ (lookup('file', project_input_path + '/roles_config.yml') | from_yaml).Groups.values() | map(attribute='architecture') | list | unique }}"
 software_config_parameters_fail_msg: "Failed. Please ensure cluster_os_type, cluster_os_verion, repo_config, softwares are defined in software_config.json"
 software_config_softwares_fail_msg: "Failed. softwares list cannot be empty in software_config.json. Atleast one software should be defined."
 specific_softwares:

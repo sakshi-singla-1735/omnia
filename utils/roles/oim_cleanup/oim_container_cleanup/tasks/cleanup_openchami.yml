@@ -1,0 +1,96 @@
+# Copyright 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+---
+
+- name: Remove OpenChami packages
+  ansible.builtin.dnf:
+    name: "{{ openchami_packages }}"
+    state: absent
+
+- name: Stop openchami.target systemd unit
+  ansible.builtin.systemd:
+    name: openchami.target
+    state: stopped
+    enabled: false
+    daemon_reload: true
+  failed_when: false
+
+- name: Remove container systemd files
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop: "{{ systemd_files }}"
+
+- name: Reload systemd daemon
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: Remove OpenChami containers
+  containers.podman.podman_container:
+    name: "{{ item }}"
+    state: absent
+    force_delete: true
+  loop: "{{ openchami_containers }}"
+  failed_when: false
+
+- name: Remove OpenChami volumes
+  containers.podman.podman_volume:
+    name: "{{ item }}"
+    state: absent
+  loop: "{{ openchami_volumes }}"
+  failed_when: false
+
+- name: Remove OpenChami secrets
+  containers.podman.podman_secret:
+    name: "{{ item }}"
+    state: absent
+  loop: "{{ openchami_secrets }}"
+  failed_when: false
+
+- name: Remove TCP firewall ports
+  ansible.builtin.firewalld:
+    port: "{{ item }}/tcp"
+    permanent: true
+    state: disabled
+    immediate: true
+  loop: "{{ tcp_ports }}"
+
+- name: Remove UDP firewall ports
+  ansible.builtin.firewalld:
+    port: "{{ item }}/udp"
+    permanent: true
+    state: disabled
+    immediate: true
+  loop: "{{ udp_ports }}"
+
+- name: Remove podman interfaces from trusted zone
+  ansible.builtin.firewalld:
+    interface: "{{ item }}"
+    zone: trusted
+    permanent: true
+    state: disabled
+    immediate: true
+  loop: "{{ podman_interfaces }}"
+
+- name: Remove regctl config and binary
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop: "{{ regctl_files }}"
+
+- name: Remove OpenChami config directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop: "{{ config_dirs }}"
