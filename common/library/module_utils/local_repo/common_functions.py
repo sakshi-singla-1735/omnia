@@ -191,14 +191,14 @@ def generate_vault_key(key_path):
     except (OSError, IOError) as e:
         return None
 
-def get_arch_from_sw_config(software_name, sw_config_data, roles_config_data):
+def get_arch_from_sw_config(software_name, sw_config_data, functional_groups_config_data):
     """
     For a given software, extract architecture list from software_config.json.
-    If not found, fallback to arch defined in Groups in roles_config.yml.
+    If not found, fallback to arch defined in Groups in functional_groups_config.yml.
     Parameters
        software_name: name of the software
        sw_config_data: json content of software_config.json
-       roles_config_data: content of roles_config.yml
+       functional_groups_config_data: content of functional_groups_config.yml
 
     Returns:
         dict: {software_name: [arch list]}
@@ -207,9 +207,10 @@ def get_arch_from_sw_config(software_name, sw_config_data, roles_config_data):
         if software.get("name") == software_name:
             arch = software.get("arch")
 
-            if arch is None:
-                # if arch is not defined for given software, fallback to roles_config.yml
-                return get_arch_from_roles_config(software_name, roles_config_data)
+            # Depricated 
+            # if arch is None:
+            #     # if arch is not defined for given software, fallback to functional_groups_config.yml
+            #     return get_arch_from_functional_groups_config(software_name, functional_groups_config_data)
 
             if isinstance(arch, list) and arch:
                 arch_list = [a.strip() for a in arch]
@@ -218,21 +219,21 @@ def get_arch_from_sw_config(software_name, sw_config_data, roles_config_data):
                 error_msg = f"'arch' field for '{software_name}' should not be an empty list"
                 raise ValueError(error_msg)
 
-def get_arch_from_roles_config(software_name, roles_config_data):
+def get_arch_from_functional_groups_config(software_name, functional_groups_config_data):
     """
-    Extract architecture values under each group defined in roles_config.yml
+    Extract architecture values under each group defined in functional_groups_config.yml
     Parameters
        software_name: name of the software
-       roles_config_data: content of roles_config.yml
+       functional_groups_config_data: content of functional_groups_config.yml
 
     Returns:
         dict: {software_name: [archs]}
     """
     archs = []
-    groups = roles_config_data.get("Groups", {})
+    groups = functional_groups_config_data.get("Groups", {})
 
     if not groups:
-        error_msg = "No groups defined in roles_config.yml under 'Groups'"
+        error_msg = "No groups defined in functional_groups_config.yml under 'Groups'"
         raise ValueError(error_msg)
 
     for group_name, group_data in groups.items():
@@ -240,7 +241,7 @@ def get_arch_from_roles_config(software_name, roles_config_data):
         if architecture:
             archs.append(architecture.strip())
         else:
-            error_msg = f"No architecture defined for group '{group_name}' in roles_config.yml"
+            error_msg = f"No architecture defined for group '{group_name}' in functional_groups_config.yml"
             raise ValueError(error_msg)
 
     return {software_name: archs}
