@@ -49,7 +49,6 @@ file_permission: "0755"
 # Usage: check_k8s_support.yml
 metadata_file: "/opt/omnia/kubespray/k8s_metadata.yml"
 fail_msg_k8s_version: "Failed. Kubernetes Version is unsupported or incorrect in software_config.json. Update software_config.json with a supported Kubernetes versions and re-run the playbook.Supported versions are - {{ supported_k8s_version }}" # noqa: yaml[line-length]
-#default_archs: "{{ (lookup('file', project_input_path + '/roles_config.yml') | from_yaml).Groups.values() | map(attribute='architecture') | list | unique }}"
 default_k8s_version: "1.31.4"
 default_kubespray_version: "v2.28.0"
 # Usage: validate_network_spec.yml
