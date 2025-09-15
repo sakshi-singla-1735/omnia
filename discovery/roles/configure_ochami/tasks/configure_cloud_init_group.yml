@@ -13,11 +13,21 @@
 # limitations under the License.
 ---
 
-- name: Load ci group template - {{ functional_group_name }}
-  ansible.builtin.template:
-    src: "cloud_init/ci-group-{{ functional_group_name }}.yaml.j2"
-    dest: "{{ cloud_init_dir }}/ci-group-{{ functional_group_name }}.yaml"
-    mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
+- name: Set the functional_group_name
+  ansible.builtin.set_fact:
+    functional_group_name: "{{ item }}"
+
+- name: Load ci group template
+  block:
+    - name: Load ci group template - {{ functional_group_name }}
+      ansible.builtin.template:
+        src: "cloud_init/ci-group-{{ functional_group_name }}.yaml.j2"
+        dest: "{{ cloud_init_dir }}/ci-group-{{ functional_group_name }}.yaml"
+        mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
+  rescue:
+    - name: Failed to load ci group template
+      ansible.builtin.fail:
+        msg: "{{ ci_group_load_fail_msg }}"
 
 - name: Set ci group configuration - {{ functional_group_name }}
   ansible.builtin.command: /usr/bin/ochami cloud-init group set -f yaml -d @{{ cloud_init_dir }}/ci-group-{{ functional_group_name }}.yaml

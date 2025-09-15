@@ -13,10 +13,6 @@
 # limitations under the License.
 ---
 
-- name: Set the functional_group_name
-  ansible.builtin.set_fact:
-    functional_group_name: "{{ item }}"
-
 - name: Include openchami vars
   ansible.builtin.include_vars: "{{ openchami_config_vars_path }}"
 
@@ -41,6 +37,7 @@
 
 - name: Include configure bss
   ansible.builtin.include_tasks: configure_bss_group.yml
+  with_items: "{{ hostvars['localhost']['functional_groups'] | map(attribute='name') | list }}"
 
 - name: Verify boot params set
   ansible.builtin.command: ochami bss boot params get -F yaml
@@ -85,3 +82,4 @@
 
 - name: Include configure cloud init
   ansible.builtin.include_tasks: configure_cloud_init_group.yml
+  with_items: "{{ hostvars['localhost']['functional_groups'] | map(attribute='name') | list }}"

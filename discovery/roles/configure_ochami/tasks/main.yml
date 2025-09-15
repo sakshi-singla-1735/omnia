@@ -25,7 +25,6 @@
 
     - name: Configure bss and cloud-init
       ansible.builtin.include_tasks: configure_bss_cloud_init.yml
-      with_items: "{{ hostvars['localhost']['functional_groups'] | map(attribute='name') | list }}"
 
     - name: Discovery completion
       ansible.builtin.include_tasks: discovery_completion.yml

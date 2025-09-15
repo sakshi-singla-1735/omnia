@@ -35,8 +35,12 @@ ssh_key_path: /root/.ssh/oim_rsa.pub
 ci_defaults_template: cloud_init/ci-defaults.yaml.j2
 cloud_init_dir: "{{ openchami_work_dir }}/cloud-init"
 ci_defaults_dest: '{{ cloud_init_dir }}/ci-defaults.yaml'
+ci_group_load_fail_msg: |
+  "Template loading failed. Ensure the template exists in the specified path and is compatible with the defined functional groups."
 
 # Usage: discovery_completion.yml
 discovery_completion_msg: |
-  The playbook discovery.yml has finished running without errors.
-  Please manually PXE boot the nodes or use the provision.yml playbook with a bmc group in your inventory to start the PXE boot process.
+  The discovery.yml playbook has completed successfully.
+  Next, you can either manually PXE boot the nodes or use the utils/set_pxe_boot.yml playbook
+  by specifying a bmc group in your inventory to initiate the PXE boot process.
+  Once the nodes have booted, proceed to run telemetry/telemetry.yml to start collecting telemetry data.

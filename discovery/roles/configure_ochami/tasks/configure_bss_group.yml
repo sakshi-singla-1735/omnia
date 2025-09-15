@@ -13,6 +13,10 @@
 # limitations under the License.
 ---
 
+- name: Set the functional_group_name
+  ansible.builtin.set_fact:
+    functional_group_name: "{{ item }}"
+
 - name: Verify image, kernel and initramfs in S3
   ansible.builtin.shell: |
     set -o pipefail && \

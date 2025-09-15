@@ -12,15 +12,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# pylint: disable=unused-import,line-too-long
+# pylint: disable=import-error,no-name-in-module,line-too-long
 #!/usr/bin/python
 
-import pandas as pd
 import re
+import pandas as pd
 
 from ansible.module_utils.basic import AnsibleModule
 
 def main():
+    """
+	Validate a mapping file.
+
+	Parameters:
+		mapping_file_path (str): The path to the mapping file.
+
+	"""
 
     module_args = {
         'mapping_file_path': {'type': 'path', 'required': True }

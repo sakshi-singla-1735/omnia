@@ -33,3 +33,6 @@
 - name: Validate mapping file
   ansible.builtin.include_tasks: validate_mapping_file.yml
   when: mapping_file_status
+
+# - name: Update hosts file
+#   ansible.builtin.include_tasks: update_hosts.yml
