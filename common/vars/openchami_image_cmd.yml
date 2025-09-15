@@ -31,15 +31,15 @@ base_image_pacakges:
   - squashfs-tools
 
 compute_images_dict:
-  default:
-    functional_group: "default"
+  default_x86_64:
+    functional_group: "default_x86_64"
     packages:
       - vim
       - wget
       - python3
 
-  login_node:
-    functional_group: "login_node"
+  login_node_x86_64:
+    functional_group: "login_node_x86_64"
     packages:
       - git
       - nfs-utils
@@ -48,8 +48,7 @@ compute_images_dict:
       - vim
       - wget
 
-# noqa: yaml[line-length]
 rhel_repos:
   - { name: 'RHEL10_Epel', url: 'https://dl.fedoraproject.org/pub/epel/10.0/Everything/x86_64/', gpg: 'https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-10' }      # noqa: yaml[line-length]
-  - { name: 'RHEL10_BaseOS', url: '', gpg: '' }
-  - { name: 'RHEL10_AppStream', url: '', gpg: '' }
+  - { name: 'RHEL10_BaseOS', url: 'http://linuxlib.us.dell.com/pub/redhat/RHEL10/10.0/BaseOS/x86_64/os/', gpg: 'http://linuxlib.us.dell.com/pub/Distros/RedHat/RHEL10/10.0/BaseOS/x86_64/os/RPM-GPG-KEY-redhat-beta' }     # noqa: yaml[line-length]
+  - { name: 'RHEL10_AppStream', url: 'http://linuxlib.us.dell.com/pub/redhat/RHEL10/10.0/AppStream/x86_64/os/', gpg: 'http://linuxlib.us.dell.com/pub/Distros/RedHat/RHEL10/10.0/AppStream/x86_64/os/RPM-GPG-KEY-redhat-beta' }     # noqa: yaml[line-length]

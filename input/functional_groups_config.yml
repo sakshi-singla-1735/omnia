@@ -41,7 +41,7 @@
 # |  slurm_control_node_x86_64       | management        |     |                        |              |
 # +----------------------------------+-------------------+     +------------------------+--------------+
 
-# Default functional_groups: (x86_64 / aarch64)
+# Default functional_groups: (x86_64)
 # -------------------------------------------------------------------------------------------------
 #
 # This functional_group is provided to cover the default functional_group of the cluster.
@@ -56,11 +56,6 @@ functional_groups:
     location_id: SU-1.RACK-1
     cluster_name: ""
     parent: ""
-
-  # - name: "default_aarch64"
-  #   location_id: SU-1.RACK-1
-  #   cluster_name: ""
-  #   parent: ""
 
 #
 # Service k8s Worker functional_groups: Service Cluster Kubernetes worker node groups to add into service cluster k8s functional_group can be provided in this functional_group
@@ -100,7 +95,7 @@ functional_groups:
   #   parent: ""
 
 #
-# Slurm Worker functional_groups: (x86_64 / aarch64)
+# Slurm Worker functional_groups: (x86_64)
 # ------------------------------------------------------------------------------------------------
 #
 # This functional_group is used to configure the nodes for Slurm worker. It belongs to the compute layer.
@@ -116,13 +111,8 @@ functional_groups:
   #   cluster_name: ""
   #   parent: ""
 
-  # - name: "slurm_node_aarch64"
-  #   location_id: SU-1.RACK-1
-  #   cluster_name: ""
-  #   parent: ""
-
 #
-# Login Node functional_groups: (x86_64 / aarch64)
+# Login Node functional_groups: (x86_64)
 # ----------------------------------------------------------------------------------------------
 #
 # This functional_group is used to configure the nodes for user logins. It belongs to the management layer.
@@ -137,13 +127,8 @@ functional_groups:
   #   cluster_name: ""
   #   parent: ""
 
-  # - name: "login_node_aarch64"
-  #   location_id: SU-1.RACK-1
-  #   cluster_name: ""
-  #   parent: ""
-
 #
-# Login_Compiler Node functional_groups: (x86_64 / aarch64)
+# Login_Compiler Node functional_groups: (x86_64)
 # ------------------------------------------------------------------------------------------------
 #
 # This functional_group is used to configure the nodes for compilation. It belongs to the management layer.
@@ -155,11 +140,6 @@ functional_groups:
 #
 # Compiler Node functional_groups: Compiler groups to add into compiler_node functional_group can be provided in this functional_group
   # - name: "login_compiler_node_x86_64"
-  #   location_id: SU-1.RACK-1
-  #   cluster_name: ""
-  #   parent: ""
-
-  # - name: "login_compiler_node_aarch64"
   #   location_id: SU-1.RACK-1
   #   cluster_name: ""
   #   parent: ""
