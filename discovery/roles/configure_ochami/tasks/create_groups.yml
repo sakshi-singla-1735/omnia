@@ -26,8 +26,8 @@
     nodes: "{{ hostvars['localhost']['read_mapping_file']['dict'] | dict2items }}"
 
 - name: Get SMD group data
-  ansible.builtin.shell: |
-    /usr/bin/ochami smd group get
+  ansible.builtin.command: /usr/bin/ochami smd group get
+  changed_when: false
   register: smd_group_data
 
 - name: Set existing_smd_groups
@@ -36,11 +36,11 @@
 
 - name: Get existing SMD groups
   ansible.builtin.set_fact:
-    existing_smd_group_names: "{{ existing_smd_groups | map(attribute='label')| list  }}"
+    existing_smd_group_names: "{{ existing_smd_groups | map(attribute='label') | list  }}"
 
 - name: POST new SMD groups
-  ansible.builtin.shell: |
-    /usr/bin/ochami smd group add {{ nodes_dir }}/{{ functional_group_name }}.yml
+  ansible.builtin.command: /usr/bin/ochami smd group add {{ nodes_dir }}/{{ functional_group_name }}.yml
+  changed_when: true
   when: functional_group_name not in existing_smd_group_names
 
 - name: Check for group updates

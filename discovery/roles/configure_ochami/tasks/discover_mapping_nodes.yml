@@ -33,18 +33,18 @@
 - name: Discover ochami nodes
   block:
     - name: Discover ochami nodes
-      ansible.builtin.shell: |
-        ochami discover static -f yaml -d @"{{ nodes_dir }}/nodes.yaml" --overwrite
+      ansible.builtin.command: /usr/bin/ochami discover static -f yaml -d @"{{ nodes_dir }}/nodes.yaml" --overwrite
       changed_when: true
       register: openchami_discover
   rescue:
     - name: Failed to discover nodes
       ansible.builtin.debug:
-        msg: "Failed to discover nodes. Update {{ nodes_dir }}/nodes.yaml with only new nodes and re-run the playbook. Error: {{ openchami_discover.stderr_lines }}"
+        msg: "{{ discover_fail_msg }}. Error: {{ openchami_discover.stderr_lines }}"
 
 - name: Verify node created in smd
   ansible.builtin.shell: |
-    ochami smd component get | jq '.Components[] | select(.Type == "Node")'
+    set -o pipefail && \
+    /usr/bin/ochami smd component get | jq '.Components[] | select(.Type == "Node")'
   changed_when: true
   register: openchami_smd_status
 

@@ -21,7 +21,7 @@
   ansible.builtin.include_vars: "{{ openchami_config_vars_path }}"
 
 - name: Include nodes vars
-  ansible.builtin.slurp: 
+  ansible.builtin.slurp:
     src: "{{ openchami_nodes_vars_path }}"
   register: nodes_vars
 
@@ -59,6 +59,7 @@
 
 - name: Read the ssh key
   ansible.builtin.command: cat {{ ssh_key_path }}
+  changed_when: false
   register: read_ssh_key
   no_log: true
 
@@ -69,7 +70,7 @@
     mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
 
 - name: Set ci defaults configuration
-  ansible.builtin.command: ochami cloud-init defaults set -f yaml -d @{{ ci_defaults_dest }}
+  ansible.builtin.command: /usr/bin/chami cloud-init defaults set -f yaml -d @{{ ci_defaults_dest }}
   changed_when: true
 
 - name: Verify ci defaults configuration

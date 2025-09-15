@@ -18,7 +18,7 @@
   block:
     - name: Discover mappping nodes
       ansible.builtin.include_tasks: discover_mapping_nodes.yml
-  
+
     - name: Create groups
       ansible.builtin.include_tasks: create_groups.yml
       with_items: "{{ hostvars['localhost']['functional_groups'] | map(attribute='name') | list }}"

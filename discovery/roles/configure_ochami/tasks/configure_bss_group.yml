@@ -13,14 +13,17 @@
 # limitations under the License.
 ---
 
-- name: Verify image, kernel and initramfs in S3
-  ansible.builtin.shell: s3cmd ls -Hr s3://boot-images | grep {{ rhel_base_compute_image_name }} | grep {{ hostvars['localhost']['cluster_os_version'] }} | awk '{print $4}' | sed 's|s3://||'
+- name: Verify image, kernel and initramfs in S3 # noqa: yaml[line-length]
+  ansible.builtin.shell: |
+    set -o pipefail && \
+    s3cmd ls -Hr s3://boot-images | grep {{ rhel_base_compute_image_name }} | grep {{ hostvars['localhost']['cluster_os_version'] }} | awk '{print $4}' | sed 's|s3://||'
   changed_when: false
   register: verify_s3_image
 
 - name: Verify s3 image output
   ansible.builtin.debug:
     msg: "{{ verify_s3_image.stdout_lines }}"
+    verbosity: 2
 
 - name: Initialize kernel and initrd
   ansible.builtin.set_fact:
@@ -35,7 +38,7 @@
 
 - name: Fail if kernel or initrd length less than 1
   ansible.builtin.fail:
-    msg: "Failed to set kernel or initrd. Please verify the compute image created"
+    msg: "{{ image_missing_fail_msg }}"
   when: kernel | length < 1 or initrd | length < 1
 
 - name: Load bss template - {{ functional_group_name }}
@@ -45,5 +48,5 @@
     mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
 
 - name: Set boot configuration - {{ functional_group_name }}
-  ansible.builtin.command: ochami bss boot params set -f yaml -d @{{ openchami_work_dir }}/boot/bss-{{ functional_group_name }}.yaml
+  ansible.builtin.command: /usr/bin/ochami bss boot params set -f yaml -d @{{ openchami_work_dir }}/boot/bss-{{ functional_group_name }}.yaml
   changed_when: true

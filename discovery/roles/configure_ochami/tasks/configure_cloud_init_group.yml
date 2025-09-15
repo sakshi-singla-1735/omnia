@@ -20,11 +20,11 @@
     mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
 
 - name: Set ci group configuration - {{ functional_group_name }}
-  ansible.builtin.command: ochami cloud-init group set -f yaml -d @{{ cloud_init_dir }}/ci-group-{{ functional_group_name }}.yaml
+  ansible.builtin.command: /usr/bin/ochami cloud-init group set -f yaml -d @{{ cloud_init_dir }}/ci-group-{{ functional_group_name }}.yaml
   changed_when: true
 
 - name: Verify ci group configuration - {{ functional_group_name }}
-  ansible.builtin.command: ochami cloud-init group get config {{ functional_group_name }}
+  ansible.builtin.command: /usr/bin/ochami cloud-init group get config {{ functional_group_name }}
   changed_when: false
   register: ci_group_compute_output
 
