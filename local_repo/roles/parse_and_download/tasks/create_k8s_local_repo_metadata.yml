@@ -13,14 +13,27 @@
 # limitations under the License.
 ---
 
-- name: Fetch software package arch types
-  fetch_software_arch:
-    software_name: "{{ software_entry.name }}"
-  register: arc_result
+# - name: Fetch software package arch types
+#   fetch_software_arch:
+#     software_name: "{{ software_entry.name }}"
+#   register: arc_result
 
-- name: Set fact for all arch types
+# - name: Set fact for all arch types
+#   ansible.builtin.set_fact:
+#     sw_arch_types_list: "{{ arc_result.arch[software_entry.name] }}"
+
+
+- name: Set fact for all arch types for a specific software
   ansible.builtin.set_fact:
-    sw_arch_types_list: "{{ arc_result.arch[software_entry.name] }}"
+    sw_arch_types_list: >-
+      {{
+        software_config.softwares
+        | selectattr('name', 'equalto', software_entry.name)
+        | map(attribute='arch')
+        | list
+        | first
+        | default([])
+      }}
 
 - name: Read existing metadata
   ansible.builtin.slurp:

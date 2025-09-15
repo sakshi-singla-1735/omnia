@@ -59,14 +59,10 @@ def validate_local_repo_config(input_file_path, data,
     software_config_file_path = create_file_path(input_file_path, file_names["software_config"])
     software_config_json = load_json(software_config_file_path)
 
-    roles_config_file_path = create_file_path(input_file_path, file_names["roles_config"])
-    roles_config_dict = load_yaml(roles_config_file_path)
-    def_archs = list({x["architecture"] for x in roles_config_dict["Groups"].values()})
-
     os_ver_path = f"/{software_config_json['cluster_os_type']}/{software_config_json['cluster_os_version']}/"
     for software in software_config_json["softwares"]:
         sw = software["name"]
-        arch_list = software.get("arch", def_archs)
+        arch_list = software.get("arch")
         for arch in arch_list:
             json_path = create_file_path(
             input_file_path,
