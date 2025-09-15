@@ -13,7 +13,7 @@ AddCapability=AUDIT_WRITE
 Volume={{ vol }}
 {% endfor %}
 
-PodmanArgs=--restart no
-
+[Service]
+Restart=always
 [Install]
 WantedBy=multi-user.target

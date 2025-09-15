@@ -43,6 +43,7 @@
     name: "{{ kubespray_image_name }}:{{ kubespray_image_tag }}"
     state: present
   register: image_pull_result
+  ignore_errors: true
 
 - name: Fail if the Kubespray image pull fails
   ansible.builtin.fail:
@@ -57,7 +58,7 @@
         dest: "/etc/containers/systemd/{{ kubespray_container_name }}.container"
         owner: root
         group: root
-        mode: "0644"
+        mode: "{{ kubespray_quadlet_mode }}"
       register: quadlet_out
 
     - name: Reload systemd if Quadlet changed
