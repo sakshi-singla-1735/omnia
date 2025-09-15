@@ -31,3 +31,4 @@
 - name: Verify ci group output - {{ functional_group_name }}
   ansible.builtin.debug:
     msg: "{{ ci_group_compute_output.stdout_lines }}"
+    verbosity: 2

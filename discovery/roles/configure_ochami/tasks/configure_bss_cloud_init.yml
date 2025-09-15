@@ -70,17 +70,18 @@
     mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
 
 - name: Set ci defaults configuration
-  ansible.builtin.command: /usr/bin/chami cloud-init defaults set -f yaml -d @{{ ci_defaults_dest }}
+  ansible.builtin.command: /usr/bin/ochami cloud-init defaults set -f yaml -d @{{ ci_defaults_dest }}
   changed_when: true
 
 - name: Verify ci defaults configuration
-  ansible.builtin.command: ochami cloud-init defaults get -F json-pretty
+  ansible.builtin.command: /usr/bin/ochami cloud-init defaults get -F json-pretty
   changed_when: false
   register: ci_defaults_output
 
 - name: Verify ci defaults output
   ansible.builtin.debug:
     msg: "{{ ci_defaults_output.stdout_lines }}"
+    verbosity: 2
 
 - name: Include configure cloud init
   ansible.builtin.include_tasks: configure_cloud_init_group.yml

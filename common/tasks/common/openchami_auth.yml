@@ -16,6 +16,9 @@
 - name: Include openchami vars variables
   ansible.builtin.include_vars: "../../vars/openchami_vars.yml"
 
+- name: Gather facts for services
+  ansible.builtin.service_facts:
+
 - name: Generate access token
   ansible.builtin.command: sudo bash -lc 'gen_access_token'
   register: access_token_result
@@ -36,6 +39,7 @@
 - name: Regenerate certificate
   when:
     - bss_status_result.rc != 0
+    - "'acme-deploy' in ansible_facts.services"
   block:
     - name: Restart acme-deploy service
       block:

@@ -31,19 +31,9 @@
     regexp: '\s*#'
     state: absent
 
-# - name: Validate mapping file
-#   block:
-#     - name: Validate the mapping file
-#       ansible.builtin.command: |
-#         {{ python_version }} {{ validate_mapping_py }} {{ temp_pxe_file_path }} {{ pxe_nic_start_range }} {{ pxe_nic_end_range }}
-#       changed_when: false
-#       register: val_mapping_msg
-
-#   rescue:
-#     - name: Error in validating mapping file
-#       ansible.builtin.fail:
-#         msg: "{{ pxe_path_fail_msg }}. Error: {{ val_mapping_msg.stderr }}"
-#       when: val_mapping_msg.stderr is defined
+- name: Validate mapping file
+  validate_mapping_file:
+    mapping_file_path: "{{ temp_pxe_file_path }}"
 
 - name: Read host mapping file from CSV file and return a dictionary
   community.general.read_csv:

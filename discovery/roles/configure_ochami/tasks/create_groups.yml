@@ -36,7 +36,7 @@
 
 - name: Get existing SMD groups
   ansible.builtin.set_fact:
-    existing_smd_group_names: "{{ existing_smd_groups | map(attribute='label') | list  }}"
+    existing_smd_group_names: "{{ existing_smd_groups | map(attribute='label') | list }}"
 
 - name: POST new SMD groups
   ansible.builtin.command: /usr/bin/ochami smd group add {{ nodes_dir }}/{{ functional_group_name }}.yml

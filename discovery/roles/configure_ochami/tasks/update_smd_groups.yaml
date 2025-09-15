@@ -38,8 +38,10 @@
 
 - name: DELETE group - {{ functional_group_name }}
   ansible.builtin.command: /usr/bin/ochami smd group delete --no-confirm {{ functional_group_name }}
+  changed_when: true
   when: smd_group_changed | default(false) | bool
 
 - name: POST group - {{ functional_group_name }}
   ansible.builtin.command: /usr/bin/ochami smd group add -m {{ inventory_group_members | join(',') }} {{ functional_group_name }}
+  changed_when: true
   when: smd_group_changed | default(false) | bool

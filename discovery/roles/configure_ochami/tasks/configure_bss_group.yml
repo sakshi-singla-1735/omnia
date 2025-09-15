@@ -13,11 +13,13 @@
 # limitations under the License.
 ---
 
-- name: Verify image, kernel and initramfs in S3 # noqa: yaml[line-length]
+- name: Verify image, kernel and initramfs in S3
   ansible.builtin.shell: |
     set -o pipefail && \
-    s3cmd ls -Hr s3://boot-images | grep {{ rhel_base_compute_image_name }} | grep {{ hostvars['localhost']['cluster_os_version'] }} | awk '{print $4}' | sed 's|s3://||'
+    s3cmd ls -Hr s3://boot-images | grep {{ functional_group_name }} | \
+    grep {{ hostvars['localhost']['cluster_os_version'] }} | awk '{print $4}' | sed 's|s3://||'
   changed_when: false
+  failed_when: false
   register: verify_s3_image
 
 - name: Verify s3 image output
