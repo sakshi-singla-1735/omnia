@@ -1,0 +1,197 @@
+# Copyright 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+---
+
+# ***********************************************************************
+# DO NOT REMOVE OR COMMENT OUT ANY LINES IN THIS FILE.
+# SIMPLY APPEND THE REQUIRED VALUES AGAINST THE PARAMETER OF YOUR CHOICE.
+# ***********************************************************************
+
+#*************************************************************************************************************************
+# groups
+#*************************************************************************************************************************
+# functional_groups_config.yml file takes input parameters for the composable functional_groups and groups.
+# This file contains Roles and Groups used by the omnia for cluster formation.
+# Groups: - Groups will contain the list of groups defined by the user. User must define atleast one group.
+#   grpN:                 - <Mandatory> "grpN" -  User defined name of the group. Range for N is 0-99
+#     cluster_name:       - <Conditional Mandatory> Name of the cluster to which the group belongs. This input is case-sensitive. This will remain empty for groups which are not associated with any kubernetes functional_groups.
+#     location_id:        - <Mandatory> SU-<n>.RACK-<n> Scalable unit and rack number range is 0-99. This input is case-sensitive. Please use uppercase letters only.
+#     parent:             - <Conditional Mandatory> list of service tag of associated active service kube node(s).
+#                         - This field will be empty for group of nodes which is associated with ‘login_node’, ‘compiler_node’, ‘service_kube_node’,
+#                         - 'slurm_control_node’.
+#                         - If ‘service_kube_node’ functional_group is not defined, then value will be empty for worker and default functional_group.
+#     architecture        - <Mandatory> architecture of the nodes - x86_64 or aarch64
+#
+
+groups:
+  grp0:
+    location_id: SU-1.RACK-1
+    cluster_name: ""
+    parent: ""
+    architecture: "x86_64"
+
+  # grp1:
+  #   location_id: SU-1.RACK-2
+  #   cluster_name: ""
+  #   parent: ""
+  #   architecture: "x86_64"
+
+  # grp3:
+  #   location_id: SU-1.RACK-3
+  #   cluster_name: ""
+  #   parent: ""
+  #   architecture: "aarch64"
+
+#************************************************************************************************************************
+#  functional_groups
+#************************************************************************************************************************
+# Atleast one functional_group is mandatory, and User is not allowed to change the name of the functional_groups.
+# Maximum number of functional_groups supported are 100.
+# Note: Nested functional_groups and groups are not supported.
+# The functional_groups are case sensitive
+#   - name:                           - <Mandatory> Name of the functional_group, can be any of the following Omnia defined functional_groups.
+#     groups:                         - <Mandatory> list of groups defined by the user
+#
+
+# This table lists the functional_groups and the layers they belong to in the cluster.
+
+# +---------------------------+-----------------+     +-----------------------+-------------+
+# | Functional Group Name     | Layer           |     | Functional Group Name  | Layer       |
+# +---------------------------+-----------------+     +-----------------------+-------------+
+# |  service_kube_node        | management      |     | default               | compute      |
+# |  login_node               | management      |     | kube_node             | compute      |
+# |  compiler_node            | management      |     | slurm_node            | compute      |
+# |  slurm_control_node       | management      |     |                       |              |
+# +---------------------------+-----------------+     +-----------------------+--------------+
+
+# Default Role:
+# -------------
+#
+# This functional_group is provided to cover the default functional_group of the cluster.
+#
+# The default functional_group is assigned to nodes which do not fit into any specific functional_groups.
+# If user wants to just provision the group of nodes without associating with any functional_group,
+# then the default functional_group can be used.
+#
+# This functional_group belongs to the compute layer.
+#
+functional_groups:
+  - name: "default"
+    groups:
+      - grp0
+
+
+#
+# Service k8s Worker Role: Service Cluster Kubernetes worker node groups to add into service cluster k8s functional_group can be provided in this functional_group
+# ------------------------------------------------------------------------------------
+#
+# This functional_group is used to configure the nodes for Kubernetes worker on service cluster.
+#
+# This functional_group should not have same group as of K8s Worker node.
+#
+# The nodes included in this functional_group will have the necessary tools and
+# configurations to configure Kubernetes worker on service cluster.
+#
+# The nodes in this functional_group can be used to run Kubernetes worker on service cluster.
+#
+# Service k8s Worker Role: Service Cluster Kubernetes worker node groups to add into service cluster k8s functional_group can be provided in this functional_group
+  # - name: "service_kube_node"
+  #   groups:
+  #     - grp1
+  #     - grp2
+
+
+#
+# K8s Worker Role: Kubernetes worker node groups to add into k8s functional_group can be provided in this functional_group
+# -----------------------------------------------------------------------------------------------
+#
+# This functional_group is used to configure the nodes for Kubernetes worker. It belongs to the compute layer.
+#
+# The nodes included in this functional_group will have the necessary tools and
+# configurations to run Kubernetes worker.
+#
+# The nodes in this functional_group can be used to run Kubernetes worker.
+#
+# K8s Worker Role: Kubernetes worker groups to add into k8s worker functional_group can be provided in this functional_group
+  # - name: "kube_node"
+  #   groups:
+  #     - grp3
+  #     - grp4
+
+#
+# Slurm Head Role: Slurm head node groups to add into Slurm functional_group can be provided in this functional_group
+# ------------------------------------------------------------------------------------------
+#
+# This functional_group is used to configure the nodes for Slurm head. It belongs to the management layer.
+#
+# The nodes included in this functional_group will have the necessary tools and
+# configurations to run Slurm head.
+#
+# The nodes in this functional_group can be used to run Slurm head.
+# This functional_group belongs to the compute layer.
+#
+# Slurm Head Role: Slurm head groups to add into slurm_control_node functional_group can be provided in this functional_group
+  # - name: "slurm_control_node"
+  #   groups:
+  #     - grp5
+  #     - grp6
+
+#
+# Slurm Worker Role: Slurm worker node groups to add into Slurm functional_group can be provided in this functional_group
+# ------------------------------------------------------------------------------------------------
+#
+# This functional_group is used to configure the nodes for Slurm worker. It belongs to the compute layer.
+#
+# The nodes included in this functional_group will have the necessary tools and
+# configurations to run Slurm worker.
+#
+# The nodes in this functional_group can be used to run Slurm worker.
+#
+# Slurm Worker Role: Slurm worker groups to add into Slurm functional_group can be provided in this functional_group
+  # - name: "slurm_node"
+  #   groups:
+  #     - grp7
+  #     - grp8
+
+#
+# Login Node Role:
+# -----------
+#
+# This functional_group is used to configure the nodes for user logins. It belongs to the management layer.
+#
+# The nodes included in this functional_group will have the necessary tools and configurations
+# to support user login activities.
+#
+# The user is not allowed to change the name of this functional_group.
+#
+  # - name: "login_node"
+  #   groups:
+  #     - grp9
+
+
+#
+# Compiler Node Role:
+# --------------
+#
+# This functional_group is used to configure the nodes for compilation. It belongs to the management layer.
+#
+# The nodes included in this functional_group will have the necessary tools and
+# configurations to perform compilation.
+#
+# The nodes in this functional_group can be used to compile the code.
+#
+# Compiler Node Role: Compiler groups to add into compiler_node functional_group can be provided in this functional_group
+  # - name: "compiler_node"
+  #   groups:
+  #     - grp9

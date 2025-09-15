@@ -34,6 +34,15 @@ from ansible.module_utils.basic import AnsibleModule
 
 SKIP_TYPES = ["rpm", "deb", "manifest", "pip_module", "git"]
 SKIP_PACKAGES = ["ghcr.io/k8snetworkplumbingwg/multus-cni"]
+KUBESPRAY_ARCH_MAP = {
+    "amd64": "x86_64",
+    "arm64": "aarch64"
+}
+OMNIA_ARCH_MAP = {
+    "x86_64": "amd64",
+    "aarch64": "arm64"
+}
+ALLOWED_VERSIONS = {Version("2.28.0"), Version("2.27.0"), Version("2.26.0")}
 
 # ============================================================================================
 #                              Logging Configuration
@@ -596,17 +605,16 @@ def delete_kubespray_tag(tag_name, base_path="./"):
 
 def clone_latest_tag(kube_version, base_path, arch, n_latest=3):
     """
-    Clone the latest kubespray tag that supports the given Kubernetes version.
+    Clone a fixed kubespray tag (2.28.0, 2.27.0, 2.26.0) that supports the given Kubernetes version.
 
     Parameters:
         kube_version (str): Desired Kubernetes version.
         base_path (str): Path to clone into.
         arch (str): Architecture to check compatibility.
-        n_latest (int): Number of latest tags to try.
 
     Returns:
         tuple: (str: Compatible tag name if found, else None,
-                list: Available compatible versions)
+                dict: Available compatible versions for checked tags)
     """
     temp_dir = tempfile.mkdtemp()
     compatible_versions = {}
@@ -618,24 +626,28 @@ def clone_latest_tag(kube_version, base_path, arch, n_latest=3):
         repo = Repo.clone_from(repo_url, temp_dir)
         repo.git.fetch('--tags')
 
+        # Filter repo tags for only those fixed versions
         valid_tags = []
         for tag in repo.tags:
             try:
-                version = Version(tag.name.lstrip('v'))
-                valid_tags.append((version, tag))
+                version = Version(tag.name.lstrip("v"))
+                if version in ALLOWED_VERSIONS:
+                    valid_tags.append((version, tag))
             except InvalidVersion:
                 logger.debug("Skipping invalid version tag: %s", tag.name)
                 continue
 
         if not valid_tags:
-            logger.error("No valid tags found in repository")
-            return None, []
+            logger.error("None of the fixed tags found in repository: %s", ALLOWED_VERSIONS)
+            return None, {}
 
+        # Sort descending (so we check 2.28.0 first, then 2.27.0, etc.)
         valid_tags.sort(key=lambda t: t[0], reverse=True)
+        logger.info("Filtered fixed tags: %s", [str(v) for v, _ in valid_tags])
 
-        for i, (_, tag) in enumerate(valid_tags[:n_latest]):
+        for i, (_, tag) in enumerate(valid_tags, 1):
             tag_name = tag.name
-            logger.info("Checking tag %s (%d/%d)", tag_name, i + 1, n_latest)
+            logger.info("Checking tag %s (%d/%d)", tag_name, i, len(valid_tags))
 
             dir_name = kubespray_dir_name(tag_name)
             clone_to_path = os.path.join(base_path, dir_name)
@@ -652,25 +664,19 @@ def clone_latest_tag(kube_version, base_path, arch, n_latest=3):
             if version_result:
                 logger.info("Found compatible tag %s for %s", tag_name, kube_version)
                 return tag_name, compatible_versions
-            
-            
-            logger.info("Tag %s doesn't support %s. Available versions: %s", 
-                       tag_name, kube_version, ", ".join(versions) if versions else "none")
 
+            logger.info("Tag %s doesn't support %s. Available versions: %s",
+                        tag_name, kube_version, ", ".join(versions) if versions else "none")
 
-        logger.error("No compatible tag found for %s in %d latest tags. Available versions: %s", 
-                    kube_version, n_latest, ", ".join(compatible_versions[tag_name]) if compatible_versions[tag_name] else "none")
+        logger.error("No compatible tag found for %s in fixed tags %s",
+                     kube_version, [str(v) for v, _ in valid_tags])
         return None, compatible_versions
 
     except Exception as e:
         logger.error("Error in clone_latest_tag: %s", str(e))
-        return None, []
+        return None, {}
     finally:
-        try:
-            shutil.rmtree(temp_dir, ignore_errors=True)
-        except Exception as e:
-            logger.warning("Error cleaning up temp directory: %s", str(e))
-
+        shutil.rmtree(temp_dir, ignore_errors=True)
 
 def clone_kubespray(repo_url, tag_name, clone_to_path):
     """
@@ -1120,7 +1126,7 @@ def generate_k8_jsons_for_version(kube_version, base_path, repo_url, package_typ
                 raise FileOperationError("Failed to process image list")
 
         # Write final JSON output
-        output_json_path = os.path.join(temp_output_path, f"{software_name}_v{kube_version.lstrip('v')}.json")
+        output_json_path = os.path.join(temp_output_path, f"{software_name}_v{kube_version.lstrip('v')}_{KUBESPRAY_ARCH_MAP[arch]}.json")
         write_json(output_json_path, final_k8s_data)
 
         logger.info(f"Successfully generated JSON for version {kube_version} at {output_json_path}")
@@ -1145,7 +1151,7 @@ def run_module():
         "k8s_json_path": {"type": "str", "required": True},
         "software_name": {"type": "str", "required": True},
         "log_dir": {"type": "str", "required": True},
-        "arch": {"type": "str", "required": True},
+        "arch": {"type": "str", "required": True, "choices": ["x86_64", "aarch64"]},
         "n_latest": {"type": "int", "default": 2},
         "mode": {
             "type": "str", 
@@ -1185,7 +1191,7 @@ def run_module():
                     repo_url,
                     module.params['package_types'],
                     module.params['k8s_json_path'],
-                    module.params['arch'],
+                    OMNIA_ARCH_MAP[module.params['arch']],
                     module.params['n_latest'],
                     module.params['software_name'],
                     module.params['mode'],

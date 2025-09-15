@@ -3,23 +3,12 @@
   "title": "Telemetry Configuration",
   "type": "object",
   "properties": {
-    "kube_prometheus_support": {
-      "type": "boolean"
-    },
-    "prometheus_scrape_interval": {
-      "type": "integer",
-      "minimum": 1,
-      "default": 15
-    },
 
     "idrac_telemetry_support": {
       "type": "boolean"
     },
     "idrac_telemetry_collection_type": {
       "type": "string"
-    },
-    "visualization_support": {
-      "type": "boolean"
     },
     "federated_idrac_telemetry_collection": {
       "type": "boolean"
@@ -29,11 +18,8 @@
     }
   },
   "required": [
-    "kube_prometheus_support",
-    "prometheus_scrape_interval",
     "idrac_telemetry_support",
     "idrac_telemetry_collection_type",
-    "visualization_support",
     "federated_idrac_telemetry_collection"
   ],
   "allOf": [

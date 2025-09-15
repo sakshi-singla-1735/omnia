@@ -11,11 +11,6 @@
       "type": "string",
       "description": "Specifies the version of the operating system for the cluster."
     },
-    "iso_file_path": {
-      "type": "string",
-      "pattern": "^.*\\.iso$",
-      "description": "Path of the ISO file to be used for provisioning the clusters"
-    },
     "repo_config": {
       "type": "string",
       "enum": ["always", "partial", "never"],
@@ -27,9 +22,19 @@
         "type": "object",
         "properties": {
           "name": { "type": "string" },
-          "version": { "type": "string" }
+          "version": { "type": "string" },
+          "arch": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["x86_64", "aarch64"]
+            },
+            "minItems": 1,
+            "uniqueItems": true
+          }
         },
-        "required": ["name"]
+        "required": ["name"],
+        "additionalProperties": false
       },
       "description": "Array of software packages to be configured."
     },
@@ -103,5 +108,5 @@
       "description": "Array of Intel Gaudi components."
     }
   },
-  "required": ["cluster_os_type", "iso_file_path", "cluster_os_version", "repo_config", "softwares"]
+  "required": ["cluster_os_type", "cluster_os_version", "repo_config", "softwares"]
 }

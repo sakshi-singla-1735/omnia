@@ -21,7 +21,7 @@ import yaml
 import ipaddress
 import subprocess
 from ast import literal_eval
-import ansible.module_utils.input_validation.common_utils.data_fetch as get
+import ansible.module_utils.input_validation.common_utils.data_fetch as fetch
 from ansible.module_utils.input_validation.validation_flows import csi_driver_validation
 import ansible.module_utils.input_validation.common_utils.data_validation as validate
 
@@ -35,7 +35,7 @@ from ansible.module_utils.input_validation.common_utils import (
 from ansible.module_utils.input_validation.validation_flows import scheduler_validation
 from ansible.module_utils.local_repo.software_utils import (
     load_json,
-    set_version_variables,
+    load_yaml,
     get_subgroup_dict,
     get_software_names,
     get_json_file_path
@@ -98,15 +98,6 @@ def validate_software_config(
                     )
                 )
 
-    iso_file_path = data.get("iso_file_path", "")
-    not_valid_iso_msg = validation_utils.verify_iso_file(
-        iso_file_path, cluster_os_type, cluster_os_version
-    )
-    if not_valid_iso_msg:
-        errors.append(
-            create_error_msg(
-                "iso_file_path", iso_file_path, not_valid_iso_msg))
-
     #software groups and subgroups l2 validation
     # Check for the additional software field
     if "additional_software" in data:
@@ -116,11 +107,11 @@ def validate_software_config(
         extensions = config.extensions
         fname = "additional_software"
         schema_file_path = schema_base_file_path + "/" + fname + extensions['json']
-        json_files = get.files_recursively(omnia_base_dir + "/" + project_name, extensions['json'])
+        json_files = fetch.files_recursively(omnia_base_dir + "/" + project_name, extensions['json'])
         json_files_dic = {}
 
         for file_path in json_files:
-            json_files_dic.update({get.file_name_from_path(file_path): file_path})
+            json_files_dic.update({fetch.file_name_from_path(file_path): file_path})
         new_file_path = json_files_dic.get("additional_software.json", None)
 
         # Validate the schema of the input file (L1)
@@ -177,51 +168,45 @@ def validate_software_config(
         errors.extend(additional_software_errors)
 
     # create the subgroups and softwares dictionary with version details
-    software_json_data = load_json(input_file_path)
-    subgroup_dict, _ = get_subgroup_dict(software_json_data)
-
-    # mismatches = validate_versions(software_json_data, config.expected_versions)
-    # if mismatches:
-    #     for msg in mismatches:
-    #         errors.append(
-    #             create_error_msg(
-    #                 "Validation Error: ","Version Mismatch found at" , msg
-    #                 )
-    #             )
-
+    subgroup_dict, _ = get_subgroup_dict(data)
     # check if the corresponding json files for softwares and subgroups exists in config folder
-    software_list = get_software_names(input_file_path)
     validation_results = []
     failures = []
     fail_data = []
-    for software in software_list:
-        json_path = get_json_file_path(
-            software, cluster_os_type, cluster_os_version, input_file_path
-        )
-        # Check if json_path is None or if the JSON syntax is invalid
-        if json_path is None:
-            errors.append(
-                create_error_msg(
-                    "Validation Error: ", software,
-                    f"is present in software_config.json. JSON file not found: {os.path.dirname(input_file_path)}/config/{cluster_os_type}/{cluster_os_version}/{software}.json"
-                )
-            )
-        else:
-            try:
-                subgroup_softwares = subgroup_dict.get(software, None)
-                # for each subgroup for a software check for corresponding entry in software.json
-                # eg: for amd the amd.json should contain both amd and rocm entries
-                with open(json_path, "r") as file:
-                    json_data = json.load(file)
-                for subgroup_software in subgroup_softwares:
-                    _, fail_data = validation_utils.validate_softwaresubgroup_entries(
-                        subgroup_software, json_path, json_data, validation_results, failures
-                    )
 
-            except (FileNotFoundError, json.JSONDecodeError) as e:
+    roles_config_file_path = create_file_path(input_file_path, file_names["roles_config"])
+    roles_config_dict = load_yaml(roles_config_file_path)
+    def_archs = list({x["architecture"] for x in roles_config_dict["Groups"].values()})
+
+    for software_pkg in data['softwares']:
+        software = software_pkg['name']
+        arch_list = software_pkg.get('arch', def_archs)
+        json_paths = []
+        for arch in arch_list:
+            json_paths.append(get_json_file_path(
+                software, cluster_os_type, cluster_os_version, input_file_path, arch))
+        for json_path in json_paths:
+            # Check if json_path is None or if the JSON syntax is invalid
+            if not json_path:
                 errors.append(
-                    create_error_msg("Error opening or reading JSON file:", json_path, str(e))
+                    create_error_msg(
+                        "Validation Error: ", software,
+                        f"is present in software_config.json. JSON file not found: {software}.json"
+                    )
                 )
+            else:
+                try:
+                    subgroup_softwares = subgroup_dict.get(software, None)
+                    json_data = load_json(json_path)
+                    for subgroup_software in subgroup_softwares:
+                        _, fail_data = validation_utils.validate_softwaresubgroup_entries(
+                            subgroup_software, json_path, json_data, validation_results, failures
+                        )
+
+                except (FileNotFoundError, json.JSONDecodeError) as e:
+                    errors.append(
+                        create_error_msg("Error opening or reading JSON file:", json_path, str(e))
+                    )
 
     if fail_data:
         errors.append(
@@ -381,17 +366,11 @@ def validate_security_config(
     )
     software_list = get_software_names(software_config_json)
     authentication_type = ""
-    required = {"openldap","freeipa"}
+    required = {"openldap"}
 
-    matches = required.intersection(software_list)
-    if len(matches) == 2:
-        errors.append(
-                create_error_msg(authentication_type,
-                                 "software",
-                                 en_us_validation_msg.FREEIPA_AND_OPENLDAP_TRUE_FAIL_MSG)
-            )
-    elif matches:
-        authentication_type = next(iter(matches))
+    matches = [value for value in required if value in software_list]
+    if matches:
+        authentication_type = matches[0]
         logger.info(f"{authentication_type}: "
                     f"{en_us_validation_msg.AUTHENTICATION_SYSTEM_SUCCESS_MSG}")
     else:
@@ -405,10 +384,6 @@ def validate_security_config(
             "openldap_organizational_unit",
         ]
         validate_openldap_input_params(authentication_type, mandatory_fields, data, errors, logger)
-
-    elif authentication_type == "freeipa":
-        mandatory_fields = ["domain_name","realm_name"]
-        validate_freeapi_input_params(authentication_type, mandatory_fields, data, errors, logger)
 
     return errors
 
@@ -652,7 +627,7 @@ def validate_storage_config(
     return errors
 
 
-# for k8s_access_config.yml and passwordless_ssh_config.yml this is run
+# for  passwordless_ssh_config.yml this is run
 def validate_usernames(
     input_file_path, data, logger, module, omnia_base_dir, module_utils_base, project_name
 ):
@@ -673,16 +648,6 @@ def validate_usernames(
     """
     errors = []
 
-    k8s_access_config_file_path = create_file_path(
-        input_file_path, file_names["k8s_access_config"]
-    )
-    k8s_access_config_json = validation_utils.load_yaml_as_json(
-        k8s_access_config_file_path,
-        omnia_base_dir,
-        project_name,
-        logger,
-        module,
-    )
     passwordless_ssh_config_file_path = create_file_path(
         input_file_path, file_names["passwordless_ssh_config"]
     )
@@ -694,14 +659,12 @@ def validate_usernames(
         module,
     )
 
-    k8s_user_name = k8s_access_config_json["user_name"]
     pw_ssh_user_name = passwordless_ssh_config_json["user_name"]
 
-    k8s_user_name = k8s_user_name.split(",")
     pw_ssh_user_name = pw_ssh_user_name.split(",")
 
     # Combine all usernames into a single list
-    all_usernames = k8s_user_name + pw_ssh_user_name
+    all_usernames = pw_ssh_user_name
 
     # Create a dictionary to store the count of each username
     username_count = {}
@@ -904,29 +867,6 @@ def validate_login_node_security_config(
             validate_smtp_server(data, errors, logger)
         validate_allowed_services(data, errors, logger)
     return errors
-
-
-def validate_site_config(
-    input_file_path, data, logger, module, omnia_base_dir, module_utils_base, project_name
-):
-    """
-    Validates the site configuration.
-
-    Args:
-        input_file_path (str): The path to the input file.
-        data (dict): The data to be validated.
-        logger (Logger): A logger instance.
-        module (Module): A module instance.
-        omnia_base_dir (str): The base directory of the Omnia configuration.
-        module_utils_base (str): The base directory of the module utils.
-        project_name (str): The name of the project.
-
-    Returns:
-        list: A list of errors encountered during validation.
-    """
-    errors = []
-    return errors
-
 
 def validate_server_spec(
     input_file_path, data, logger, module, omnia_base_dir, module_utils_base, project_name

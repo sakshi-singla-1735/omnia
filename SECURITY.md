@@ -23,4 +23,3 @@ If the vulnerability is accepted, the team will review the issue and make approp
 In case the vulnerability is deemed to be high risk, the team may also provide a temporary fix or workaround until the next release is available.
 
 However, if the vulnerability is deemed to be low risk or is not covered in the product security coverage scope, the issue may be denied.
-
