@@ -18,8 +18,6 @@
     src: "{{ openchami_groups_common_template }}"
     dest: "{{ nodes_dir }}/common.yml"
     mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
-  vars:
-    nodes: "{{ hostvars['localhost']['read_mapping_file']['dict'] | dict2items }}"
 
 - name: Delete the common SMD groups
   ansible.builtin.command: /usr/bin/ochami smd group delete --no-confirm {{ item }}
