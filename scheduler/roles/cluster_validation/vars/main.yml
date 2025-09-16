@@ -34,7 +34,7 @@ software_config_json_file: "{{ input_project_dir }}/software_config.json"
 local_repo_access_dest_path: "/opt/omnia/provision/local_repo_access.yml"
 
 k8s_version_fail_msg: "Failed, Ensure version of {{ software_stack }} is mentioned in software_config.json"
-k8s_packages_file: "{{ input_project_dir }}/config/x86_64/{{ software_config.cluster_os_type }}/{{ software_config.cluster_os_version }}/{{ software_stack }}.json"
+k8s_packages_file: "{{ input_project_dir }}/config/x86_64/{{ software_config.cluster_os_type }}/{{ software_config.cluster_os_version }}/{{ software_stack }}.json" # noqa: yaml[line-length]
 success_msg_ucx_version: "Success. ucx version is mentioned."
 fail_msg_ucx_version: "Failed. ucx version is not provided in software_config.json. Please include ucx version in input/software_config.json and rerun the playbook." # noqa: yaml[line-length]
 success_msg_openmpi_version: "Success. openmpi version is mentioned."
@@ -98,7 +98,6 @@ restart_services_failure_msg: "Failed. restart_slurm_services accepts true or fa
 deployment_false_msg: >
   None of the entries under '{{ cluster_type }}_k8s_cluster' have 'deployment' set to 'true'.
   Please update exactly one cluster under '{{ cluster_type }}_k8s_cluster' in omnia_config.yml with 'deployment: true'.
-compute_service_k8s_true_fail_msg: "Both scheduler.yml and service_k8s_cluster.yml cannot be run together. Run only any one of playbook."
 cluster_type_unknown_msg: "Neither compute_k8s_playbook nor service_k8s_playbook is set."
 
 # Usage: fetch_storage_config.yml

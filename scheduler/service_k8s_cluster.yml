@@ -39,8 +39,13 @@
       ansible.builtin.set_fact:
         service_k8s_playbook: true
 
-#- name: Invoke validate_config.yml to perform L1 and L2 validations for k8s
-#  ansible.builtin.import_playbook: ../input_validation/validate_config.yml
+    - name: Install sshpass
+      ansible.builtin.package:
+        name: sshpass
+        state: present
+
+  # - name: Invoke validate_config.yml to perform L1 and L2 validations for k8s
+  #  ansible.builtin.import_playbook: ../input_validation/validate_config.yml
 
 - name: Validate inventory
   ansible.builtin.import_playbook: ../utils/inventory_validation.yml
@@ -60,8 +65,8 @@
         name: cluster_validation
         tasks_from: validation_status_check.yml
 
-#- name: Update Repositories/Registries on nodes
-#  ansible.builtin.import_playbook: ../utils/update_user_repo.yml
+ # - name: Update Repositories/Registries on nodes
+ # ansible.builtin.import_playbook: ../utils/update_user_repo.yml
 
 - name: Create kubespray container group
   ansible.builtin.import_playbook: ../utils/create_container_group.yml
@@ -128,33 +133,40 @@
   roles:
     - k8s_prepare_images
 
-# - name: Deploy plugins on kube control nodes
-#   hosts: kube_control_plane[0]
-#   gather_facts: false
-#   vars:
-#     common_plugin:
-#       kubernetes_dashboard: false
-#       habanalabs-device-plugin: false
-#       mpi-operator: false
-#       xilinx-device-plugin: false
-#       nfs-subdir-external-provisioner: true
-#       multus-device-plugin: false
-#       whereabouts-device-plugin: true
-#   roles:
-#     - common_plugins
+- name: Prepare kube node configs
+  hosts: kube_control_plane[0]
+  gather_facts: false
+  any_errors_fatal: true
+  roles:
+    - kube_node_configs
 
-# - name: CSI powerscale image pulling
-#   hosts: kube_node, kube_control_plane
-#   tasks:
-#     - name: Pull images
-#       ansible.builtin.include_role:
-#         name: k8s_csi_powerscale_plugin
-#         tasks_from: csi_powerscale_image_pull.yml
-#       when:
-#         - hostvars['127.0.0.1']['csi_driver_powerscale_precheck_pass'] | default(false) | bool
+- name: Deploy plugins on kube control nodes
+  hosts: kube_control_plane[0]
+  gather_facts: false
+  vars:
+    common_plugin:
+      kubernetes_dashboard: false
+      habanalabs-device-plugin: false
+      mpi-operator: false
+      xilinx-device-plugin: false
+      nfs-subdir-external-provisioner: true
+      multus-device-plugin: false
+      whereabouts-device-plugin: false
+  roles:
+    - common_plugins
 
-# - name: Install CSI powerscale plugin on kube control nodes
-#   hosts: kube_control_plane[0]
-#   gather_facts: false
-#   roles:
-#     - k8s_csi_powerscale_plugin
+ # - name: CSI powerscale image pulling
+ #   hosts: kube_node, kube_control_plane
+ #   tasks:
+ #     - name: Pull images
+ #       ansible.builtin.include_role:
+ #         name: k8s_csi_powerscale_plugin
+ #         tasks_from: csi_powerscale_image_pull.yml
+ #       when:
+ #         - hostvars['127.0.0.1']['csi_driver_powerscale_precheck_pass'] | default(false) | bool
+
+ # - name: Install CSI powerscale plugin on kube control nodes
+ #   hosts: kube_control_plane[0]
+ #   gather_facts: false
+ #   roles:
+ #     - k8s_csi_powerscale_plugin

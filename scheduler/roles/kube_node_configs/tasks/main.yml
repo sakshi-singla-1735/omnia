@@ -1,0 +1,188 @@
+# Copyright 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+---
+- name: Create Kubernetes config directories
+  ansible.builtin.file:
+    path: "/root/k8s/{{ hostvars['localhost']['k8s_version'] }}/kube_node_configs/{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - "kubernetes"
+    - "kubernetes/ssl"
+
+- name: Copy Kubernetes CA certificate
+  ansible.builtin.copy:
+    src: "/etc/kubernetes/ssl/ca.crt"
+    dest: "/root/k8s/{{ hostvars['localhost']['k8s_version'] }}/kube_node_configs/kubernetes/ssl/ca.crt"
+    owner: root
+    group: root
+    mode: '0644'
+    remote_src: true
+
+# CNI configs
+- name: Create CNI config directory
+  ansible.builtin.file:
+    path: "/root/k8s/{{ hostvars['localhost']['k8s_version'] }}/kube_node_configs/cni"
+    state: directory
+    mode: '0755'
+
+- name: Copy CNI binaries
+  ansible.builtin.copy:
+    src: "/opt/cni/bin/"
+    dest: "/root/k8s/{{ hostvars['localhost']['k8s_version'] }}/kube_node_configs/cni/"
+    owner: root
+    group: root
+    mode: '0755'
+    remote_src: true
+
+# Containerd configs
+- name: Copy containerd configuration
+  ansible.builtin.copy:
+    src: "/etc/containerd"
+    dest: "/root/k8s/{{ hostvars['localhost']['k8s_version'] }}/kube_node_configs/"
+    owner: root
+    group: root
+    mode: '0755'
+    remote_src: true
+
+- name: Ensure overlayfs plugin config is present at the end of containerd config.toml
+  ansible.builtin.blockinfile:
+    path: "/root/k8s/{{ hostvars['localhost']['k8s_version'] }}/kube_node_configs/containerd/config.toml"
+    block: "{{ toml_overlay_block | indent(2, true) }}"
+    marker: ""
+    insertafter: EOF
+  vars:
+    toml_overlay_block: |
+      [plugins."io.containerd.snapshotter.v1.overlayfs"]
+        root_path = "/var/lib/containerd-overlay"
+
+# Binaries
+- name: Create local bin directory
+  ansible.builtin.file:
+    path: "/root/k8s/{{ hostvars['localhost']['k8s_version'] }}/kube_node_configs/usr/local/bin"
+    state: directory
+    mode: '0755'
+
+- name: Copy required binaries
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "/root/k8s/{{ hostvars['localhost']['k8s_version'] }}/kube_node_configs/usr/local/bin/"
+    owner: root
+    group: root
+    mode: '0755'
+    remote_src: true
+  loop:
+    - /usr/local/bin/calicoctl
+    - /usr/local/bin/calicoctl.sh
+    - /usr/local/bin/containerd
+    - /usr/local/bin/containerd-shim-runc-v2
+    - /usr/local/bin/containerd-stress
+    - /usr/local/bin/crictl
+    - /usr/local/bin/ctr
+    - /usr/local/bin/etcdctl
+    - /usr/local/bin/kubeadm
+    - /usr/local/bin/kubelet
+    - /usr/local/bin/kubernetes-scripts
+    - /usr/local/bin/nerdctl
+    - /usr/local/bin/runc
+
+# Service files
+- name: Copy containerd service file
+  ansible.builtin.copy:
+    src: "/etc/systemd/system/containerd.service"
+    dest: "/root/k8s/{{ hostvars['localhost']['k8s_version'] }}/kube_node_configs/containerd.service"
+    owner: root
+    group: root
+    mode: '0644'
+    remote_src: true
+
+- name: Copy kubelet service file
+  ansible.builtin.copy:
+    src: "/etc/systemd/system/kubelet.service"
+    dest: "/root/k8s/{{ hostvars['localhost']['k8s_version'] }}/kube_node_configs/kubelet.service"
+    owner: root
+    group: root
+    mode: '0644'
+    remote_src: true
+
+# Pulp webserver cert
+- name: Copy pulp webserver certificate
+  ansible.builtin.copy:
+    src: "/etc/pki/ca-trust/source/anchors/pulp_webserver.crt"
+    dest: "/root/k8s/{{ hostvars['localhost']['k8s_version'] }}/kube_node_configs/pulp_webserver.crt"
+    owner: root
+    group: root
+    mode: '0644'
+    remote_src: true
+
+- name: Install NFS client package
+  ansible.builtin.package:
+    name: nfs-utils
+    state: present
+
+- name: Check NFS export availability
+  ansible.builtin.command: "showmount -e {{ hostvars['localhost']['matched_nfs'].server_ip }}"
+  register: nfs_exports
+  changed_when: false
+
+- name: Fail if expected NFS export is not available
+  ansible.builtin.fail:
+    msg: "NFS export {{ hostvars['localhost']['matched_nfs'].server_share_path }} not found on {{ hostvars['localhost']['matched_nfs'].server_ip }}"
+  when: hostvars['localhost']['matched_nfs'].server_share_path not in nfs_exports.stdout
+
+- name: Ensure client share directory exists
+  ansible.builtin.file:
+    path: "{{ hostvars['localhost']['matched_nfs'].client_share_path }}"
+    state: directory
+    mode: '0755'
+
+- name: Mount NFS share (force NFSv3)
+  ansible.posix.mount:
+    src: "{{ hostvars['localhost']['matched_nfs'].server_ip }}:{{ hostvars['localhost']['matched_nfs'].server_share_path }}"
+    path: "{{ hostvars['localhost']['matched_nfs'].client_share_path }}"
+    fstype: nfs
+    opts: "{{ hostvars['localhost']['matched_nfs'].client_mount_options | default('rw,sync,hard,intr') }},vers=3"
+    state: mounted
+
+- name: Copy kube_node_configs folder to NFS share
+  ansible.builtin.copy:
+    src: "/root/k8s/{{ hostvars['localhost']['k8s_version'] }}/kube_node_configs/"
+    dest: "{{ hostvars['localhost']['matched_nfs'].client_share_path }}/kube_node_configs/"
+    owner: root
+    group: root
+    mode: "0755"
+    directory_mode: "0755"
+    remote_src: true
+
+# kubeadm join token
+- name: Generate kubeadm join token
+  ansible.builtin.command:
+    cmd: kubeadm token create --print-join-command
+  register: join_cmd
+  changed_when: false
+
+- name: Extract kube_token
+  ansible.builtin.set_fact:
+    kube_token: "{{ join_cmd.stdout.split()[4] }}"
+
+- name: Extract ca_cert_hash
+  ansible.builtin.set_fact:
+    ca_cert_hash: "{{ join_cmd.stdout.split()[6] }}"
+
+- name: Generate cloud-init vars YAML
+  ansible.builtin.template:
+    src: cloud-init-vars.j2
+    dest: /opt/omnia/kubespray/cloud-init-vars.yaml
+    mode: '0644'
+  delegate_to: localhost

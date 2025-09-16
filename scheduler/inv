@@ -1,0 +1,9 @@
+[kube_control_plane]
+10.5.0.201  ansible_user=root ansible_ssh_pass=dell
+10.5.0.202  ansible_user=root ansible_ssh_pass=dell
+10.5.0.203  ansible_user=root ansible_ssh_pass=dell
+
+[etcd]
+10.5.0.201 ansible_user=root ansible_ssh_pass=dell
+10.5.0.202  ansible_user=root ansible_ssh_pass=dell
+10.5.0.203  ansible_user=root ansible_ssh_pass=dell

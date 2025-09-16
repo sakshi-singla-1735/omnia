@@ -59,3 +59,18 @@
   when:
     - not hostvars['localhost']['k8s_offline_install']
     - not hostvars['localhost']['enable_routed_internet']
+
+- name: Create Kubernetes config directories
+  ansible.builtin.file:
+    path: "/root/k8s/{{ hostvars['localhost']['k8s_version'] }}/kube_node_configs/{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - "k8s-images"
+
+# Save pulled images as tar files
+- name: Save K8s service images to tar
+  ansible.builtin.command: nerdctl save -o /root/k8s/{{ hostvars['localhost']['k8s_version'] }}/kube_node_configs/k8s-images/{{ item | regex_replace('[^a-zA-Z0-9_.-]', '_') }}.tar {{ item }}  # noqa: yaml[line-length]
+  with_items: "{{ image_versions }}"
+  changed_when: true
+  delegate_to: "{{ groups['kube_control_plane'][0] }}"
