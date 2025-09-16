@@ -38,14 +38,6 @@
   register: base_image_build
   changed_when: true
 
-# - name: Wait for rhel-base image OpenCHAMI jobs to finish
-#   ansible.builtin.async_status:
-#     jid: "{{ base_image_build.ansible_job_id }}"
-#   register: job_result
-#   until: job_result.finished
-#   retries: "{{ job_retry }}"
-#   delay: "{{ job_delay }}"
-
 - name: Wait for rhel-base image OpenCHAMI jobs to finish
   block:
     - name: Wait for rhel-base image OpenCHAMI jobs to finish
