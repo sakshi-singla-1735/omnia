@@ -13,23 +13,8 @@
 # limitations under the License.
 ---
 
-- name: Set_fact for fetch omnia config credentials
-  hosts: localhost
-  connection: local
-  tags: always
-  tasks:
-    - name: Set dynamic run tags including 'provision'
-      when: not config_file_status | default(false) | bool
-      ansible.builtin.set_fact:
-        omnia_run_tags: "{{ (ansible_run_tags | default([]) + ['provision']) | unique }}"
-        cacheable: true
+- name: Check prequisites
+  ansible.builtin.include_tasks: check_prerequisites.yml
 
-- name: Invoke get_config_credentials.yml
-  ansible.builtin.import_playbook: ../utils/credential_utility/get_config_credentials.yml
-
-- name: Deploy OS via idrac
-  hosts: bmc
-  connection: local
-  gather_facts: false
-  roles:
-    - idrac
+- name: Configure PXE boot
+  ansible.builtin.include_tasks: configure_pxe_boot.yml

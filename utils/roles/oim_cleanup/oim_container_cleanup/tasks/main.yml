@@ -34,6 +34,9 @@
 - name: Cleanup kubespray container
   ansible.builtin.import_tasks: cleanup_kubespray.yml
 
+- name: Cleanup openchami container
+  ansible.builtin.import_tasks: cleanup_openchami.yml
+
 - name: Remove telemetry directory if exists
   ansible.builtin.file:
     path: "{{ item }}"
