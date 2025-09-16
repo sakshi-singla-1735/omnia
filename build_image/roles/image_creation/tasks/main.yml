@@ -24,6 +24,8 @@
 
 - name: Invoking build base image playbook
   ansible.builtin.include_tasks: build_base_image.yml
+  tags: base_image
 
 - name: Invoking build rhel compute image playbooks
   ansible.builtin.include_tasks: build_compute_image.yml
+  tags: compute_image

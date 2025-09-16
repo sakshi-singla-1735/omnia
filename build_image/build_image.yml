@@ -42,6 +42,13 @@
     oim_group: true
   tags: always
 
+# - name: Fetch input_validation
+#   hosts: localhost
+#   connection: local
+#   gather_facts: false
+#   roles:
+#     - input_validation
+
 - name: Openchmi build image
   hosts: localhost
   connection: local

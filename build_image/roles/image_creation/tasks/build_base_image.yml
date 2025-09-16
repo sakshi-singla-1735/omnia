@@ -13,17 +13,6 @@
 #  limitations under the License.
 ---
 
-# - name: Ensure log directory exists
-#   ansible.builtin.file:
-#     path: "{{ openchami_log_dir }}"
-#     state: directory
-#     mode: "0755"
-
-# - name: Ensure base_image.log is absent if it was a directory
-#   ansible.builtin.file:
-#     path: "{{ openchami_base_image_log_path }}"
-#     state: absent
-
 - name: Create base_image.log as a file
   ansible.builtin.file:
     path: "{{ openchami_base_image_log_path }}"
@@ -36,7 +25,7 @@
     dest: "{{ openchami_base_image_vars_path }}"
     mode: "{{ dir_permissions_644 }}"
 
-- name: Invoking openchami playbook for rhel-base image build
+- name: Invoking Openchami playbook for rhel-base image build
   ansible.builtin.shell: |
     set -o pipefail
     ansible-playbook {{ openchami_clone_path }}/dell/podman-quadlets/image.yaml \
@@ -49,13 +38,13 @@
   register: base_image_build
   changed_when: true
 
-- name: Wait for rhel-base image OpenCHAMI jobs to finish
-  ansible.builtin.async_status:
-    jid: "{{ base_image_build.ansible_job_id }}"
-  register: job_result
-  until: job_result.finished
-  retries: "{{ job_retry }}"
-  delay: "{{ job_delay }}"
+# - name: Wait for rhel-base image OpenCHAMI jobs to finish
+#   ansible.builtin.async_status:
+#     jid: "{{ base_image_build.ansible_job_id }}"
+#   register: job_result
+#   until: job_result.finished
+#   retries: "{{ job_retry }}"
+#   delay: "{{ job_delay }}"
 
 - name: Wait for rhel-base image OpenCHAMI jobs to finish
   block:
@@ -67,16 +56,12 @@
       retries: "{{ job_retry }}"
       delay: "{{ job_delay }}"
   rescue:
-    - name: Handle failure when waiting for base image job
-      ansible.builtin.debug:
+    - name: Fail the build if the base image build fails
+      ansible.builtin.fail:
         msg: "{{ base_image_failure_msg }}"
 
-    - name: Remove generated base image vars file (cleanup on failure)
+  always:
+    - name: Remove generated base image vars file
       ansible.builtin.file:
         path: "{{ openchami_base_image_vars_path }}"
         state: absent
-
-- name: Remove generated base image vars file
-  ansible.builtin.file:
-    path: "{{ openchami_base_image_vars_path }}"
-    state: absent
