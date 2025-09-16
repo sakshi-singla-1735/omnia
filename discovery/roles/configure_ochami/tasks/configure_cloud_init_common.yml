@@ -18,8 +18,6 @@
     src: "{{ ci_group_common_template }}"
     dest: "{{ ci_group_common_dest }}"
     mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
-  vars:
-    nodes: "{{ hostvars['localhost']['read_mapping_file']['dict'] | dict2items }}"
 
 - name: Set ci group configuration
   ansible.builtin.command: /usr/bin/ochami cloud-init group set -f yaml -d @{{ ci_group_common_dest }}
