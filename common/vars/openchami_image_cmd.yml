@@ -64,6 +64,6 @@ compute_images_dict:
       - wget
 
 rhel_repos:
-  - { name: 'RHEL10_Epel', url: 'https://dl.fedoraproject.org/pub/epel/10.0/Everything/x86_64/', gpg: 'https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-10' }
+  - { name: 'RHEL10_Epel', url: '', gpg: '' }
   - { name: 'RHEL10_BaseOS', url: '', gpg: '' }
   - { name: 'RHEL10_AppStream', url: '', gpg: '' }
