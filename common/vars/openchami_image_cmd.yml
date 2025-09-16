@@ -36,33 +36,6 @@ login_node_x86_64_compute_commands:
 
 # ------------------------------------------ temporary ---------------------
 
-base_image_pacakges:
-  - systemd
-  - systemd-udev
-  - kernel
-  - dracut
-  - dracut-live
-  - dracut-network
-  - squashfs-tools
-
-compute_images_dict:
-  default_x86_64:
-    functional_group: "default_x86_64"
-    packages:
-      - vim
-      - wget
-      - python3
-
-  login_node_x86_64:
-    functional_group: "login_node_x86_64"
-    packages:
-      - git
-      - nfs-utils
-      - tcpdump
-      - traceroute
-      - vim
-      - wget
-
 rhel_repos:
   - { name: 'RHEL10_Epel', url: '', gpg: '' }
   - { name: 'RHEL10_BaseOS', url: '', gpg: '' }
