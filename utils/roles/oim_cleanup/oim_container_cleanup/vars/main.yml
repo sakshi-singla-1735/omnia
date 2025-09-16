@@ -22,6 +22,7 @@ telemetry_cleanup_directory:
   - "{{ omnia_nfs_share }}/k8s_pvc_data"
   - "{{ omnia_nfs_share }}/service_cluster"
 max_retries: 5
+omnia_target: "/etc/systemd/system/omnia.target"
 
 # Usage: cleanup_pulp.yml
 pulp_container_name: "pulp"
