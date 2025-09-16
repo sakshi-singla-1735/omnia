@@ -31,8 +31,8 @@
 - name: Cleanup pulp container
   ansible.builtin.import_tasks: cleanup_pulp.yml
 
-# - name: Cleanup kubespray container
-#   ansible.builtin.import_tasks: cleanup_kubespray.yml
+- name: Cleanup kubespray container
+  ansible.builtin.import_tasks: cleanup_kubespray.yml
 
 - name: Remove telemetry directory if exists
   ansible.builtin.file:
