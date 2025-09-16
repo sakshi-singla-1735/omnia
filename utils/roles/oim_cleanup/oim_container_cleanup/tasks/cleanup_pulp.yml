@@ -12,6 +12,16 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 ---
+- name: Remove Pulp systemd unit files
+  ansible.builtin.file:
+    path: "/etc/containers/systemd/{{ pulp_container_name }}.container"
+    state: absent
+  register: pulp_removed
+
+- name: Reload systemd daemon
+  ansible.builtin.systemd:
+    daemon_reload: true
+  when: pulp_removed.changed
 
 - name: Check if Pulp container is running after deployment
   containers.podman.podman_container_info:
@@ -48,3 +58,7 @@
     path: "{{ track_file_path }}"
     state: absent
   when: hostvars['localhost']['pulp_protocol_https']
+
+# - debug:
+#     msg: "UNit {{ lookup('ansible.builtin.ini', 'Requires', section='Unit', file='/etc/systemd/system/omnia.target')  }}"
+# - pause:
