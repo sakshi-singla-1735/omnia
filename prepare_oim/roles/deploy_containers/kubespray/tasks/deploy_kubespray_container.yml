@@ -43,6 +43,7 @@
     name: "{{ kubespray_image_name }}:{{ kubespray_image_tag }}"
     state: present
   register: image_pull_result
+  ignore_errors: true
 
 - name: Fail if the Kubespray image pull fails
   ansible.builtin.fail:
@@ -51,21 +52,24 @@
 
 - name: Deploy Kubespray container and check deployment status
   block:
-    - name: Deploy the Kubespray container
-      containers.podman.podman_container:
-        name: "{{ kubespray_container_name }}"
-        image: "{{ kubespray_image_name }}:{{ kubespray_image_tag }}"
-        state: present
-        restart_policy: "no"
-        hostname: "{{ kubespray_container_name }}"
-        network_mode: host
-        volumes: "{{ kubespray_volumes }}"
-        cap_add:
-          - AUDIT_WRITE
+    - name: Create Quadlet file for Kubespray
+      ansible.builtin.template:
+        src: "kubespray.j2"
+        dest: "/etc/containers/systemd/{{ kubespray_container_name }}.container"
+        owner: root
+        group: root
+        mode: "{{ kubespray_quadlet_mode }}"
+      register: quadlet_out
 
-    - name: Start the Kubespray container
-      containers.podman.podman_container:
-        name: "{{ kubespray_container_name }}"
+    - name: Reload systemd if Quadlet changed
+      ansible.builtin.systemd_service:
+        daemon_reload: true
+      when: quadlet_out.changed # noqa: no-handler
+
+    - name: Enable and start Kubespray Quadlet service
+      ansible.builtin.systemd_service:
+        name: "{{ kubespray_container_name }}.service"
+        enabled: true
         state: started
 
     - name: Check if Kubespray container is running after deployment

@@ -85,8 +85,8 @@
       tags: always
     - role: deploy_containers/pulp  # noqa:role-name[path]
       tags: pulp
-#     - role: deploy_containers/kubespray  # noqa:role-name[path]
-#       tags: kubespray
+    - role: deploy_containers/kubespray  # noqa:role-name[path]
+      tags: kubespray
 
 - name: Verify openchami install status
   hosts: oim
@@ -107,22 +107,21 @@
     - role: deploy_containers/openchami  # noqa:role-name[path]
       tags: openchami
 
-# - name: Update the kubespray metadata
-#   hosts: localhost
-#   connection: local
-#   tasks:
-#     - name: Update the kubespray metadata # noqa:role-name[path]
-#       ansible.builtin.include_role:
-#         name: deploy_containers/kubespray
-#         tasks_from: create_kubespray_metadata.yml
-#       loop: "{{ hostvars['localhost']['k8s_versions'] | default([]) }}"
-#       loop_control:
-#         loop_var: k8s_version
-#       when:
-#         - hostvars['localhost']['k8s_support'] | default(false)
-#         - (hostvars[groups['oim'][0]]['kubespray_container_status']['containers'] | default([])) | length > 0
-#         - (hostvars[groups['oim'][0]]['kubespray_container_status']['containers'][0]['State']['Status'] | default('')) == 'running'
-
+- name: Update the kubespray metadata
+  hosts: localhost
+  connection: local
+  tasks:
+    - name: Update the kubespray metadata # noqa:role-name[path]
+      ansible.builtin.include_role:
+        name: deploy_containers/kubespray
+        tasks_from: create_kubespray_metadata.yml
+      loop: "{{ hostvars['localhost']['k8s_versions'] | default([]) }}"
+      loop_control:
+        loop_var: k8s_version
+      when:
+        - hostvars['localhost']['k8s_support'] | default(false)
+        - (hostvars[groups['oim'][0]]['kubespray_container_status']['containers'] | default([])) | length > 0
+        - (hostvars[groups['oim'][0]]['kubespray_container_status']['containers'][0]['State']['Status'] | default('')) == 'running'
 
 - name: Add all containers to known hosts on omnia core
   hosts: localhost

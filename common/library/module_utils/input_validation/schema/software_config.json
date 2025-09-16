@@ -33,7 +33,7 @@
             "uniqueItems": true
           }
         },
-        "required": ["name"],
+        "required": ["name", "arch"],
         "additionalProperties": false
       },
       "description": "Array of software packages to be configured."

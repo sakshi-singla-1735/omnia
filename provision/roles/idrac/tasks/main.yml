@@ -13,20 +13,8 @@
 # limitations under the License.
 ---
 
-- name: Validate passwordless ssh host
-  ansible.builtin.include_tasks: validate_passwordless_ssh_oim.yml
+- name: Check prequisites
+  ansible.builtin.include_tasks: check_prerequisites.yml
 
-- name: Include provision_validation_vars role vars
-  ansible.builtin.include_tasks: pre_requisite.yml
-
-- name: Validate network spec
-  ansible.builtin.include_tasks: validate_network_spec.yml
-
-- name: Include local_repo_config vars
-  ansible.builtin.include_tasks: include_local_repo_config.yml
-
-- name: Check k8s support
-  ansible.builtin.include_tasks: check_k8s_support.yml
-
-- name: Check service_node role is present in roles_config.yml
-  ansible.builtin.include_tasks: check_service_role.yml
+- name: Configure PXE boot
+  ansible.builtin.include_tasks: configure_pxe_boot.yml

@@ -13,20 +13,11 @@
 # limitations under the License.
 ---
 
-- name: Validate passwordless ssh host
-  ansible.builtin.include_tasks: validate_passwordless_ssh_oim.yml
+# Usage: check_prerequisites.yml
+lc_check_fail_msg: "Failed. LC is not ready. Retry again after LC is ready"
 
-- name: Include provision_validation_vars role vars
-  ansible.builtin.include_tasks: pre_requisite.yml
-
-- name: Validate network spec
-  ansible.builtin.include_tasks: validate_network_spec.yml
-
-- name: Include local_repo_config vars
-  ansible.builtin.include_tasks: include_local_repo_config.yml
-
-- name: Check k8s support
-  ansible.builtin.include_tasks: check_k8s_support.yml
-
-- name: Check service_node role is present in roles_config.yml
-  ansible.builtin.include_tasks: check_service_role.yml
+# Usage: configure_pxe_boot.yml
+active_nic_fail_msg: "No host active nic present for the device. Please check the host connection for the server and retry again."
+provision_os_msg: "OS provisioning is initiated. Wait for installation to complete for all servers."
+pxe_provisioning_fail_msg: "OS provisioning using PXE failed. This could be due to outdated NIC firmware. Re-run provision.yml after fixing the issue"
+retries_count: 3

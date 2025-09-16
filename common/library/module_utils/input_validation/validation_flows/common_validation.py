@@ -174,13 +174,9 @@ def validate_software_config(
     failures = []
     fail_data = []
 
-    roles_config_file_path = create_file_path(input_file_path, file_names["roles_config"])
-    roles_config_dict = load_yaml(roles_config_file_path)
-    def_archs = list({x["architecture"] for x in roles_config_dict["Groups"].values()})
-
     for software_pkg in data['softwares']:
         software = software_pkg['name']
-        arch_list = software_pkg.get('arch', def_archs)
+        arch_list = software_pkg.get('arch')
         json_paths = []
         for arch in arch_list:
             json_paths.append(get_json_file_path(
