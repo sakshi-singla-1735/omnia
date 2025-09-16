@@ -23,6 +23,11 @@ openchami_groups_template: "{{ role_path }}/templates/nodes/groups.yaml.j2"
 openchami_nodes_vars_path: "{{ nodes_dir }}/nodes.yaml"
 discover_fail_msg: "Failed to discover nodes. Please verify the inputs provided in mapping file."
 
+# Usage: create_groups.yml
+openchami_groups_common_template: "{{ role_path }}/templates/nodes/groups_common.yaml.j2"
+common_cloud_init_groups:
+  - hostname
+
 # Usage: configure_bss_group.yml, configure_bss_cloud_init.yml
 bss_template: bss/bss.yaml.j2
 bss_dir: "{{ openchami_work_dir }}/boot"
@@ -37,6 +42,10 @@ cloud_init_dir: "{{ openchami_work_dir }}/cloud-init"
 ci_defaults_dest: '{{ cloud_init_dir }}/ci-defaults.yaml'
 ci_group_load_fail_msg: |
   "Template loading failed. Ensure the template exists in the specified path and is compatible with the defined functional groups."
+
+# Usage: configure_cloud_init_common.yml
+ci_group_common_template: cloud_init/ci-group-common.yaml.j2
+ci_group_common_dest: "{{ cloud_init_dir }}/ci-group-common.yaml"
 
 # Usage: discovery_completion.yml
 discovery_completion_msg: |

@@ -80,6 +80,9 @@
     msg: "{{ ci_defaults_output.stdout_lines }}"
     verbosity: 2
 
+- name: Configure cloud-init group
+  ansible.builtin.include_tasks: configure_cloud_init_common.yml
+
 - name: Include configure cloud init
   ansible.builtin.include_tasks: configure_cloud_init_group.yml
   with_items: "{{ hostvars['localhost']['functional_groups'] | map(attribute='name') | list }}"

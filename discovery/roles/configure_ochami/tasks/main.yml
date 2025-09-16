@@ -23,6 +23,9 @@
       ansible.builtin.include_tasks: create_groups.yml
       with_items: "{{ hostvars['localhost']['functional_groups'] | map(attribute='name') | list }}"
 
+    - name: Create groups common
+      ansible.builtin.include_tasks: create_groups_common.yml
+
     - name: Configure bss and cloud-init
       ansible.builtin.include_tasks: configure_bss_cloud_init.yml
 
