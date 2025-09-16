@@ -31,7 +31,7 @@
     var: base_image_packages
 
 - name: Read packages for compute image softwares
-  compute_image_builder:
+  image_package_collector:
     functional_groups_file: "{{ functional_groups_file_path }}"
     software_config_file: "{{ software_config_file_path }}"
     input_project_dir: "{{ input_project_dir }}"
