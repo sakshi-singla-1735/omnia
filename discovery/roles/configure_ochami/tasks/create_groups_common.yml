@@ -16,7 +16,7 @@
 - name: Load the openchami groups.yaml for common
   ansible.builtin.template:
     src: "{{ openchami_groups_common_template }}"
-    dest: "{{ nodes_dir }}/common.yml"
+    dest: "{{ nodes_dir }}/groups-common-{{ item }}.yml"
     mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
   vars:
     nodes: "{{ hostvars['localhost']['read_mapping_file']['dict'] | dict2items }}"
@@ -24,9 +24,7 @@
 - name: Delete the common SMD groups
   ansible.builtin.command: /usr/bin/ochami smd group delete --no-confirm {{ item }}
   changed_when: true
-  loop: "{{ common_cloud_init_groups }}"
 
 - name: POST common SMD groups
-  ansible.builtin.command: /usr/bin/ochami smd group add -f yaml -d  @{{ nodes_dir }}/common.yml
+  ansible.builtin.command: /usr/bin/ochami smd group add -f yaml -d  @{{ nodes_dir }}/groups-common-{{ item }}.yml
   changed_when: true
-  loop: "{{ common_cloud_init_groups }}"

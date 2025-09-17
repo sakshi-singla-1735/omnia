@@ -13,7 +13,7 @@
 #  limitations under the License.
 ---
 
-- name: Add hosts file entry for Omnia Infrastructure Manager
+- name: Add hosts file entry for Omnia Infrastructure Manager # noqa: yaml[line-length]
   ansible.builtin.shell: |
     set -o pipefail
     grep -qxF '{{ item.value.ADMIN_IP }} {{ item.value.HOSTNAME }}' {{ hosts_file_path }} || echo '{{ item.value.ADMIN_IP }} {{ item.value.HOSTNAME }}' >> {{ hosts_file_path }}
