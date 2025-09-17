@@ -1,8 +1,6 @@
-{% for group_name in common_cloud_init_groups %}
-- label: {{ group_name }}
+- label: {{ common_group_name }}
   members:
     ids:
 {% for item in nodes %}
       - {{ item.value.SERVICE_TAG }}
-{% endfor %}
 {% endfor %}
