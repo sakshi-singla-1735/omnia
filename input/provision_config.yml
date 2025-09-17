@@ -25,7 +25,7 @@
 # Hostname = node_name + '0000x' + domain_name
 # Hostname <= 65 characters.
 # Example: servernode00001.Omnia.test , where node_name=servernode, domain_name=Omnia.test , 00001 used by Omnia
-node_name: "node"
+node_name: "nid"
 
 #### Optional
 # This depicts the path where user has kept the PXE mapping file.

@@ -17,16 +17,8 @@
   ansible.builtin.set_fact:
     openchami_install_status: false
 
-- name: Generate access token
-  ansible.builtin.command: sudo bash -lc 'gen_access_token'
-  register: access_token_result
-  changed_when: false
-  failed_when: false
-
-- name: Set ochami_env
-  ansible.builtin.set_fact:
-    ochami_env: "{{ {cluster_env_key: access_token_result.stdout} }}"
-  when: access_token_result.rc == 0
+- name: Openchami cluster authentication
+  ansible.builtin.include_tasks: "{{ role_path }}/../../../../common/tasks/common/openchami_auth.yml"
 
 - name: Verify ochami installation
   environment: "{{ ochami_env }}"

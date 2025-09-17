@@ -129,6 +129,14 @@ setup_omnia_core() {
 # This function is responsible for cleaning up the Omnia core container.
 # It removes the container and performs the necessary cleanup steps.
 cleanup_omnia_core() {
+    # Block if critical service containers exist
+    critical_running=$(podman ps --format '{{.Names}}' | grep -E 'pulp|kubespray|registry|minio-server|postgres|step-ca|hydra|smd|opaal-idp|bss|opaal|cloud-init-server|haproxy|coresmd')
+    if [ -n "$critical_running" ]; then
+        echo -e "${RED}Failed to intiatiate omnia_core container cleanup. There are other critical service containers still running:${NC}"
+        echo "$critical_running"
+        echo -e "${GREEN}Run oim_cleanup.yml first to cleanup all containers.${NC}"
+        exit 1
+    fi
 
     echo -e "${RED} WARNING: This will remove Omnia core container and all files in Omnia Shared Path.${NC}"
     echo -e "${GREEN} You can abort and take backup if you want.${NC}"
@@ -229,6 +237,14 @@ cleanup_config(){
 # If the container is removed successfully, it prints a success message.
 # Otherwise, it prints an error message.
 remove_container() {
+    # Block if critical service containers exist
+    critical_running=$(podman ps --format '{{.Names}}' | grep -E 'pulp|kubespray|registry|minio-server|postgres|step-ca|hydra|smd|opaal-idp|bss|opaal|cloud-init-server|haproxy|coresmd')
+    if [ -n "$critical_running" ]; then
+        echo -e "${RED}Failed to intiatiate omnia_core container cleanup. There are other critical service containers still running:${NC}"
+        echo "$critical_running"
+        echo -e "${GREEN}Run oim_cleanup.yml first to cleanup all containers.${NC}"
+        exit 1
+    fi
 
     # Remove the container.
     echo -e "${BLUE} Removing the Omnia core container.${NC}"
@@ -314,7 +330,7 @@ init_container_config() {
 
             # Check if the Omnia shared path is absolute path and path exists.
             if [[ "$omnia_path" != /* ]] || [ ! -d "$omnia_path" ]; then
-                echo -e "${RED} Omnia shared path is not an absolute path or does not exist! Please re-run omnia.sh --install with valid Omnia shared path${NC}"
+                echo -e "${RED} Omnia shared path is not an absolute path or does not exist! Please re-run omnia.sh --install with valid Omnia shared path.${NC}"
                 exit 1
             fi
             ;;
@@ -331,6 +347,13 @@ init_container_config() {
 
                         echo -e "${BLUE} Please provide the OIM client share path (mount target):${NC}"
                         read -p "Omnia shared path: " omnia_path
+
+                        # Validate Omnia shared path is absolute
+                        if [[ "$omnia_path" != /* ]]; then
+                            echo -e "${RED}Omnia shared path must be an absolute path.${NC}"
+                            exit 1
+                        fi
+
                         nfs_type="external"
                         break
                         ;;
@@ -902,7 +925,7 @@ install_omnia_core() {
 
     # Check if any other containers with 'omnia' in their name are running
     other_containers=$(podman ps -a --format '{{.Names}}' | grep -E 'omnia' | grep -v 'omnia_core')
-   
+
     # If there are any, exit
     if [ -n "$other_containers" ]; then
         echo -e "${RED} Failed to intiatiate omnia_core container cleanup. There are other omnia container running.${NC}"
@@ -953,6 +976,14 @@ install_omnia_core() {
             fi
             # If the user wants to reinstall, call the remove_container function, and then call the setup_omnia_core function
             if [ "$choice" = "2" ]; then
+                # Block if critical service containers exist
+                critical_running=$(podman ps --format '{{.Names}}' | grep -E 'pulp|kubespray|registry|minio-server|postgres|step-ca|hydra|smd|opaal-idp|bss|opaal|cloud-init-server|haproxy|coresmd')
+                if [ -n "$critical_running" ]; then
+                    echo -e "${RED}Failed to intiatiate omnia_core container cleanup. There are other critical service containers still running:${NC}"
+                    echo "$critical_running"
+                    echo -e "${GREEN}Run oim_cleanup.yml first to cleanup all containers.${NC}"
+                    exit 1
+                fi
                 echo -e "${GREEN} What configuration do you want to use for reinstallation:${NC}"
 
                 PS3="Select the option number: "
