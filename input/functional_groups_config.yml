@@ -18,14 +18,16 @@
 # SIMPLY APPEND THE REQUIRED VALUES AGAINST THE PARAMETER OF YOUR CHOICE.
 # ***********************************************************************
 
-#************************************************************************************************************************
+# ************************************************************************************************************************
 #  functional_groups
-#************************************************************************************************************************
+# ************************************************************************************************************************
 # Note: Nested functional_groups are not supported.
 # The functional_groups are case sensitive
-#   - name:                           - <Mandatory> Name of the functional_group, can be any of the following Omnia defined functional_groups.
-#     location_id:        - <Mandatory> SU-<n>.RACK-<n> Scalable unit and rack number range is 0-99. This input is case-sensitive. Please use uppercase letters only.
-#     cluster_name:       - <Conditional Mandatory> Name of the cluster to which the group belongs. This input is case-sensitive. This will remain empty for groups which are not associated with any kubernetes functional_groups.
+#   - name:               - <Mandatory> Name of the functional_group, can be any of the following Omnia defined functional_groups.
+#     location_id:        - <Mandatory> SU-<n>.RACK-<n> Scalable unit and rack number range is 0-99. This input is case-sensitive.
+#                            Please use uppercase letters only.
+#     cluster_name:       - <Conditional Mandatory> Name of the cluster to which the group belongs. This input is case-sensitive.
+#                            This will remain empty for groups which are not associated with any kubernetes functional_groups.
 #     parent:             - <Conditional Mandatory> list of service tag of associated active service kube node(s).
 
 # This table lists the functional_groups and the layers they belong to in the cluster.
@@ -36,7 +38,7 @@
 # |  service_kube_node_x86_64        | management        |     | default_x86_64         | compute      |
 # |  login_node_x86_64               | management        |     | default_aarch64        | compute      |
 # |  login_node_aarch64              | management        |     | slurm_node_x86_64      | compute      |
-# |  login_compiler_node_x86_64      | management        |     | slurm_node_aarch64     |              | 
+# |  login_compiler_node_x86_64      | management        |     | slurm_node_aarch64     |              |
 # |  login_compiler_node_aarch64     | management        |     |                        |              |
 # |  slurm_control_node_x86_64       | management        |     |                        |              |
 # +----------------------------------+-------------------+     +------------------------+--------------+
@@ -75,7 +77,7 @@ functional_groups:
 #
 # The nodes in this functional_group can be used to run Kubernetes worker on service cluster.
 #
-# Service k8s Worker functional_groups: Service Cluster Kubernetes worker node groups to add into service cluster k8s functional_group can be provided in this functional_group
+# Service k8s Worker functional_groups:
   # - name: "service_kube_node_x86_64"
   #   location_id: SU-1.RACK-1
   #   cluster_name: ""
