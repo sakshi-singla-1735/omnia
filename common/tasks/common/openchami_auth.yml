@@ -65,3 +65,4 @@
     - name: Display bss status
       ansible.builtin.debug:
         msg: "{{ bss_status_recheck.stdout }}"
+        verbosity: 2
