@@ -43,23 +43,41 @@
 # |  slurm_control_node_x86_64       | management        |     |                        |              |
 # +----------------------------------+-------------------+     +------------------------+--------------+
 
-# Default functional_groups: (x86_64 / aarch64)
-# -------------------------------------------------------------------------------------------------
 #
-# This functional_group is provided to cover the default functional_group of the cluster.
+# Slurm Head functional_groups: (x86_64)
+# -----------------------------------------------------------------------------------------------------
 #
-# The default functional_group is assigned to nodes which do not fit into any specific functional_groups.
-# If user wants to just provision the group of nodes without associating with any functional_group,
-# then the default functional_group can be used.
+# This functional_group is used to configure the nodes for Slurm head. It belongs to the management layer.
 #
-
+# The nodes included in this functional_group will have the necessary tools and
+# configurations to run Slurm head.
+#
+# The nodes in this functional_group can be used to run Slurm head.
+# This functional_group belongs to the compute layer.
 functional_groups:
-  - name: "default_x86_64"
+
+  - name: "slurm_control_node_x86_64"
     location_id: SU-1.RACK-1
     cluster_name: ""
     parent: ""
 
-  # - name: "default_aarch64"
+#
+# Slurm Worker functional_groups: (x86_64 / aarch64)
+# ------------------------------------------------------------------------------------------------
+#
+# This functional_group is used to configure the nodes for Slurm worker. It belongs to the compute layer.
+#
+# The nodes included in this functional_group will have the necessary tools and
+# configurations to run Slurm worker.
+#
+# The nodes in this functional_group can be used to run Slurm worker.
+#
+  - name: "slurm_node_x86_64"
+    location_id: SU-1.RACK-1
+    cluster_name: ""
+    parent: ""
+
+  # - name: "slurm_node_aarch64"
   #   location_id: SU-1.RACK-1
   #   cluster_name: ""
   #   parent: ""
@@ -77,47 +95,7 @@ functional_groups:
 #
 # The nodes in this functional_group can be used to run Kubernetes worker on service cluster.
 #
-# Service k8s Worker functional_groups:
   # - name: "service_kube_node_x86_64"
-  #   location_id: SU-1.RACK-1
-  #   cluster_name: ""
-  #   parent: ""
-
-#
-# Slurm Head functional_groups: (x86_64)
-# -----------------------------------------------------------------------------------------------------
-#
-# This functional_group is used to configure the nodes for Slurm head. It belongs to the management layer.
-#
-# The nodes included in this functional_group will have the necessary tools and
-# configurations to run Slurm head.
-#
-# The nodes in this functional_group can be used to run Slurm head.
-# This functional_group belongs to the compute layer.
-#
-# Slurm Head functional_groups: Slurm head groups to add into slurm_control_node functional_group can be provided in this functional_group
-  # - name: "slurm_control_node_x86_64"
-  #   location_id: SU-1.RACK-1
-  #   cluster_name: ""
-  #   parent: ""
-
-#
-# Slurm Worker functional_groups: (x86_64 / aarch64)
-# ------------------------------------------------------------------------------------------------
-#
-# This functional_group is used to configure the nodes for Slurm worker. It belongs to the compute layer.
-#
-# The nodes included in this functional_group will have the necessary tools and
-# configurations to run Slurm worker.
-#
-# The nodes in this functional_group can be used to run Slurm worker.
-#
-  # - name: "slurm_node_x86_64"
-  #   location_id: SU-1.RACK-1
-  #   cluster_name: ""
-  #   parent: ""
-
-  # - name: "slurm_node_aarch64"
   #   location_id: SU-1.RACK-1
   #   cluster_name: ""
   #   parent: ""
