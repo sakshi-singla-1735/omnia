@@ -39,7 +39,6 @@
 - name: Regenerate certificate
   when:
     - bss_status_result.rc != 0
-    - "'acme-deploy' in ansible_facts.services"
   block:
     - name: Restart acme-deploy service
       block:
@@ -47,6 +46,7 @@
           ansible.builtin.systemd_service:
             name: acme-deploy
             state: restarted
+          failed_when: false
       rescue:
         - name: Failed to restart acme-deploy service
           ansible.builtin.fail:
