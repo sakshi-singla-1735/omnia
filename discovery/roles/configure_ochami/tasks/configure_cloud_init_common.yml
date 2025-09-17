@@ -13,9 +13,12 @@
 # limitations under the License.
 ---
 
-clone_retry: "5"
-clone_delay: "10"
-dir_permissions_755: "0755"
-file_permissions_644: "0644"
-job_retry: "60"
-job_delay: "30"
+- name: Render ci group common template
+  ansible.builtin.template:
+    src: "{{ ci_group_common_template }}"
+    dest: "{{ ci_group_common_dest }}"
+    mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
+
+- name: Set ci group configuration
+  ansible.builtin.command: /usr/bin/ochami cloud-init group set -f yaml -d @{{ ci_group_common_dest }}
+  changed_when: true
