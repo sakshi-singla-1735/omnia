@@ -25,6 +25,7 @@
 
     - name: Create groups common
       ansible.builtin.include_tasks: create_groups_common.yml
+      loop: "{{ common_cloud_init_groups }}"
 
     - name: Configure bss and cloud-init
       ansible.builtin.include_tasks: configure_bss_cloud_init.yml
