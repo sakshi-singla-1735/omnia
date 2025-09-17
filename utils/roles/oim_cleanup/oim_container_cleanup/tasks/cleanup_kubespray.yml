@@ -81,7 +81,7 @@
 - name: Check if target file exists
   ansible.builtin.stat:
     path: "{{ omnia_target }}"
-  register: p    
+  register: p
 
 - name: Remove all kubespray services
   ansible.builtin.replace:
