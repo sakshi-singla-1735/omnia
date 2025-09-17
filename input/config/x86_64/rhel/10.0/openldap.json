@@ -2,7 +2,6 @@
   "openldap": {
     "cluster": [
       {"package": "openldap-clients", "type": "rpm", "repo_name": "baseos"}
-
     ]
   }
 }
