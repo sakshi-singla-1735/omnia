@@ -12,19 +12,42 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 ---
+- name: Populate service facts
+  ansible.builtin.service_facts:
+
+- name: Stop pulp service
+  ansible.builtin.systemd_service:
+    name: "{{ pulp_container_name }}.service"
+    state: stopped
+  when: "'pulp.service' in ansible_facts['services'].keys()"
+
+- name: Check if container file exists
+  ansible.builtin.stat:
+    path: "/etc/containers/systemd/{{ pulp_container_name }}.container"
+  register: p
+
+- name: Remove Pulp systemd unit files
+  ansible.builtin.file:
+    path: "/etc/containers/systemd/{{ pulp_container_name }}.container"
+    state: absent
+  when: p.stat.exists
+  register: pulp_removed
+
+- name: Reload systemd daemon
+  ansible.builtin.systemd:
+    daemon_reload: true
+  when: p.stat.exists
 
 - name: Check if Pulp container is running after deployment
   containers.podman.podman_container_info:
     name: "{{ pulp_container_name }}"
   register: pulp_container_status
-  failed_when: false
 
 - name: Stop the Pulp container
   containers.podman.podman_container:
     name: "{{ pulp_container_name }}"
     state: stopped
-  when: pulp_container_status.containers | length != 0
-  failed_when: false
+  when: pulp_container_status.containers | length > 0
 
 - name: Remove Pulp container
   containers.podman.podman_container:
@@ -48,3 +71,15 @@
     path: "{{ track_file_path }}"
     state: absent
   when: hostvars['localhost']['pulp_protocol_https']
+
+- name: Check if target file exists
+  ansible.builtin.stat:
+    path: "{{ omnia_target }}"
+  register: p
+
+- name: Remove pulp.service
+  ansible.builtin.replace:
+    path: "{{ omnia_target }}"
+    regexp: '(\b) pulp\.service(\b)'
+    replace: ''
+  when: p.stat.exists
