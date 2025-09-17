@@ -32,7 +32,6 @@
     bmc_group_data_headers: "{{ bmc_group_data_headers }}"
     bmc_group_data: "{{ bmc_group_data }}"
     bmc_group_data_file: "{{ bmc_group_data_filename }}"
-    federated_telemetry: "{{ federated_idrac_telemetry_collection }}"
   register: bmc_ip_data
 
 - name: Set validated BMC ips

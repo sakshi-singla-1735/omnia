@@ -47,14 +47,13 @@ def is_valid_ip(ip):
     """
     return re.match(r'^\d{1,3}(\.\d{1,3}){3}$', ip)
 
-def validate_bmc_group_data(bmc_group_data, bmc_group_data_headers, federated_telemetry, bmc_group_data_file):
+def validate_bmc_group_data(bmc_group_data, bmc_group_data_headers, bmc_group_data_file):
     """
     Validates BMC group data and returns the result along with the list of BMC IPs.
 
     Parameters:
         bmc_group_data (list): List of BMC group data entries.
         bmc_group_data_headers (list): List of expected headers in BMC group data.
-        federated_telemetry (bool): Flag to indicate federated telemetry collection.
         bmc_group_data_file (str): The file containing BMC group data.
 
     Returns:
@@ -99,18 +98,15 @@ def validate_bmc_group_data(bmc_group_data, bmc_group_data_headers, federated_te
         "msg": ""
     }
 
-    if federated_telemetry:
-        sn_bmc_ips = {}
-        for entry in bmc_dict_list:
-            parent = entry.get('PARENT')
-            if parent:
-                sn_bmc_ips.setdefault(parent, []).append(entry['BMC_IP'])
+    sn_bmc_ips = {}
+    for entry in bmc_dict_list:
+        parent = entry.get('PARENT')
+        if parent:
+            sn_bmc_ips.setdefault(parent, []).append(entry['BMC_IP'])
 
-        oim_bmc_ips = [entry['BMC_IP'] for entry in bmc_dict_list if not entry.get('PARENT')]
-        result['bmc_ips'] = {**sn_bmc_ips, 'oim': oim_bmc_ips}
-    else:
-        unique_ips = list({entry['BMC_IP'] for entry in bmc_dict_list})
-        result['bmc_ips'] = {'oim': unique_ips}
+    oim_bmc_ips = [entry['BMC_IP'] for entry in bmc_dict_list if not entry.get('PARENT')]
+    result['bmc_ips'] = {**sn_bmc_ips, 'oim': oim_bmc_ips}
+
 
     return result
 
@@ -122,7 +118,6 @@ def main():
     module_args = {
         "bmc_group_data": {"type": "list", "elements": "str", "required": True},
         "bmc_group_data_headers": {"type": "list", "elements": "str", "required": True},
-        "federated_telemetry": {"type": "bool", "required": False, "default": False},
         "bmc_group_data_file": {"type": "str", "required": False}
     }
 
@@ -133,10 +128,9 @@ def main():
 
     bmc_group_data = module.params['bmc_group_data']
     bmc_group_data_headers = module.params['bmc_group_data_headers']
-    federated_telemetry = module.params['federated_telemetry']
     bmc_group_data_file = module.params['bmc_group_data_file']
     try:
-        result = validate_bmc_group_data(bmc_group_data, bmc_group_data_headers, federated_telemetry, bmc_group_data_file)
+        result = validate_bmc_group_data(bmc_group_data, bmc_group_data_headers, bmc_group_data_file)
         module.exit_json(**result)
     except ValueError as e:
         module.fail_json(msg=f"BMC Group Data Validation failed: {str(e)}")

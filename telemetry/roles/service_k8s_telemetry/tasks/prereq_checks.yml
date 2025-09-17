@@ -14,7 +14,6 @@
 ---
 
 - name: Pre-checks for service cluster k8s
-  when: hostvars['localhost']['federated_idrac_telemetry_collection']
   block:
     - name: Install python
       ansible.builtin.package:

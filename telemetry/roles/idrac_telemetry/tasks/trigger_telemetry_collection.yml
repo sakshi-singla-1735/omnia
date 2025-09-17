@@ -17,7 +17,6 @@
 - name: Restart iDRAC telemetry container
   when:
     - hostvars['localhost']['idrac_telemetry_support']
-    - not hostvars['localhost']['federated_idrac_telemetry_collection']
     - hostvars['localhost']['telemetry_idrac'] is defined
     - hostvars['localhost']['telemetry_idrac'] | length > 0
   block:

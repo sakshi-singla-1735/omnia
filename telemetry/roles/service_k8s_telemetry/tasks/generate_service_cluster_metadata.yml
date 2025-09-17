@@ -16,7 +16,6 @@
 - name: Pre-requisites for service_cluster k8s
   when:
     - hostvars['localhost']['idrac_telemetry_support']
-    - hostvars['localhost']['federated_idrac_telemetry_collection']
   block:
     - name: Include functional_groups_config.yml
       block:

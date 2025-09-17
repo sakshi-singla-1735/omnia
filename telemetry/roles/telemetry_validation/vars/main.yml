@@ -65,25 +65,6 @@ bmc_group_data_file_not_found_msg: "Failed. The BMC data file: {{ bmc_group_data
  Please execute discovery_provision.yml to Generate BMC data file."
 bmc_group_data_headers: "BMC_IP,FUNCTIONAL_GROUP,PARENT"
 
-# Usage: validate_telemetry_config.yml
-telemetry_metadata_file_path: "/opt/omnia/telemetry/.telemetry_metadata.yml"
-msg_collection_type_mismatch: >
-  iDRAC telemetry collection type mismatch detected.
-  Previously deployed with type '{{ existing_metadata.idrac_telemetry_collection_type }}',
-  but currently attempting deployment with type '{{ idrac_telemetry_collection_type }}'.
-  This change is not supported post-deployment of telemetry in service k8s cluster.
-  Please reprovision the service k8s cluster and re-run telemetry.yml to deploy
-  with a different idrac_telemetry_collection_type.
-
-# Usage: validate_service_node_status.yml
-service_node_not_defined: |
-  service_node is not defined in roles_config.yml.
-  Federated way of idrac telemetry collection is supported only for hierarchical cluster.
-  Please disable federated_idrac_telemetry_collection in telemetry_config.yml and execute telemetry.yml.
-service_node_not_booted: |
-  The following service nodes with these service tags are currently not booted: {{ validation_result.service_nodes_not_booted | join(', ') }}.
-  Please wait for the nodes to boot or re-provision the nodes in case of failure.
-
 # Usage: include_network_spec.yml
 network_spec_path: "{{ input_project_dir }}/network_spec.yml"
 fail_msg_network_spec_file: "network_spec.yml file doesn't exist."

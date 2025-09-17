@@ -16,7 +16,6 @@
 - name: Deployment of k8s telemetry service
   when:
     - hostvars['localhost']['idrac_telemetry_support']
-    - hostvars['localhost']['federated_idrac_telemetry_collection']
   block:
     - name: Set service_cluster metadata
       ansible.builtin.set_fact:

@@ -18,7 +18,6 @@
   block:
     - name: Collect iDRAC IP and initiate telemetry collection on service cluster
       ansible.builtin.include_tasks: initiate_telemetry_service_cluster.yml
-      when: hostvars['localhost']['federated_idrac_telemetry_collection']
 
     - name: Generete telemetry report
       ansible.builtin.include_tasks: create_telemetry_report.yml
