@@ -18,7 +18,7 @@
   register: include_metadata
   no_log: true
 
-- name: Include global variables from comman folder
+- name: Include global variables from common folder
   ansible.builtin.include_vars: "{{ role_path }}/../../../common/vars/openchami_image_cmd.yml"
   register: ochami_image_global_vars
 
