@@ -19,57 +19,30 @@
 """Ansible module to check telemetry service cluster node details."""
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible.module_utils.discovery.omniadb_connection import get_data_from_db # type: ignore
 
-def get_service_cluster_node_details(host_inventory):
+def get_service_cluster_node_details(nodes_info, functional_groups_info):
     """
     This function retrieves all service cluster node data from the database.
     Returns a dictionary of service cluster node data.
     """
-    query_result = get_data_from_db(
-        table_name='cluster.nodeinfo',
-        filter_dict = {'role': ['service_kube_node', 'service_etcd', 'service_kube_control_plane']}
-    )
 
     data = {}
-    not_available_nodes = {}
-    failed_nodes = []
 
-    for sn in query_result:
-        node = sn['node']
-        status = sn.get('status', '')
-        admin_ip = sn['admin_ip']
-        service_tag = sn['service_tag']
-        cluster_name = sn['cluster_name']
-        role = sn['role']
+    for sn in nodes_info:
+        node = sn['name']
+        service_tag = sn['xname']
+        role = sn['group']
+        cluster_name =  next((g["cluster"] for g in functional_groups_info if g["name"] == role), None)
 
-        if status != 'booted':
-            not_available_nodes[service_tag] = admin_ip
-            continue
-
-        if admin_ip in host_inventory:
+        if "service_kube_node_x86_64" in role or "service_kube_node_aarch64" in role:
             data[service_tag] = {
-                'admin_ip': admin_ip,
                 'service_tag': service_tag,
                 'node': node,
                 'cluster_name': cluster_name,
                 'role': role
             }
 
-            data[service_tag]['parent_status'] = 'service_kube_control_plane' in role
-
-    for service_tag, ip in not_available_nodes.items():
-        if ip in host_inventory:
-            failed_nodes.append(service_tag)
-
-    if failed_nodes:
-        raise ValueError(
-            f"The following service cluster nodes are not in 'booted' state: {', '.join(failed_nodes)}."
-            "Please verify the node status and try again."
-            "For federated telemetry collection of compute nodes, service cluster nodes must be available and in the 'booted' state."
-            "Please wait until all service cluster nodes are booted, or remove the nodes experiencing "
-            "provisioning failures using the utils/delete_node.yml playbook."
-        )
+        # data[service_tag]['parent_status'] = 'service_kube_control_plane' in role
     return data
 
 def check_service_cluster_node_details(group, parent, service_cluster_node_details):
@@ -85,7 +58,7 @@ def check_service_cluster_node_details(group, parent, service_cluster_node_detai
             "Please verify the input and try again."
         )
 
-def get_service_cluster_data(groups_info, service_cluster_node_details, bmc_group_data):
+def get_service_cluster_data(functional_groups_info, service_cluster_node_details, bmc_group_data):
     """
     Generate service cluster node details by analyzing group relationships and BMC group data.
 
@@ -102,7 +75,7 @@ def get_service_cluster_data(groups_info, service_cluster_node_details, bmc_grou
         dict: Updated service_cluster_node_details.
     """
 
-    for group, group_data in groups_info.items():
+    for group, group_data in functional_groups_info.items():
         parent = group_data.get('parent', '')
         status = check_service_cluster_node_details(group, parent, service_cluster_node_details)
 
@@ -135,19 +108,19 @@ def main():
         Main function to execute the check_service_cluster_node_details custom module.
     """
     module_args = {
-        'groups_info': {'type':"dict", 'required':True},
-        'host_inventory': {'type':"list", 'required':True},
+        'nodes_info': {'type':"dict", 'required':True},
+        'functional_groups_info': {'type':"dict", 'required':True},
         'bmc_group_data': {'type':"list", 'required':True}
     }
 
     module = AnsibleModule(argument_spec=module_args, supports_check_mode=True)
 
     try:
-        groups_info = module.params["groups_info"]
-        host_inventory = module.params["host_inventory"]
+        nodes_info = module.params["nodes_info"]
+        functional_groups_info = module.params["functional_groups_info"]
         bmc_group_data = module.params["bmc_group_data"]
-        service_cluster_node_details = get_service_cluster_node_details(host_inventory)
-        service_cluster_node_details = get_service_cluster_data(groups_info, service_cluster_node_details, bmc_group_data)
+        service_cluster_node_details = get_service_cluster_node_details(nodes_info, functional_groups_info)
+        service_cluster_node_details = get_service_cluster_data(functional_groups_info, service_cluster_node_details, bmc_group_data)
 
         module.exit_json(
             changed=False,

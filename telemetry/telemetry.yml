@@ -22,8 +22,8 @@
         omnia_run_tags: "{{ (ansible_run_tags | default([]) + ['telemetry']) | unique }}"
         cacheable: true
 
-- name: Invoke validate_config.yml to perform L1 and L2 validations
-  ansible.builtin.import_playbook: ../input_validation/validate_config.yml
+# - name: Invoke validate_config.yml to perform L1 and L2 validations
+#   ansible.builtin.import_playbook: ../input_validation/validate_config.yml
 
 - name: Invoke get_config_credentials.yml
   ansible.builtin.import_playbook: ../utils/credential_utility/get_config_credentials.yml
@@ -32,10 +32,10 @@
   when: not project_dir_status | default(false) | bool
   ansible.builtin.import_playbook: ../utils/include_input_dir.yml
 
-- name: Create provision container group
-  ansible.builtin.import_playbook: ../utils/create_container_group.yml
-  vars:
-    oim_group: true
+# - name: Create provision container group
+#   ansible.builtin.import_playbook: ../utils/create_container_group.yml
+#   vars:
+#     oim_group: true
 
 - name: Validate telemetry input parameters
   hosts: localhost
@@ -47,20 +47,20 @@
         name: telemetry_validation
         tasks_from: validation_status_check.yml
 
-- name: Check if Service cluster has internet
-  hosts: kube_control_plane, kube_node
-  connection: ssh
-  any_errors_fatal: true
-  tasks:
-    - name: Validate telemetry input parameters
-      ansible.builtin.include_role:
-        name: telemetry_validation
-        tasks_from: check_service_node_internet.yml
-      when:
-        - hostvars['localhost']['idrac_telemetry_support']
-        - hostvars['localhost']['federated_idrac_telemetry_collection'] | default(false)
-        - hostvars['localhost']['groups']['kube_control_plane'] is defined
-        - hostvars['localhost']['groups']['kube_control_plane'] | length > 0
+# - name: Check if Service cluster has internet
+#   hosts: kube_control_plane, kube_node
+#   connection: ssh
+#   any_errors_fatal: true
+#   tasks:
+#     - name: Validate telemetry input parameters
+#       ansible.builtin.include_role:
+#         name: telemetry_validation
+#         tasks_from: check_service_node_internet.yml
+#       when:
+#         - hostvars['localhost']['idrac_telemetry_support']
+#         - hostvars['localhost']['federated_idrac_telemetry_collection'] | default(false)
+#         - hostvars['localhost']['groups']['kube_control_plane'] is defined
+#         - hostvars['localhost']['groups']['kube_control_plane'] | length > 0
 
 - name: Validate service k8s cluster
   hosts: kube_control_plane[0]
@@ -71,30 +71,30 @@
       ansible.builtin.include_role:
         name: service_k8s_telemetry
         tasks_from: prereq_checks.yml
-      when: hostvars['localhost']['kube_prometheus_support'] or hostvars['localhost']['federated_idrac_telemetry_collection']
+      when: hostvars['localhost']['federated_idrac_telemetry_collection']
 
 # service_k8s_prereq
 - name: Initiate pre-requisites for service cluster
-  hosts: omnia_provision
+  hosts: localhost
   connection: ssh
   gather_facts: false
   tasks:
     - name: Initiate pre-requisites
       ansible.builtin.include_role:
         name: service_k8s_telemetry
-        tasks_from: include_composable_roles_config.yml
+        tasks_from: generate_service_cluster_metadata.yml
 
-- name: Add telemetry hosts in inventory
-  hosts: localhost
-  connection: local
-  gather_facts: false
-  tasks:
-    - name: Add telemetry hosts in inventory
-      ansible.builtin.include_role:
-        name: telemetry_validation
-        tasks_from: add_host_goups
-      when:
-        - idrac_telemetry_support
+# - name: Add telemetry hosts in inventory
+#   hosts: localhost
+#   connection: local
+#   gather_facts: false
+#   tasks:
+#     - name: Add telemetry hosts in inventory
+#       ansible.builtin.include_role:
+#         name: telemetry_validation
+#         tasks_from: add_host_goups
+#       when:
+#         - idrac_telemetry_support
 
 - name: Deployment of telemetry pods in service cluster
   hosts: kube_control_plane[0]
@@ -105,17 +105,8 @@
       ansible.builtin.include_role:
         name: service_k8s_telemetry
 
-- name: Deployment of kube prometheus in service cluster
-  hosts: kube_control_plane[0]
-  connection: ssh
-  gather_facts: false
-  tasks:
-    - name: Deployment of kube prometheus
-      ansible.builtin.include_role:
-        name: k8s_prometheus
-
 - name: Enable idrac telemetry in OIM
-  hosts: telemetry_group
+  hosts: kube_control_plane[0]
   gather_facts: false
   tasks:
     - name: Enable idrac telemetry
@@ -123,13 +114,12 @@
         name: idrac_telemetry
 
 - name: Telemetry report overview
-  hosts: telemetry_group
+  hosts: localhost
   connection: ssh
   gather_facts: false
   vars:
-    node_host: "{{ hostvars[inventory_hostname]['inventory_hostname'] if inventory_hostname != 'localhost' else 'oim' }}"
     telemetry_report: |
-          ---- Telemetry Report Overview ({{ node_host }}) ----
+          ---- Telemetry Report Overview ----
 
           IP count with Telemetry not supported: {{ failed_idrac_count | int + invalid_idrac_count | int }}
           IP count with Telemetry activated in current execution: {{ telemetry_idrac_count | int }}
