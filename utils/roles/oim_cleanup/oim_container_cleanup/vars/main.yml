@@ -117,3 +117,5 @@ config_dirs:
 
 omnia_target_file:
   - /etc/systemd/system/omnia.target
+  - /etc/systemd/system/default.target.wants/omnia.target
+  - /etc/systemd/system/multi-user.target.wants/omnia.target
