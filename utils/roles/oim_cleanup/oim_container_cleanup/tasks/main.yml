@@ -37,6 +37,25 @@
 - name: Cleanup openchami container
   ansible.builtin.import_tasks: cleanup_openchami.yml
 
+- name: Disable omnia.target systemd unit
+  ansible.builtin.systemd:
+    name: omnia.target
+    enabled: false
+    daemon_reload: true
+  failed_when: false
+
+- name: Stop omnia.target systemd unit
+  ansible.builtin.systemd:
+    name: omnia.target
+    state: stopped
+    daemon_reload: true
+  failed_when: false
+
+- name: Remove omnia.target systemd file
+  ansible.builtin.file:
+    path: "{{ omnia_target_file }}"
+    state: absent
+
 - name: Remove telemetry directory if exists
   ansible.builtin.file:
     path: "{{ item }}"
@@ -52,3 +71,4 @@
 - name: Reload firewalld to apply changes
   ansible.builtin.command: firewall-cmd --reload
   changed_when: true
+
