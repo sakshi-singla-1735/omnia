@@ -33,6 +33,13 @@
     enabled: true
   tags: always
 
+- name: Add NTP service to firewalld
+  ansible.posix.firewalld:
+    service: "{{ ntp_firewall_service }}"
+    permanent: true
+    state: enabled
+    immediate: true
+
 - name: Enable NFS-related services
   ansible.posix.firewalld:
     service: "{{ item }}"
