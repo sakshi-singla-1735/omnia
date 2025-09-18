@@ -37,6 +37,7 @@
 
             echo 'root:{{ hostvars['localhost']['provision_password'] }}' | chpasswd
             timedatectl set-timezone {{ hostvars['localhost']['timezone'] }}
+            localectl set-locale LANG={{ hostvars['localhost']['language'] }}
             sed -i 's/^#PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config
             sed -i 's/^#PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config
             sed -i 's/^PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config.d/50-cloud-init.conf
