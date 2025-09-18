@@ -48,23 +48,16 @@
   ansible.builtin.set_fact:
     software_names: "{{ software_config.softwares | map(attribute='name') | select('defined') | list }}"
 
-- name: Fetch architecture for each software
-  fetch_software_arch:
-    software_name: "{{ item }}"
-  loop: "{{ software_names }}"
-  loop_control:
-    label: "{{ item }}"
-  register: fetch_arch
+- name: Create a dictionary of software architectures
+  ansible.builtin.set_fact:
+    fetch_arch: "{{ software_config.softwares | items2dict(key_name='name', value_name='arch') }}"
 
 - name: Combine all architectures into a single list
   ansible.builtin.set_fact:
     all_archs: >-
       {{
-        fetch_arch.results
-        | map(attribute='arch')
-        | map('dict2items')
-        | flatten
-        | map(attribute='value')
+        fetch_arch.values()
+        | select('defined')
         | flatten
         | unique
       }}

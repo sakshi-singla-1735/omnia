@@ -22,6 +22,7 @@ telemetry_cleanup_directory:
   - "{{ omnia_nfs_share }}/k8s_pvc_data"
   - "{{ omnia_nfs_share }}/service_cluster"
 max_retries: 5
+omnia_target: "/etc/systemd/system/omnia.target"
 
 # Usage: cleanup_pulp.yml
 pulp_container_name: "pulp"
@@ -40,3 +41,76 @@ track_file_path: "{{ omnia_nfs_share }}/pulp/pulp_crt_track.txt"
 kubespray_cleanup_directory:
   - "{{ omnia_nfs_share }}/kubespray"
   - "{{ omnia_nfs_share }}/log/kubespray"
+
+# Usage: cleanup_openchami.yml
+openchami_packages:
+  - ochami
+  - openchami
+  - s3cmd
+
+openchami_containers:
+  - minio-server
+  - registry
+  - step-ca
+  - postgres
+  - hydra
+  - opaal-idp
+  - smd
+  - bss
+  - opaal
+  - cloud-init-server
+  - haproxy
+  - coresmd
+
+openchami_volumes:
+  - haproxy-certs
+  - acme-certs
+  - postgres-data
+  - step-ca-db
+  - step-root-ca
+  - step-ca-home
+
+openchami_secrets:
+  - hydra_postgres_password
+  - hydra_dsn
+  - hydra_system_secret
+  - smd_postgres_password
+  - postgres_password
+  - postgres_multiple_databases
+  - bss_postgres_password
+
+tcp_ports:
+  - 9000
+  - 9001
+  - 5000
+  - 5432
+  - 27778
+  - 27779
+  - 8081
+  - 8443
+
+udp_ports:
+  - 69
+  - 67
+  - 68
+
+podman_interfaces:
+  - podman0
+  - podman1
+  - podman2
+  - podman3
+  - podman4
+
+systemd_files:
+  - /etc/containers/systemd/registry.container
+  - /etc/containers/systemd/minio.container
+
+regctl_files:
+  - ~/.regctl/config.json
+  - /usr/local/bin/regctl
+
+config_dirs:
+  - /etc/openchami
+  - /etc/ochami
+  - "{{ omnia_nfs_share }}/openchami"
+  - "{{ omnia_nfs_share }}/log/openchami"

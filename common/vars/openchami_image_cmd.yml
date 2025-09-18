@@ -1,0 +1,42 @@
+# Copyright 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+---
+
+rhel_base_image_name: "rhel-base"
+
+base_image_commands:
+  - "dracut --add 'dmsquash-live livenet network-manager' --install '/usr/lib/systemd/systemd-sysroot-fstab-check' --kver $(basename /lib/modules/*) -N -f --logfile /tmp/dracut.log 2>/dev/null"   # noqa: yaml[line-length]
+  - "echo DRACUT LOG:; cat /tmp/dracut.log"
+
+default_x86_64_compute_commands:
+  - "useradd -mG wheel -p '$6$VHdSKZNm$O3iFYmRiaFQCemQJjhfrpqqV7DdHBi5YpY6Aq06JSQpABPw.3d8PQ8bNY9NuZSmDv7IL/TsrhRJ6btkgKaonT.' testuser"
+
+login_node_x86_64_compute_commands:
+  - "useradd -mG wheel -p '$6$VHdSKZNm$O3iFYmRiaFQCemQJjhfrpqqV7DdHBi5YpY6Aq06JSQpABPw.3d8PQ8bNY9NuZSmDv7IL/TsrhRJ6btkgKaonT.' testuser"
+  - "groupadd -r slurm"
+  - "useradd -r -g slurm -d /var/lib/slurm -s /sbin/nologin slurm"
+  - "mkdir -p /var/log/slurm /var/run/slurm /var/spool/slurmd /etc/slurm /var/lib/slurm"
+  - "chown -R slurm:slurm /var/log/slurm /var/run/slurm /var/spool/slurmd /etc/slurm /var/lib/slurm"
+  - "chmod 755 /var/log/slurm /var/run/slurm /var/spool/slurmd /etc/slurm /var/lib/slurm"
+
+# login_compute_commands:
+# k8s_head_compute_commands:
+
+
+# ------------------------------------------ temporary ---------------------
+
+rhel_repos:
+  - { name: 'RHEL10_Epel', url: '', gpg: '' }
+  - { name: 'RHEL10_BaseOS', url: '', gpg: '' }
+  - { name: 'RHEL10_AppStream', url: '', gpg: '' }

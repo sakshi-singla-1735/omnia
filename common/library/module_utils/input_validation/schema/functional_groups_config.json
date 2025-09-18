@@ -2,43 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "type": "object",
   "properties": {
-    "Groups": {
-      "type": "object",
-      "patternProperties": {
-        "^grp([1-9][0-9]?|0)$": {
-          "type": "object",
-          "properties": {
-            "location_id": {
-              "type": "string",
-              "description": "Scalable unit and rack number range is 0-99. Format: SU-<n>.RACK-<n>",
-              "pattern": "^(SU-\\d{1,2}\\.RACK-\\d{1,2})$"
-            },
-            "cluster_name": {
-              "type": "string",
-              "pattern": "^$|^[a-zA-Z0-9_]+$",
-              "description": "Name of the cluster. Mandatory for service and compute kubernetes roles like 'service_kube_node', 'kube_node'."
-            },
-            "parent": {
-              "type": "string",
-              "pattern": "^[a-zA-Z0-9,]*$",
-              "description": "List of service tag of associated active service node(s). This field will be empty for group of nodes which is associated with 'service_kube_node', 'kube_node', 'slurm_control_plane', 'slurm_node', 'login_node', 'compiler_node'."
-            },
-            "architecture": {
-                "type": "string",
-                "description": "Architecture of the nodes - x86_64 or aarch64",
-                "enum": ["x86_64", "aarch64"],
-                "required": ["architecture"]
-            }
-          },
-          "required": [
-            "location_id",
-            "architecture"
-          ]
-        }
-      },
-      "additionalProperties": false
-    },
-    "Roles": {
+    "functional_groups": {
       "type": "array",
       "items": {
         "type": "object",
@@ -47,29 +11,35 @@
             "type": "string",
             "description": "Name of the role, can be any of the following Omnia defined roles.",
             "enum": [
-              "default",
-              "service_kube_node",
-              "kube_node",
-              "slurm_control_node",
-              "slurm_node",
-              "login_node",
-              "compiler_node"
+              "default_x86_64",
+              "service_kube_node_x86_64",
+              "login_node_x86_64",
+              "login_compiler_node_x86_64",
+              "slurm_control_node_x86_64",
+              "slurm_node_x86_64"
             ]
           },
-          "groups": {
-            "type": "array",
-            "description": "List of groups defined by the user",
-            "items": {
-              "type": "string",
-              "pattern": "^grp\\d{1,2}$"
-            },
-            "minItems": 1,
-            "uniqueItems": true
+          "location_id": {
+            "type": "string",
+            "description": "Scalable unit and rack number range is 0-99. Format: SU-<n>.RACK-<n>",
+            "pattern": "^(SU-\\d{1,2}\\.RACK-\\d{1,2})$"
+          },
+          "cluster_name": {
+            "type": "string",
+            "pattern": "^$|^[a-zA-Z0-9_]+$",
+            "description": "Name of the cluster. Mandatory for service and compute kubernetes roles like 'service_kube_node', 'kube_node'."
+          },
+          "parent": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9,]*$",
+            "description": "List of service tag of associated active service node(s). This field will be empty for group of nodes which is associated with 'service_kube_node', 'kube_node', 'slurm_control_plane', 'slurm_node', 'login_node', 'compiler_node'."
           }
         },
         "required": [
           "name",
-          "groups"
+          "location_id",
+          "cluster_name",
+          "parent"
         ]
       },
       "minItems": 1,
@@ -78,7 +48,6 @@
     }
   },
   "required": [
-    "groups",
     "functional_groups"
   ]
 }

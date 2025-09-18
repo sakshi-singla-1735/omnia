@@ -330,7 +330,7 @@ init_container_config() {
 
             # Check if the Omnia shared path is absolute path and path exists.
             if [[ "$omnia_path" != /* ]] || [ ! -d "$omnia_path" ]; then
-                echo -e "${RED} Omnia shared path is not an absolute path or does not exist! Please re-run omnia.sh --install with valid Omnia shared path${NC}"
+                echo -e "${RED} Omnia shared path is not an absolute path or does not exist! Please re-run omnia.sh --install with valid Omnia shared path.${NC}"
                 exit 1
             fi
             ;;
@@ -347,6 +347,13 @@ init_container_config() {
 
                         echo -e "${BLUE} Please provide the OIM client share path (mount target):${NC}"
                         read -p "Omnia shared path: " omnia_path
+
+                        # Validate Omnia shared path is absolute
+                        if [[ "$omnia_path" != /* ]]; then
+                            echo -e "${RED}Omnia shared path must be an absolute path.${NC}"
+                            exit 1
+                        fi
+
                         nfs_type="external"
                         break
                         ;;

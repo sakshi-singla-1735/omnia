@@ -18,15 +18,6 @@
 # SIMPLY APPEND THE REQUIRED VALUES AGAINST THE PARAMETER OF YOUR CHOICE.
 # ***********************************************************************
 
-#### Mandatory
-# This Node name is used only for bmc dynamic discovered nodes
-# Nodes present in mapping file, won't be considered for this node_name.
-# Prefix for the node names, if needed to be dynamically allocated.
-# Hostname = node_name + '0000x' + domain_name
-# Hostname <= 65 characters.
-# Example: servernode00001.Omnia.test , where node_name=servernode, domain_name=Omnia.test , 00001 used by Omnia
-node_name: "node"
-
 #### Optional
 # This depicts the path where user has kept the PXE mapping file.
 # The mapping file consists of the Service tag, Admin MAC,Hostname and its respective admin IP address and/or BMC IP.

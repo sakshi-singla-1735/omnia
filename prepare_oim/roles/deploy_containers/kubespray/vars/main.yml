@@ -26,6 +26,7 @@ kubespray_directories:
 kubespray_image_name: "omnia_kubespray"
 kubespray_image_tag: "{{ kubespray_version }}"
 kubespray_container_name: "omnia_kubespray_{{ kubespray_version }}"
+kubespray_quadlet_mode: "0644"
 kubespray_ssh_port:
   "v2.26.0": "2226"
   "v2.27.0": "2227"
@@ -34,10 +35,14 @@ default_kubespray_version: "v2.28.0"
 kubespray_port_occupied_msg: |
   The port number {{ kubespray_ssh_port[kubespray_image_tag] }} is already in use. The Kubespray container requires this port to be available.
   Please make sure this port is not occupied by any other process and re-run the playbook.
-kubespray_image_pull_fail_msg: |
-  The pull of the kubespray image {{ kubespray_image_name }}:{{ kubespray_image_tag }} has failed.
-  To resolve this issue, please address the following error message: {{ image_pull_result }}.
-  After rectifying the issues, you can re-run the playbook to successfully pull the kubespray image.
+kubespray_image_pull_fail_msg:
+  - The pull of the kubespray image {{ kubespray_image_name }}:{{ kubespray_image_tag }} has failed.
+  - "ERROR: {{ kubespray_image_name }}:{{ kubespray_image_tag }} not found locally."
+  - To resolve this, please follow these steps
+  - Clone the Omnia Artifactory repository
+  - git clone https://github.com/dell/omnia-artifactory -b omnia-container
+  - Navigate to the repository directory and Build the core image locally
+  - ./build_images.sh kubespray kubespray_version=<version>
 wait_time: 10
 kubespray_volumes:
   - "{{ omnia_nfs_share }}/ssh_config/.ssh:/root/.ssh{{ selinux_option }}"

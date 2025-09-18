@@ -13,7 +13,8 @@
 # limitations under the License.
 ---
 
-- name: Include input project directory
-  tags: management_layer
-  when: not project_dir_status | default(false) | bool
-  ansible.builtin.import_playbook: ../utils/include_input_dir.yml
+- name: Check prequisites
+  ansible.builtin.include_tasks: check_prerequisites.yml
+
+- name: Configure PXE boot
+  ansible.builtin.include_tasks: configure_pxe_boot.yml

@@ -49,7 +49,7 @@ def read_json_file(file_path, module):
 # Read YAML file
 
 
-def read_roles_config(file_path, module):
+def read_functional_groups_config(file_path, module):
     """
     Reads a YAML file containing roles configuration and
      returns the roles configuration and all groups.

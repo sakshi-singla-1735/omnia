@@ -11,3 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+---
+
+clone_retry: "5"
+clone_delay: "10"
+dir_permissions_755: "0755"
+file_permissions_644: "0644"
+job_retry: "60"
+job_delay: "30"
