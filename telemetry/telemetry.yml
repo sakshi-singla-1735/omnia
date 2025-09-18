@@ -74,7 +74,7 @@
 # service_k8s_prereq
 - name: Initiate pre-requisites for service cluster
   hosts: localhost
-  connection: ssh
+  connection: local
   gather_facts: false
   tasks:
     - name: Initiate pre-requisites

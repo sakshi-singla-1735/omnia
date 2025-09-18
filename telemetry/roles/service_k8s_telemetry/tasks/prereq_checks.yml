@@ -42,8 +42,8 @@
           kubernetes.core.k8s_info:
             api_version: v1
             kind: Node
-          register: node_info
-          failed_when: node_info.resources is not defined or node_info.resources | length == 0
+          register: kube_node_info
+          failed_when: kube_node_info.resources is not defined or kube_node_info.resources | length == 0
       rescue:
         - name: Kubernetes is not running
           ansible.builtin.fail:
