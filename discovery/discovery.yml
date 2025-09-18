@@ -62,4 +62,6 @@
   hosts: oim
   connection: ssh
   roles:
+    - nfs_client
+    - slurm_config
     - configure_ochami

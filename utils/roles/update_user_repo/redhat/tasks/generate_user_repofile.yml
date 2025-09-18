@@ -1,0 +1,35 @@
+# Copyright 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+---
+
+- name: Set baseurl_present based on existence of base_url for item.name
+  ansible.builtin.set_fact:
+    baseurl_present: >-
+      {{ (pulp_dist_result
+           | selectattr('name', 'equalto', item.name)
+           | map(attribute='base_url')
+           | list
+           | length > 0) | bool }}
+
+- name: Fail if baseurl is not present
+  ansible.builtin.fail:
+    msg: "{{ userrepo_baseurl_fail_msg }}"
+  when: not baseurl_present
+
+- name: Configure user repository
+  ansible.builtin.template:
+    src: "{{ usr_repo_config_template_src }}"
+    dest: "{{ repo_path }}/{{ item.name }}.repo"
+    mode: "{{ file_permission }}"
+  when: baseurl_present

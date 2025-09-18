@@ -1,0 +1,11 @@
+---
+- name: Include storage vars
+  ansible.builtin.include_vars: "{{ input_project_dir }}/storage_config.yml"
+
+- name: Set facts for slurm
+  ansible.builtin.set_fact:
+    nfs_storage_name: "{{ slurm_cluster[0].nfs_storage_name }}"
+
+- name: Read the slurm mount point
+  ansible.builtin.set_fact:
+    share_path: "{{ (nfs_client_params | selectattr('nfs_name', 'equalto', nfs_storage_name) | first).client_share_path }}"

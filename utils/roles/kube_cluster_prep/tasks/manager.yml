@@ -1,0 +1,16 @@
+---
+- name: Check if public rsa
+  ansible.builtin.stat:
+    path: "{{ rsa_id_file }}"
+  register: local_idrsa_exists
+  delegate_to: "{{ manager }}"
+
+- name: Generate ssh key pair
+  ansible.builtin.shell: ssh-keygen -t rsa -b 4096 -f "{{ rsa_id_file }}" -q -N "{{ passphrase }}" <<<y >/dev/null 2>&1
+  when: not local_idrsa_exists.stat.exists
+  delegate_to: "{{ manager }}"
+
+- name: Install sshpass
+  ansible.builtin.dnf:
+    name: sshpass
+  delegate_to: "{{ manager }}"

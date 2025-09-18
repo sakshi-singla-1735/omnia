@@ -1,0 +1,10 @@
+---
+- name: Create slurmd service file for configless mode
+  ansible.builtin.template:
+    src: "{{ item }}.j2"
+    dest: "{{ cloud_init_out }}/{{ item }}"
+    owner: "{{ root_user }}"
+    group: "{{ root_group }}"
+    mode: "{{ conf_file_mode }}"
+  loop:
+    - slurmctld-cloudinit.yaml

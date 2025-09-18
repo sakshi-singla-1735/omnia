@@ -1,0 +1,32 @@
+---
+- name: Read the nodes yaml for hostnames
+  ansible.builtin.include_vars: "{{ nodes_yaml }}"
+
+- name: Read the node name group
+  ansible.builtin.set_fact:
+    name_group_map: "{{ nodes | items2dict(key_name='name', value_name='group') }}"
+
+- name: Group the functional_groups
+  ansible.builtin.set_fact:
+    tmp_grouped_nodes: "{{ name_group_map | dict2items | groupby('value') }}"
+
+- name: Re-organize the groups
+  ansible.builtin.set_fact:
+    grouped_nodes: "{{ grouped_nodes | default({}) | combine({item[0]: ((item[1] | items2dict).keys() | list) }) }}"
+  loop: "{{ tmp_grouped_nodes }}"
+
+- name: Get name and IP mapping 1
+  ansible.builtin.set_fact:
+    tmp_ip_name_map: "{{ nodes | items2dict(key_name='name', value_name='interfaces') }}"
+
+- name: Get name and IP mapping 2
+  ansible.builtin.set_fact:
+    ip_name_map: "{{ ip_name_map | default({}) | combine({item.key: item.value[0]['ip_addrs'][0]['ip_addr']}) }}"
+  loop: "{{ tmp_ip_name_map | dict2items }}"
+
+- name: Assign slurm lists
+  ansible.builtin.set_fact:
+    ctld_list: "{{ grouped_nodes.get('slurm_control_node') | default([]) }}"
+    dbd_list: "{{ grouped_nodes.get('slurm_control_node') | default([]) }}"
+    cmpt_list: "{{ grouped_nodes.get('slurm_node') | default([]) }}"
+    login_list: "{{ grouped_nodes.get('login_node') | default([]) }}"

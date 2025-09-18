@@ -1,0 +1,105 @@
+- name: compute
+  description: "compute config"
+  file:
+    encoding: plain
+    content: |
+      ## template: jinja
+      #cloud-config
+      merge_how:
+      - name: list
+        settings: [append]
+      - name: dict
+        settings: [no_replace, recurse_list]
+
+      users:
+        - name: root
+          ssh_authorized_keys: {{ ssh_key }}
+      disable_root: false
+
+      write_files:
+        - path: /etc/hosts
+          append: true
+          content: |
+{% for key in ip_name_map | sort %}
+            {{ ip_name_map[key] }} {{ key }}
+{% endfor %}            
+        - path: /root/init_slurm_db.sql
+          permissions: '0600'
+          content: |
+            SELECT VERSION();
+            SHOW DATABASES;
+
+            CREATE DATABASE slurm_acct_db;
+            CREATE USER 'slurm'@'%' IDENTIFIED BY '{{ slurm_db_password }}';
+            GRANT ALL PRIVILEGES ON slurm_acct_db.* TO 'slurm'@'%';
+            FLUSH PRIVILEGES;
+        - path: /etc/fstab
+          content: |
+            {{ cloud_init_nfs_path }}/etc/slurm  /etc/slurm   nfs   defaults,_netdev   0  0
+            {{ cloud_init_nfs_path }}/etc/my.cnf.d  /etc/my.cnf.d   nfs   defaults,_netdev   0  0
+            {{ cloud_init_nfs_path }}/var/lib/mysql  /var/lib/mysql  nfs   defaults,_netdev   0  0
+            {{ cloud_init_nfs_path }}/var/log/mariadb /var/log/mariadb nfs   defaults,_netdev   0  0
+            {{ cloud_init_nfs_path }}/var/log/slurm /var/log/slurm nfs  defaults,_netdev   0  0
+            {{ cloud_init_nfs_path }}/var/spool/ /var/spool/ nfs  defaults,_netdev   0  0
+            {{ cloud_init_nfs_path }}/etc/sssd /etc/sssd  nfs  defaults,_netdev   0  0
+            {{ cloud_init_nfs_path }}/etc/openldap /etc/openldap nfs  defaults,_netdev   0  0
+          permissions: '0644'
+      runcmd:
+         - useradd -mG wheel -p '$6$VHdSKZNm$O3iFYmRiaFQCemQJjhfrpqqV7DdHBi5YpY6Aq06JSQpABPw.3d8PQ8bNY9NuZSmDv7IL/TsrhRJ6btkgKaonT.' testuser
+#        - wget -O /etc/munge/munge.key http://172.16.0.254:80/slurm/munge.key
+         - groupadd -r {{ slurm_user_group }}
+         - useradd -r -g {{ slurm_user }} -d /var/lib/slurm -s /sbin/nologin slurm
+
+         - mkdir -p /var/log/slurm /var/run/slurm /var/spool/slurmctld /var/spool/state /etc/slurm /var/lib/slurm /etc/my.cnf.d
+         - chown -R {{ slurm_user }}:{{ slurm_user_group }} /var/log/slurm
+         - chown -R {{ slurm_user }}:{{ slurm_user_group }} /var/run/slurm
+         - chown -R {{ slurm_user }}:{{ slurm_user_group }} /var/spool/slurmctld
+         - chown -R {{ slurm_user }}:{{ slurm_user_group }} /var/spool/state
+         - chown -R {{ slurm_user }}:{{ slurm_user_group }} /etc/slurm
+         - chown -R {{ slurm_user }}:{{ slurm_user_group }} /var/lib/slurm
+         - chown -R {{ slurm_user }}:{{ slurm_user_group }} /etc/my.cnf.d
+         - chmod 755 /var/run/slurm
+         - chmod 755 /var/log/slurm /var/spool/slurmctld /var/spool/state /etc/slurm /var/lib/slurm /etc/my.cnf.d
+         - chmod 644 /etc/slurm/slurm.conf
+         - chmod 600 /etc/slurm/slurmdbd.conf
+         - chown -R {{ slurm_user }}:{{ slurm_user_group }} /etc/slurm/slurmdbd.conf
+
+         - mount -t nfs {{ cloud_init_nfs_path }}/etc/slurm /etc/slurm
+         - mount -t nfs {{ cloud_init_nfs_path }}/etc/my.cnf.d /etc/my.cnf.d
+         - mount -t nfs {{ cloud_init_nfs_path }}/var/lib/mysql /var/lib/mysql
+         - mount -t nfs {{ cloud_init_nfs_path }}/var/log/mariadb /var/log/mariadb
+         - mount -t nfs {{ cloud_init_nfs_path }}/var/log/slurm /var/log/slurm
+         - mount -t nfs {{ cloud_init_nfs_path }}/var/spool/ /var/spool/
+         - mount -t nfs {{ cloud_init_nfs_path }}/etc/munge/ /etc/munge/
+#         - cp {{ cloud_init_nfs_path }}/etc/munge/munge.key /etc/munge/munge.key
+         - sudo chown munge:munge /etc/munge/munge.key
+         - sudo chmod 400 /etc/munge/munge.key
+
+        # mounts for openldap
+         - mount -t nfs {{ cloud_init_nfs_path }}/etc/sssd /etc/sssd
+         - mount -t nfs {{ cloud_init_nfs_path }}/etc/openldap /etc/openldap
+         - chmod 600 /etc/sssd/sssd.conf
+         - sudo chown root:root /etc/sssd/sssd.conf
+         - sed -i 's/^PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config.d/50-cloud-init.conf
+         
+         - mount -a
+
+         - setenforce 0
+         - systemctl stop firewalld
+         - systemctl enable munge
+         - systemctl start munge
+         - systemctl enable slurmctld
+         - systemctl start slurmctld
+         - systemctl enable slurmdbd
+         - systemctl start slurmdbd
+         - systemctl enable --now mariadb
+         - mysql -u root < /root/init_slurm_db.sql
+
+         # openldap commands
+         - systemctl start sssd
+         - authselect select sssd with-mkhomedir --force
+         - systemctl enable --now oddjobd.service
+         - systemctl enable --now sssd
+         - systemctl start sssd
+         - systemctl enable sshd
+         - systemctl start sshd
