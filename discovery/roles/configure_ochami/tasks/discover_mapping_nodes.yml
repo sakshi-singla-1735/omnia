@@ -36,7 +36,7 @@
     state: directory
     mode: "{{ hostvars['localhost']['dir_permissions_755'] }}"
 
-- name: Load BMC-functional_group data file
+- name: Load BMC-group data file
   ansible.builtin.template:
     src: "{{ bmc_group_data_template }}"
     dest: "{{ bmc_group_data_file }}"
