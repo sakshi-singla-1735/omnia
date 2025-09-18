@@ -16,11 +16,32 @@
 - name: Set empty image list
   ansible.builtin.set_fact:
     image_versions: []
+    kube_control_plane_image_versions: []
+    kube_node_image_versions: []
+    etcd_image_versions: []
 
-- name: Fetch and store image versions
+- name: Fetch and store k8s common image versions
   ansible.builtin.set_fact:
     image_versions: "{{ image_versions + [item.package + ':' + item.tag] }}"
   loop: "{{ hostvars['localhost']['k8s_packages_json'][hostvars['localhost']['software_stack']]['cluster'] }}"
+  when: item.type == 'image'
+
+- name: Fetch and store kube control plane image versions
+  ansible.builtin.set_fact:
+    kube_control_plane_image_versions: "{{ kube_control_plane_image_versions + [item.package + ':' + item.tag] }}"
+  loop: "{{ hostvars['localhost']['k8s_packages_json']['service_kube_control_plane']['cluster'] }}"
+  when: item.type == 'image'
+
+- name: Fetch and store kube node image versions
+  ansible.builtin.set_fact:
+    kube_node_image_versions: "{{ kube_node_image_versions + [item.package + ':' + item.tag] }}"
+  loop: "{{ hostvars['localhost']['k8s_packages_json']['service_kube_node']['cluster'] }}"
+  when: item.type == 'image'
+
+- name: Fetch and store  etcd image versions
+  ansible.builtin.set_fact:
+    etcd_image_versions: "{{ etcd_image_versions + [item.package + ':' + item.tag] }}"
+  loop: "{{ hostvars['localhost']['k8s_packages_json']['service_etcd']['cluster'] }}"
   when: item.type == 'image'
 
 # Pulling images from pulp - always,partial, never
@@ -32,11 +53,19 @@
   when:
     - hostvars['localhost']['k8s_offline_install']
 
-# Pulling images directly when k8s_offline_install: false, enable_routed_internet: true
+# Pulling images from pulp - always,partial, never
+- name: Pull K8s services docker images from pulp
+  ansible.builtin.command: nerdctl pull {{ item }}
+  with_items: "{{ image_versions + kube_control_plane_image_versions + kube_node_image_versions + etcd_image_versions }}"
+  changed_when: true
+  failed_when: false
+  when:
+    - hostvars['localhost']['k8s_offline_install']
 
+# Pulling images directly when k8s_offline_install: false, enable_routed_internet: true
 - name: Pull K8s services docker images from proxy
   ansible.builtin.command: nerdctl pull {{ item }}
-  with_items: "{{ image_versions }}"
+  with_items: "{{ image_versions + kube_control_plane_image_versions + kube_node_image_versions + etcd_image_versions }}"
   changed_when: true
   failed_when: false
   environment:
@@ -48,10 +77,9 @@
     - hostvars['localhost']['enable_routed_internet']
 
 # Pulling images directly when k8s_offline_install: false, enable_routed_internet: false
-
 - name: Pull K8s services docker images from dedicated internet
   ansible.builtin.command: nerdctl pull {{ item }}
-  with_items: "{{ image_versions }}"
+  with_items: "{{ image_versions + kube_control_plane_image_versions + kube_node_image_versions + etcd_image_versions }}"
   changed_when: true
   failed_when: false
   environment:
@@ -68,9 +96,9 @@
   loop:
     - "k8s-images"
 
-# Save pulled images as tar files
+# Save pulled images as tar files (only kube_node_image_versions + image_versions)
 - name: Save K8s service images to tar
-  ansible.builtin.command: nerdctl save -o /root/k8s/{{ hostvars['localhost']['k8s_version'] }}/kube_node_configs/k8s-images/{{ item | regex_replace('[^a-zA-Z0-9_.-]', '_') }}.tar {{ item }}  # noqa: yaml[line-length]
-  with_items: "{{ image_versions }}"
+  ansible.builtin.command: nerdctl save -o /root/k8s/{{ hostvars['localhost']['k8s_version'] }}/kube_node_configs/k8s-images/{{ item | regex_replace('[^a-zA-Z0-9_.-]', '_') }}.tar {{ item }} # noqa: yaml[line-length]
+  with_items: "{{ image_versions + kube_node_image_versions }}"
   changed_when: true
   delegate_to: "{{ groups['kube_control_plane'][0] }}"
