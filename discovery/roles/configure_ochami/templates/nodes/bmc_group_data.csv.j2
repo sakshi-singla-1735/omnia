@@ -1,5 +1,5 @@
 BMC_IP,FUNCTIONAL_GROUP,PARENT
 {{ hostvars['localhost']['Networks'][0].admin_network.primary_oim_bmc_ip }},,
 {% for item in nodes %}
-{{ item.value.BMC_IP }},{{ item.value.FUNCTIONAL_GROUP_NAME }},{{ (functional_groups | selectattr('name', 'equalto', item.value.FUNCTIONAL_GROUP_NAME) | list)[0].parent | default('') }}
+{{ item.value.BMC_IP }},{{ item.value.FUNCTIONAL_GROUP_NAME }},{{ (hostvars['localhost']['functional_groups'] | selectattr('name', 'equalto', item.value.FUNCTIONAL_GROUP_NAME) | list)[0].parent | default('') }}
 {% endfor %}
