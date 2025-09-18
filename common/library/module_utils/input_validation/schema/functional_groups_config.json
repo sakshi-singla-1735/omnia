@@ -10,13 +10,17 @@
           "name": {
             "type": "string",
             "description": "Name of the role, can be any of the following Omnia defined roles.",
-            "enum": [
+            "enum": [              
               "default_x86_64",
               "service_kube_node_x86_64",
               "login_node_x86_64",
+              "login_node_aarch64",
               "login_compiler_node_x86_64",
+              "login_compiler_node_aarch64",
               "slurm_control_node_x86_64",
-              "slurm_node_x86_64"
+              "default_aarch64",
+              "slurm_node_x86_64",
+              "slurm_node_aarch64"
             ]
           },
           "location_id": {

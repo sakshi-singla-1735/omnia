@@ -78,12 +78,65 @@ SERVICE_NODE_ENTRY_INVALID_ROLES_CONFIG_MSG = ("The 'service_node' role defined 
     " is not currently supported and is reserved for future use. Please remove or update this role"
     " to avoid configuration errors.")
 
+# Functional Groups Config Validation Messages
+
+# Top-level empty or syntax error
+EMPTY_OR_SYNTAX_ERROR_FUNCTIONAL_GROUPS_CONFIG_MSG = (
+    "The functional_groups_config.yml file is empty or has syntax errors." 
+    "It must contain a valid 'functional_groups' section with proper YAML formatting."
+    "Check the file content and ensure proper YAML formatting."
+)
+
+# Non-empty functional_groups key
+NON_EMPTY_CLUSTER_NAME_MSG = "Cluster name must not be empty for '{name}' functional group."
+
+# Non-list functional_groups
+FUNCTIONAL_GROUPS_NOT_LIST_MSG = (
+    "The 'functional_groups' key must be associated with a list of functional group definitions."
+)
+
+# Each functional group must be a dict
+EACH_FUNCTIONAL_GROUP_NOT_DICT_MSG = (
+    "Each functional group entry must be a dictionary with required fields."
+)
+
+# Missing required fields in a functional group
+MISSING_FIELD_FUNCTIONAL_GROUP_MSG = "Missing required field: {field}"
+
+# Duplicate combination of name, location_id, cluster_name
+DUPLICATE_FUNCTIONAL_GROUP_COMBINATION_MSG = (
+    "Duplicate functional group combination (name, location_id, cluster_name)."
+)
+
+SLURM_NODE_PARENT_MISSING_MSG = (
+    "Functional group '{name}' must have a non-empty 'parent' field."    
+)
+
+# Top-level missing or invalid functional_groups
+MISSING_FUNCTIONAL_GROUPS_SECTION_MSG = (
+    "The 'functional_groups' section is missing or null. It must be a non-empty list."
+)
+
+# SLURM/K8s validations
+SLURM_NODE_WITHOUT_CONTROL_MSG = (
+    "Slurm node defined for cluster '{cluster}' but no corresponding slurm_control_node exists. "
+    "Please make sure cluster name is same for slurm_control_node and slurm_node functional groups."
+)
+
+SLURM_KUBE_CLUSTER_OVERLAP_MSG = (
+    "Cluster '{cluster}' is defined for both SLURM nodes and Kubernetes nodes. Overlap not allowed."
+)
 # provision_config.yml
+PRIMARY_ADMIN_BMC_IP_SAME_MSG = "primary_oim_admin_ip and primary_oim_bmc_ip should not be the same."
+PRIMARY_ADMIN_IP_INVALID_MSG = "primary_oim_admin_ip is not a valid IPv4 address."
+PRIMARY_BMC_IP_INVALID_MSG = "primary_oim_bmc_ip is not a valid IPv4 address."
+PRIMARY_ADMIN_IP_IN_DYNAMIC_RANGE_MSG = "primary_oim_admin_ip should not be within the dynamic_range."
+PRIMARY_BMC_IP_IN_DYNAMIC_RANGE_MSG = "primary_oim_bmc_ip should not be within the dynamic_range."
 DEFAULT_LEASE_TIME_FAIL_MSG = "Please provide a valid default_lease_time."
 TIMEZONE_FAIL_MSG = ("Unsupported Timezone. Please check the timezone.txt file "
                     "for a list of valid timezones.")
 ENABLE_SWITCH_BASED_FAIL_MSG = "enable_switch_based must be set to either true or false."
-LANGUAGE_FAIL_MSG = "Only en-US language supported"
+LANGUAGE_FAIL_MSG = "Only en_US.UTF-8 language supported"
 LANGUAGE_EMPTY_MSG = "Language setting cannot be empty"
 PUBLIC_NIC_FAIL_MSG = "public_nic is empty. Please provide a public_nic value."
 PXE_MAPPING_FILE_PATH_FAIL_MSG = ("File path is invalid. Please ensure the file path specified in "

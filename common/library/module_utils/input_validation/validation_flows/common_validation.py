@@ -844,11 +844,11 @@ def validate_server_spec(
     return errors
 
 
-def get_admin_bmc_networks(
+def get_admin_networks(
     input_file_path, logger, module, omnia_base_dir, module_utils_base, project_name
 ):
     """
-    Retrieves the admin and BMC networks from the network specification.
+    Retrieves the admin network from the network specification.
 
     Args:
         input_file_path (str): The path to the input file.
@@ -859,25 +859,23 @@ def get_admin_bmc_networks(
         project_name (str): The name of the project.
 
     Returns:
-        dict: A dictionary containing the admin and BMC networks.
+        dict: A dictionary containing the admin network.
     """
     network_spec_file_path = create_file_path(input_file_path, file_names["network_spec"])
     network_spec_json = validation_utils.load_yaml_as_json(
         network_spec_file_path, omnia_base_dir, project_name, logger, module
     )
-    admin_bmc_networks = {}
+    admin_networks = {}
 
     for network in network_spec_json["Networks"]:
         for key, value in network.items():
-            if key in ["admin_network", "bmc_network"]:
-                static_range = value.get("static_range", "N/A")
+            if key in ["admin_network"]:
                 dynamic_range = value.get("dynamic_range", "N/A")
-                admin_bmc_networks[key] = {
-                    "static_range": static_range,
+                admin_networks[key] = {
                     "dynamic_range": dynamic_range,
                     "primary_oim_admin_ip": value.get("primary_oim_admin_ip")
                 }
-    return admin_bmc_networks
+    return admin_networks
 
 def is_ip_in_range(ip_str, ip_range_str):
     """
@@ -894,22 +892,19 @@ def is_ip_in_range(ip_str, ip_range_str):
         return False
     
 
-def validate_k8s(data, admin_bmc_networks, softwares, ha_config, tag_names, errors, 
+def validate_k8s(data, admin_networks, softwares, ha_config, tag_names, errors, 
                  omnia_base_dir, project_name, logger, module, input_file_path):
     """
     Validates Kubernetes cluster configurations.
 
     Parameters:
         data (dict): A dictionary containing Kubernetes cluster configurations.
-        admin_bmc_networks (dict): A dictionary containing admin BMC network information.
+        admin_networks (dict): A dictionary containing admin network information.
         softwares (list): A list of software name sin software_config.
         errors (list): A list to store error messages.
     """
-    admin_static_range = admin_bmc_networks["admin_network"]["static_range"]
-    admin_dynamic_range = admin_bmc_networks["admin_network"]["dynamic_range"]
-    bmc_static_range = admin_bmc_networks["bmc_network"]["static_range"]
-    bmc_dynamic_range = admin_bmc_networks["bmc_network"]["dynamic_range"]
-    primary_oim_admin_ip = admin_bmc_networks["admin_network"]["primary_oim_admin_ip"]
+    admin_dynamic_range = admin_networks["admin_network"]["dynamic_range"]
+    primary_oim_admin_ip = admin_networks["admin_network"]["primary_oim_admin_ip"]
     
     # service_k8s_cluster = data["service_k8s_cluster"]
     cluster_set = {}
@@ -967,10 +962,7 @@ def validate_k8s(data, admin_bmc_networks, softwares, ha_config, tag_names, erro
                 k8s_pod_network_cidr = kluster.get("k8s_pod_network_cidr")
                 # k8s_offline_install = kluster.get("k8s_offline_install")
                 ip_ranges = [
-                    admin_static_range,
-                    bmc_static_range,
                     admin_dynamic_range,
-                    bmc_dynamic_range,
                     k8s_service_addresses,
                     k8s_pod_network_cidr]
                 does_overlap, _ = validation_utils.check_overlap(ip_ranges)
@@ -1062,7 +1054,7 @@ def validate_omnia_config(
 
     if ("compute_k8s" in sw_list or "service_k8s" in sw_list) and \
         ("compute_k8s" in tag_names or "service_k8s" in tag_names):
-        admin_bmc_networks = get_admin_bmc_networks(
+        admin_networks = get_admin_networks(
             input_file_path, logger, module, omnia_base_dir, module_utils_base, project_name)
         ha_config_path = create_file_path(
             input_file_path, file_names["high_availability_config"])
@@ -1070,7 +1062,7 @@ def validate_omnia_config(
             ha_config = yaml.safe_load(f)
         for k in ["service_k8s_cluster_ha", "compute_k8s_cluster_ha"]:
             ha_config[k] = [xha["cluster_name"] for xha in ha_config.get(k, [])]
-        validate_k8s(data, admin_bmc_networks, sw_list, ha_config, tag_names,
+        validate_k8s(data, admin_networks, sw_list, ha_config, tag_names,
                         errors, omnia_base_dir, project_name, logger, module, input_file_path)
     return errors
 

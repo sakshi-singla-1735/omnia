@@ -35,8 +35,8 @@ timezone: "GMT"
 
 #### Mandatory
 # Language that needs to be set during OS provisioning.
-# Default language supported is "en-US"
-language: "en-US"
+# Only language supported is "en_US.UTF-8"
+language: "en_US.UTF-8"
 
 #### Mandatory
 # Default lease time needs to be used by DHCP
