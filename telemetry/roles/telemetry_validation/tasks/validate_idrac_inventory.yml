@@ -55,7 +55,7 @@
   ansible.builtin.lineinfile:
     path: "{{ bmc_group_data_filename }}"
     line: "{{ hostvars[item]['bmc_ip'] }},,"
-    create: no
+    create: false
     insertafter: EOF
     state: present
   loop: "{{ groups['kube_control_plane'] }}"
