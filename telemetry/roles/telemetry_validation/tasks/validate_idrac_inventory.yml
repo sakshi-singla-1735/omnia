@@ -48,8 +48,22 @@
   ansible.builtin.set_fact:
     bmc_group_data: "{{ lookup('file', bmc_group_data_filename).splitlines() }}"
 
+- name: Include OCHAMI node list
+  ansible.builtin.include_vars: "{{ openchami_nodes_vars_path }}"
+
+- name: Update BMC group data file with kube_control_plane BMC IPs
+  ansible.builtin.lineinfile:
+    path: "{{ bmc_group_data_filename }}"
+    line: "{{ hostvars[item]['bmc_ip'] }},,"
+    create: yes
+    insertafter: EOF
+    state: present
+  loop: "{{ groups['kube_control_plane'] }}"
+  when: "'{{ hostvars[item]['bmc_ip'] }}' not in bmc_group_data"
+
 - name: Validate BMC group data file
   validate_bmc_group_data:
+    nodes_bmc_ips: "{{ nodes | map(attribute='bmc_ip') | list }}"
     bmc_group_data_headers: "{{ bmc_group_data_headers }}"
     bmc_group_data: "{{ bmc_group_data }}"
     bmc_group_data_file: "{{ bmc_group_data_filename }}"

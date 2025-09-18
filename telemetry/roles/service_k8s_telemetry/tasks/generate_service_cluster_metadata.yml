@@ -32,12 +32,9 @@
       no_log: true
       failed_when: false
 
-    - name: Include OCHAMI node list
-      ansible.builtin.include_vars: "{{ openchami_nodes_vars_path }}"
-
     - name: Fetch service_cluster info
       get_service_cluster_info:
-        nodes_info: "{{ nodes }}"
+        nodes_info: "{{ hostvars['localhost']['nodes'] }}"
         functional_groups_info: "{{ functional_groups }}"
         bmc_group_data: "{{ hostvars['localhost']['bmc_dict_list'] | default([]) }}"
       register: service_cluster_info_output
