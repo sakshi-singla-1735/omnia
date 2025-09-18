@@ -41,6 +41,8 @@
     src: "{{ bmc_group_data_template }}"
     dest: "{{ bmc_group_data_file }}"
     mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
+  vars:
+    nodes: "{{ hostvars['localhost']['read_mapping_file']['dict'] | dict2items }}"
 
 - name: Discover ochami nodes
   block:
