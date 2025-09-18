@@ -69,13 +69,7 @@ input_file_inventory = {
         files["omnia_config"],
         files["high_availability_config"]
     ],
-    "compute_k8s": [
-        files['functional_groups_config'],
-        files["omnia_config"],
-        files["high_availability_config"]
-    ],
     "service_k8s": [
-        files['functional_groups_config'],
         files["omnia_config"],
         files["high_availability_config"],
         files["functional_groups_config"]

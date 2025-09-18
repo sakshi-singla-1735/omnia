@@ -53,6 +53,11 @@
         lb_port: "{{ selected_cluster_ha.loadbalancer_port | default('') }}"
         active_node_service_tags: "{{ selected_cluster_ha.active_node_service_tags | default([]) }}"
 
+    - name: Fail if HA is disabled
+      ansible.builtin.fail:
+        msg: "{{ ha_fail_msg }}"
+      when: not enable_k8s_ha
+
     - name: Validate virtual_ip_address details when enable_k8s_ha is provided
       ansible.builtin.assert:
         that:

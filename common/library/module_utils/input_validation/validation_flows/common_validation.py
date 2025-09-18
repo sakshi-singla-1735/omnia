@@ -869,11 +869,9 @@ def get_admin_bmc_networks(
 
     for network in network_spec_json["Networks"]:
         for key, value in network.items():
-            if key in ["admin_network", "bmc_network"]:
-                static_range = value.get("static_range", "N/A")
+            if key in ["admin_network"]:
                 dynamic_range = value.get("dynamic_range", "N/A")
                 admin_bmc_networks[key] = {
-                    "static_range": static_range,
                     "dynamic_range": dynamic_range,
                     "primary_oim_admin_ip": value.get("primary_oim_admin_ip")
                 }
@@ -905,17 +903,14 @@ def validate_k8s(data, admin_bmc_networks, softwares, ha_config, tag_names, erro
         softwares (list): A list of software name sin software_config.
         errors (list): A list to store error messages.
     """
-    admin_static_range = admin_bmc_networks["admin_network"]["static_range"]
+
     admin_dynamic_range = admin_bmc_networks["admin_network"]["dynamic_range"]
-    bmc_static_range = admin_bmc_networks["bmc_network"]["static_range"]
-    bmc_dynamic_range = admin_bmc_networks["bmc_network"]["dynamic_range"]
+
     primary_oim_admin_ip = admin_bmc_networks["admin_network"]["primary_oim_admin_ip"]
     
     # service_k8s_cluster = data["service_k8s_cluster"]
     cluster_set = {}
-    if "compute_k8s" in softwares and "compute_k8s" in tag_names:
-        cluster_set["compute_k8s_cluster"] = data.get(
-            "compute_k8s_cluster", [])
+
     if "service_k8s" in softwares and "service_k8s" in tag_names:
         cluster_set["service_k8s_cluster"] = data.get(
             "service_k8s_cluster", [])
@@ -967,10 +962,7 @@ def validate_k8s(data, admin_bmc_networks, softwares, ha_config, tag_names, erro
                 k8s_pod_network_cidr = kluster.get("k8s_pod_network_cidr")
                 # k8s_offline_install = kluster.get("k8s_offline_install")
                 ip_ranges = [
-                    admin_static_range,
-                    bmc_static_range,
                     admin_dynamic_range,
-                    bmc_dynamic_range,
                     k8s_service_addresses,
                     k8s_pod_network_cidr]
                 does_overlap, _ = validation_utils.check_overlap(ip_ranges)
@@ -984,7 +976,7 @@ def validate_k8s(data, admin_bmc_networks, softwares, ha_config, tag_names, erro
                 #csi validation
                 if (
                       "csi_driver_powerscale" in softwares
-                      and ("k8s" in softwares or "service_k8s" in softwares)
+                      and ("service_k8s" in softwares)
                     ):
 
                     csi_secret_file_path = kluster.get("csi_powerscale_driver_secret_file_path")
@@ -1060,15 +1052,15 @@ def validate_omnia_config(
         )
 
 
-    if ("compute_k8s" in sw_list or "service_k8s" in sw_list) and \
-        ("compute_k8s" in tag_names or "service_k8s" in tag_names):
+    if ("service_k8s" in sw_list) and \
+        ("service_k8s" in tag_names):
         admin_bmc_networks = get_admin_bmc_networks(
             input_file_path, logger, module, omnia_base_dir, module_utils_base, project_name)
         ha_config_path = create_file_path(
             input_file_path, file_names["high_availability_config"])
         with open(ha_config_path, "r", encoding="utf-8") as f:
             ha_config = yaml.safe_load(f)
-        for k in ["service_k8s_cluster_ha", "compute_k8s_cluster_ha"]:
+        for k in ["service_k8s_cluster_ha"]:
             ha_config[k] = [xha["cluster_name"] for xha in ha_config.get(k, [])]
         validate_k8s(data, admin_bmc_networks, sw_list, ha_config, tag_names,
                         errors, omnia_base_dir, project_name, logger, module, input_file_path)

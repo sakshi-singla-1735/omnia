@@ -13,18 +13,22 @@
 # limitations under the License.
 ---
 
-- name: Prepare kube node configs
-  when: hostvars['127.0.0.1']['k8s_support']
-  block:
-    - name: Generate kube node configs
-      ansible.builtin.include_tasks: kube_node_config.yml
-
-    - name: Generate kube node configs
-      ansible.builtin.include_tasks: update_kube_proxy.yml
-
-    - name: Generate kube node configs
-      ansible.builtin.include_tasks: generate_static_cloud_init_vars.yml
-
-    - name: Generate kube node configs
-      ansible.builtin.include_tasks: generate_dynamic_cloud_init_vars.yml
+- name: Generate kubeadm join token
+  hosts: kube_control_plane[0]
+  gather_facts: false
+  any_errors_fatal: true
+  tasks:
+    - name: Generate kubeadm join variables
+      ansible.builtin.include_role:
+        name: kube_node_configs
+        tasks_from: generate_dynamic_cloud_init_vars.yml
       tags: kubeadm_token
+
+    - name: Check the nodes and pod status
+      ansible.builtin.include_role:
+        name: common_plugins
+        tasks_from: pod_status.yml
+      vars:
+        track_module_name: "k8s_deployment"
+        ansible_python_interpreter: "/usr/bin/python3"
+      tags: pod_status
