@@ -18,8 +18,23 @@
     name: chrony
     state: present
 
+- name: Update chrony.conf
+  ansible.builtin.lineinfile:
+    path: /etc/chrony.conf
+    regexp: ^#allow
+    line: "allow {{ hostvars['localhost']['admin_net_addr'] }}/{{ hostvars['localhost']['admin_netmask_bits'] }}"
+    state: present
+
 - name: Enable and start chronyd service
   ansible.builtin.service:
     name: chronyd
     enabled: true
     state: restarted
+
+- name: Chronyc sources
+  ansible.builtin.command: chronyc sources
+  changed_when: false
+  register: chronyc_sources
+  until: chronyc_sources is not failed
+  retries: "{{ hostvars['localhost']['fail_retry'] }}"
+  delay: "{{ hostvars['localhost']['fail_delay'] }}"
