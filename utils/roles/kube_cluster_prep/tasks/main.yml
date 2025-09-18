@@ -15,3 +15,10 @@
 - name: SSH pass set
   ansible.builtin.include_tasks: runonce.yml
   run_once: true
+
+- name: Synchronize file to remote hosts
+  ansible.posix.synchronize:
+    src: "{{ rsa_id_file }}.pub"
+    dest: "{{ rsa_id_file }}.pub"
+    mode: push
+  delegate_to: localhost
