@@ -12,6 +12,10 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 ---
+- name: Reload systemd daemon
+  ansible.builtin.systemd:
+    daemon_reload: true
+
 - name: Populate service facts
   ansible.builtin.service_facts:
 
@@ -24,6 +28,9 @@
     name: "{{ item }}"
     state: stopped
   loop: "{{ kubespray_services }}"
+  when:
+    - (item in ansible_facts['services'])
+    - ansible_facts.services[item].state == 'running'
 
 - name: Get omnia_kubespray container files
   ansible.builtin.find:
