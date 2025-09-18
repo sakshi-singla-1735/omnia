@@ -45,67 +45,9 @@
       register: check_pulp_repo
       changed_when: false
 
-    - name: Set json
-      ansible.builtin.set_fact:
-        distjson: [
-          {
-            "base_url": "https://10.5.255.254:2225/pulp/content/opt/omnia/offline_repo/cluster/None/rhel/rpms/x86_64_epel/",
-            "name": "x86_64_epel"
-          },
-          {
-            "base_url": "https://10.5.255.254:2225/pulp/content/opt/omnia/offline_repo/cluster/None/rhel/rpms/x86_64_oneapi/",
-            "name": "x86_64_oneapi"
-          },
-          {
-            "base_url": "https://10.5.255.254:2225/pulp/content/opt/omnia/offline_repo/cluster/None/rhel/rpms/x86_64_docker",
-            "name": "x86_64_docker-ce-repo"
-          },
-          {
-            "base_url": "https://10.5.255.254:2225/pulp/content/opt/omnia/offline_repo/cluster/None/rhel/rpms/aarch64_dock",
-            "name": "aarch64_docker-ce"
-          },
-          {
-            "base_url": "https://10.5.255.254:2225/pulp/content/opt/omnia/offline_repo/cluster/x86_64/rhel/rpms/x86_64_code",
-            "name": "x86_64_codeready-builder-repo"
-          },
-          {
-            "base_url": "https://10.5.255.254:2225/pulp/content/opt/omnia/offline_repo/cluster/None/rhel/rpms/aarch64_epel/",
-            "name": "aarch64_epel"
-          },
-          {
-            "base_url": "https://10.5.255.254:2225/pulp/content/opt/omnia/offline_repo/cluster/aarch64/rhel/rpms/aarch64_co",
-            "name": "aarch64_codeready-builder-repo"
-          },
-          {
-            "base_url": "https://10.5.255.254:2225/pulp/content/opt/omnia/offline_repo/cluster/None/rhel/rpms/aarch64_nvidi",
-            "name": "aarch64_nvidia-repo"
-          },
-          {
-            "base_url": "https://10.5.255.254:2225/pulp/content/opt/omnia/offline_repo/cluster/x86_64/rhel/rpms/x86_64_baseo",
-            "name": "x86_64_baseos-repo"
-          },
-          {
-            "base_url": "https://10.5.255.254:2225/pulp/content/opt/omnia/offline_repo/cluster/x86_64/rhel/rpms/x86_64_appst",
-            "name": "x86_64_appstream-repo"
-          },
-          {
-            "base_url": "https://10.5.255.254:2225/pulp/content/opt/omnia/offline_repo/cluster/None/rhel/rpms/x86_64_nvidia",
-            "name": "x86_64_nvidia-repo"
-          },
-          {
-            "base_url": "https://10.5.255.254:2225/pulp/content/opt/omnia/offline_repo/cluster/aarch64/rhel/rpms/aarch64_app",
-            "name": "aarch64_appstream-repo"
-          },
-          {
-            "base_url": "https://10.5.255.254:2225/pulp/content/opt/omnia/offline_repo/cluster/aarch64/rhel/rpms/aarch64_bas",
-            "name": "aarch64_baseos-repo"
-          }
-        ]
-
     - name: Set fact for distribution paths
       ansible.builtin.set_fact:
-        # pulp_dist_result: "{{ check_pulp_repo.stdout | from_json | rekey_on_member('name') }}"
-        pulp_dist_result: "{{ distjson | rekey_on_member('name') }}"
+        pulp_dist_result: "{{ check_pulp_repo.stdout | from_json | rekey_on_member('name') }}"
       when: check_pulp_repo.stdout is defined and (check_pulp_repo.stdout | length > 0)
   rescue:
     - name: Failed - pulp repo is not configured
