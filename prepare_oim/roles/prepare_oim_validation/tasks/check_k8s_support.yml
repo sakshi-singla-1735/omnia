@@ -134,4 +134,4 @@
 
 - name: Prepare kubespray_versions unique
   ansible.builtin.set_fact:
-    kubespray_versions: ["v2.28.0"]
+    kubespray_versions: "{{ kubespray_versions | unique }}"
