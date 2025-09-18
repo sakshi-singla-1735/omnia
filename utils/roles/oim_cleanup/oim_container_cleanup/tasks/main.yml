@@ -37,17 +37,11 @@
 - name: Cleanup openchami container
   ansible.builtin.import_tasks: cleanup_openchami.yml
 
-- name: Disable omnia.target systemd unit
-  ansible.builtin.systemd:
-    name: omnia.target
-    enabled: false
-    daemon_reload: true
-  failed_when: false
-
-- name: Stop omnia.target systemd unit
+- name: Stop and disable omnia.target systemd unit
   ansible.builtin.systemd:
     name: omnia.target
     state: stopped
+    enabled: false
     daemon_reload: true
   failed_when: false
 
