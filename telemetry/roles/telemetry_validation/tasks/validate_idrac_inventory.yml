@@ -55,11 +55,11 @@
   ansible.builtin.lineinfile:
     path: "{{ bmc_group_data_filename }}"
     line: "{{ hostvars[item]['bmc_ip'] }},,"
-    create: yes
+    create: no
     insertafter: EOF
     state: present
   loop: "{{ groups['kube_control_plane'] }}"
-  when: "'{{ hostvars[item]['bmc_ip'] }}' not in bmc_group_data"
+  when: "hostvars[item]['bmc_ip'] not in bmc_group_data"
 
 - name: Validate BMC group data file
   validate_bmc_group_data:
