@@ -15,8 +15,8 @@
 
 - name: Validate service cluster kube_control_plane group exists
   ansible.builtin.assert:
-    that: 
-      - "'kube_control_plane' in groups"  
+    that:
+      - "'kube_control_plane' in groups"
     fail_msg: "{{ service_kube_control_plane_group_fail_msg }}"
 
 - name: Validate BMC IP is defined for kube_control_plane nodes
