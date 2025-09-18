@@ -12,16 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
-# TODO to read hostnames from source 
-ctld_list:
-  - node1
-  - node3
-cmpt_list:
-  - node2
-# login_list:
-#   - node3
-dbd_list:
-  - node1
+ctld_list: []
+cmpt_list: []
+login_list:[]
+dbd_list: []
 
 innodb_buffer_pool_size: 1G
 innodb_lock_wait_timeout: 120
