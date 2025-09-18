@@ -44,3 +44,24 @@
             systemctl restart sshd
       runcmd:
         - /usr/local/bin/set-hostname-by-mac.sh
+
+- name: chrony
+  description: "chrony config"
+  file:
+      write_files:
+        - path: /etc/chrony.conf
+          permissions: '0644'
+          content: |
+            server {{ cluster_boot_ip }} iburst
+
+            driftfile /var/lib/chrony/drift
+            rtcsync
+            makestep 1.0 3
+            logdir /var/log/chrony
+            cmdport 0
+
+      runcmd:
+        - systemctl enable chronyd
+        - systemctl restart chronyd
+        - chronyc sources
+        - chronyc -a makestep
