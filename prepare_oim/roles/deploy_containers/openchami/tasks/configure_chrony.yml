@@ -22,4 +22,4 @@
   ansible.builtin.service:
     name: chronyd
     enabled: true
-    state: started
+    state: restarted
