@@ -13,29 +13,28 @@
 # limitations under the License.
 ---
 
-- name: Define project input path
-  ansible.builtin.set_fact:
-    project_input_path: "{{ hostvars['localhost']['input_project_dir'] }}"
-
-- name: Ensure firewalld is installed and running
-  ansible.builtin.dnf:
-    name: firewalld
+- name: Install chrony
+  ansible.builtin.package:
+    name: chrony
     state: present
 
-- name: Start and enable firewalld
+- name: Update chrony.conf
+  ansible.builtin.lineinfile:
+    path: /etc/chrony.conf
+    regexp: ^#allow
+    line: "allow {{ hostvars['localhost']['admin_net_addr'] }}/{{ hostvars['localhost']['admin_netmask_bits'] }}"
+    state: present
+
+- name: Enable and start chronyd service
   ansible.builtin.service:
-    name: firewalld
-    state: started
+    name: chronyd
     enabled: true
+    state: restarted
 
-- name: Cleanup pulp container
-  ansible.builtin.import_tasks: cleanup_pulp.yml
-
-- name: Cleanup kubespray container
-  ansible.builtin.import_tasks: cleanup_kubespray.yml
-
-- name: Cleanup openchami container
-  ansible.builtin.import_tasks: cleanup_openchami.yml
-
-- name: Cleanup common configuration
-  ansible.builtin.include_tasks: cleanup_common.yml
+- name: Chronyc sources
+  ansible.builtin.command: chronyc sources
+  changed_when: false
+  register: chronyc_sources
+  until: chronyc_sources is not failed
+  retries: "{{ hostvars['localhost']['fail_retry'] }}"
+  delay: "{{ hostvars['localhost']['fail_delay'] }}"

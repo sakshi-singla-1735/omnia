@@ -15,6 +15,8 @@
 
 clone_retry: "5"
 clone_delay: "10"
+fail_retry: "5"
+fail_delay: "10"
 dir_permissions_755: "0755"
 file_permissions_644: "0644"
 job_retry: "60"
