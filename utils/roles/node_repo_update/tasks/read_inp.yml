@@ -19,17 +19,15 @@
 
 - name: Collect repo names x86_64
   ansible.builtin.set_fact:
-    x86_64: "{{ (x86_64 | default([])) + (local_repo[item] | default([]) | map(attribute='name') | list | map('regex_replace', '^(.*)$', 'x86_64_\\1-repo')) }}"
+    x86_64: "{{ (x86_64 | default([])) + (local_repo[item] | default([]) | map(attribute='name') | list
+     | map('regex_replace', '^(.*)$', 'x86_64_\\1-repo')) }}"
   loop: "{{ local_repo_keys_x86_64 }}"
 
 - name: Collect repo names aarch64
   ansible.builtin.set_fact:
-    aarch64: "{{ (aarch64 | default([])) + (local_repo[item] | default([]) | map(attribute='name') | list | map('regex_replace', '^(.*)$', 'aarch64_\\1-repo')) }}"
+    aarch64: "{{ (aarch64 | default([])) + (local_repo[item] | default([]) | map(attribute='name') | list
+     | map('regex_replace', '^(.*)$', 'aarch64_\\1-repo')) }}"
   loop: "{{ local_repo_keys_aarch64 }}"
-
-- debug:
-    var: x86_64
-# - pause:
 
 - name: Read software_config json
   ansible.builtin.include_vars:

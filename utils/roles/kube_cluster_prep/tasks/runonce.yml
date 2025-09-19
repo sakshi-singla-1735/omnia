@@ -14,7 +14,7 @@
 ---
 - name: Create first combo
   ansible.builtin.set_fact:
-    ssh_combo: "{{ ssh_combo | default({}) | combine({'localhost': ansible_play_hosts})}}"
+    ssh_combo: "{{ ssh_combo | default({}) | combine({'localhost': ansible_play_hosts}) }}"
 
 - name: Manager set
   ansible.builtin.include_tasks: manager.yml

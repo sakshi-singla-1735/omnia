@@ -24,8 +24,9 @@
     src: "rpm_repo_config.j2"
     dest: "{{ repo_path }}/{{ repo_name }}.repo"
     mode: "{{ file_permission }}"
-  loop: "{{ vars[ansible_architecture] }}"
-  when: repo_name in pulp_dist_result.keys()
+  loop: "{{ pulp_dist_result.keys() | select('match', '^' ~ ansible_architecture) | list }}"
+  # when: repo_name in pulp_dist_result.keys()
+  register: repos_update_status
   loop_control:
     loop_var: repo_name
 
@@ -36,7 +37,7 @@
 
 # handler
 - name: Execute update repos
-  when: repos_update_status | default(false)
+  # when: repos_update_status.changed
   block:
     - name: Update yum repos cache
       ansible.builtin.dnf:

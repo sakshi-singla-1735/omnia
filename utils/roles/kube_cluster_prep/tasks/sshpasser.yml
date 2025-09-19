@@ -12,6 +12,19 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 ---
-- name: Fire it
-  ansible.builtin.shell: "sshpass -p {{ provision_password }} ssh-copy-id -i {{ rsa_id_file }} -o StrictHostKeyChecking=no root@{{ item }}"
+- name: Copy SSH key to remote host
+  ansible.builtin.command:
+    argv:
+      - sshpass
+      - -p
+      - "{{ hostvars[item].ansible_ssh_pass }}"
+      - ssh-copy-id
+      - -i
+      - "{{ rsa_id_file }}"
+      - -o
+      - StrictHostKeyChecking=no
+      - "{{ hostvars[item].ansible_user | default('root') }}@{{ item }}"
   delegate_to: "{{ manager }}"
+  register: sshpass
+  changed_when: sshpass.rc == 0
+  no_log: true

@@ -15,4 +15,4 @@
 # Usage: set_passwordless_ssh.yml
 rsa_id_file: "/root/.ssh/id_rsa"
 passphrase: ""
-provision_password: "{{ hostvars['localhost']['provision_password'] }}"
+# provision_password: "{{ hostvars['localhost']['provision_password'] }}"

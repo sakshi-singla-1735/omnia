@@ -8,6 +8,8 @@
 - name: Generate ssh key pair
   ansible.builtin.shell: ssh-keygen -t rsa -b 4096 -f "{{ rsa_id_file }}" -q -N "{{ passphrase }}" <<<y >/dev/null 2>&1
   when: not local_idrsa_exists.stat.exists
+  register: sshkeygen
+  changed_when: sshkeygen.rc == 0
   delegate_to: "{{ manager }}"
 
 - name: Install sshpass
