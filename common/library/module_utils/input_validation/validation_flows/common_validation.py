@@ -1066,7 +1066,7 @@ def validate_omnia_config(
                         errors, omnia_base_dir, project_name, logger, module, input_file_path)
     return errors
 
-def check_is_service_cluster_roles_defined(
+def check_is_service_cluster_functional_groups_defined(
         errors,
         input_file_path,
         omnia_base_dir,
@@ -1074,7 +1074,7 @@ def check_is_service_cluster_roles_defined(
         logger,
         module):
     """
-    Checks if the required service cluster roles are configured in the roles_config.yml file.
+    Checks if 'service_kube_node_x86_64' is configured in the functional_groups_config.yml file.
 
     Args:
         errors (list): A list to store error messages.
@@ -1085,16 +1085,17 @@ def check_is_service_cluster_roles_defined(
         module (object): A module object for logging messages.
 
     Returns:
-        True if service cluster roles are defined else returns False
+        True if 'service_kube_node_x86_64' is defined, else False
     """
-    roles_config_file_path = create_file_path(input_file_path, file_names["roles_config"])
-    roles_config_json = validation_utils.load_yaml_as_json(
-        roles_config_file_path, omnia_base_dir, project_name, logger, module)
-    roles_details = roles_config_json.get("Roles", [])
-    # Extract the 'name' values from List1
-    roles_configured = [item['name'] for item in roles_details]
-    service_cluster_roles = ["service_kube_control_plane","service_etcd","service_kube_node"]
-    return all(role in roles_configured for role in service_cluster_roles)
+    functional_groups_config_file_path = create_file_path(input_file_path, file_names["functional_groups_config"])
+    functional_groups_config_json = validation_utils.load_yaml_as_json(
+        functional_groups_config_file_path, omnia_base_dir, project_name, logger, module)
+
+    functional_groups = functional_groups_config_json.get("functional_groups", [])
+    for group in functional_groups:
+        if group.get("name") == "service_kube_node_x86_64":
+            return True
+    return False
 
 def validate_telemetry_config(
     input_file_path,
@@ -1132,51 +1133,19 @@ def validate_telemetry_config(
     errors = []
 
     idrac_telemetry_support = data.get("idrac_telemetry_support")
-    federated_idrac_telemetry_collection = data.get("federated_idrac_telemetry_collection")
-
-    collection_type = data.get("idrac_telemetry_collection_type")
-    if idrac_telemetry_support:
-        if collection_type:
-            if collection_type not in config.supported_telemetry_collection_type:
-                errors.append(create_error_msg(
-                    "idrac_telemetry_collection_type",
-                    collection_type,
-                    en_us_validation_msg.UNSUPPORTED_IDRAC_TELEMETRY_COLLECTION_TYPE
-                    )
-                )
-                return errors
-
-            if collection_type == "kafka" and not federated_idrac_telemetry_collection:
-                errors.append(create_error_msg(
-                    "for idrac_telemetry_collection_type",
-                    collection_type,
-                    en_us_validation_msg.KAFKA_ENABLE_FEDERATED_IDRAC_TELEMETRY_COLLECTION
-                    )
-                )
-                return errors
-
-        is_service_cluster_defined = check_is_service_cluster_roles_defined(errors,
-                                    input_file_path,
-                                    omnia_base_dir,
-                                    project_name,
-                                    logger,
-                                    module)
-
-        if federated_idrac_telemetry_collection and not is_service_cluster_defined:
-            errors.append(create_error_msg(
-                "federated_idrac_telemetry_collection can be",
-                federated_idrac_telemetry_collection,
-                en_us_validation_msg.TELEMETRY_SERVICE_CLUSTER_ENTRY_MISSING_ROLES_CONFIG_MSG
-                )
-            )
-        elif not federated_idrac_telemetry_collection and is_service_cluster_defined:
-            errors.append(create_error_msg(
-                "federated_idrac_telemetry_collection",
-                federated_idrac_telemetry_collection,
-                en_us_validation_msg.ENABLE_FEDERATED_IDRAC_TELEMETRY_COLLECTION
-                )
-            )
-
+    is_service_cluster_defined = check_is_service_cluster_functional_groups_defined(errors,
+                                input_file_path,
+                                omnia_base_dir,
+                                project_name,
+                                logger,
+                                module)
+    if idrac_telemetry_support and not is_service_cluster_defined:
+        errors.append(create_error_msg(
+            "idrac_telemetry_support can be",
+            idrac_telemetry_support,
+            en_us_validation_msg.TELEMETRY_SERVICE_CLUSTER_ENTRY_MISSING_ROLES_CONFIG_MSG
+            )    
+        )
     return errors
 
 def validate_additional_software(

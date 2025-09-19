@@ -9,8 +9,8 @@
         "properties": {
           "name": {
             "type": "string",
-            "description": "Name of the role, can be any of the following Omnia defined roles.",
-            "enum": [              
+            "description": "Name of the functional_group, can be any of the following Omnia defined functional_group.",
+            "enum": [
               "default_x86_64",
               "service_kube_node_x86_64",
               "login_node_x86_64",
