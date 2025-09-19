@@ -70,7 +70,7 @@
             cmdport 0
 
       runcmd:
-        - systemctl enable chronyd
-        - systemctl restart chronyd
-        - chronyc sources
-        - chronyc -a makestep
+        - "systemctl enable chronyd"
+        - "systemctl restart chronyd"
+        - "chronyc sources"
+        - "chronyc -a makestep"
