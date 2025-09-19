@@ -1,14 +1,21 @@
 openchami_work_dir: "{{ openchami_work_dir }}"
 rhel_base_compute_image_name: "rhel-{{ item.key }}"
 rhel_base_compute_image: "{{ oim_node_name }}/rhel-{{ item.key }}"
-rhel_repo: "{{ rhel_repos }}"
 cluster_name: "{{ oim_node_name }}"
 cluster_domain: "{{ domain_name }}"
 group_name: "{{ item.key }}"
+rhel_base_compute_mounts: "{{ ochami_mounts | join(' ') }}"
+image_build_name: "{{ ochami_x86_64_image | join (' ') }}"
+rhel_base_command_options: "{{ ochami_base_command | join (' ') }}"
 
 rhel_repos:
-{% for repo in rhel_repos %}
-  - { name: '{{ repo.name }}', url: '{{ repo.url }}', gpg: '{{ repo.gpg }}' }
+{% if 'x86_64' in functional_group %}
+{% set rhel_repo = rhel_x86_64_repos %}
+{% else %}
+{% set rhel_repo = [] %}
+{% endif %}
+{% for repo in rhel_repo %}
+  - { name: '{{ repo.name }}', url: '{{ repo.base_url }}', gpg: '{{ repo.gpg }}' }
 {% endfor %}
 
 base_compute_image_packages:

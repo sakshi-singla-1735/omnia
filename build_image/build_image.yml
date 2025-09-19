@@ -24,7 +24,7 @@
         omnia_run_tags: "{{ (ansible_run_tags | default([]) + ['build_image']) | unique }}"
         cacheable: true
 
-- name: Invoke validate_config.yml to perform L1 and L2 validations with prepare_oim tag
+- name: Invoke validate_config.yml to perform L1 and L2 validations with build_image tag
   ansible.builtin.import_playbook: ../input_validation/validate_config.yml
   tags: always
 
@@ -42,7 +42,7 @@
     oim_group: true
   tags: always
 
-- name: Fetch fetch_packages
+- name: Fetch packages
   hosts: localhost
   connection: local
   gather_facts: false

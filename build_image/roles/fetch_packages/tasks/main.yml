@@ -12,6 +12,16 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 ---
+- name: check local_repo.yml execution
+  block:
+    - name: Check if local_repo.yml is executed successfully
+      ansible.builtin.stat:
+        path: "{{ metadata_file_path }}"
+      register: metadata_file_status
+  rescue:
+    - name: Fail if metadata file is not present
+      ansible.builtin.fail:
+        msg: "{{ local_repo_check_msg }}"
 
 - name: Include functional groups config
   ansible.builtin.include_vars:
@@ -22,6 +32,13 @@
   ansible.builtin.include_vars:
     file: "{{ software_config_file_path }}"
     name: software_config
+
+- name: Set cluster_os_version as rhel_tag variable
+  ansible.builtin.set_fact:
+    rhel_tag: "{{ software_config.cluster_os_version }}"
+
+- name: Fetch pulp endpoint repos
+  ansible.builtin.include_tasks: fetch_pulp_repos.yml
 
 - name: Fetch packages for base and compute image softwares
   ansible.builtin.include_tasks: fetch_packages.yml
