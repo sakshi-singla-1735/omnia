@@ -249,9 +249,6 @@
         - sudo setenforce 0 || true
         - sudo sed -i 's/^SELINUX=enforcing/SELINUX=permissive/' /etc/selinux/config
 
-        # # Disable firewalld
-        # - systemctl stop firewalld
-
         # Enable and start firewalld
         - systemctl enable firewalld
         - systemctl start firewalld
@@ -276,12 +273,6 @@
         # Enable services
         - firewall-cmd --permanent --add-service=http
         - firewall-cmd --permanent --add-service=https
-
-        # Enable NFS services in the firewall (runtime)
-        #- firewall-cmd --permanent --add-service=nfs
-        #- firewall-cmd --permanent --add-service=mountd
-        #- firewall-cmd --permanent --add-service=rpc-bind
-
 
         # Add Kubernetes pod/service CIDRs (replace with your actual values)
         - firewall-cmd --permanent --zone=trusted --add-source={{ k8s_service_addresses }}
@@ -313,22 +304,16 @@
         - mkdir -p {{ k8s_client_share_path }}
         - mount -a
         - mkdir -p {{ k8s_client_share_path }}/kube_node_configs/{% raw %}{{ ds.meta_data.instance_data.local_ipv4 }}{% endraw %}
-
         - sed -i 's|^#{{ nfs_server }}:{{ k8s_server_share_path }}/kube_node_configs/{% raw %}{{ ds.meta_data.instance_data.local_ipv4 }}{% endraw %}|{{ nfs_server }}:{{ k8s_server_share_path }}/kube_node_configs/{% raw %}{{ ds.meta_data.instance_data.local_ipv4 }}{% endraw %}|' /etc/fstab
         - mount -a
-
-
         - rm -rf /var/lib/containerd/*
 
         # Copy binaries and configs locally
         - cp -r {{ k8s_client_share_path }}/kube_node_configs/containerd/* /etc/containerd/
         - cp -r {{ k8s_client_share_path }}/kube_node_configs/kubernetes/* /etc/kubernetes/
         - cp -r {{ k8s_client_share_path }}/kube_node_configs/cni/* /opt/cni/bin/
-        #- cp -r {{ k8s_client_share_path }}/kube_node_configs/net.d/* /etc/cni/net.d/
-        #- cp -r {{ k8s_client_share_path }}/kube_node_configs/k8s-images/* /root/k8s-images/
         - cp {{ k8s_client_share_path }}/kube_node_configs/containerd.service /etc/systemd/system/containerd.service
         - cp {{ k8s_client_share_path }}/kube_node_configs/kubelet.service /etc/systemd/system/kubelet.service
-        #- cp {{ k8s_client_share_path }}/kube_node_configs/nginx.conf /etc/nginx/nginx.conf
         - cp -r {{ k8s_client_share_path }}/kube_node_configs/usr/local/bin/* /usr/local/bin/
         - cp -r {{ k8s_client_share_path }}/kube_node_configs/pulp_webserver.crt /etc/pki/ca-trust/source/anchors
         - update-ca-trust extract
@@ -345,7 +330,6 @@
         - mkdir -p /etc/kubernetes/manifests
         - cp /test/nginx-proxy.yml /etc/kubernetes/manifests/nginx-proxy.yml
         - cp /test/nginx.conf /etc/nginx/nginx.conf
-
 
         # Start services
         - systemctl daemon-reload
