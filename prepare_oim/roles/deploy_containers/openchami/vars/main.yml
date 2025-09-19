@@ -14,10 +14,10 @@
 ---
 
 # Usage: deploy_openchami.yml
-openchami_git_repo: https://github.com/OpenCHAMI/deployment-recipes.git
+openchami_git_repo: https://github.com/abhishek-sa1/deployment-recipes.git
 openchami_share_dir: /opt/omnia/openchami
 openchami_clone_path: "{{ openchami_share_dir }}/deployment-recipes"
-openchami_git_version: main
+openchami_git_version: rhel_support
 clone_retry: "5"
 clone_delay: "10"
 dir_permissions_755: "0755"
@@ -30,6 +30,7 @@ openchami_config_vars_path: "/opt/omnia/openchami/configs_vars.yaml"
 openchami_config_vars_template: "{{ role_path }}/templates/configs.yaml.j2"
 job_retry: "60"
 job_delay: "30"
+openchami_install_fail_msg: "Failed to install OpenCHAMI. Please check the logs at {{ openchami_configs_log_path }}"
 
 # vars passed to openchami installation
 openchami_work_dir: "{{ oim_shared_path }}/omnia/openchami/workdir"
