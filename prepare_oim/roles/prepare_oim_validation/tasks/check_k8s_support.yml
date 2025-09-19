@@ -132,6 +132,6 @@
       loop_control:
         loop_var: version
 
-- name: Prepare kubespray_versions unique
-  ansible.builtin.set_fact:
-    kubespray_versions: ["v2.28.0"]
+    - name: Prepare kubespray_versions unique
+      ansible.builtin.set_fact:
+        kubespray_versions: "{{ kubespray_versions | unique }}"
