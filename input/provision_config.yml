@@ -28,15 +28,15 @@ pxe_mapping_file_path: ""
 
 #### Mandatory
 # Timezone that needs to be set during OS provisioning.
-# Available timezones are provided in discovery/roles/discovery_validations/common/files/timezone.txt
+# Available timezones are provided in common/library/module_utils/input_validation/common_utils/timezone.txt
 # Default: "GMT"
 # Few accepted values: EST,CET,MST,CST6CDT,PST8PDT
 timezone: "GMT"
 
 #### Mandatory
 # Language that needs to be set during OS provisioning.
-# Default language supported is "en-US"
-language: "en-US"
+# Only language supported is "en_US.UTF-8"
+language: "en_US.UTF-8"
 
 #### Mandatory
 # Default lease time needs to be used by DHCP

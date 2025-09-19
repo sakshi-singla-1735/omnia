@@ -20,74 +20,12 @@ omnia_metadata_file: "/opt/omnia/.data/oim_metadata.yml"
 oim_os_repo_fail_msg: |
   Failed to install firewalld. This could be due to the OS repository not being configured on OIM.
   Please configure the OS repository on OIM and rerun the playbook.
-squid_proxy_port: "3128"
-xcat_firewall_ports:
-  - "3001/tcp"
-  - "3001/udp"
-  - "3002/tcp"
-  - "3002/udp"
-  - "7/udp"
-  - "22/tcp"
-  - "22/udp"
-  - "873/tcp"
-  - "873/udp"
-  - "67/udp"
-  - "68/tcp"
-  - "69/tcp"
-  - "69/udp"
-  - "80/tcp"
-  - "80/udp"
-  - "111/udp"
-  - "514/tcp"
-  - "514/udp"
-  - "782/tcp"
-  - "2049/tcp"
-  - "2049/udp"
-  - "4011/tcp"
-  - "623/tcp"
-  - "623/udp"
-  - "161/tcp"
-  - "161/udp"
-  - "162/tcp"
-  - "162/udp"
-  - "2240/tcp"
-  - "5432/tcp"
-  - "5432/udp"
-
-pcs_firewall_ports:
-  - "5404-5405/udp"
-  - "3121/tcp"
-  - "2224/tcp"
-  - "2222/tcp"
-
-idrac_firewall_ports:
-  - "61613/tcp"
-  - "8161/tcp"
-  - "3306/tcp"
-  - "3000/tcp"
-
-prometheus_firewall_ports:
-  - "2112/tcp"
-  - "9090/tcp"
-
-visualization_firewall_ports:
-  - "3000/tcp"
-  - "3001/tcp"
-  - "5000/tcp"
-  - "3100/tcp"
-
-pcs_firewall_services:
-  - "http"
-  - "https"
 
 internal_nfs_services:
   - nfs
   - rpc-bind
 
 ntp_firewall_service: ntp
-
-squid_firewall_ports:
-  - "{{ squid_proxy_port }}/tcp"
 
 # Usage: prepare_oim_completion.yml
 omnia_service_path:
