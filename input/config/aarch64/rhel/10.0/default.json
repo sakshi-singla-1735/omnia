@@ -31,7 +31,8 @@
       {"package": "chrony", "type": "rpm", "repo_name": "aarch64_baseos-repo"},
       {"package": "sudo", "type": "rpm", "repo_name": "aarch64_baseos-repo"},
       {"package": "wget", "type": "rpm", "repo_name": "aarch64_appstream-repo"},
-      {"package": "cloud-init", "type": "rpm", "repo_name": "aarch64_appstream-repo"}
+      {"package": "cloud-init", "type": "rpm", "repo_name": "aarch64_appstream-repo"},
+      {"package": "glibc-langpack-en", "type": "rpm", "repo_name": "aarch64_baseos-repo"}
     ]
   }
 }
