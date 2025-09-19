@@ -14,6 +14,11 @@
         {"name": "slurm_control_node"},
         {"name": "slurm_node"},
         {"name": "login_node"}
+    ],
+    "service_k8s": [
+        {"name": "service_kube_control_plane"},
+        {"name": "service_etcd"},
+        {"name": "service_kube_node"}
     ]
 
 }

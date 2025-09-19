@@ -62,4 +62,5 @@
   hosts: oim
   connection: ssh
   roles:
+    - k8s_prereq
     - configure_ochami
