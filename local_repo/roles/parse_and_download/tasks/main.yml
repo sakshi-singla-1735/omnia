@@ -19,6 +19,10 @@
     update_metadata: false
     show_softwares_status: false
 
+- name: Include oim metadata vars
+  ansible.builtin.include_vars: "{{ omnia_metadata_file }}"
+  no_log: true
+
 - name: Process and configure local_repo_config
   ansible.builtin.include_tasks: process_rpm_repo.yml
 
@@ -72,6 +76,12 @@
     state: absent
   loop: "{{ all_archs_var }}"
   when: clean_rpms
+
+- name: Create local_repo_access.yml file
+  ansible.builtin.template:
+    src: "{{ local_repo_access_src_path }}"
+    dest: "{{ local_repo_access_dest_path }}"
+    mode: "{{ file_mode }}"
 
 - name: Determine final repository status
   ansible.builtin.set_fact:
