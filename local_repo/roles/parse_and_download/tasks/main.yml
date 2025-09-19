@@ -77,6 +77,12 @@
   loop: "{{ all_archs_var }}"
   when: clean_rpms
 
+- name: Create folder {{ provision_shared_path }}
+  ansible.builtin.file:
+    path: "{{ provision_shared_path }}"
+    state: directory
+    mode: "{{ folder_mode }}"
+
 - name: Create local_repo_access.yml file
   ansible.builtin.template:
     src: "{{ local_repo_access_src_path }}"

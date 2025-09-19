@@ -115,3 +115,4 @@ metadata_warn_msg: "Warning: Metadata has changed since the last run! execution 
 # Usage: create_k8s_local_repo_metadata.yml
 k8s_local_repo_metadata_file_path: "/opt/omnia/log/local_repo/k8s_local_repo_metadata.yml"
 file_mode: "0644"
+folder_mode: "0755"

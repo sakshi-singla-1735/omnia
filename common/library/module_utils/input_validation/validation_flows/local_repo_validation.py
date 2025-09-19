@@ -35,7 +35,7 @@ def validate_local_repo_config(input_file_path, data,
     errors = []
     local_repo_yml = create_file_path(input_file_path, file_names["local_repo_config"])
     repo_names = {}
-    base_repo_names = ['baseos', 'appstream']
+    base_repo_names = []
     all_archs = ['x86_64', 'aarch64']
     url_list = ["omnia_repo_url_rhel", "rhel_os_url", "user_repo_url"]
     for arch in all_archs:

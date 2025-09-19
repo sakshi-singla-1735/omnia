@@ -45,10 +45,6 @@
       when:
         - hostvars['127.0.0.1']['k8s_support']
       block:
-        - name: Install sshpass
-          ansible.builtin.package:
-            name: sshpass
-            state: present
 
         - name: Copy k8s_start_setup to kubespray nfs share
           ansible.builtin.copy:

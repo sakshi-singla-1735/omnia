@@ -39,11 +39,6 @@
       ansible.builtin.set_fact:
         service_k8s_playbook: true
 
-    - name: Install sshpass
-      ansible.builtin.package:
-        name: sshpass
-        state: present
-
   # - name: Invoke validate_config.yml to perform L1 and L2 validations for k8s
   #  ansible.builtin.import_playbook: ../input_validation/validate_config.yml
 
