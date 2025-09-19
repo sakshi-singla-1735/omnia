@@ -24,6 +24,7 @@ import re
 import yaml
 from jinja2 import Template
 import requests
+from ansible.module_utils.local_repo.standard_logger import setup_standard_logger
 from ansible.module_utils.local_repo.common_functions import is_encrypted, process_file, get_arch_from_sw_config
 # Import default variables from config.py
 from ansible.module_utils.local_repo.config import (
@@ -193,7 +194,7 @@ def transform_package_dict(data, arch_val):
 
 
 def parse_repo_urls(repo_config, local_repo_config_path,
-                    version_variables, vault_key_path):
+                    version_variables, vault_key_path, sub_urls):
     """
     Parses the repository URLs from the given local repository configuration file.
     Args:
@@ -213,6 +214,8 @@ def parse_repo_urls(repo_config, local_repo_config_path,
     repo_entries = {}
     user_repo_entry = {}
     rhel_repo_entry = {}
+    log_dir = "/opt/omnia/log/local_repo"
+    logger = setup_standard_logger(log_dir)
 
     for arch in ARCH_SUFFIXES:
         omnia_key = f"omnia_repo_url_rhel_{arch}"
@@ -222,6 +225,10 @@ def parse_repo_urls(repo_config, local_repo_config_path,
         repo_entries[arch] = local_yaml.get(omnia_key, [])
         user_repo_entry[arch] = local_yaml.get(user_key, [])
         rhel_repo_entry[arch] = local_yaml.get(rhel_key, [])
+        # Append sub_urls for this arch (if present)
+        if sub_urls and arch in sub_urls:
+            rhel_repo_entry[arch].extend(sub_urls.get(arch, []))
+        logger.info(f"subscription urls: {rhel_repo_entry[arch]}")
     parsed_repos = []
     vault_key_path = os.path.join(
         vault_key_path, ".local_repo_credentials_key")
@@ -257,7 +264,8 @@ def parse_repo_urls(repo_config, local_repo_config_path,
                 "ca_cert": ca_cert,
                 "client_key": client_key,
                 "client_cert": client_cert,
-                "policy": policy
+                "policy": policy,
+                "sw_arch": arch
             })
 
     for arch, repo_list in rhel_repo_entry.items():
@@ -265,18 +273,36 @@ def parse_repo_urls(repo_config, local_repo_config_path,
             name = url_.get("name", "unknown")
             url = url_.get("url", "")
             gpgkey = url_.get("gpgkey", "")
+            ca_cert = url_.get("sslcacert", "")
+            client_key = url_.get("sslclientkey", "")
+            client_cert = url_.get("sslclientcert", "")
             policy_given = url_.get("policy", repo_config)
             policy = REPO_CONFIG.get(policy_given)
 
-            if not is_remote_url_reachable(url):
+            for path in [ca_cert, client_key, client_cert]:
+                mode = "decrypt"
+                if path and is_encrypted(path):
+                    result, message = process_file(path, vault_key_path, mode)
+                    if result is False:
+                        return f"Error during decrypt for rhel repository path:{path}", False
+
+            if not is_remote_url_reachable(url, client_cert=client_cert,
+                                           client_key=client_key, ca_cert=ca_cert):
                 return url, False
+
+            # if not is_remote_url_reachable(url):
+            #     return url, False
 
             parsed_repos.append({
                 "package": name,
                 "url": url,
                 "gpgkey": gpgkey if gpgkey else "null",
                 "version": "null",
-                "policy": policy
+                "ca_cert": ca_cert,
+                "client_key": client_key,
+                "client_cert": client_cert,
+                "policy": policy,
+                "sw_arch": arch
             })
 
     seen_urls = set()

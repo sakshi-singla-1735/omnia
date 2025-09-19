@@ -64,7 +64,9 @@ def main():
         "local_repo_config_path": {"type": "str", "required": False, "default": LOCAL_REPO_CONFIG_PATH_DEFAULT},
         "functional_groups_config_path": {"type": "str", "required": False, "default": FUNCTIONAL_GROUPS_CONFIG_PATH_DEFAULT},
         "log_dir": {"type": "str", "required": False, "default": LOG_DIR_DEFAULT},
-        "key_path": {"type": "str", "required": True}
+        "key_path": {"type": "str", "required": True},
+        "sub_urls": {"type": "dict","required": False,"default": {}}
+
     }
 
     module = AnsibleModule(argument_spec=module_args)
@@ -74,6 +76,7 @@ def main():
     local_repo_config_path = module.params["local_repo_config_path"]
     functional_groups_config_path = module.params["functional_groups_config_path"]
     vault_key_path = module.params["key_path"]
+    sub_urls =  module.params["sub_urls"]
     logger = setup_standard_logger(log_dir)
     start_time = datetime.now().strftime("%I:%M:%S %p")
     logger.info(f"Start execution time: {start_time}")
@@ -102,6 +105,7 @@ def main():
             full_path = os.path.join(csv_file_path, arch, SOFTWARE_CSV_FILENAME)
             fresh_installation[arch] = True if not check_csv_existence(full_path) else False
             software_csv_path[arch] = full_path
+            logger.info(f"sub rhel urls : {sub_urls}")
             logger.info(f"fresh_installation dict: {fresh_installation}")
             logger.info(f"software_csv_path: {software_csv_path}")
             software_list[arch] = get_software_names_and_arch(user_data,functional_groups_config_data,arch)
@@ -155,7 +159,7 @@ def main():
                     trans=transform_package_dict(tasks_dict, arch)
                     logger.info(f"Final tasklist to process: {trans}")
                     final_tasks_dict.update(trans)
-        local_config, url_result = parse_repo_urls(repo_config, local_repo_config_path , version_variables, vault_key_path)
+        local_config, url_result = parse_repo_urls(repo_config, local_repo_config_path , version_variables, vault_key_path,sub_urls)
         if not url_result:
             module.fail_json(f"{local_config} is not reachable or invalid, please check and provide correct URL")
 

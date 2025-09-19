@@ -1,0 +1,116 @@
+# Copyright 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+---
+
+- name: Set subscription flag and project input path
+  ansible.builtin.set_fact:
+    sub_status_flag: "{{ hostvars['oim']['sub_status'] | default(false) }}"
+    project_input_path: "{{ hostvars['localhost']['input_project_dir'] }}"
+    arch: "x86_64"
+
+- name: Load software_config.json
+  ansible.builtin.include_vars:
+    file: "{{ local_repo_config_file }}"
+    name: local_config
+
+# 2️ Process repo configs for each architecture
+- name: Process repo configs for each arch
+  when: sub_status_flag
+  block:
+    - name: Set variables for repo build
+      ansible.builtin.set_fact:
+        sub_status_flag: "{{ hostvars['oim']['sub_status'] }}"
+        repo_base_urls: "{{ hostvars['oim']['repo_baseurls'] }}"
+        sslcacert: "{{ omnia_rhel_cert_dir }}/redhat-uep.pem"
+        sslclientkey: "{{ lookup('pipe', 'ls {{ omnia_rhel_cert_dir }}/*-key.pem | head -n1') }}"
+        sslclientcert: "{{ lookup('pipe', 'ls {{ omnia_rhel_cert_dir }}/*.pem | grep -v -- -key.pem | head -n1') }}"
+        sub_rhel_x86_64_urls: []
+
+    - name: Append repo entries to x86_64 list
+      ansible.builtin.set_fact:
+        sub_rhel_x86_64_urls: "{{ sub_rhel_x86_64_urls + [repo_entry] }}"
+      vars:
+        repo_entry: >-
+          {{
+            {
+              'url' : repo_url,
+              'gpgkey' : '',
+              'sslcacert' : sslcacert,
+              'sslclientkey' : sslclientkey,
+              'sslclientcert': sslclientcert,
+              'policy': 'partial',
+              'name': (
+                arch ~ '_appstream-repo' if 'appstream' in repo_url else
+                arch ~ '_baseos-repo' if 'baseos' in repo_url else
+                arch ~ '_codeready-builder-repo' if 'codeready-builder' in repo_url else
+                omit
+              )
+            }
+          }}
+      loop: "{{ repo_base_urls }}"
+      loop_control:
+        loop_var: repo_url
+
+    - name: Build aarch64 repo entries from x86_64 list
+      ansible.builtin.set_fact:
+        sub_rhel_aarch64_urls: >-
+          {{
+            sub_rhel_x86_64_urls
+            | map('combine',
+                  {
+                    'url': item.url | replace('x86_64', 'aarch64'),
+                    'name': item.name | replace('x86_64', 'aarch64')
+                  }
+            )
+            | list
+          }}
+      loop: "{{ sub_rhel_x86_64_urls }}"
+      loop_control:
+        loop_var: item
+
+
+- name: Build final repo dict
+  ansible.builtin.set_fact:
+    sub_final_repo_urls:
+      x86_64: "{{ sub_rhel_x86_64_urls | default([]) }}"
+      aarch64: "{{ sub_rhel_aarch64_urls | default([]) }}"
+
+# 3 Debug final repo URLs
+- name: Debug final repo urls
+  ansible.builtin.debug:
+    msg: "{{ sub_final_repo_urls }}"
+
+- name: Process and validate repo configs when subscription is disabled
+  when: not sub_status_flag
+  block:
+    # 1️ Set facts from local_config
+    - name: Set facts for cluster
+      ansible.builtin.set_fact:
+        rhel_url_x86_64: "{{ local_config.rhel_os_url_x86_64 }}"
+        rhel_url_aarch64: "{{ local_config.rhel_os_url_aarch64 }}"
+
+    # 2 Validate required repos
+    - name: Ensure required repos are present , fail if not
+      ansible.builtin.fail:
+        msg: >-
+          Subscription is disabled and required repos are missing for {{ arch_item }}.
+          Expected: {{ required_with_arch | join(', ') }}.
+          Found: {{ present_repos | join(', ') }}
+      vars:
+        present_repos: "{{ vars['rhel_url_' ~ arch_item] | map(attribute='name') | list }}"
+        required_with_arch: "{{ required_repos | map('regex_replace', '^(.*)$', arch_item ~ '_\\1') | list }}"
+      when: present_repos is not superset(required_with_arch)
+      loop: "{{ archs }}"
+      loop_control:
+        loop_var: arch_item

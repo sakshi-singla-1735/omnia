@@ -48,6 +48,7 @@ def execute_command(cmd_string, log,type_json=None, seconds=None):
     try:
         log.info("Executing Command: %s", cmd_string)
         cmd = subprocess.run(cmd_string, universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=seconds, shell=True)
+        log.info(f"sudha execute command return code : {cmd}  : {cmd.returncode}")
         if cmd.returncode != 0:
             return False
         if type_json:
@@ -211,12 +212,25 @@ def sync_rpm_repository(repo,log):
 
     if check_packages_and_get_url(repo_name,log):
         return True, repo_name
+    # else:
+    #     remote_name= repo_name
+    #     command = pulp_rpm_commands["sync_repository"] % (repo_name, remote_name)
+    #     result = execute_command(command,log)
+    #     log.info("Repository synced for %s.", repo_name)
+    #     return result, repo_name
+    remote_name= repo_name
+    command = pulp_rpm_commands["sync_repository"] % (repo_name, remote_name)
+    result = execute_command(command, log)
+
+    if isinstance(result, tuple):
+        success, _ = result
+    elif isinstance(result, subprocess.CompletedProcess):
+        success = result.returncode == 0
     else:
-        remote_name= repo_name
-        command = pulp_rpm_commands["sync_repository"] % (repo_name, remote_name)
-        result = execute_command(command,log)
-        log.info("Repository synced for %s.", repo_name)
-        return result, repo_name
+        success = bool(result)
+
+    log.info("Repository synced for %s.", repo_name)
+    return success, repo_name
 
 def create_publication(repo,log):
     """
@@ -230,6 +244,26 @@ def create_publication(repo,log):
         bool: True if the publication was created successfully, False otherwise.
     """
 
+    # repo_name = repo["package"]
+    # version = repo.get("version")
+
+    # if version != "null":
+    #     repo_name = f"{repo_name}_{version}"
+
+    # command = pulp_rpm_commands["publish_repository"] % repo_name
+    # result = execute_command(command,log)
+
+    # if isinstance(result, tuple):
+    #     success, _ = result
+    # elif isinstance(result, subprocess.CompletedProcess):
+    #     success = result.returncode == 0
+    # else:
+    #     success = bool(result)
+
+    # log.info("Publication created for %s.", repo_name)
+    # return success, repo_name
+
+
     repo_name = repo["package"]
     version = repo.get("version")
 
@@ -237,9 +271,46 @@ def create_publication(repo,log):
         repo_name = f"{repo_name}_{version}"
 
     command = pulp_rpm_commands["publish_repository"] % repo_name
-    result = execute_command(command,log)
-    log.info("Publication created for %s.", repo_name)
-    return result, repo_name
+    result = execute_command(command, log)
+
+    # Initialize
+    success = False
+    error_message = ""
+
+    # Handle result types
+    if isinstance(result, tuple):
+        success, _ = result
+    elif isinstance(result, subprocess.CompletedProcess):
+        success = result.returncode == 0 and "Error:" not in result.stderr
+        if not success:
+            error_message = result.stderr.strip()
+    else:
+        # Fallback case
+        success = bool(result)
+
+    if success:
+        log.info("Publication created for %s.", repo_name)
+    else:
+        log.error("Failed to create publication for %s. Error: %s", repo_name, error_message or "Unknown error")
+
+    return success, repo_name
+
+
+
+    # log.info("Publication created for %s.", repo_name)
+    # return result, repo_name
+    # show_command = pulp_rpm_commands["check_publication"] % repo_name
+    # create_command = pulp_rpm_commands["publish_repository"] % repo_name
+    # update_command = pulp_rpm_commands["update_publication"] % repo_name
+
+    # # Check if publication already exists
+    # if execute_command(show_command, log):
+    #     log.info(f"Publication for {repo_name} exists. Updating it.")
+    #     return execute_command(update_command, log), repo_name
+    # else:
+    #     log.info(f"Publication for {repo_name} does not exist. Creating it.")
+    #     return execute_command(create_command, log), repo_name
+
 
 def create_distribution(repo, log):
     """
@@ -256,12 +327,13 @@ def create_distribution(repo, log):
     package_name = repo["package"]
     repo_name = package_name
     version = repo.get("version")
+    sw_arch = repo.get("sw_arch")
 
     if version != "null":
-        base_path = f" opt/omnia/offline_repo/cluster/rhel/rpms/{package_name}/{version}"
+        base_path = f" opt/omnia/offline_repo/cluster/{sw_arch}/rhel/10.0/rpms/{package_name}/{version}"
         repo_name = f"{repo_name}_{version}"
     else:
-        base_path = f"opt/omnia/offline_repo/cluster/rhel/rpms/{package_name}"
+        base_path = f"opt/omnia/offline_repo/cluster/{sw_arch}/rhel/rpms/{package_name}"
 
     show_command = pulp_rpm_commands["check_distribution"] % repo_name
     create_command = pulp_rpm_commands["distribute_repository"] % (repo_name, base_path, repo_name)
@@ -377,6 +449,7 @@ def manage_rpm_repositories_multiprocess(rpm_config, log):
     # Step 3: Concurrent synchronization
     with multiprocessing.Pool(processes=process) as pool:
         result = pool.map(partial(sync_rpm_repository, log=log), rpm_config)
+    log.info(f"sudha Concurrent synchronizatio result : {result}")
     failed = [name for success, name in result if not success]
     if failed:
         log.error("Failed during synchronization of RPM repository for: %s", ", ".join(failed))
