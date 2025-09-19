@@ -244,26 +244,6 @@ def create_publication(repo,log):
         bool: True if the publication was created successfully, False otherwise.
     """
 
-    # repo_name = repo["package"]
-    # version = repo.get("version")
-
-    # if version != "null":
-    #     repo_name = f"{repo_name}_{version}"
-
-    # command = pulp_rpm_commands["publish_repository"] % repo_name
-    # result = execute_command(command,log)
-
-    # if isinstance(result, tuple):
-    #     success, _ = result
-    # elif isinstance(result, subprocess.CompletedProcess):
-    #     success = result.returncode == 0
-    # else:
-    #     success = bool(result)
-
-    # log.info("Publication created for %s.", repo_name)
-    # return success, repo_name
-
-
     repo_name = repo["package"]
     version = repo.get("version")
 
@@ -294,22 +274,6 @@ def create_publication(repo,log):
         log.error("Failed to create publication for %s. Error: %s", repo_name, error_message or "Unknown error")
 
     return success, repo_name
-
-
-
-    # log.info("Publication created for %s.", repo_name)
-    # return result, repo_name
-    # show_command = pulp_rpm_commands["check_publication"] % repo_name
-    # create_command = pulp_rpm_commands["publish_repository"] % repo_name
-    # update_command = pulp_rpm_commands["update_publication"] % repo_name
-
-    # # Check if publication already exists
-    # if execute_command(show_command, log):
-    #     log.info(f"Publication for {repo_name} exists. Updating it.")
-    #     return execute_command(update_command, log), repo_name
-    # else:
-    #     log.info(f"Publication for {repo_name} does not exist. Creating it.")
-    #     return execute_command(create_command, log), repo_name
 
 
 def create_distribution(repo, log):

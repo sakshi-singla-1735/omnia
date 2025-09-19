@@ -29,12 +29,12 @@ create_file_path = validation_utils.create_file_path
 
 def check_subscription_status():
     # 1. Check entitlement certs
-    entitlement_certs = glob.glob("/etc/pki/entitlement/*.pem")
+    entitlement_certs = glob.glob(config.ENTITLEMENT_PEM)
     has_entitlement = len(entitlement_certs) > 0
 
     # 2. Check repos in /etc/yum.repos.d/redhat.repo
     repo_urls = []
-    redhat_repo = "/etc/yum.repos.d/redhat.repo"
+    redhat_repo = config.REDHAT_REPO_FILE
     if os.path.exists(redhat_repo):
         with open(redhat_repo, "r") as f:
             for line in f:
@@ -63,8 +63,6 @@ def validate_local_repo_config(input_file_path, data,
     local_repo_yml = create_file_path(input_file_path, file_names["local_repo_config"])
     repo_names = {}
     sub_result = check_subscription_status()
-    if sub_result:
-        base_repo_names = ['x86_64_baseos-repo', 'x86_64-appstream-repo,']
     all_archs = ['x86_64', 'aarch64']
     url_list = ["omnia_repo_url_rhel", "rhel_os_url", "user_repo_url"]
     for arch in all_archs:

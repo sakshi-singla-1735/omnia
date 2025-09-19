@@ -100,6 +100,9 @@ required_repos:
   - codeready-builder-repo
   - baseos-repo
   - appstream-repo
+redhat_uep_cert: "/etc/rhsm/ca/redhat-uep.pem"
+entitlement_path: "/etc/pki/entitlement"
+redhat_repo_file: "/etc/yum.repos.d/redhat.repo"
 
 # Usage: validate_software_config_json.yml
 sw_config_json_path: "{{ project_input_path }}/software_config.json"

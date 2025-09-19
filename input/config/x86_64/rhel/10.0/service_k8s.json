@@ -119,7 +119,7 @@
       {
         "package": "docker.io/library/golang",
         "type": "image",
-        "tag": "1.24"
+        "tag": "1.24.7"
       },
       {
         "package": "docker.io/rmohr/activemq",

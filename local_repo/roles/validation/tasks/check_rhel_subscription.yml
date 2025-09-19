@@ -15,7 +15,7 @@
 
 - name: Check entitlement certs
   ansible.builtin.find:
-    paths: /etc/pki/entitlement
+    paths: "{{ entitlement_path }}"
     patterns: "*.pem"
     file_type: file
   register: entitlement_certs
@@ -54,7 +54,7 @@
 
     - name: Find entitlement certs on oim
       ansible.builtin.find:
-        paths: /etc/pki/entitlement
+        paths: "{{ entitlement_path }}"
         patterns: "*.pem"
         file_type: file
       register: entitlement_certs
@@ -71,7 +71,7 @@
 
     - name: Copy Red Hat UEP cert
       ansible.builtin.copy:
-        src: /etc/rhsm/ca/redhat-uep.pem
+        src: "{{ redhat_uep_cert }}"
         dest: "{{ rhel_repo_cert_dir }}/redhat-uep.pem"
         mode: '0644'
         remote_src: true
@@ -85,7 +85,7 @@
             gsub(/\$releasever/, ver, $3)
             print $3
           }
-        ' /etc/yum.repos.d/redhat.repo
+        ' {{ redhat_repo_file }}
       register: repo_baseurls
       changed_when: false
 
