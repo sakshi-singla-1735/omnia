@@ -1,5 +1,5 @@
 {
-  "default": {
+  "default_packages": {
     "cluster": [
       {"package": "systemd", "type": "rpm", "repo_name": "x86_64_baseos-repo"},
       {"package": "systemd-udev", "type": "rpm", "repo_name": "x86_64_baseos-repo"},

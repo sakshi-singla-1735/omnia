@@ -297,7 +297,7 @@ def create_distribution(repo, log):
         base_path = f" opt/omnia/offline_repo/cluster/{sw_arch}/rhel/10.0/rpms/{package_name}/{version}"
         repo_name = f"{repo_name}_{version}"
     else:
-        base_path = f"opt/omnia/offline_repo/cluster/{sw_arch}/rhel/rpms/{package_name}"
+        base_path = f"opt/omnia/offline_repo/cluster/{sw_arch}/rhel/10.0/rpms/{package_name}"
 
     show_command = pulp_rpm_commands["check_distribution"] % repo_name
     create_command = pulp_rpm_commands["distribute_repository"] % (repo_name, base_path, repo_name)
