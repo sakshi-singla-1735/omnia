@@ -14,12 +14,11 @@
 
 ---
 
-- name: Create auth service directories
+- name: Create auth service directory
   ansible.builtin.file:
-    path: "{{ item.path }}"
+    path: "{{ auth_service_directories }}"
     state: directory
-    mode: "{{ item.mode }}"
-  loop: "{{ auth_service_directories }}"
+    mode: '0755'
 
 - name: Include security config file
   ansible.builtin.include_tasks: include_security_config.yml
@@ -43,3 +42,72 @@
 
 #    - name: update sssd conf
 #      ansible.builtin.include_tasks: configure_sssd_conf.yml
+
+- name: Check if {{ auth_service_container_name }} is already running and port is occupied # noqa: name[template]
+  containers.podman.podman_container_info:
+    name: "{{ auth_service_container_name }}"
+  register: auth_service_container_info
+  failed_when: false
+
+- name: Check if OpenLDAP ports are occupied
+  ansible.builtin.wait_for:
+    host: localhost
+    port: "{{ item }}"
+    state: stopped
+    timeout: "{{ wait_time }}"
+    msg: "OpenLDAP port {{ item }} is occupied"
+  register: openldap_port_check
+  failed_when: false
+  loop: "{{ openldap_ports }}"
+  when: auth_service_container_info.containers | length == 0
+
+- name: Pull the auth service image
+  containers.podman.podman_image:
+    name: "{{ auth_service_image_name }}"
+    state: present
+  register: image_pull_result
+  ignore_errors: true
+
+- name: Fail if the auth service image pull fails
+  ansible.builtin.fail:
+    msg: "{{ auth_service_image_pull_fail_msg }}"
+  when: image_pull_result.failed
+
+- name: Deploy auth service container and check deployment status
+  block:
+    - name: Create Quadlet file for auth service
+      ansible.builtin.template:
+        src: "authservice.j2"
+        dest: "/etc/containers/systemd/{{ auth_service_container_name }}.container"
+        owner: root
+        group: root
+        mode: "{{ auth_service_quadlet_mode }}"
+      register: quadlet_out
+
+    - name: Reload systemd if Quadlet changed
+      ansible.builtin.systemd_service:
+        daemon_reload: true
+      when: quadlet_out.changed # noqa: no-handler
+
+    - name: Enable and start auth service Quadlet service
+      ansible.builtin.systemd_service:
+        name: "{{ auth_service_container_name }}.service"
+        enabled: true
+        state: started
+
+    - name: Check if auth service container is running after deployment
+      containers.podman.podman_container_info:
+        name: "{{ auth_service_container_name }}"
+      register: auth_service_container_status
+
+    - name: Notify user of auth service container deployment status
+      ansible.builtin.debug:
+        msg: "{{ auth_service_container_success_msg }}"
+      when:
+        - auth_service_container_status.containers | length > 0
+        - auth_service_container_status.containers[0].State.Status == 'running'
+
+  rescue:
+    - name: auth service container deployment failed
+      ansible.builtin.fail:
+        msg: "{{ auth_service_container_failure_msg }}"

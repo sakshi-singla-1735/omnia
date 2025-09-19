@@ -15,7 +15,27 @@
 ---
 
 auth_service_directories: "{{ omnia_nfs_share }}/authservice"
+openldap_ports:
+  - 389
+  - 636
+wait_time: 10
+auth_service_image_name: omnia_auth
+auth_service_container_name: omnia_auth
+auth_service_image_pull_fail_msg:
+  - The pull of the auth service image {{ auth_service_image_name }} has failed.
+  - "ERROR: {{ auth_service_image_name }} not found locally."
+  - To resolve this, please follow these steps
+  - Clone the Omnia Artifactory repository
+  - git clone https://github.com/dell/omnia-artifactory -b omnia-container
+  - Navigate to the repository directory and Build the core image locally
+  - ./build_images.sh authservice
+auth_service_quadlet_mode: "0644"
 
+auth_service_container_success_msg: "The {{ auth_service_container_name }} container has been successfully deployed."
+auth_service_container_failure_msg: |
+  The deployment of the {{ auth_service_container_name }} container has failed. To resolve this issue,
+  please run the utility/oim_cleanup.yml playbook to clean up any existing OIM resources.
+  After the cleanup, you can re-run the original playbook to deploy the {{ auth_service_container_name }} container successfully.
 
 # Usage: include_security_config.yml
 security_config_file: "{{ hostvars['localhost']['input_project_dir'] }}/security_config.yml"
@@ -43,7 +63,3 @@ oim_certs_dir: "/opt/omnia/security/certs/"
 
 # Usage: configure_sssd_conf.yml
 sssd_conf_dest: "{{ auth_service_directories }}/sssd.conf"
-
-# Usage: generate_ldap_password_hashes.yml
-hashing_python_file: "{{ role_path }}/files/generate_hash.py"
-python_version: "{{ ansible_python_interpreter }}"

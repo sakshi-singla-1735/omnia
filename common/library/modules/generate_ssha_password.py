@@ -23,6 +23,8 @@ and writes the result to `dest`.
 import hashlib
 import base64
 import os
+import sys
+from passlib.hash import ldap_sha1 as lsm
 
 from ansible.module_utils.basic import AnsibleModule
 
@@ -41,6 +43,18 @@ def generate_ssha(password):
     sha.update(salt)
     return '{SSHA}' + base64.b64encode(sha.digest() + salt).decode('utf-8')
 
+def get_hash(passwd):
+    """
+    Get the hash of a given password.
+
+    Parameters:
+        passwd (str): The password to be hashed.
+
+    Returns:
+        str: The hashed password.
+    """
+    hashed = lsm.hash(passwd)
+    return hashed
 
 def main():
     """
@@ -55,8 +69,9 @@ def main():
     module = AnsibleModule(argument_spec=module_args, supports_check_mode=True)
     try:
         pswd_plain_txt = module.params["password"]
-        pswd_ssha = generate_ssha(pswd_plain_txt)
-        module.exit_json(changed=True, password=pswd_ssha)
+        #pswd_ssha = generate_ssha(pswd_plain_txt)
+        pswd_ssha = get_hash(pswd_plain_txt)
+        module.exit_json(changed=True, pswd_ssha=pswd_ssha)
     except Exception as e:
         module.fail_json(msg=str(e).replace('\n', ' '))
 

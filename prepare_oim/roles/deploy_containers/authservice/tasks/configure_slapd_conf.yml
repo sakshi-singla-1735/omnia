@@ -15,13 +15,14 @@
 
 - name: Extract the domain name required by LDAP
   ansible.builtin.set_fact:
-    reqd_domain_name: "{{ (hostvars['127.0.0.1']['domain_name'].split('.') | map('regex_replace', '^', 'dc=') | list) | join(',') }}"
+    reqd_domain_name: "{{ (domain_name.split('.') | map('regex_replace', '^', 'dc=') | list) | join(',') }}"
 
 - name: Update slapd.conf file auth service deployment
   block:
+
     - name: Copy slapd.conf file
       ansible.builtin.copy:
-        src: "{{ role_path }}/files/sladp.conf"
+        src: "{{ role_path }}/files/slapd.conf"
         dest: "{{ slapd_conf_dest }}"
         remote_src: false
         mode: "{{ file_permissions_644 }}"
@@ -37,5 +38,11 @@
       ansible.builtin.replace:
         path: "{{ slapd_conf_dest }}"
         regexp: "cn=admin"
-        replace: "cn={{ openldap_db_username }}"
+        replace: "cn={{ hostvars['127.0.0.1']['openldap_db_username'] }}"
+
+    - name: Update the SHA password
+      ansible.builtin.replace:
+        path: "{{ slapd_conf_dest }}"
+        regexp: "{SSHA}CcEj20AyhrDhWhFGlu01HWnn8eKP1sH3"
+        replace: "{{ openldap_db_password_hash }}"
 
