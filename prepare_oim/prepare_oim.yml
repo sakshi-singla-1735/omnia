@@ -87,8 +87,8 @@
       tags: pulp
     - role: deploy_containers/kubespray  # noqa:role-name[path]
       tags: kubespray
-    - role: deploy_containers/authservice  # noqa:role-name[path]
-      tags: authservice
+    - role: deploy_containers/auth  # noqa:role-name[path]
+      tags: auth
 
 
 - name: Verify openchami install status
