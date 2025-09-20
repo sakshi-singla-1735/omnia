@@ -31,7 +31,8 @@
       {"package": "chrony", "type": "rpm", "repo_name": "baseos"},
       {"package": "sudo", "type": "rpm", "repo_name": "baseos"},
       {"package": "wget", "type": "rpm", "repo_name": "appstream"},
-      {"package": "cloud-init", "type": "rpm", "repo_name": "appstream"}
+      {"package": "cloud-init", "type": "rpm", "repo_name": "appstream"},
+      {"package": "glibc-langpack-en", "type": "rpm", "repo_name": "baseos"}
     ]
   }
 }
