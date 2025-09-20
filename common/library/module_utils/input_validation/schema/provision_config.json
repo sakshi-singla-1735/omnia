@@ -2,11 +2,6 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "type": "object",
   "properties": {
-    "node_name": {
-      "type": "string",
-      "description": "Name of the node.",
-      "pattern": "^[a-zA-Z0-9._-]+$"
-    },
     "pxe_mapping_file_path": {
       "type": "string",
       "description": "Path to the PXE mapping file."
@@ -19,7 +14,7 @@
     "language": {
       "type": "string",
       "description": "Language setting.",
-      "default": "en-US"
+      "default": "en_US.UTF-8"
     },
     "default_lease_time": {
       "type": "string",
@@ -29,7 +24,6 @@
     }
   },
   "required": [
-    "node_name",
     "pxe_mapping_file_path",
     "timezone",
     "language",

@@ -13,20 +13,22 @@
 # limitations under the License.
 ---
 
-- name: Load the openchami groups.yaml for common
+- name: Set the common_group_name
+  ansible.builtin.set_fact:
+    common_group_name: "{{ item }}"
+
+- name: Load the openchami common group - {{ common_group_name }}
   ansible.builtin.template:
     src: "{{ openchami_groups_common_template }}"
-    dest: "{{ nodes_dir }}/common.yml"
+    dest: "{{ nodes_dir }}/groups-common-{{ common_group_name }}.yml"
     mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
   vars:
     nodes: "{{ hostvars['localhost']['read_mapping_file']['dict'] | dict2items }}"
 
-- name: Delete the common SMD groups
-  ansible.builtin.command: /usr/bin/ochami smd group delete --no-confirm {{ item }}
+- name: Delete the SMD common group - {{ common_group_name }}
+  ansible.builtin.command: /usr/bin/ochami smd group delete --no-confirm {{ common_group_name }}
   changed_when: true
-  loop: "{{ common_cloud_init_groups }}"
 
-- name: POST common SMD groups
-  ansible.builtin.command: /usr/bin/ochami smd group add -f yaml -d  @{{ nodes_dir }}/common.yml
+- name: POST common SMD group
+  ansible.builtin.command: /usr/bin/ochami smd group add -f yaml -d  @{{ nodes_dir }}/groups-common-{{ common_group_name }}.yml
   changed_when: true
-  loop: "{{ common_cloud_init_groups }}"

@@ -44,4 +44,4 @@ temp_pxe_file_path: "/opt/omnia/openchami/temp_pxe_file.csv"
 file_mode: "0644"
 
 # Usage: updates_hosts.yml
-hosts_file_path: /etc/hosts
+hosts_file_path: /opt/omnia/hosts

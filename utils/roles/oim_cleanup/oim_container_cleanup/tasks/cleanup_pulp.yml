@@ -12,6 +12,10 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 ---
+- name: Reload systemd daemon
+  ansible.builtin.systemd:
+    daemon_reload: true
+
 - name: Populate service facts
   ansible.builtin.service_facts:
 
@@ -19,7 +23,9 @@
   ansible.builtin.systemd_service:
     name: "{{ pulp_container_name }}.service"
     state: stopped
-  when: "'pulp.service' in ansible_facts['services'].keys()"
+  when:
+    - ("pulp.service" in ansible_facts['services'])
+    - ansible_facts.services['pulp.service'].state == 'running'
 
 - name: Check if container file exists
   ansible.builtin.stat:

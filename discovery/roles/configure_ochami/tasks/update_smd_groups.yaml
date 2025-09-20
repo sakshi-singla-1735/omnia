@@ -20,7 +20,7 @@
 
 - name: Include group vars
   ansible.builtin.slurp:
-    src: "{{ nodes_dir }}/{{ functional_group_name }}.yml"
+    src: "{{ nodes_dir }}/groups-{{ functional_group_name }}.yml"
   register: group_vars
 
 - name: Decode and parse group_vars YAML
