@@ -31,6 +31,10 @@
     ip_name_map: "{{ ip_name_map | default({}) | combine({item.key: item.value[0]['ip_addrs'][0]['ip_addr']}) }}"
   loop: "{{ tmp_ip_name_map | dict2items }}"
 
+- name: Get bmc_ip
+  ansible.builtin.set_fact:
+    bmc_ip_map: "{{ node_yaml.nodes | items2dict(key_name='name', value_name='bmc_ip') }}"
+
 - name: Assign slurm lists
   ansible.builtin.set_fact:
     ctld_list: "{{ grouped_nodes | dict2items
@@ -45,5 +49,3 @@
     login_list: "{{ grouped_nodes | dict2items
                    | selectattr('key', 'match', '^' ~ 'login_node_')
                    | map(attribute='value') | list | flatten }}"
-
-- pause:

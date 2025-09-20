@@ -27,7 +27,10 @@ AccountingStorageType=accounting_storage/slurmdbd
 NodeName=DEFAULT State=UNKNOWN
 # TODO: Default case no compute nodes to be handled
 {% for cmpt in (cmpt_list | default([])) %}
-NodeName={{ cmpt }} # TODO: Other params
+NodeName={{ cmpt }}{% for k in node_params[cmpt] %} {{ k }}={{ node_params[cmpt][k] }}{% endfor %}
+
+{% else %}
+NodeName=localhost State=UNKNOWN
 {% endfor %}
 {% for login in (login_list | default([])) %}
 NodeName={{ login }}

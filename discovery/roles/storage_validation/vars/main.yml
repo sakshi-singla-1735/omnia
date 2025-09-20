@@ -1,0 +1,75 @@
+#  Copyright 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+---
+
+# Usage: main.yml
+local_repo_access_dest_path: "/opt/omnia/provision/local_repo_access.yml"
+
+# Usage: fetch_beegfs_inputs.yml
+beegfs_mgmt_server_not_reachable_msg: "Failure, IP provided for beegfs_mgmt_server is not reachable. Please provide reachable IP of beegfs management server"
+beegfs_client_version_success_msg: "beegfs_client_version, validated successfully "
+beegfs_client_version_fail_msg: "Failed, Please provide beegfs_client_version grater than 7.2"
+beegfs_non_leap_repo: "https://www.beegfs.io/release/beegfs_{{ beegfs_client_version }}/dists/beegfs-rhel8.repo"
+beegfs_repo_status_msg: "Failed. Value entered for beegfs_client_version is not valid. Please enter valid beegfs client version by checking beegfs release page"
+unmount_success_msg: "beegfs_unmount_client validated successfully"
+unmount_failure_msg: "beegfs_unmount_client should be true only when beegfs_version change is true or there is a change in mount location"
+latest_version: 7.3.0
+compatability_msg: "Upgradation to 7.3.0 is not possible, as it is not supported by beegfs, try upgrading to some other versions"
+beegfs_shared_secret_failure_msg: |
+  "[WARNING] Missing shared secret (connauth) file.
+  connauth file configured in server, meta and storage should be provided in beegfs_secret_storage_filepath variable in storage_config.yml
+  for beegfs client version >= 7.2.7"
+warning_wait_time: 30
+
+# Usage: fetch_nfs_client_params.yml
+nfs_server_reach_msg: "Failed. Nfs server is not reachable. Please enter valid nfs server IP in nfs_client_params"
+server_share_path_failure_msg: "Failed. Please enter valid NFS server mount location"
+server_share_path_len_success_msg: "server_share_path validated successfully"
+server_ip_msg: "As server_ip is not available NFS bolt-on role will not work"
+nfs_client_declaration_msg: "Make sure to declare values in server_ip and server_share_path in all the lists on nfs_client_params"
+nfs_client_support_failure_msg: |
+  "Failed. Its mandatory to configure NFS during omnia.yml/storage.yml execution.
+  Please provide required inputs in nfs_client_params of storage_config.yml"
+compute_os_ubuntu: "ubuntu"
+oim_nfs_server_warning_msg: |
+  "In storage_config.yml, under the nfs_client_params variable, server_ip is set to localhost/{{ admin_nic_ip }} and nfs_server is set to true.
+  The NFS server will be set up on the Omnia Infrastructure Manager using the admin NIC IP address {{ admin_nic_ip }}.
+  The playbook logs will contain the NFS server setup details for the Omnia Infrastructure Manager with IP {{ admin_nic_ip }}."
+oim_nfs_server_fail_msg: "Hosting NFS on the Omnia Infrastructure Manager is not supported.
+ In storage_config.yml, under the nfs_client_params variable, server_ip is set to localhost/{{ admin_nic_ip }} and nfs_server is set to true."
+oim_port: "22"
+
+# Usage: fetch_beegfs_inputs.yml, fetch_nfs_client_params.yml
+ping_msg: "100% packet loss"
+storage_config_vars: "{{ input_project_dir }}/storage_config.yml"
+
+# Usage: fetch_software_config.yml
+software_config_json_file: "{{ input_project_dir }}/software_config.json"
+beegfs_directory_rhel_rocky: "{{ repo_store_path }}/cluster/yum/beegfs/{{ beegfs_client_version }}"
+pulp_bin_path: /usr/local/bin/pulp
+os_package_map:
+  rhel: rpm
+  rocky: rpm
+  ubuntu: deb
+beegfs_repo_failure_msg: "Failed, Local repo not present for beegfs. Execute local_repo.yml again."
+local_repo_config_file: "{{ input_project_dir }}/local_repo_config.yml"
+nfs_client_params_failure_msg: "nfs software is present in software_config.json, please provide the nfs_client_params in storage_config.yml"
+storage_config_syntax_fail_msg: "Failed. Syntax errors present in storage_config.yml. Fix errors and re-run playbook again."
+
+# Usage: include_provision_metadata.yml
+provision_metadata_path: "/opt/omnia/.data/provision_metadata.yml"
+metadata_missing_fail_msg: |
+  "Failed. Missing /opt/omnia/.data/provision_metadata.yml in Omnia Infrastructure Manager.
+  Run discovery_provision.yml before executing omnia.yml/storage.yml playbook for creating metdata.yml file."
+network_spec: "{{ input_project_dir }}/network_spec.yml"

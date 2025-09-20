@@ -128,6 +128,11 @@
       # TODO: Add support for cgroup and slurmdbd
     fail_msg: "The following slurm config keys are invalid: {{ slurm_conf_dict.keys() | list | difference(__slurm_conf_keys) | join(', ') }}"
 
+- name: Read NodeName parameters
+  ansible.builtin.include_tasks: read_node_idrac.yml
+  when: cmpt_list
+  loop: "{{ cmpt_list }}" 
+
 - name: Create slurm.conf for ctld only
   ansible.builtin.template:
     src: "{{ item.1 }}.conf.j2"
@@ -150,7 +155,7 @@
 
 - name: Generate slurmd opts for Configless
   ansible.builtin.set_fact:
-    conf_server: "--conf-server {{ ctld_list | map('regex_replace', '$', ':' ~ (slurm_conf_dict['SlurmctldPort'] | string)) | join(',') }}"
+    conf_server: "--conf-server {{ ctld_list | map('regex_replace', '$', ':' ~ (slurm_conf_dict['SlurmctldPort'] | string)) | join(',') }}" 
 
 - name: Create epilog.sh and slurmd.service
   ansible.builtin.template:
@@ -176,4 +181,3 @@
 
 - name: Generate cloud init
   ansible.builtin.include_tasks: cloud_inits.yml
-- pause:

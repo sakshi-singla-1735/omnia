@@ -51,6 +51,8 @@ innodb_lock_wait_timeout: 120
 nodes_yaml: "/opt/workdir/nodes/nologin.yaml"
 cloud_init_out: "{{ slurm_config_path }}"
 ssh_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBaXuonlL1BsAl/JgEfRhnl+rF+dhjdMUHQJro5qluSI root@omnia_core"
+bmc_username: "{{ hostvars['localhost']['bmc_username'] }}"
+bmc_password: "{{ hostvars['localhost']['bmc_password'] }}"
 
 conf_in_nfs: true
 input_project_dir: "{{ hostvars['localhost']['input_project_dir'] }}"
