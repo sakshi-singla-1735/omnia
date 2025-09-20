@@ -35,4 +35,3 @@
         path: "{{ bootstrap_ldif_dest }}"
         regexp: "{SSHA}CcEj20AyhrDhWhFGlu01HWnn8eKP1sH3"
         replace: "{{ openldap_db_password_hash }}"
-

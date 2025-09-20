@@ -29,10 +29,10 @@
     - name: Generate LDAP password hashes
       ansible.builtin.include_tasks: generate_ldap_password_hashes.yml
 
-    - name: update slapd.conf
+    - name: Update slapd.conf
       ansible.builtin.include_tasks: configure_slapd_conf.yml
 
-    - name: update bootstrap.ldif
+    - name: Update bootstrap.ldif
       ansible.builtin.include_tasks: configure_bootstrap_ldif.yml
 
 # - name: Update Openldap client configs
@@ -108,6 +108,6 @@
         - auth_service_container_status.containers[0].State.Status == 'running'
 
   rescue:
-    - name: auth service container deployment failed
+    - name: Auth service container deployment failed
       ansible.builtin.fail:
         msg: "{{ auth_service_container_failure_msg }}"
