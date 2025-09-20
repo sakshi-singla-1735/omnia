@@ -18,7 +18,6 @@
     src: "{{ pulp_cert_src }}"
     dest: "{{ ca_trust_path }}"
     mode: "{{ file_permission }}"
-  delegate_to: localhost
 
 - name: Add Pulp certificate to TrustStore
   ansible.builtin.command:

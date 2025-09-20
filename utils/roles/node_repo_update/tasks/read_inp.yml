@@ -46,6 +46,7 @@
     - name: Set fact for distribution paths
       ansible.builtin.set_fact:
         pulp_dist_result: "{{ check_pulp_repo.stdout | from_json | rekey_on_member('name') }}"
+        # pulp_dist_result: "{{ lookup('file', '/opt/omnia/pulp/jag_quadlet/pulp_dist_example.json') | from_json | rekey_on_member('name') }}"
       when: check_pulp_repo.stdout is defined and (check_pulp_repo.stdout | length > 0)
   rescue:
     - name: Failed - pulp repo is not configured

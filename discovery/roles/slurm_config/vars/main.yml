@@ -14,14 +14,42 @@
 ---
 ctld_list: []
 cmpt_list: []
-login_list:[]
+login_list: []
 dbd_list: []
+conf_files:
+  - slurm
+  - slurmdbd
+  - cgroup
+ctld_dir:
+  - /etc/slurm
+  - /etc/my.cnf.d
+  - /var/lib/mysql
+  - /var/log/mariadb
+  - /var/log/slurm
+  - /var/spool
+  - /etc/sssd
+  - /etc/openldap
+  - /etc/munge
+
+cmpt_dir:
+  - /var/log/slurm
+  - /var/spool
+  - /var/lib/slurm
+  - /etc/slurm/epilog.d
+  - /etc/munge
+  - /etc/sssd
+  - /etc/openldap
+
+login_dir:
+  - /etc/munge
+  - /etc/sssd
+  - /etc/openldap
 
 innodb_buffer_pool_size: 1G
 innodb_lock_wait_timeout: 120
 # TODO tmp
-nodes_yaml: "/opt/workdir/nodes/nodes.yaml"
-cloud_init_out: "{{ slurm_config_path }}cloud_init_out"
+nodes_yaml: "/opt/workdir/nodes/nologin.yaml"
+cloud_init_out: "{{ slurm_config_path }}"
 ssh_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBaXuonlL1BsAl/JgEfRhnl+rF+dhjdMUHQJro5qluSI root@omnia_core"
 
 conf_in_nfs: true
@@ -41,7 +69,7 @@ slurm_db_type: "{{ hostvars['localhost']['slurm_db_type'] | default('mariadb') }
 slurm_support: "{{ hostvars['localhost']['slurm_support'] }}"
 slurm_share_prefix: "/"
 slurm_config_dir: etc/slurm
-slurm_dir_name: "slurm/"
+slurm_dir_name: "slurm"
 slurm_dbd_port: 6819
 slurm_dbd_db_username: "{{ slurm_user }}"
 slurmdbd_conf_path: "/etc/slurm/slurmdbd.conf"

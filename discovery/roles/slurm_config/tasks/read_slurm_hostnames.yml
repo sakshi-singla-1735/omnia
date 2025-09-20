@@ -1,10 +1,17 @@
 ---
-- name: Read the nodes yaml for hostnames
-  ansible.builtin.include_vars: "{{ nodes_yaml }}"
+- name: Slurp remote YAML file
+  ansible.builtin.slurp:
+    src: "{{ nodes_yaml }}"
+  register: slurped_yaml
+  no_log: true
+
+- name: Parse YAML into vars
+  ansible.builtin.set_fact:
+    node_yaml: "{{ slurped_yaml.content | b64decode | from_yaml }}"
 
 - name: Read the node name group
   ansible.builtin.set_fact:
-    name_group_map: "{{ nodes | items2dict(key_name='name', value_name='group') }}"
+    name_group_map: "{{ node_yaml.nodes | items2dict(key_name='name', value_name='group') }}"
 
 - name: Group the functional_groups
   ansible.builtin.set_fact:
@@ -17,7 +24,7 @@
 
 - name: Get name and IP mapping 1
   ansible.builtin.set_fact:
-    tmp_ip_name_map: "{{ nodes | items2dict(key_name='name', value_name='interfaces') }}"
+    tmp_ip_name_map: "{{ node_yaml.nodes | items2dict(key_name='name', value_name='interfaces') }}"
 
 - name: Get name and IP mapping 2
   ansible.builtin.set_fact:
@@ -26,7 +33,17 @@
 
 - name: Assign slurm lists
   ansible.builtin.set_fact:
-    ctld_list: "{{ grouped_nodes.get('slurm_control_node') | default([]) }}"
-    dbd_list: "{{ grouped_nodes.get('slurm_control_node') | default([]) }}"
-    cmpt_list: "{{ grouped_nodes.get('slurm_node') | default([]) }}"
-    login_list: "{{ grouped_nodes.get('login_node') | default([]) }}"
+    ctld_list: "{{ grouped_nodes | dict2items
+                   | selectattr('key', 'match', '^' ~ 'slurm_control_node_')
+                   | map(attribute='value') | list | flatten }}"
+    dbd_list: "{{ grouped_nodes | dict2items
+                   | selectattr('key', 'match', '^' ~ 'slurm_control_node_')
+                   | map(attribute='value') | list | flatten }}"
+    cmpt_list: "{{ grouped_nodes | dict2items
+                   | selectattr('key', 'match', '^' ~ 'slurm_node_')
+                   | map(attribute='value') | list | flatten }}"
+    login_list: "{{ grouped_nodes | dict2items
+                   | selectattr('key', 'match', '^' ~ 'login_node_')
+                   | map(attribute='value') | list | flatten }}"
+
+- pause:
