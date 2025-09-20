@@ -12,7 +12,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 ---
-- name: check local_repo.yml execution
+- name: Check local_repo.yml execution
   block:
     - name: Check if local_repo.yml is executed successfully
       ansible.builtin.stat:

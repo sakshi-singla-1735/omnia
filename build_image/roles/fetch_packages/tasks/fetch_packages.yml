@@ -55,7 +55,7 @@
 #       ansible.builtin.debug:
 #         var: aarch64_base_image_packages
 #         verbosity: 2
-  
+
 - name: Read packages for compute image softwares
   image_package_collector:
     functional_groups_file: "{{ functional_groups_file_path }}"
