@@ -42,19 +42,21 @@
   ansible.builtin.template:
     src: "{{ openchami_config_vars_template }}"
     dest: "{{ openchami_config_vars_path }}"
-    mode: "{{ dir_permissions_644 }}"
+    mode: "{{ file_permissions_644 }}"
 
 - name: Load the openchami inventory
   ansible.builtin.template:
     src: "{{ openchami_inventory_template }}"
     dest: "{{ openchami_inventory_file }}"
-    mode: "{{ dir_permissions_644 }}"
+    mode: "{{ file_permissions_644 }}"
 
 - name: Deploy openchami containers
   ansible.builtin.shell: |
     set -o pipefail
     ansible-playbook {{ openchami_clone_path }}/dell/podman-quadlets/configs.yaml \
     -i {{ openchami_clone_path }}/dell/podman-quadlets/inventory -v \
+    -e "minio_s3_username={{ minio_s3_username }}" \
+    -e "minio_s3_password={{ minio_s3_password }}" \
     --extra-vars "@{{ openchami_config_vars_path }}" -v | \
     /usr/bin/tee {{ openchami_configs_log_path }}
   async: 3600  # Set async timeout (e.g., 1 hour)
@@ -62,15 +64,16 @@
   register: openchami_deploy  # Register the result to capture job ID
   changed_when: true
 
-- name: Wait for the openchami installation to finish. Logs can be checked at {{ openchami_configs_log_path }}
-  ansible.builtin.async_status:
-    jid: "{{ openchami_deploy.ansible_job_id }}"  # Job ID from the previous task
-  register: job_result
-  until: job_result.finished
-  retries: "{{ job_retry }}"  # Retry the task {{ job_retry }} times
-  delay: "{{ job_delay }}"   # Wait {{ job_delay }} seconds between retries
-
-- name: Delete the openchami vars
-  ansible.builtin.file:
-    path: "{{ openchami_config_vars_path }}"
-    state: absent
+- name: Wait for openchami installation
+  block:
+    - name: Wait for the openchami installation to finish. Logs can be checked at {{ openchami_configs_log_path }}
+      ansible.builtin.async_status:
+        jid: "{{ openchami_deploy.ansible_job_id }}"  # Job ID from the previous task
+      register: job_result
+      until: job_result.finished
+      retries: "{{ job_retry }}"  # Retry the task {{ job_retry }} times
+      delay: "{{ job_delay }}"   # Wait {{ job_delay }} seconds between retries
+  rescue:
+    - name: Openchami installation failed
+      ansible.builtin.fail:
+        msg: "{{ openchami_install_fail_msg }}"

@@ -8,6 +8,10 @@
         "items": {
           "type": "object",
           "properties": {
+            "nfs_name": {
+              "type": "string",
+              "description": "The unique NFS server name"
+            },
             "server_ip": {
               "type": "string",
               "pattern": "^(localhost|(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(?:\\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3})$"

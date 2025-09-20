@@ -31,24 +31,11 @@
 - name: Cleanup pulp container
   ansible.builtin.import_tasks: cleanup_pulp.yml
 
+- name: Cleanup kubespray container
+  ansible.builtin.import_tasks: cleanup_kubespray.yml
+
 - name: Cleanup openchami container
   ansible.builtin.import_tasks: cleanup_openchami.yml
 
-# - name: Cleanup kubespray container
-#   ansible.builtin.import_tasks: cleanup_kubespray.yml
-
-- name: Remove telemetry directory if exists
-  ansible.builtin.file:
-    path: "{{ item }}"
-    state: absent
-    force: true
-  register: directory_deletion
-  until: directory_deletion is not failed
-  retries: "{{ max_retries }}"
-  failed_when: false
-  with_items:
-    - "{{ telemetry_cleanup_directory }}"
-
-- name: Reload firewalld to apply changes
-  ansible.builtin.command: firewall-cmd --reload
-  changed_when: true
+- name: Cleanup common configuration
+  ansible.builtin.include_tasks: cleanup_common.yml

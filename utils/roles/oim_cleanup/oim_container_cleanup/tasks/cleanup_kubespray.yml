@@ -12,50 +12,68 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 ---
+- name: Reload systemd daemon
+  ansible.builtin.systemd:
+    daemon_reload: true
 
-- name: Get list of all kubespray containers
-  ansible.builtin.shell: |
-    set -o pipefail
-    podman ps -a --format "{{ '{{.Names}}' }}" | grep '^omnia_kubespray_'
-  register: matched_kubespray_containers
-  changed_when: false
-  failed_when: false
+- name: Populate service facts
+  ansible.builtin.service_facts:
 
-- name: Set fact for list of containers
+- name: Select only the kubespray service names
   ansible.builtin.set_fact:
-    kubespray_container_list: "{{ matched_kubespray_containers.stdout_lines }}"
-  when: matched_kubespray_containers.stdout_lines | length > 0
+    kubespray_services: "{{ ansible_facts['services'].keys() | select('match', '^omnia_kubespray_') | list }}"
+
+- name: Stop kubespray services
+  ansible.builtin.systemd_service:
+    name: "{{ item }}"
+    state: stopped
+  loop: "{{ kubespray_services }}"
+  when:
+    - (item in ansible_facts['services'])
+    - ansible_facts.services[item].state == 'running'
+
+- name: Get omnia_kubespray container files
+  ansible.builtin.find:
+    paths: "/etc/containers/systemd/"
+    patterns: 'omnia_kubespray_*'
+    file_type: file
+  register: found_files
+
+- name: Get the list of kubespray paths
+  ansible.builtin.set_fact:
+    kube_quad_path_list: "{{ found_files.files | map(attribute='path') | list }}"
+
+- name: Remove kubespray systemd unit files
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop: "{{ kube_quad_path_list }}"
+
+- name: Reload systemd daemon
+  ansible.builtin.systemd:
+    daemon_reload: true
 
 - name: Get container info for each Kubespray container
   containers.podman.podman_container_info:
-    name: "{{ kubespray_container_name }}"
-  register: kubespray_container_status
-  loop: "{{ kubespray_container_list }}"
-  loop_control:
-    loop_var: kubespray_container_name
-  when: kubespray_container_list is defined
-  failed_when: false
+  register: podmen
+  no_log: true
+
+- name: Get the names of pods
+  ansible.builtin.set_fact:
+    kubespray_podnames: "{{ podmen.containers | map(attribute='Name') | list | select('match', '^omnia_kubespray_') | list }}"
 
 - name: Stop Kubespray containers
   containers.podman.podman_container:
-    name: "{{ item.1 }}"
+    name: "{{ item }}"
     state: stopped
-  with_indexed_items: "{{ kubespray_container_list }}"
-  when:
-    - kubespray_container_status.results[item.0].containers is defined
-    - kubespray_container_status.results[item.0].containers | length > 0
-    - kubespray_container_status.results[item.0].containers[0].State.Status == 'running'
-  failed_when: false
+  loop: "{{ kubespray_podnames }}"
 
 - name: Remove Kubespray containers
   containers.podman.podman_container:
-    name: "{{ item.1 }}"
+    name: "{{ item }}"
     state: absent
     force_delete: true
-  with_indexed_items: "{{ kubespray_container_list }}"
-  when:
-    - kubespray_container_status.results[item.0].containers is defined
-    - kubespray_container_status.results[item.0].containers | length > 0
+  loop: "{{ kubespray_podnames }}"
 
 - name: Remove Kubespray cleanup directories
   ansible.builtin.file:
@@ -66,4 +84,15 @@
   until: directory_deletion is not failed
   retries: "{{ max_retries }}"
   loop: "{{ kubespray_cleanup_directory }}"
-  when: kubespray_container_list is defined
+
+- name: Check if target file exists
+  ansible.builtin.stat:
+    path: "{{ omnia_target }}"
+  register: p
+
+- name: Remove all kubespray services
+  ansible.builtin.replace:
+    path: "{{ omnia_target }}"
+    regexp: '\s*omnia_kubespray_[^\s]+'
+    replace: ''
+  when: p.stat.exists

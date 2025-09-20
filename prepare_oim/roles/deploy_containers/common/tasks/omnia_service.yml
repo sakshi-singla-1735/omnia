@@ -18,7 +18,7 @@
 
 - name: Set Kubespray service if not empty
   ansible.builtin.set_fact:
-    kubespray_service_list: "{{ kubespray_versions | map('regex_replace', '^(.*)$', 'omnia_kubespray_\\1') | join(' ') }}"
+    kubespray_service_list: "{{ kubespray_versions | map('regex_replace', '^(.*)$', 'omnia_kubespray_\\1.service') | join(' ') }}"
   when: kubespray_versions is defined
 
 - name: Create omnia.target service
