@@ -102,6 +102,8 @@
 - name: Ensure munge key is generated
   ansible.builtin.shell: "{{ munge_key_cmd }} > {{ slurm_config_path }}/munge.key"
   when: not munge_present.stat.exists
+  register: munge_gen
+  changed_when: munge_gen.rc == 0
 
 - name: Distribute the munge key
   ansible.builtin.copy:
@@ -119,8 +121,6 @@
     cgroup_conf_dict: "{{ __cgroup_default_config | ansible.builtin.combine(cgroup | default({})) }}"
     slurm_dbd_conf_dict: "{{ __slurm_dbd_default_config | ansible.builtin.combine(slurm_dbd_config | default({})) }}"
 
-#TODO: nodename paramaters from iDRAC
-
 - name: Verify slurm conf keys only
   ansible.builtin.assert:
     that:
@@ -131,7 +131,7 @@
 - name: Read NodeName parameters
   ansible.builtin.include_tasks: read_node_idrac.yml
   when: cmpt_list
-  loop: "{{ cmpt_list }}" 
+  loop: "{{ cmpt_list }}"
 
 - name: Create slurm.conf for ctld only
   ansible.builtin.template:
@@ -155,7 +155,7 @@
 
 - name: Generate slurmd opts for Configless
   ansible.builtin.set_fact:
-    conf_server: "--conf-server {{ ctld_list | map('regex_replace', '$', ':' ~ (slurm_conf_dict['SlurmctldPort'] | string)) | join(',') }}" 
+    conf_server: "--conf-server {{ ctld_list | map('regex_replace', '$', ':' ~ (slurm_conf_dict['SlurmctldPort'] | string)) | join(',') }}"
 
 - name: Create epilog.sh and slurmd.service
   ansible.builtin.template:
@@ -176,7 +176,7 @@
     msg: "The slurm NFS path is {{ mounted_dict[share_path] }}/slurm"
 
 - name: NFS path for cloud init
-  ansible.builtin.set_fact: 
+  ansible.builtin.set_fact:
     cloud_init_nfs_path: "{{ mounted_dict[share_path] }}/slurm"
 
 - name: Generate cloud init

@@ -19,7 +19,7 @@
 
 - name: Re-organize the groups
   ansible.builtin.set_fact:
-    grouped_nodes: "{{ grouped_nodes | default({}) | combine({item[0]: ((item[1] | items2dict).keys() | list) }) }}"
+    grouped_nodes: "{{ grouped_nodes | default({}) | combine({item[0]: ((item[1] | items2dict).keys() | list)}) }}"
   loop: "{{ tmp_grouped_nodes }}"
 
 - name: Get name and IP mapping 1

@@ -21,10 +21,8 @@
   ansible.builtin.set_fact:
     proc_params: "{{ {} | combine({'Sockets': (proc_info.json.Members | length)})
      | combine({'CoresPerSocket': (proc_info.json.Members[0].TotalEnabledCores)})
-     | combine({'ThreadsPerCore': (proc_info.json.Members[0].TotalThreads//proc_info.json.Members[0].TotalCores)})
-    }}"
+     | combine({'ThreadsPerCore': (proc_info.json.Members[0].TotalThreads // proc_info.json.Members[0].TotalCores)}) }}"
 
 - name: Add to Nodeparam dict
   ansible.builtin.set_fact:
     node_params: "{{ node_params | default({}) | combine({item: proc_params}) }}"
-
