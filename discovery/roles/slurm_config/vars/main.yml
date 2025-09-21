@@ -48,9 +48,9 @@ login_dir:
 innodb_buffer_pool_size: 1G
 innodb_lock_wait_timeout: 120
 # TODO tmp
-nodes_yaml: "/opt/workdir/nodes/nologin.yaml"
+nodes_yaml: "/opt/workdir/nodes/nodes.yaml"
 cloud_init_out: "{{ slurm_config_path }}"
-ssh_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBaXuonlL1BsAl/JgEfRhnl+rF+dhjdMUHQJro5qluSI root@omnia_core"
+ssh_key: "ssh-ed25519 dummy_value_for_testing_cloudinit_template_rendering root@omnia_core"
 bmc_username: "{{ hostvars['localhost']['bmc_username'] }}"
 bmc_password: "{{ hostvars['localhost']['bmc_password'] }}"
 
