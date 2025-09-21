@@ -32,7 +32,7 @@
 
 # handler
 - name: Execute update repos
-  when: repos_update_status.changed
+  when: repos_update_status.changed # noqa: no-handler
   block:
     - name: Clean the yum repos cache
       ansible.builtin.command: dnf clean all
