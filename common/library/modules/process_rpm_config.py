@@ -48,7 +48,7 @@ def execute_command(cmd_string, log,type_json=None, seconds=None):
     try:
         log.info("Executing Command: %s", cmd_string)
         cmd = subprocess.run(cmd_string, universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=seconds, shell=True)
-        log.info(f"sudha execute command return code : {cmd}  : {cmd.returncode}")
+        log.info(f"execute command return code : {cmd}  : {cmd.returncode}")
         if cmd.returncode != 0:
             return False
         if type_json:
@@ -413,7 +413,6 @@ def manage_rpm_repositories_multiprocess(rpm_config, log):
     # Step 3: Concurrent synchronization
     with multiprocessing.Pool(processes=process) as pool:
         result = pool.map(partial(sync_rpm_repository, log=log), rpm_config)
-    log.info(f"sudha Concurrent synchronizatio result : {result}")
     failed = [name for success, name in result if not success]
     if failed:
         log.error("Failed during synchronization of RPM repository for: %s", ", ".join(failed))

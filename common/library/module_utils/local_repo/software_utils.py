@@ -218,17 +218,18 @@ def parse_repo_urls(repo_config, local_repo_config_path,
     logger = setup_standard_logger(log_dir)
 
     for arch in ARCH_SUFFIXES:
-        omnia_key = f"omnia_repo_url_rhel_{arch}"
-        user_key = f"user_repo_url_{arch}"
-        rhel_key = f"rhel_os_url_{arch}"
+        
+        # Always ensure these are lists
+        rhel_repo_entry[arch] = list(local_yaml.get(f"rhel_os_url_{arch}") or [])
+        repo_entries[arch] = list(local_yaml.get(f"omnia_repo_url_rhel_{arch}") or [])
+        user_repo_entry[arch] = list(local_yaml.get(f"user_repo_url_{arch}") or [])
+        # In case of Subscription, Subscription URLs take precedence if present and non-empty
+        if sub_urls and arch in sub_urls and sub_urls[arch]:
+            if not isinstance(rhel_repo_entry.get(arch), list):
+                rhel_repo_entry[arch] = []
+            rhel_repo_entry[arch] = list(sub_urls[arch])
+            logger.info(f"subscription urls: {rhel_repo_entry}")
 
-        repo_entries[arch] = local_yaml.get(omnia_key, [])
-        user_repo_entry[arch] = local_yaml.get(user_key, [])
-        rhel_repo_entry[arch] = local_yaml.get(rhel_key, [])
-        # Append sub_urls for this arch (if present)
-        if sub_urls and arch in sub_urls:
-            rhel_repo_entry[arch].extend(sub_urls.get(arch, []))
-        logger.info(f"subscription urls: {rhel_repo_entry[arch]}")
     parsed_repos = []
     vault_key_path = os.path.join(
         vault_key_path, ".local_repo_credentials_key")

@@ -24,6 +24,21 @@
     file: "{{ local_repo_config_file }}"
     name: local_config
 
+- name: Load software_config.json
+  ansible.builtin.include_vars:
+    file: "{{ sw_config_json_path }}"
+    name: sw_config
+
+- name: Collect all architectures from softwares
+  ansible.builtin.set_fact:
+    archs: "{{ (sw_config.softwares
+                  | map(attribute='arch')
+                  | select('defined')
+                  | flatten
+                  + ['x86_64'])
+                  | unique
+                  | list }}"
+
 # 2️ Process repo configs for each architecture
 - name: Process repo configs for each arch
   when: sub_status_flag
@@ -79,12 +94,11 @@
       loop_control:
         loop_var: item
 
-
 - name: Build final repo dict
   ansible.builtin.set_fact:
     sub_final_repo_urls:
       x86_64: "{{ sub_rhel_x86_64_urls | default([]) }}"
-      aarch64: "{{ sub_rhel_aarch64_urls | default([]) }}"
+      aarch64: "{{ (sub_rhel_aarch64_urls | default([])) if 'aarch64' in archs else [] }}"
 
 # 3 Debug final repo URLs
 - name: Debug final repo urls
