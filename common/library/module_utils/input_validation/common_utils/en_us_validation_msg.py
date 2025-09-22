@@ -52,6 +52,8 @@ SWITCH_DETAILS_INCOMPLETE_MSG = ("If providing switch details, please provide bo
 SWITCH_DETAILS_NO_BMC_DETAILS_MSG = ("If switch details are provided then bmc_detail's "
                                     "static_range must also be provided.")
 INVALID_GROUP_NAME_MSG = "Groups must be defined in the form of grp<n> where n is 0-99."
+INVALID_LOCATION_ID_MSG = ("location_id must follow the format SU-<n>.RACK-<n> where n is 0-99. "
+                          "This input is case-sensitive. Please use uppercase letters only.")
 INVALID_ATTRIBUTES_ROLE_MSG = ("Please provide valid attributes for the role, "
                               "both 'name' and 'groups' are mandatory.")
 NO_GROUPS_MSG = "Outer Group object was probably not defined."
@@ -81,7 +83,15 @@ SERVICE_NODE_ENTRY_INVALID_ROLES_CONFIG_MSG = ("The 'service_node' role defined 
 EMPTY_OR_SYNTAX_ERROR_FUNCTIONAL_GROUPS_CONFIG_MSG = (
     "The functional_groups_config.yml file is empty or has syntax errors." 
     "It must contain a valid 'functional_groups' section with proper YAML formatting."
-    "Check the file content and ensure proper YAML formatting."
+    "Check the file content and rerun the playbook."
+)
+MISSING_GROUPS_SECTION_MSG = (
+    "The functional_groups_config.yml file is empty or has syntax errors." 
+    "It must contain a valid 'groups' section with proper YAML formatting."
+    "Check the file content and rerun the playbook."
+)
+MISSING_FUNCTIONAL_GROUPS_SECTION_MSG = (
+    "The functional_groups_config.yml file must contain a valid 'functional_groups' section. It must be a non-empty list."
 )
 NON_EMPTY_CLUSTER_NAME_MSG = "Cluster name must not be empty for '{name}' functional group."
 FUNCTIONAL_GROUPS_NOT_LIST_MSG = (
@@ -91,8 +101,12 @@ EACH_FUNCTIONAL_GROUP_NOT_DICT_MSG = (
     "Each functional group entry must be a dictionary with required fields."
 )
 MISSING_FIELD_FUNCTIONAL_GROUP_MSG = "Missing required field: {field}"
-DUPLICATE_FUNCTIONAL_GROUP_COMBINATION_MSG = (
-    "Duplicate functional group combination (name, cluster_name)."
+DUPLICATE_FUNCTIONAL_GROUP_NAME_MSG = (
+    "Duplicate functional group name found."
+)
+LOGIN_NODE_WITHOUT_SLURM_MSG = (
+    "Login node defined for cluster '{cluster}' but no corresponding slurm_control_node exists."
+    "Please make sure cluster name is same for slurm cluster and login_node functional groups."
 )
 SLURM_NODE_PARENT_MISSING_MSG = (
     "Functional group '{name}' must have a non-empty 'parent' field."    
@@ -107,10 +121,6 @@ SLURM_NODE_WITHOUT_CONTROL_MSG = (
 SLURM_KUBE_CLUSTER_OVERLAP_MSG = (
     "Cluster '{cluster}' is defined for both SLURM nodes and Kubernetes nodes. Overlap not allowed."
 )
-LOGIN_NODE_WITHOUT_SLURM_MSG = (
-    "Login node defined for cluster '{cluster}' but no corresponding slurm_control_node exists."
-    "Please make sure cluster name is same for slurm cluster and login_node functional groups."
-)   
 
 # provision_config.yml
 PRIMARY_ADMIN_BMC_IP_SAME_MSG = "primary_oim_admin_ip and primary_oim_bmc_ip should not be the same."

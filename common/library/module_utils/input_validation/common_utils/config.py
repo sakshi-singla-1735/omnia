@@ -43,7 +43,7 @@ files = {
     # "roles_config": "roles_config.yml",
     "functional_groups_config": "functional_groups_config.yml",
     # "high_availability_config": "high_availability_config.yml",
-    "additional_software": "additional_software.json"
+    # "additional_software": "additional_software.json"
 }
 
 # Tags and the files that will be run based off of it
@@ -88,7 +88,7 @@ input_file_inventory = {
         files["functional_groups_config"]
     ],
     # "high_availability": [files["high_availability_config"]],
-    "additional_software": [files["additional_software"]],
+    # "additional_software": [files["additional_software"]],
     "all": [
         files["passwordless_ssh_config"],
         files["local_repo_config"],

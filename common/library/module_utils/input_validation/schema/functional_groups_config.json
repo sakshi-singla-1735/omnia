@@ -2,6 +2,31 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "type": "object",
   "properties": {
+    "groups": {
+      "type": "object",
+      "patternProperties": {
+        "^grp([1-9][0-9]?|0)$": {
+          "type": "object",
+          "properties": {
+            "location_id": {
+              "type": "string",
+              "description": "Scalable unit and rack number range is 0-99. Format: SU-<n>.RACK-<n>",
+              "pattern": "^(SU-\\d{1,2}\\.RACK-\\d{1,2})$"
+            },
+            "parent": {
+              "type": "string",
+              "pattern": "^[a-zA-Z0-9,]*$",
+              "description": "List of service tag of associated active service node(s). This field will be mandatory for slurm_node related roles."
+            }
+          },
+          "required": [
+            "location_id",
+            "parent"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
     "functional_groups": {
       "type": "array",
       "items": {
@@ -28,16 +53,21 @@
             "pattern": "^$|^[a-zA-Z0-9_]+$",
             "description": "Name of the cluster. Mandatory for service and compute kubernetes roles like 'service_kube_node', 'kube_node'."
           },
-          "parent": {
-            "type": "string",
-            "pattern": "^[a-zA-Z0-9,]*$",
-            "description": "List of service tag of associated active service node(s). This field will be empty for group of nodes which is associated with 'service_kube_node', 'kube_node', 'slurm_control_plane', 'slurm_node', 'login_node', 'compiler_node'."
+          "group": {
+            "type": "array",
+            "description": "List of groups defined by the user",
+            "items": {
+              "type": "string",
+              "pattern": "^grp\\d{1,2}$"
+            },
+            "minItems": 1,
+            "uniqueItems": true
           }
         },
         "required": [
           "name",
           "cluster_name",
-          "parent"
+          "group"
         ]
       },
       "minItems": 1,
@@ -46,6 +76,7 @@
     }
   },
   "required": [
-    "functional_groups"
+    "functional_groups",
+    "groups"
   ]
 }

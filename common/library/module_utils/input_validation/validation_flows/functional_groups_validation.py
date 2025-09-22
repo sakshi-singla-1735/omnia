@@ -28,34 +28,159 @@ load_json = validation_utils.load_json
 
 file_names = config.files
 
-#  Duplicate check for functional groups  
-def validate_functional_group_duplicates(functional_groups):
+# Top-level validation
+def validate_top_level(data):
     """
-    Validates a list of functional groups for duplicate combinations.
+    Validates the top-level structure of the functional groups config data.
+
+    Parameters:
+        data (dict): The functional groups config data to be validated.
+
+    Returns:
+        list: A list of validation errors.
+    """
+    errors = []
+    if not data or not isinstance(data, dict):
+        errors.append(
+            create_error_msg(
+                "functional_groups_config.yml",
+                None,
+                en_us_validation_msg.EMPTY_OR_SYNTAX_ERROR_FUNCTIONAL_GROUPS_CONFIG_MSG
+            )
+        )
+        return errors
+
+    if "groups" not in data or not isinstance(data["groups"], dict) or not data["groups"]:
+        errors.append(
+            create_error_msg(
+                "groups",
+                None,
+                en_us_validation_msg.MISSING_GROUPS_SECTION_MSG
+            )
+        )
+
+    if "functional_groups" not in data or not isinstance(data["functional_groups"], list):
+        errors.append(
+            create_error_msg(
+                "functional_groups",
+                None,
+                en_us_validation_msg.MISSING_FUNCTIONAL_GROUPS_SECTION_MSG
+            )
+        )
+    return errors
+
+# Groups structure validation
+def validate_groups_structure(groups):
+    """
+    Validates the structure of groups in the functional groups configuration.
+
+    Parameters:
+        groups (dict): A dictionary of groups where each key is the group name and the value is the group data.
+
+    Returns:
+        list: A list of error messages if the group structure is invalid.
+    """
+    errors = []
+    for gname, gdata in groups.items():
+        if not isinstance(gdata, dict):
+            errors.append(
+                create_error_msg(
+                    f"group:{gname}",
+                    str(gdata),
+                    f"Group '{gname}' should be a dictionary."
+                )
+            )
+            continue
+        for field in ["location_id", "parent"]:
+            if field not in gdata:
+                errors.append(
+                    create_error_msg(
+                        gname,
+                        None,
+                        f"Missing field '{field}' in group '{gname}'."
+                    )
+                )
+                gdata[field] = ""
+    return errors
+
+# Functional groups structure validation
+def validate_functional_groups_structure(functional_groups, groups):
+    errors = []
+    """
+    Validates the structure of functional groups in the functional groups configuration.
+
+    Parameters:
+        functional_groups (list): A list of functional group dictionaries.
+        groups (dict): A dictionary of groups where each key is the group name and the value is the group data.
+
+    Returns:
+        list: A list of error messages if the functional group structure is invalid.
+    """
+    for idx, fg in enumerate(functional_groups):
+        if not isinstance(fg, dict):
+            errors.append(
+                create_error_msg(
+                    f"functional_groups[{idx}]",
+                    str(fg),
+                    en_us_validation_msg.EACH_FUNCTIONAL_GROUP_NOT_DICT_MSG
+                )
+            )
+            continue
+
+        # Required fields
+        for field in ["name", "cluster_name", "group"]:
+            if field not in fg:
+                errors.append(
+                    create_error_msg(
+                        fg.get("name", f"group[{idx}]"),
+                        None,
+                        en_us_validation_msg.MISSING_FIELD_FUNCTIONAL_GROUP_MSG.format(field=field)
+                    )
+                )
+                fg[field] = []
+
+        # Validate group references exist
+        for gref in fg.get("group", []):
+            if gref not in groups:
+                errors.append(
+                    create_error_msg(
+                        fg.get("name", f"group[{idx}]"),
+                        gref,
+                        f"Referenced group '{gref}' does not exist in 'groups'."
+                    )
+                )
+    return errors
+
+# Duplicate functional group check
+def validate_functional_group_duplicates(functional_groups):
+    errors = []
+    """
+    Validates a list of functional groups for duplicate names.
     
     Parameters:
         functional_groups (list): A list of dictionaries, where each dictionary represents a functional group.
         
     Returns:
-        list: A list of error messages.
+        list: A list of error messages if the functional group names are not unique.
     """
-    errors = []
-    seen_combinations = set()
-    for idx, group in enumerate(functional_groups):
-        key = (group.get("name", ""), group.get("cluster_name", ""))
-        if key in seen_combinations:
+    seen = set()
+    for idx, fg in enumerate(functional_groups):
+        name = fg.get("name", "")
+        if name in seen:
             errors.append(
                 create_error_msg(
-                    group.get("name", f"group[{idx}]"),
-                    str(key),
-                    en_us_validation_msg.DUPLICATE_FUNCTIONAL_GROUP_COMBINATION_MSG
+                    name or f"group[{idx}]",
+                    name,
+                    en_us_validation_msg.DUPLICATE_FUNCTIONAL_GROUP_NAME_MSG
                 )
             )
         else:
-            seen_combinations.add(key)
+            seen.add(name)
     return errors
 
+# Non-empty cluster name validation
 def validate_non_empty_clustername(functional_groups):
+    errors = []
     """
     Validates that cluster names are not empty for certain functional groups.
 
@@ -65,8 +190,7 @@ def validate_non_empty_clustername(functional_groups):
     Returns:
         list: A list of error messages.
     """
-    errors = []
-    non_empty_clustername = {
+    non_empty = {
         "slurm_control_node_x86_64",
         "slurm_node_x86_64",
         "slurm_node_aarch64",
@@ -76,10 +200,10 @@ def validate_non_empty_clustername(functional_groups):
         "login_node_aarch64",
         "login_compiler_node_aarch64"
     }
-    for group in functional_groups:
-        name = group.get("name", "")
-        cluster_name = group.get("cluster_name", "")
-        if name in non_empty_clustername and not cluster_name:
+    for fg in functional_groups:
+        name = fg.get("name", "")
+        cluster_name = fg.get("cluster_name", "")
+        if name in non_empty and not cluster_name:
             errors.append(
                 create_error_msg(
                     name,
@@ -89,39 +213,7 @@ def validate_non_empty_clustername(functional_groups):
             )
     return errors
 
-# Validate if any login functional group is defined, then clustername should match with at least one slurm clustername.
-def validate_login_node_clustername(functional_groups):
-    """
-    Validates that login nodes have corresponding slurm clusters.
-    
-    Parameters:
-        functional_groups (list): A list of dictionaries, where each dictionary represents a functional group.
-    
-    Returns:
-        list: A list of error messages.
-    """
-    errors = []
-    login_clusters = set()
-    slurm_clusters = set()
-    for group in functional_groups:
-        name = group.get("name", "")
-        cluster_name = group.get("cluster_name", "")
-        if "login" in name and cluster_name:
-            login_clusters.add(cluster_name)
-        if "slurm" in name and cluster_name:
-            slurm_clusters.add(cluster_name)
-    for cluster in login_clusters:
-        if cluster not in slurm_clusters:
-            errors.append(
-                create_error_msg(
-                    "login_node",
-                    cluster,
-                    en_us_validation_msg.LOGIN_NODE_WITHOUT_SLURM_MSG.format(cluster=cluster)
-                )
-            )
-    return errors
-
-#  SLURM/K8s cluster validations  
+# Slurm/K8s cluster validation
 def validate_slurm_k8s_clusters(functional_groups):
     """
     Validates that SLURM and Kubernetes clusters do not overlap.
@@ -137,9 +229,9 @@ def validate_slurm_k8s_clusters(functional_groups):
     slurm_node_clusters = set()
     kube_clusters = set()
 
-    for g in functional_groups:
-        name = g.get("name", "")
-        cluster = g.get("cluster_name", "")
+    for fg in functional_groups:
+        name = fg.get("name", "")
+        cluster = fg.get("cluster_name", "")
         if "slurm_control_node" in name and cluster:
             slurm_control_clusters.add(cluster)
         elif "slurm_node" in name and cluster:
@@ -171,117 +263,72 @@ def validate_slurm_k8s_clusters(functional_groups):
 
     return errors
 
-#  Top-level validation  
-def validate_top_level(data): 
+# Login node cluster validation
+def validate_login_node_clustername(functional_groups):
     """
-    Validates the top-level data for functional_groups_config.yml.
+    Validates that login nodes have corresponding slurm clusters.
 
-    Parameters:
-        data (dict): The data to be validated.
-
-    Returns:
-        list: A list of error messages encountered during validation.
-    """
-    errors = []
-    if not data or not isinstance(data, dict):
-        errors.append(
-            create_error_msg(
-                "functional_groups_config.yml",
-                None,
-                en_us_validation_msg.EMPTY_OR_SYNTAX_ERROR_FUNCTIONAL_GROUPS_CONFIG_MSG
-            )
-        )
-        return errors
-
-    if "functional_groups" not in data or data["functional_groups"] is None:
-        errors.append(
-            create_error_msg(
-                "functional_groups",
-                None,
-                en_us_validation_msg.MISSING_FUNCTIONAL_GROUPS_SECTION_MSG
-            )
-        )
-    return errors
-
-#  Parent validation for slurm_node  
-
-def validate_slurm_node_parent(functional_groups):
-    """
-    Validates the parent field for Slurm nodes in functional groups.
-
-    Parameters:
+    Args:
         functional_groups (list): A list of dictionaries, where each dictionary represents a functional group.
 
     Returns:
         list: A list of error messages.
     """
     errors = []
-    for group in functional_groups:
-        name = group.get("name", "")
-        parent = group.get("parent", "")
-        if "slurm_node" in name and not parent:
+    login_clusters = set()
+    slurm_clusters = set()
+    for fg in functional_groups:
+        name = fg.get("name", "")
+        cluster = fg.get("cluster_name", "")
+        if "login" in name and cluster:
+            login_clusters.add(cluster)
+        if "slurm" in name and cluster:
+            slurm_clusters.add(cluster)
+    for cluster in login_clusters:
+        if cluster not in slurm_clusters:
             errors.append(
                 create_error_msg(
-                    name,
-                    parent,
-                    en_us_validation_msg.SLURM_NODE_PARENT_MISSING_MSG.format(name=name)
+                    "login_node",
+                    cluster,
+                    en_us_validation_msg.LOGIN_NODE_WITHOUT_SLURM_MSG.format(cluster=cluster)
                 )
             )
     return errors
 
-#  Functional group structure validation  
-def validate_functional_groups_structure(functional_groups):
+# Slurm node parent validation
+def validate_slurm_node_parent(functional_groups, groups):
     """
-    Validates the structure of the functional groups data.
+    Validates the parent field for Slurm nodes in functional groups.
 
-    Args:
-        functional_groups (list): A list of functional group dictionaries.
+    Parameters:
+        functional_groups (list): A list of dictionaries, where each dictionary represents a functional group.
+        groups (dict): A dictionary of groups where each key is the group name and the value is the group data.
 
     Returns:
-        list: A list of error messages if the structure is invalid, otherwise an empty list.
+        list: A list of error messages.
     """
     errors = []
-    if not isinstance(functional_groups, list):
-        errors.append(
-            create_error_msg(
-                "functional_groups_config.yml",
-                str(functional_groups),
-                en_us_validation_msg.FUNCTIONAL_GROUPS_NOT_LIST_MSG
-            )
-        )
-        return errors
-
-    for idx, group in enumerate(functional_groups):
-        if not isinstance(group, dict):
-            errors.append(
-                create_error_msg(
-                    f"functional_groups[{idx}]",
-                    str(group),
-                    en_us_validation_msg.EACH_FUNCTIONAL_GROUP_NOT_DICT_MSG
-                )
-            )
-            continue
-
-        # Required fields``
-        for field in ["name", "cluster_name", "parent"]:
-            if field not in group:
-                errors.append(
-                    create_error_msg(
-                        group.get("name", f"group[{idx}]"),
-                        None,
-                        en_us_validation_msg.MISSING_FIELD_FUNCTIONAL_GROUP_MSG.format(field=field)
+    for fg in functional_groups:
+        name = fg.get("name", "")
+        if "slurm_node" in name:
+            for gref in fg.get("group", []):
+                parent = groups.get(gref, {}).get("parent", "")
+                if not parent:
+                    errors.append(
+                        create_error_msg(
+                            name,
+                            gref,
+                            en_us_validation_msg.SLURM_NODE_PARENT_MISSING_MSG.format(name=name)
+                        )
                     )
-                )
-                group[field] = ""  # prevent further key errors
-
     return errors
 
-# Software mapping validation  
+# Software mapping validation (unchanged)
 def validate_software_section_mappings(functional_groups, software_data):
     """
     Validates the software section mappings for a given list of functional groups and software data.
 
-    Args:
+    Parameters:
         functional_groups (list): A list of dictionaries, where each dictionary contains information about a functional group.
         software_data (dict): A dictionary containing software data, including a list of softwares.
 
@@ -301,7 +348,6 @@ def validate_software_section_mappings(functional_groups, software_data):
         "login_compiler_node": ["slurm_custom", "nfs"],
     }
 
-    # Only these softwares are valid for aarch64
     AARCH64_SUPPORTED = {"slurm_custom  ", "cuda", "nfs"}
 
     for fg in functional_groups:
@@ -311,13 +357,9 @@ def validate_software_section_mappings(functional_groups, software_data):
 
         required_softwares = SOFTWARE_REQUIREMENTS.get(base_fg_name, [])
 
-        # Validate software presence
         for sw in required_softwares:
-            # Skip unsupported software for aarch64
             if arch == "aarch64" and sw not in AARCH64_SUPPORTED:
                 continue
-
-            # Check if this software exists for the given arch (if arch-aware)
             found = any(
                 s.get("name") == sw and (not arch or arch in s.get("arch", []))
                 for s in softwares_list
@@ -327,11 +369,10 @@ def validate_software_section_mappings(functional_groups, software_data):
                     create_error_msg(
                         fg_name,
                         sw,
-                        f" For functional group: '{fg_name}', required software '{sw}'{f' with architecture {arch}' if arch else ''} is missing in software_config.json. Please add the missing entry and try again."
+                        f"Required software '{sw}' missing for functional group '{fg_name}'"
                     )
                 )
 
-        # Validate SLURM section presence
         expected_slurm_entry = None
         if base_fg_name in ["slurm_control_node", "slurm_node", "login_node", "login_compiler_node"]:
             expected_slurm_entry = "login_node" if "login" in base_fg_name else base_fg_name
@@ -340,31 +381,16 @@ def validate_software_section_mappings(functional_groups, software_data):
                 create_error_msg(
                     fg_name,
                     expected_slurm_entry,
-                    f"For Functional group '{fg_name}', slurm entry: 'slurm': [{{'name': '{expected_slurm_entry}'}}] missing in software_config.json. Please add the missing entry and try again."
+                    f"Missing SLURM section '{expected_slurm_entry}' in software_config.json"
                 )
             )
 
     return errors
 
-#  Main validator  
-def validate_functional_groups_config(
-    input_file_path, data, logger, _module, _omnia_base_dir, _module_utils_base, _project_name
-):
-    """
-    Validates the functional_groups_config.yml file for correctness.
-    
-    Args:
-        input_file_path (str): The path to the input file.
-        data (dict): The data to be validated.
-        logger (Logger): A logger instance.
-        _module (Module): A module instance.
-        _omnia_base_dir (str): The base directory of the Omnia configuration.
-        _module_utils_base (str): The base directory of the module utils.
-        _project_name (str): The name of the project.
-
-    Returns:
-        list: A list of errors encountered during validation.
-    """
+# ----------------------------
+# Main validator
+# ----------------------------
+def validate_functional_groups_config(input_file_path, data, logger, _module, _omnia_base_dir, _module_utils_base, _project_name):
     errors = []
 
     # Top-level checks
@@ -372,10 +398,16 @@ def validate_functional_groups_config(
     if errors:
         return errors
 
-    functional_groups = data.get("functional_groups")
+    groups = data.get("groups", {})
+    functional_groups = data.get("functional_groups", [])
 
-    # Structure checks
-    errors.extend(validate_functional_groups_structure(functional_groups))
+    # Groups structure
+    errors.extend(validate_groups_structure(groups))
+    if errors:
+        return errors
+
+    # Functional groups structure
+    errors.extend(validate_functional_groups_structure(functional_groups, groups))
     if errors:
         return errors
 
@@ -384,9 +416,10 @@ def validate_functional_groups_config(
     errors.extend(validate_non_empty_clustername(functional_groups))
     errors.extend(validate_slurm_k8s_clusters(functional_groups))
     errors.extend(validate_login_node_clustername(functional_groups))
-    errors.extend(validate_slurm_node_parent(functional_groups))
+    errors.extend(validate_slurm_node_parent(functional_groups, groups))
+
+    # Software validation
     software_file = create_file_path(input_file_path, "software_config.json")
     software_json = load_json(software_file)
     errors.extend(validate_software_section_mappings(functional_groups, software_json))
-
     return errors
