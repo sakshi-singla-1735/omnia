@@ -1,35 +1,20 @@
 {
-    "service_k8s": {
-      "cluster": [
-      {
-        "package": "docker.io/library/golang",
-        "type": "image",
-        "tag": "1.24"
-      },
-      {
-        "package": "docker.io/rmohr/activemq",
-        "type": "image",
-        "tag": "5.15.9"
-      },
-      {
-        "package": "docker.io/prom/prometheus",
-        "type": "image",
-        "tag": "v3.4.1"
-      },
-      {
-        "package": "docker.io/library/mysql",
-        "type": "image",
-        "tag": "9.3.0"
-      },
-      {
-        "package": "docker.io/bitnami/kafka",
-        "type": "image",
-        "tag": "3.9.0"
-      },
+  "service_k8s": {
+    "cluster": [
       {
         "package": "python3.12",
         "type": "rpm",
-        "repo_name": "appstream"
+        "repo_name": "x86_64_appstream"
+      },
+      {
+        "package": "firewalld",
+        "type": "rpm",
+        "repo_name": "x86_64_baseos"
+      },
+      {
+        "package": "python3-firewall",
+        "type": "rpm",
+        "repo_name": "x86_64_baseos"
       },
       {
         "package": "kubernetes==33.1.0",
@@ -52,16 +37,6 @@
         "type": "pip_module"
       },
       {
-        "package": "firewalld",
-        "type": "rpm",
-        "repo_name": "baseos"
-      },
-      {
-        "package": "python3-firewall",
-        "type": "rpm",
-        "repo_name": "baseos"
-      },
-      {
         "package": "prettytable==3.14.0",
         "type": "pip_module"
       },
@@ -72,32 +47,27 @@
         "version": "v0.8.0"
       },
       {
-        "package": "ghcr.io/k8snetworkplumbingwg/whereabouts",
-        "tag": "latest",
-        "type": "image"
-      },
-      {
         "package": "nfs-subdir-external-provisioner-4.0.18",
         "type": "tarball",
         "url": "https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner/releases/download/nfs-subdir-external-provisioner-4.0.18/nfs-subdir-external-provisioner-4.0.18.tgz"
       },
       {
-        "package": "kubectl-v1.31.4-amd64",
+        "package": "kubectl-v1.31.4",
         "type": "tarball",
         "url": "https://dl.k8s.io/release/v1.31.4/bin/linux/amd64/kubectl"
       },
       {
-        "package": "kubelet-v1.31.4-amd64",
+        "package": "kubelet-v1.31.4",
         "type": "tarball",
         "url": "https://dl.k8s.io/release/v1.31.4/bin/linux/amd64/kubelet"
       },
       {
-        "package": "kubeadm-v1.31.4-amd64",
+        "package": "kubeadm-v1.31.4",
         "type": "tarball",
         "url": "https://dl.k8s.io/release/v1.31.4/bin/linux/amd64/kubeadm"
       },
       {
-        "package": "calicoctl-v3.29.3-amd64",
+        "package": "calicoctl-v3.29.3",
         "type": "tarball",
         "url": "https://github.com/projectcalico/calico/releases/download/v3.29.3/calicoctl-linux-amd64"
       },
@@ -107,17 +77,17 @@
         "url": "https://github.com/projectcalico/calico/archive/v3.29.3.tar.gz"
       },
       {
-        "package": "crictl-v1.31.1-amd64",
+        "package": "crictl-v1.31.1",
         "type": "tarball",
         "url": "https://github.com/kubernetes-sigs/cri-tools/releases/download/v1.31.1/crictl-v1.31.1-linux-amd64.tar.gz"
       },
       {
-        "package": "etcd-v3.5.16-amd64",
+        "package": "etcd-v3.5.16",
         "type": "tarball",
         "url": "https://github.com/etcd-io/etcd/releases/download/v3.5.16/etcd-v3.5.16-linux-amd64.tar.gz"
       },
       {
-        "package": "cni-v1.4.1-amd64",
+        "package": "cni-v1.4.1",
         "type": "tarball",
         "url": "https://github.com/containernetworking/plugins/releases/download/v1.4.1/cni-plugins-linux-amd64-v1.4.1.tgz"
       },
@@ -127,19 +97,54 @@
         "url": "https://github.com/opencontainers/runc/releases/download/v1.2.6/runc.amd64"
       },
       {
-        "package": "nerdctl-v2.0.5-amd64",
+        "package": "nerdctl-v2.0.5",
         "type": "tarball",
         "url": "https://github.com/containerd/nerdctl/releases/download/v2.0.5/nerdctl-2.0.5-linux-amd64.tar.gz"
       },
       {
-        "package": "containerd-v2.0.5-amd64",
+        "package": "containerd-v2.0.5",
         "type": "tarball",
         "url": "https://github.com/containerd/containerd/releases/download/v2.0.5/containerd-2.0.5-linux-amd64.tar.gz"
       },
       {
-        "package": "helm-v3.16.4-amd64",
+        "package": "helm-v3.16.4",
         "type": "tarball",
         "url": "https://get.helm.sh/helm-v3.16.4-linux-amd64.tar.gz"
+      },
+      {
+        "package": "kube-prometheus-stack-75.11.0",
+        "type": "tarball",
+        "url": "https://github.com/prometheus-community/helm-charts/releases/download/kube-prometheus-stack-75.11.0/kube-prometheus-stack-75.11.0.tgz"
+      },
+      {
+        "package": "docker.io/library/golang",
+        "type": "image",
+        "tag": "1.24.7"
+      },
+      {
+        "package": "docker.io/rmohr/activemq",
+        "type": "image",
+        "tag": "5.15.9"
+      },
+      {
+        "package": "docker.io/prom/prometheus",
+        "type": "image",
+        "tag": "v3.4.1"
+      },
+      {
+        "package": "docker.io/library/mysql",
+        "type": "image",
+        "tag": "9.3.0"
+      },
+      {
+        "package": "docker.io/bitnami/kafka",
+        "type": "image",
+        "tag": "3.9.0"
+      },
+      {
+        "package": "ghcr.io/k8snetworkplumbingwg/whereabouts",
+        "tag": "latest",
+        "type": "image"
       },
       {
         "package": "public.ecr.aws/xilinx_dcg/k8s-device-plugin",
@@ -262,11 +267,6 @@
         "type": "image"
       },
       {
-          "package": "kube-prometheus-stack-75.11.0",
-          "type": "tarball",
-          "url": "https://github.com/prometheus-community/helm-charts/releases/download/kube-prometheus-stack-75.11.0/kube-prometheus-stack-75.11.0.tgz"
-      },
-      {
         "package": "quay.io/prometheus-operator/prometheus-operator",
         "tag": "v0.83.0",
         "type": "image"
@@ -301,6 +301,6 @@
         "tag": "v1.6.0",
         "type": "image"
       }
-      ]
-   }
+    ]
+  }
 }

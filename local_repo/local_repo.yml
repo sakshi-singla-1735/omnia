@@ -22,11 +22,11 @@
         omnia_run_tags: "{{ (ansible_run_tags | default([]) + ['local_repo']) | unique }}"
         cacheable: true
 
-- name: Invoke validate_config.yml to perform L1 and L2 validations for local repo
-  ansible.builtin.import_playbook: ../input_validation/validate_config.yml
-
-- name: Invoke get_config_credentials.yml
-  ansible.builtin.import_playbook: ../utils/credential_utility/get_config_credentials.yml
+    - name: Include metadata vars
+      ansible.builtin.include_vars: "/opt/omnia/.data/oim_metadata.yml"
+      register: include_metadata
+      no_log: true
+      tags: always
 
 - name: Include input project directory
   when: not project_dir_status | default(false) | bool
@@ -37,6 +37,31 @@
   ansible.builtin.import_playbook: ../utils/create_container_group.yml
   vars:
     oim_group: true
+
+- name: Check rhel subscription enabled or not
+  hosts: oim
+  connection: ssh
+  gather_facts: false
+  tasks:
+    - name: Check rhel subscription enabled or not
+      ansible.builtin.include_role:
+        name: validation
+        tasks_from: check_rhel_subscription.yml
+
+- name: Configure RHEL os URLS for codeready-builder baseoc appstream repositories
+  hosts: localhost
+  connection: local
+  tasks:
+    - name: Configure RHEL os URLS for codeready-builder baseoc appstream repositories
+      ansible.builtin.include_role:
+        name: validation
+        tasks_from: configure_rhel_os_urls.yml
+
+- name: Invoke validate_config.yml to perform L1 and L2 validations for local repo
+  ansible.builtin.import_playbook: ../input_validation/validate_config.yml
+
+- name: Invoke get_config_credentials.yml
+  ansible.builtin.import_playbook: ../utils/credential_utility/get_config_credentials.yml
 
 - name: Read high availability, network_spec, and omnia_credentials vars
   hosts: localhost

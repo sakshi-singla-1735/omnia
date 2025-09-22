@@ -1,5 +1,5 @@
 {
-    "slurm": {
+    "slurm_custom": {
         "cluster": [
             {"package": "munge", "type": "rpm", "repo_name": "x86_64_appstream"},
             {"package": "firewalld", "type": "rpm", "repo_name": "x86_64_baseos"},
@@ -8,8 +8,8 @@
     },
     "slurm_control_node": {
         "cluster": [
-            {"package": "slurm-slurmctld", "type": "rpm", "repo_name": "epel"},
-            {"package": "slurm-slurmdbd", "type": "rpm", "repo_name": "epel"},
+            {"package": "slurm-slurmctld", "type": "rpm", "repo_name": "x86_64_slurm_custom"},
+            {"package": "slurm-slurmdbd", "type": "rpm", "repo_name": "x86_64_slurm_custom"},
             {"package": "python3-PyMySQL", "type": "rpm", "repo_name": "x86_64_appstream"},
             {"package": "mysql-server", "type": "rpm", "repo_name": "x86_64_appstream"},
             {"package": "mariadb-server", "type": "rpm", "repo_name": "x86_64_appstream"}
@@ -17,14 +17,14 @@
     },
     "slurm_node": {
         "cluster": [
-            {"package": "slurm-slurmd", "type": "rpm", "repo_name": "epel"},
-            {"package": "slurm-pam_slurm", "type": "rpm", "repo_name": "epel"}
+            {"package": "slurm-slurmd", "type": "rpm", "repo_name": "x86_64_slurm_custom"},
+            {"package": "slurm-pam_slurm", "type": "rpm", "repo_name": "x86_64_slurm_custom"}
 
         ]
     },
     "login_node":{
         "cluster": [
-            {"package": "slurm", "type": "rpm", "repo_name": "epel"}
+            {"package": "slurm", "type": "rpm", "repo_name": "x86_64_slurm_custom"}
         ]
     }
 }
