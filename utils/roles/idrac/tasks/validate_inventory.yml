@@ -15,7 +15,7 @@
 
 - name: Inventory not provided
   ansible.builtin.fail:
-    msg: "{{ bmc_empty_inventory_fail_msg }}"
+    msg: "{{ bmc_empty_inventory_fail_msg.splitlines() | join(' ') }}"
   when:
     - groups['all'] is defined
     - (groups['all'] | length == 0)
