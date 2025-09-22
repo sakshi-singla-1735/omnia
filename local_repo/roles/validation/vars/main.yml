@@ -94,9 +94,9 @@ rhel_repo_cert_dir: "{{ hostvars['localhost']['oim_shared_path'] }}/omnia/rhel_r
 omnia_rhel_cert_dir: "/opt/omnia/rhel_repo_certs"  # Define NFS share path
 rhel_version: 10
 required_repos:
-  - codeready-builder-repo
-  - baseos-repo
-  - appstream-repo
+  - codeready-builder
+  - baseos
+  - appstream
 redhat_uep_cert: "/etc/rhsm/ca/redhat-uep.pem"
 entitlement_path: "/etc/pki/entitlement"
 redhat_repo_file: "/etc/yum.repos.d/redhat.repo"

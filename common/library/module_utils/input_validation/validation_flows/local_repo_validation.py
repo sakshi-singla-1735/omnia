@@ -46,9 +46,9 @@ def check_subscription_status():
     has_repos = len(repo_urls) > 0
 
     # 3. Subscription status logic
-    sub_status = has_entitlement or has_repos
+    subscription_status = has_entitlement or has_repos
 
-    return sub_status
+    return subscription_status
 
 # Below is a validation function for each file in the input folder
 def validate_local_repo_config(input_file_path, data,
@@ -70,7 +70,7 @@ def validate_local_repo_config(input_file_path, data,
         arch_list = url_list + [url+'_'+arch for url in url_list]
          # define base repos dynamically for this arch if subscription registered 
         if sub_result:       
-            base_repo_names = [f"{arch}_baseos-repo",f"{arch}_appstream-repo",f"{arch}_codeready_builder-repo"]
+            base_repo_names = [f"{arch}_baseos",f"{arch}_appstream",f"{arch}_codeready_builder"]
         for repurl in arch_list:
             repos = data.get(repurl)
             if repos:

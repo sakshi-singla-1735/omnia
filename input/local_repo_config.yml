@@ -85,19 +85,16 @@ user_registry:
 #    -
 # Example:
 # rhel_os_url_x86_64:
-#   - { url: "http://crb.com/CRB/x86_64/os/", gpgkey: "http://crb.com/CRB/x86_64/os/RPM-GPG-KEY", sslcacert: "", sslclientkey: "", sslclientcert: "", policy: "", name: "x86_64_codeready-builder-repo" }
+#   - { url: "http://crb.com/CRB/x86_64/os/", gpgkey: "http://crb.com/CRB/x86_64/os/RPM-GPG-KEY", sslcacert: "", sslclientkey: "", sslclientcert: "", policy: "", name: "x86_64_codeready-builder" }
 rhel_os_url_x86_64:
-  - {url: "", gpgkey: "", sslcacert: "", sslclientkey: "", sslclientcert: "" ,name: "x86_64_codeready-builder-repo"}
-  - {url: "", gpgkey: "", sslcacert: "", sslclientkey: "", sslclientcert: "", name: "x86_64_appstream-repo"}
-  - {url: "", gpgkey: "", sslcacert: "", sslclientkey: "", sslclientcert: "", name: "x86_64_baseos-repo"}
+  - {url: "", gpgkey: "", sslcacert: "", sslclientkey: "", sslclientcert: "" ,name: "x86_64_codeready-builder"}
+  - {url: "", gpgkey: "", sslcacert: "", sslclientkey: "", sslclientcert: "", name: "x86_64_appstream"}
+  - {url: "", gpgkey: "", sslcacert: "", sslclientkey: "", sslclientcert: "", name: "x86_64_baseos"}
 
 # Example:
 # rhel_os_url_aarch64:
-#   - { url: "http://crb.com/CRB/aarch64/os/", gpgkey: "http://crb.com/CRB/x86_64/os/RPM-GPG-KEY", sslcacert: "", sslclientkey: "", sslclientcert: "", policy: "", name: "aarch64_codeready-builder-repo" }
+#   - { url: "http://crb.com/CRB/aarch64/os/", gpgkey: "http://crb.com/CRB/x86_64/os/RPM-GPG-KEY", sslcacert: "", sslclientkey: "", sslclientcert: "", policy: "", name: "aarch64_codeready-builder" }
 rhel_os_url_aarch64:
-  - {url: "", gpgkey: "", sslcacert: "", sslclientkey: "", sslclientcert: "", name: "aarch64_codeready-builder-repo"}
-  - {url: "", gpgkey: "", sslcacert: "", sslclientkey: "", sslclientcert: "", name: "aarch64_appstream-repo"}
-  - {url: "", gpgkey: "", sslcacert: "", sslclientkey: "", sslclientcert: "", name: "aarch64_baseos-repo"}
 
 ### ADVANCE CONFIGURATIONS FOR LOCAL REPO ###
 # Mandatory
@@ -108,10 +105,10 @@ rhel_os_url_aarch64:
 # If 'gpgkey' is kept empty then gpgcheck=0 for that repository
 # 'name' A unique identifier for the registry.
 omnia_repo_url_rhel_x86_64:
-  - { url: "https://download.docker.com/linux/centos/10/x86_64/stable/", gpgkey: "https://download.docker.com/linux/centos/gpg", name: "docker-ce-repo"}
+  - { url: "https://download.docker.com/linux/centos/10/x86_64/stable/", gpgkey: "https://download.docker.com/linux/centos/gpg", name: "docker-ce"}
   - { url: "https://dl.fedoraproject.org/pub/epel/10/Everything/x86_64/", gpgkey: "https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-10", name: "epel"}
   - { url: "https://yum.repos.intel.com/oneapi/", gpgkey: "https://yum.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB", name: "oneapi"}
-  - { url: "https://nvidia.github.io/libnvidia-container/stable/rpm/x86_64/", gpgkey: "https://nvidia.github.io/libnvidia-container/gpgkey", name: "nvidia-repo"}
+  - { url: "https://nvidia.github.io/libnvidia-container/stable/rpm/x86_64/", gpgkey: "https://nvidia.github.io/libnvidia-container/gpgkey", name: "nvidia"}
 
 # Mandatory
 # This variable defines all the repo urls from where rpms will be downloaded for omnia features when cluster_os_type is rhel and arch aarch64 
@@ -123,4 +120,4 @@ omnia_repo_url_rhel_x86_64:
 omnia_repo_url_rhel_aarch64:
   - { url: "https://download.docker.com/linux/centos/10/aarch64/stable/", gpgkey: "https://download.docker.com/linux/centos/gpg", name: "docker-ce"}
   - { url: "https://dl.fedoraproject.org/pub/epel/10/Everything/aarch64/", gpgkey: "https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-10", name: "epel"}
-  - { url: "https://nvidia.github.io/libnvidia-container/stable/rpm/aarch64/", gpgkey: "https://nvidia.github.io/libnvidia-container/gpgkey", name: "nvidia-repo"}
+  - { url: "https://nvidia.github.io/libnvidia-container/stable/rpm/aarch64/", gpgkey: "https://nvidia.github.io/libnvidia-container/gpgkey", name: "nvidia"}

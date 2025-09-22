@@ -33,7 +33,7 @@
 
 - name: Determine subscription status
   ansible.builtin.set_fact:
-    sub_status: >-
+    subscription_status: >-
       {{
         (entitlement_certs.matched | default(0) | int > 0)
         or ((repo_urls.stdout_lines | default([])) | length > 0)
@@ -41,10 +41,10 @@
 
 - name: Debug subscription status
   ansible.builtin.debug:
-    msg: "Subscription enabled? {{ sub_status }}"
+    msg: "Subscription enabled? {{ subscription_status }}"
 
 - name: Extract subscription urls
-  when: sub_status | bool
+  when: subscription_status | bool
   block:
     - name: Ensure shared path exists
       ansible.builtin.file:
@@ -58,7 +58,7 @@
         patterns: "*.pem"
         file_type: file
       register: entitlement_certs
-      when: sub_status | bool
+      when: subscription_status | bool
 
     - name: Copy entitlement certs to shared path
       ansible.builtin.copy:
@@ -67,7 +67,7 @@
         mode: '0644'
         remote_src: true
       loop: "{{ entitlement_certs.files | default([]) }}"
-      when: sub_status | bool
+      when: subscription_status | bool
 
     - name: Copy Red Hat UEP cert
       ansible.builtin.copy:

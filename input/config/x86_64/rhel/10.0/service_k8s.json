@@ -4,17 +4,17 @@
       {
         "package": "python3.12",
         "type": "rpm",
-        "repo_name": "x86_64_appstream-repo"
+        "repo_name": "x86_64_appstream"
       },
       {
         "package": "firewalld",
         "type": "rpm",
-        "repo_name": "x86_64_baseos-repo"
+        "repo_name": "x86_64_baseos"
       },
       {
         "package": "python3-firewall",
         "type": "rpm",
-        "repo_name": "x86_64_baseos-repo"
+        "repo_name": "x86_64_baseos"
       },
       {
         "package": "kubernetes==33.1.0",

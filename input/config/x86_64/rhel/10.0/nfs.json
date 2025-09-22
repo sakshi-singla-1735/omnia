@@ -1,8 +1,8 @@
 {
     "nfs": {
         "cluster": [
-            {"package": "nfs-utils", "type": "rpm", "repo_name": "x86_64_baseos-repo"},
-            {"package": "nfs4-acl-tools", "type": "rpm", "repo_name": "x86_64_baseos-repo"}   
+            {"package": "nfs-utils", "type": "rpm", "repo_name": "x86_64_baseos"},
+            {"package": "nfs4-acl-tools", "type": "rpm", "repo_name": "x86_64_baseos"}   
         ]
     }
 }
