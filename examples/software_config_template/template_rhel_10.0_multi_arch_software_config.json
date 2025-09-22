@@ -13,10 +13,11 @@
         {"name": "ucx", "version": "1.15.0", "arch": ["x86_64"]},
         {"name": "openmpi", "version": "4.1.6", "arch": ["x86_64"]}
     ],
-    "slurm": [
+    "slurm_custom": [
         {"name": "slurm_control_node"},
         {"name": "slurm_node"},
-        {"name": "login_node"}
+        {"name": "login_node"},
+        {"name": "login_compiler_node"}
     ]
 
 }
