@@ -51,3 +51,6 @@
   ansible.builtin.include_tasks: podman_login.yml
   when: docker_username | length > 1 and docker_password | length > 1
   tags: always
+
+- name: Configure chrony
+  ansible.builtin.include_tasks: configure_chrony.yml

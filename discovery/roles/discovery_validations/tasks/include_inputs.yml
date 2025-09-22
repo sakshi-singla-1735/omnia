@@ -13,13 +13,13 @@
 # limitations under the License.
 ---
 
-- name: Include provision_config.yml
+- name: Include {{ item.path }}
   block:
-    - name: Include provision_config.yml
+    - name: Include {{ item.path }}
       ansible.builtin.include_vars: "{{ item.path }}"
       register: include_input
       tags: init
   rescue:
-    - name: Failed to include provision_config.yml
+    - name: Failed to include {{ item.path }}
       ansible.builtin.fail:
         msg: "{{ input_syntax_fail_msg }} Error: {{ include_input.message }}"
