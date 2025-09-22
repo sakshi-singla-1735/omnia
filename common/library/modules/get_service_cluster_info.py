@@ -32,6 +32,7 @@ def get_service_cluster_node_details(nodes_info, functional_groups_info):
         node = sn['name']
         service_tag = sn['xname']
         role = sn['group']
+        parent =
         cluster_name =  next((g["cluster"] for g in functional_groups_info if g["name"] == role), None)
 
         if "service_kube_node_x86_64" in role or "service_kube_node_aarch64" in role:
@@ -75,31 +76,36 @@ def get_service_cluster_data(functional_groups_info, service_cluster_node_detail
         dict: Updated service_cluster_node_details.
     """
 
-    for group, group_data in functional_groups_info.items():
-        parent = group_data.get('parent', '')
-        status = check_service_cluster_node_details(group, parent, service_cluster_node_details)
+    for group_data in functional_groups_info:
+        group = group_data.get("name", "")
+        parent = group_data.get("parent", "")
 
-        if not status:
+        # Skip if service cluster node details check fails
+        if not check_service_cluster_node_details(group, parent, service_cluster_node_details):
             continue
 
+        # Initialize parent data
         parent_data = service_cluster_node_details.get(parent, {})
-        parent_data.setdefault('child_groups', [])
+        parent_data.setdefault("child_groups", [])
 
-        # Add current group to child_groups
-        if group not in parent_data['child_groups']:
-            parent_data['child_groups'].append(group)
+        # Add current group to child_groups if not already present
+        if group and group not in parent_data["child_groups"]:
+            parent_data["child_groups"].append(group)
 
         # Add child groups from bmc_group_data
         for entry in bmc_group_data:
-            if entry.get('PARENT') == parent:
-                bmc_group = entry.get('GROUP_NAME')
-                if bmc_group and bmc_group not in parent_data['child_groups']:
-                    parent_data['child_groups'].append(bmc_group)
+            if entry.get("PARENT") == parent:
+                bmc_group = entry.get("GROUP_NAME")
+                if bmc_group and bmc_group not in parent_data["child_groups"]:
+                    parent_data["child_groups"].append(bmc_group)
 
         # Set parent_status if there are any child groups
-        if parent_data['child_groups']:
-            parent_data['parent_status'] = True
+        if parent_data["child_groups"]:
+            parent_data["parent_status"] = True
+
+        # Update the service_cluster_node_details dictionary
         service_cluster_node_details[parent] = parent_data
+
 
     return service_cluster_node_details
 
