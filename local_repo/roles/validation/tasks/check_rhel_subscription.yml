@@ -50,7 +50,7 @@
       ansible.builtin.file:
         path: "{{ rhel_repo_cert_dir }}"
         state: directory
-        mode: '0755'
+        mode: {{ hostvars['localhost']['dir_permissions_755'] }}
 
     - name: Find entitlement certs on oim
       ansible.builtin.find:
@@ -64,7 +64,7 @@
       ansible.builtin.copy:
         src: "{{ item.path }}"
         dest: "{{ rhel_repo_cert_dir }}"
-        mode: '0644'
+        mode: {{ hostvars['localhost']['file_permissions_644'] }}
         remote_src: true
       loop: "{{ entitlement_certs.files | default([]) }}"
       when: subscription_status | bool
@@ -73,7 +73,7 @@
       ansible.builtin.copy:
         src: "{{ redhat_uep_cert }}"
         dest: "{{ rhel_repo_cert_dir }}/redhat-uep.pem"
-        mode: '0644'
+        mode: {{ hostvars['localhost']['file_permissions_644'] }}
         remote_src: true
 
     - name: Extract only RHEL baseurls (appstream, baseos, codeready-builder)
