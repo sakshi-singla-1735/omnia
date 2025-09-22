@@ -26,13 +26,13 @@
          | list
          | length > 0 }}
 
-- name: Check for aarch64 functional groups
-  ansible.builtin.set_fact:
-    fg_aarch64: >-
-      {{ functional_group_cfg.functional_groups
-         | selectattr('name', 'search', '_aarch64$')
-         | list
-         | length > 0 }}
+# - name: Check for aarch64 functional groups
+#   ansible.builtin.set_fact:
+#     fg_aarch64: >-
+#       {{ functional_group_cfg.functional_groups
+#          | selectattr('name', 'search', '_aarch64$')
+#          | list
+#          | length > 0 }}
 
 - name: Fetch pulp endpoints for x86_64
   ansible.builtin.command: >
