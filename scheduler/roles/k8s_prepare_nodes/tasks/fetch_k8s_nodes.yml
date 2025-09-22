@@ -53,8 +53,11 @@
 
     - name: Fetch the new nodes
       ansible.builtin.set_fact:
-        k8s_new_nodes_list: "{{ groups['kube_node'] | difference(k8s_existing_nodes) }}"
+        k8s_new_nodes_list: >-
+          {{ (groups['kube_node'] | difference(k8s_existing_nodes))
+            if 'kube_node' in groups else [] }}
 
     - name: Create new node string
       ansible.builtin.set_fact:
-        k8s_new_nodes: "{{ k8s_new_nodes_list | join(',') }}"
+        k8s_new_nodes: >-
+          {{ (k8s_new_nodes_list | join(',')) if k8s_new_nodes_list | length > 0 else '' }}

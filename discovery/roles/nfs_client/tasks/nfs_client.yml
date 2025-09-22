@@ -1,0 +1,77 @@
+#  Copyright 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+---
+- name: Initialize variable when client_share_path value is not given
+  ansible.builtin.set_fact:
+    client_mount_path: "{{ item.server_share_path }}"
+  when: item.client_share_path | default("", true) | length < 1
+
+- name: Initialize variable when client_share_path value is given
+  ansible.builtin.set_fact:
+    client_mount_path: "{{ item.client_share_path }}"
+  when: item.client_share_path | default("", true) | length >= 1
+
+- name: Fetch server_ip and server_share_path from list when nfs sever is not localhost
+  ansible.builtin.set_fact:
+    nfs_server_ip: "{{ item.server_ip }}"
+  when: item.server_ip != "localhost"
+
+- name: Fetch server_ip and server_share_path from list when nfs sever is localhost
+  ansible.builtin.set_fact:
+    nfs_server_ip: "{{ hostvars['127.0.0.1']['admin_nic_ip'] }}"
+  when: item.server_ip == "localhost"
+
+- name: Package installation for NFS
+  ansible.builtin.package:
+    name: "{{ nfs_packages[ansible_os_family] }}"
+    state: present
+
+- name: Mount facts items to dict
+  ansible.builtin.set_fact:
+    mounted_dict: "{{ ansible_mounts | items2dict(key_name='mount', value_name='device') }}"
+    mount_needed: false
+    nfs_src: "{{ nfs_server_ip }}:{{ item.server_share_path }}"
+
+- name: Check if mount
+  ansible.builtin.set_fact:
+    mount_needed: true
+  when: (client_mount_path not in mounted_dict) or (mounted_dict[client_mount_path] != nfs_src)
+
+- name: Create the directory for mounting NFS client with server_share_path as client_share_path
+  ansible.builtin.file:
+    path: "{{ client_mount_path }}"
+    state: directory
+    mode: "{{ mounted_dir_perm }}"
+  register: dir_check
+  ignore_errors: true
+
+- name: Check dir creation
+  ansible.builtin.set_fact:
+    mount_needed: true
+  when: dir_check.failed
+
+- name: Handle stale file handle by forcing unmount
+  ansible.builtin.command: "umount -l {{ client_mount_path }}"
+  when: dir_check.failed
+  register: unmount_result
+  changed_when: unmount_result.rc == 0
+
+- name: Retry mounting NFS share after unmount
+  ansible.posix.mount:
+    src: "{{ nfs_src }}"
+    path: "{{ client_mount_path }}"
+    opts: "{{ item.client_mount_options | default(default_client_mount_options) }}"
+    state: mounted
+    fstype: nfs
+  when: mount_needed

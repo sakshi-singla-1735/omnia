@@ -20,17 +20,23 @@
 
 # -----------------------------SLURM------------------------------------------------
 
+# installation_type
 # This variable accepts whether slurm installation is supported in configless mode or slurm in nfs
 # Default value is "configless"
 # If the value is "nfs_share", then share_path has to be mentioned
 # Slurm should be installed in share_path when slurm_installation_type is set to nfs_share
-slurm_installation_type: "configless"
 
+# restart_slurm_services
 # Variable indicates whether slurm control node services(slurmctld) should be restarted or not
 # If restart_slurm_services is set to true, slurmctld services will be restarted on every execution of omnia.yml.
 # It accepts true and false values
 # Default value is true
-restart_slurm_services: true
+
+slurm_cluster:
+  - cluster_name: slurm_cluster
+    installation_type: "configless"
+    restart_slurm_services: true
+    nfs_storage_name: nfs_slurm
 
 # ----------------------------VERIFY INTEL GAUDI INSTALLATION------------------------------------------------------
 
@@ -84,20 +90,6 @@ run_intel_gaudi_tests: false
 
 service_k8s_cluster:
   - cluster_name: service_cluster
-    deployment: true
-    k8s_cni: "calico"
-    pod_external_ip_range: ""
-    k8s_service_addresses: "10.233.0.0/18"
-    k8s_pod_network_cidr: "10.233.64.0/18"
-    topology_manager_policy: "none"
-    topology_manager_scope: "container"
-    k8s_offline_install: true
-    nfs_storage_name: ""
-    csi_powerscale_driver_secret_file_path: ""
-    csi_powerscale_driver_values_file_path: ""
- 
-compute_k8s_cluster:
-  - cluster_name: compute_cluster
     deployment: true
     k8s_cni: "calico"
     pod_external_ip_range: ""

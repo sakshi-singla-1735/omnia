@@ -30,6 +30,15 @@ login_node_x86_64_compute_commands:
   - "chown -R slurm:slurm /var/log/slurm /var/run/slurm /var/spool/slurmd /etc/slurm /var/lib/slurm"
   - "chmod 755 /var/log/slurm /var/run/slurm /var/spool/slurmd /etc/slurm /var/lib/slurm"
 
+service_kube_node_x86_64_compute_commands:
+  - "echo 'Service kube node'"
+
+slurm_control_node_x86_64_compute_commands:
+  - "echo 'Slurm Control node'"
+
+slurm_node_x86_64_compute_commands:
+  - "echo 'Slurm node'"
+
 # login_compute_commands:
 # k8s_head_compute_commands:
 
