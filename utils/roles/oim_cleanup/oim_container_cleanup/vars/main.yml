@@ -47,6 +47,7 @@ openchami_packages:
   - ochami
   - openchami
   - s3cmd
+  - epel-release
 
 openchami_containers:
   - minio-server
