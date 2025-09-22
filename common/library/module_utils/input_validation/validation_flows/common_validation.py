@@ -1154,15 +1154,15 @@ def validate_omnia_config(
         )
 
 
-    if ("compute_k8s" in sw_list or "service_k8s" in sw_list) and \
-        ("compute_k8s" in tag_names or "service_k8s" in tag_names):
+    if ("service_k8s" in sw_list) and \
+        ("service_k8s" in tag_names):
         admin_networks = get_admin_networks(
             input_file_path, logger, module, omnia_base_dir, module_utils_base, project_name)
         ha_config_path = create_file_path(
             input_file_path, file_names["high_availability_config"])
         with open(ha_config_path, "r", encoding="utf-8") as f:
             ha_config = yaml.safe_load(f)
-        for k in ["service_k8s_cluster_ha", "compute_k8s_cluster_ha"]:
+        for k in ["service_k8s_cluster_ha"]:
             ha_config[k] = [xha["cluster_name"] for xha in ha_config.get(k, [])]
         validate_k8s(data, admin_networks, sw_list, ha_config, tag_names,
                         errors, omnia_base_dir, project_name, logger, module, input_file_path)
