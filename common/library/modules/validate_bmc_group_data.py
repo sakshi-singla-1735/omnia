@@ -20,7 +20,6 @@
 
 import re
 from ansible.module_utils.basic import AnsibleModule
-from ansible.module_utils.discovery.omniadb_connection import execute_select_query # type: ignore
 
 def is_valid_ip(ip):
     """
