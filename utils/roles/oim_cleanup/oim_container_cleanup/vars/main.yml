@@ -114,3 +114,8 @@ config_dirs:
   - /etc/ochami
   - "{{ omnia_nfs_share }}/openchami"
   - "{{ omnia_nfs_share }}/log/openchami"
+
+omnia_target_file:
+  - /etc/systemd/system/omnia.target
+  - /etc/systemd/system/default.target.wants/omnia.target
+  - /etc/systemd/system/multi-user.target.wants/omnia.target
