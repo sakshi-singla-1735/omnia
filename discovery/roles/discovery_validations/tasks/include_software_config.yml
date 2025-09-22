@@ -30,3 +30,11 @@
   ansible.builtin.set_fact:
     cluster_os_type: "{{ software_config.cluster_os_type }}"
     cluster_os_version: "{{ software_config.cluster_os_version }}"
+
+- name: Initialise variables
+  ansible.builtin.set_fact:
+    service_k8s_support: false
+
+- name: Check if service k8s support is true
+  ansible.builtin.set_fact:
+    service_k8s_support: "{{ software_config.softwares | selectattr('name', 'equalto', 'service_k8s') | list | length > 0 }}"

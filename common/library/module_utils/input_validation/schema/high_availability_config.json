@@ -201,7 +201,8 @@
           },
           "enable_k8s_ha": {
             "type": "boolean",
-            "description": "Mandatory. Indicates whether to enable HA for the Kubernetes service node. Set to true to enable, false to disable."
+            "enum": [true],
+            "description": "Mandatory. Must be true. Service K8s cluster deployment is only supported for HA setup."
           },
           "virtual_ip_address": {
             "type": "string",

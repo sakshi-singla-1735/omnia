@@ -41,8 +41,8 @@
       ansible.builtin.include_tasks: disable_firewalld.yml
       when: firewall_disable
 
-    # - name: Validate share_path is NFS
-    #   ansible.builtin.include_tasks: validate_share_path.yml
+    - name: Validate share_path is NFS
+      ansible.builtin.include_tasks: validate_share_path.yml
 
     - name: Fetch the nodes where k8s is running
       ansible.builtin.include_tasks: fetch_k8s_nodes.yml

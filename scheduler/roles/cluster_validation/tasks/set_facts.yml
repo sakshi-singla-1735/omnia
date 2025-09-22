@@ -16,17 +16,10 @@
 - name: Set facts for inputs of omnia_config.yml
   when: k8s_support
   block:
-    - name: Fail if both compute_k8s_playbook and service_k8s_playbook are true
-      ansible.builtin.fail:
-        msg: "{{ compute_service_k8s_true_fail_msg }}"
-      when: (compute_k8s_playbook | default(false)) and (service_k8s_playbook | default(false))
-
     - name: Determine cluster_type based on playbook flag
       ansible.builtin.set_fact:
         cluster_type: >-
-          {% if compute_k8s_playbook is defined and compute_k8s_playbook %}
-            compute
-          {% elif service_k8s_playbook is defined and service_k8s_playbook %}
+          {% if service_k8s_playbook is defined and service_k8s_playbook %}
             service
           {% else %}
             unknown

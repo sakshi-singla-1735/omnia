@@ -1,4 +1,4 @@
-#  Copyright 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Copyright 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -13,18 +13,5 @@
 #  limitations under the License.
 ---
 
-# NFS setup
-- name: Install NFS client package
-  ansible.builtin.package:
-    name: "{{ nfs_package }}"
-    state: present
-
-- name: Check NFS export availability
-  ansible.builtin.command: "showmount -e {{ nfs_server_ip }}"
-  register: nfs_exports
-  changed_when: false
-
-- name: Fail if expected NFS export is not available
-  ansible.builtin.fail:
-    msg: "NFS export {{ nfs_server_share_path }} not found on {{ nfs_server_ip }}"
-  when: nfs_server_share_path not in nfs_exports.stdout
+service_k8s_fail_msg: "Both kubeadm_join_vars.yaml and cloud-init-vars.yaml must exist in /opt/omnia/kubespray/.
+  One or more files are missing. Please run the service_k8s_cluster.yml"
