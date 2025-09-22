@@ -135,4 +135,3 @@ openchami_services:
   - hydra-gen-jwks.service
   - hydra-migrate.service
   - haproxy-certs-volume.service
-  
