@@ -13,22 +13,48 @@
 #  limitations under the License.
 ---
 
-- name: Load default.json
-  ansible.builtin.include_vars:
-    file: "{{ default_json_path }}"
-    name: default_json
+- name: Fetch x86_64 default_packages.json software packages
+  when: fg_x86_64
+  block:
+    - name: Load default_packages.json
+      ansible.builtin.include_vars:
+        file: "{{ default_json_path }}"
+        name: default_package_json
 
-- name: Extract rpm packages
-  ansible.builtin.set_fact:
-    base_image_packages: >-
-      {{ default_json.default.cluster
-         | selectattr('type', 'equalto', 'rpm')
-         | map(attribute='package')
-         | list }}
+    - name: Extract rpm packages
+      ansible.builtin.set_fact:
+        x86_64_base_image_packages: >-
+          {{ default_package_json.default_packages.cluster
+            | selectattr('type', 'equalto', 'rpm')
+            | map(attribute='package')
+            | list }}
 
-- name: Debug package
-  ansible.builtin.debug:
-    var: base_image_packages
+    - name: Debug package x86_64_base_image_packages
+      ansible.builtin.debug:
+        var: x86_64_base_image_packages
+        verbosity: 2
+
+# ---- Uncomment while aarch64 support is added
+# - name: Fetch aarch64 default_packages.json software packages
+#   when: fg_aarch64
+#   block:
+#     - name: Load default_packages.json
+#       ansible.builtin.include_vars:
+#         file: "{{ default_json_path }}"
+#         name: default_packages_json
+
+#     - name: Extract rpm packages
+#       ansible.builtin.set_fact:
+#         aarch64_base_image_packages: >-
+#           {{ default_packages_json.default_packages.cluster
+#             | selectattr('type', 'equalto', 'rpm')
+#             | map(attribute='package')
+#             | list }}
+
+#     - name: Debug package
+#       ansible.builtin.debug:
+#         var: aarch64_base_image_packages
+#         verbosity: 2
 
 - name: Read packages for compute image softwares
   image_package_collector:
@@ -37,9 +63,10 @@
     input_project_dir: "{{ input_project_dir }}"
   register: compute_images_output
 
-- name: Show merged compute_images_dict
+- name: Debug software directory compute_images_dict
   ansible.builtin.debug:
     var: compute_images_output.compute_images_dict
+    verbosity: 2
 
 - name: Save compute_images_dict as a fact
   ansible.builtin.set_fact:
