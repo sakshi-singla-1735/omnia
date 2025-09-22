@@ -233,14 +233,14 @@ def validate_software_section_mappings(functional_groups, software_data):
 
     SOFTWARE_REQUIREMENTS = {
         "service_kube_node": ["service_k8s", "nfs"],
-        "slurm_control_node": ["slurm", "nfs"],
-        "slurm_node": ["slurm", "nfs"],
-        "login_node": ["slurm", "nfs"],
-        "login_compiler_node": ["slurm", "nfs"],
+        "slurm_control_node": ["slurm_custom", "nfs"],
+        "slurm_node": ["slurm_custom", "nfs"],
+        "login_node": ["slurm_custom", "nfs"],
+        "login_compiler_node": ["slurm_custom", "nfs"],
     }
 
     # Only these softwares are valid for aarch64
-    AARCH64_SUPPORTED = {"slurm", "cuda", "nfs"}
+    AARCH64_SUPPORTED = {"slurm_custom", "cuda", "nfs"}
 
     for fg in functional_groups:
         fg_name = fg.get("name", "")
