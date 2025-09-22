@@ -89,6 +89,18 @@ user_fail_msg: "Failed. Omnia playbooks should run as root user."
 warning_wait_time_warning: 15
 warning_msg_local_repo: "[WARNING] Omnia will remove any package/software conflicting with the requirements."
 
+# Usage: check_rhel_subscription.yml
+rhel_repo_cert_dir: "{{ hostvars['localhost']['oim_shared_path'] }}/omnia/rhel_repo_certs"
+omnia_rhel_cert_dir: "/opt/omnia/rhel_repo_certs"  # Define NFS share path
+rhel_version: 10
+required_repos:
+  - codeready-builder
+  - baseos
+  - appstream
+redhat_uep_cert: "/etc/rhsm/ca/redhat-uep.pem"
+entitlement_path: "/etc/pki/entitlement"
+redhat_repo_file: "/etc/yum.repos.d/redhat.repo"
+
 # Usage: validate_software_config_json.yml
 sw_config_json_path: "{{ project_input_path }}/software_config.json"
 software_config_parameters_fail_msg: "Failed. Please ensure cluster_os_type, cluster_os_verion, repo_config, softwares are defined in software_config.json"

@@ -14,7 +14,7 @@
     "language": {
       "type": "string",
       "description": "Language setting.",
-      "default": "en-US"
+      "default": "en_US.UTF-8"
     },
     "default_lease_time": {
       "type": "string",
