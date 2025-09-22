@@ -5,8 +5,17 @@ This module contains functions for validating functional_groups_config.yml
 from ansible.module_utils.input_validation.common_utils import validation_utils
 from ansible.module_utils.input_validation.common_utils import config
 from ansible.module_utils.input_validation.common_utils import en_us_validation_msg
+from ansible.module_utils.local_repo.software_utils import load_yaml, load_json
 
 create_error_msg = validation_utils.create_error_msg
+extract_arch_from_fg = validation_utils.extract_arch_from_fg
+key_value_exists = validation_utils.key_value_exists
+contains_software = validation_utils.contains_software
+create_file_path = validation_utils.create_file_path
+load_json = validation_utils.load_json
+
+file_names = config.files
+
 
 # --- Duplicate check for functional groups ---
 def validate_functional_group_duplicates(functional_groups):
@@ -166,6 +175,75 @@ def validate_functional_groups_structure(functional_groups):
                 group[field] = ""  # prevent further key errors
 
     return errors
+#--- Software mapping validation (helper) ---
+def validate_software_section_mappings(functional_groups, software_data):
+    """
+    Validates the software section mappings for a given list of functional groups and software data.
+
+    Args:
+        functional_groups (list): A list of dictionaries, where each dictionary contains information about a functional group.
+        software_data (dict): A dictionary containing software data, including a list of softwares.
+
+    Returns:
+        list: A list of error messages.
+    """
+    errors = []
+
+    softwares_list = software_data.get("softwares", [])
+    slurm_section = software_data.get("slurm", [])
+
+    SOFTWARE_REQUIREMENTS = {
+        "service_kube_node": ["service_k8s", "nfs", "openldap", "ofed"],
+        "slurm_control_node": ["slurm", "nfs", "openldap", "ofed"],
+        "slurm_node": ["slurm", "nfs", "openldap", "ofed", "cuda"],
+        "login_node": ["slurm", "nfs", "openldap", "ofed"],
+        "login_compiler_node": ["slurm", "nfs", "openldap", "ofed", "ucx", "openmpi"],
+    }
+
+    # Only these softwares are valid for aarch64
+    AARCH64_SUPPORTED = {"slurm", "cuda", "nfs"}
+
+    for fg in functional_groups:
+        fg_name = fg.get("name", "")
+        arch = extract_arch_from_fg(fg_name)
+        base_fg_name = fg_name[: -len("_" + arch)] if arch else fg_name
+
+        required_softwares = SOFTWARE_REQUIREMENTS.get(base_fg_name, [])
+
+        # Validate software presence
+        for sw in required_softwares:
+            # Skip unsupported software for aarch64
+            if arch == "aarch64" and sw not in AARCH64_SUPPORTED:
+                continue
+
+            # Check if this software exists for the given arch (if arch-aware)
+            found = any(
+                s.get("name") == sw and (not arch or arch in s.get("arch", []))
+                for s in softwares_list
+            )
+            if not found:
+                errors.append(
+                    create_error_msg(
+                        fg_name,
+                        sw,
+                        f" For functional group: '{fg_name}', required software '{sw}'{f' with architecture {arch}' if arch else ''} is missing in software_config.json. Please add the missing entry and try again."
+                    )
+                )
+
+        # Validate SLURM section presence
+        expected_slurm_entry = None
+        if base_fg_name in ["slurm_control_node", "slurm_node", "login_node", "login_compiler_node"]:
+            expected_slurm_entry = "login_node" if "login" in base_fg_name else base_fg_name
+        if expected_slurm_entry and not key_value_exists(slurm_section, "name", expected_slurm_entry):
+            errors.append(
+                create_error_msg(
+                    fg_name,
+                    expected_slurm_entry,
+                    f"For Functional group '{fg_name}', slurm entry: 'slurm': [{{'name': '{expected_slurm_entry}'}}] missing in software_config.json. Please add the missing entry and try again."
+                )
+            )
+
+    return errors
 
 # --- Main validator ---
 def validate_functional_groups_config(
@@ -190,6 +268,8 @@ def validate_functional_groups_config(
     errors.extend(validate_non_empty_clustername(functional_groups))
     errors.extend(validate_slurm_k8s_clusters(functional_groups))
     errors.extend(validate_slurm_node_parent(functional_groups))
-
+    software_file = create_file_path(input_file_path, "software_config.json")
+    software_json = load_json(software_file)
+    errors.extend(validate_software_section_mappings(functional_groups, software_json))
 
     return errors
