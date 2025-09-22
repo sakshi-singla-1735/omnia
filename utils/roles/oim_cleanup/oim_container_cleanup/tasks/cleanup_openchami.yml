@@ -96,10 +96,6 @@
   loop: "{{ config_dirs }}"
 
 - name: Stop and disable openchami services
-  ansible.builtin.service:
-    name: "{{ item }}"
-    state: stopped
-    enabled: false
-    daemon_reload: true
+  ansible.builtin.command: systemctl stop {{ item }}
   loop: "{{ openchami_services }}"
   failed_when: false
