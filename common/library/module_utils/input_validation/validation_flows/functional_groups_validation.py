@@ -369,7 +369,7 @@ def validate_software_section_mappings(functional_groups, software_data):
                     create_error_msg(
                         fg_name,
                         sw,
-                        f"Required software '{sw}' missing for functional group '{fg_name}'"
+                        f" For functional group: '{fg_name}', required software '{sw}'{f' with architecture {arch}' if arch else ''} is missing in software_config.json. Please add the missing entry and try again."
                     )
                 )
 
@@ -381,7 +381,7 @@ def validate_software_section_mappings(functional_groups, software_data):
                 create_error_msg(
                     fg_name,
                     expected_slurm_entry,
-                    f"Missing SLURM section '{expected_slurm_entry}' in software_config.json"
+                    f"For Functional group '{fg_name}', slurm entry: 'slurm': [{{'name': '{expected_slurm_entry}'}}] missing in software_config.json. Please add the missing entry and try again."
                 )
             )
 

@@ -1169,14 +1169,11 @@ def validate_omnia_config(
     return errors
 
 def check_is_service_cluster_functional_groups_defined(
-        errors,
-        input_file_path,
-        omnia_base_dir,
-        project_name,
-        logger,
-        module):
+    errors, input_file_path, omnia_base_dir, project_name, logger, module
+):
     """
-    Checks if 'service_kube_node_x86_64' is configured in the functional_groups_config.yml file.
+    Checks if 'service_kube_node_x86_64' is configured in the functional_groups_config.yml file,
+    and ensures its cluster_name does not overlap with any Slurm role.
 
     Args:
         errors (list): A list to store error messages.
@@ -1187,16 +1184,50 @@ def check_is_service_cluster_functional_groups_defined(
         module (object): A module object for logging messages.
 
     Returns:
-        True if 'service_kube_node_x86_64' is defined, else False
+        True if 'service_kube_node_x86_64' is defined and valid, else False
     """
-    functional_groups_config_file_path = create_file_path(input_file_path, file_names["functional_groups_config"])
+    functional_groups_config_file_path = create_file_path(
+        input_file_path, file_names["functional_groups_config"]
+    )
     functional_groups_config_json = validation_utils.load_yaml_as_json(
-        functional_groups_config_file_path, omnia_base_dir, project_name, logger, module)
-
+        functional_groups_config_file_path, omnia_base_dir, project_name, logger, module
+    )
     functional_groups = functional_groups_config_json.get("functional_groups", [])
+
+    kube_cluster = None
+    slurm_clusters = set()
+
     for group in functional_groups:
-        if group.get("name") == "service_kube_node_x86_64":
-            return True
+        name = group.get("name", "")
+        cluster = group.get("cluster_name", "")
+
+        # Capture kube service cluster
+        if name == "service_kube_node_x86_64":
+            kube_cluster = cluster
+
+        # Collect slurm clusters
+        if name in [
+            "slurm_control_node_x86_64",
+            "slurm_node_x86_64",
+            "slurm_node_aarch64",
+        ]:
+            if cluster:
+                slurm_clusters.add(cluster)
+
+    if kube_cluster:
+        if kube_cluster in slurm_clusters:
+            errors.append(
+                create_error_msg(
+                    "functional_groups_config.yml",
+                    kube_cluster,
+                    en_us_validation_msg.SLURM_KUBE_CLUSTER_OVERLAP_MSG.format(
+                        cluster=kube_cluster
+                    ),
+                )
+            )
+            return False
+        return True
+
     return False
 
 def validate_telemetry_config(
