@@ -53,7 +53,7 @@ def collect_packages_from_json(sw_data, fg_name=None, slurm_defined=False):
     Parameters
     ----------
     sw_data : dict
-        The software JSON structure, containing sections such as "slurm",
+        The software JSON structure, containing sections such as "slurm_custom",
         "login_node", or a top-level "cluster".
     fg_name : str, optional
         The functional group name (e.g., "compute_x86_64"). If slurm_defined=True,
@@ -61,7 +61,7 @@ def collect_packages_from_json(sw_data, fg_name=None, slurm_defined=False):
         and used to look up group-specific cluster entries.
     slurm_defined : bool, default=False
         If True:
-          - Always collect packages from the top-level "slurm/cluster".
+          - Always collect packages from the top-level "slurm_custom/cluster".
           - Additionally, collect packages from the functional group cluster
             matching `fg_name`.
         If False:
@@ -78,20 +78,20 @@ def collect_packages_from_json(sw_data, fg_name=None, slurm_defined=False):
     if slurm_defined:
         fg_name = fg_name.replace("_aarch64", "").replace("_x86_64", "")
 
-        # Always collect from top-level "slurm" section
-        if "slurm" in sw_data and "cluster" in sw_data["slurm"]:
-            for entry in sw_data["slurm"]["cluster"]:
+        # Always collect from top-level "slurm_custom" section
+        if "slurm_custom" in sw_data and "cluster" in sw_data["slurm_custom"]:
+            for entry in sw_data["slurm_custom"]["cluster"]:
                 if entry.get("type") == "rpm" and "package" in entry:
                     packages.append(entry["package"])
 
-        # Collect from matching functional group inside slurm.json
+        # Collect from matching functional group inside slurm_custom.json
         if fg_name in sw_data and "cluster" in sw_data[fg_name]:
             for entry in sw_data[fg_name]["cluster"]:
                 if entry.get("type") == "rpm" and "package" in entry:
                     packages.append(entry["package"])
 
     else:
-        # Case 1: nested sections like "slurm", "login_node", etc.
+        # Case 1: nested sections like "slurm_custom", "login_node", etc.
         for section, section_data in sw_data.items():
             if isinstance(section_data, dict) and "cluster" in section_data:
                 for entry in section_data["cluster"]:
@@ -153,8 +153,8 @@ def process_functional_group(fg_name, base_name, arch, os_version, input_project
         if not sw_data:
             continue
 
-        # Special handling for slurm.json
-        if json_file == "slurm.json":
+        # Special handling for slurm_custom.json
+        if json_file == "slurm_custom.json":
             packages.extend(collect_packages_from_json(sw_data, fg_name=fg_name, slurm_defined=True))
         else:
             packages.extend(collect_packages_from_json(sw_data))
@@ -209,10 +209,10 @@ def run_module():
     # Functional group → json files mapping
     software_map = {
         "service_kube_node_x86_64": ["service_k8s.json", "nfs.json", "openldap.json", "ofed.json"],
-        "slurm_control_node_x86_64": ["slurm.json", "nfs.json", "openldap.json", "ofed.json"],
-        "slurm_node_x86_64": ["slurm.json", "nfs.json", "openldap.json", "ofed.json", "cuda.json"],
-        "login_node_x86_64": ["slurm.json", "nfs.json", "openldap.json", "ofed.json"],
-        "login_compiler_node_x86_64": ["slurm.json", "nfs.json", "openldap.json", "ofed.json", "ucx.json", "openmpi.json"],
+        "slurm_control_node_x86_64": ["slurm_custom.json", "nfs.json", "openldap.json", "ofed.json"],
+        "slurm_node_x86_64": ["slurm_custom.json", "nfs.json", "openldap.json", "ofed.json", "cuda.json"],
+        "login_node_x86_64": ["slurm_custom.json", "nfs.json", "openldap.json", "ofed.json"],
+        "login_compiler_node_x86_64": ["slurm_custom.json", "nfs.json", "openldap.json", "ofed.json", "ucx.json", "openmpi.json"],
     }
 
     compute_images_dict = {}

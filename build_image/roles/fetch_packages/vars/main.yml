@@ -21,4 +21,4 @@ local_repo_check_msg: |
 input_project_dir: "{{ hostvars['localhost']['input_project_dir'] }}"
 functional_groups_file_path: "{{ input_project_dir }}/functional_groups_config.yml"
 software_config_file_path: "{{ input_project_dir }}/software_config.json"
-default_json_path: "{{ input_project_dir }}/config/x86_64/rhel/10.0/default.json"
+default_json_path: "{{ input_project_dir }}/config/x86_64/rhel/10.0/default_packages.json"

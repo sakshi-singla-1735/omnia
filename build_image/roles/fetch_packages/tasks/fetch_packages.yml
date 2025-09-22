@@ -13,18 +13,18 @@
 #  limitations under the License.
 ---
 
-- name: Fetch x86_64 default.json software packages
+- name: Fetch x86_64 default_packages.json software packages
   when: fg_x86_64
   block:
-    - name: Load default.json
+    - name: Load default_packages.json
       ansible.builtin.include_vars:
         file: "{{ default_json_path }}"
-        name: default_json
+        name: default_package_json
 
     - name: Extract rpm packages
       ansible.builtin.set_fact:
         x86_64_base_image_packages: >-
-          {{ default_json.default.cluster
+          {{ default_package_json.default_packages.cluster
             | selectattr('type', 'equalto', 'rpm')
             | map(attribute='package')
             | list }}
@@ -35,18 +35,18 @@
         verbosity: 2
 
 # ---- Uncomment while aarch64 support is added
-# - name: Fetch aarch64 default.json software packages
+# - name: Fetch aarch64 default_packages.json software packages
 #   when: fg_aarch64
 #   block:
-#     - name: Load default.json
+#     - name: Load default_packages.json
 #       ansible.builtin.include_vars:
 #         file: "{{ default_json_path }}"
-#         name: default_json
-    
+#         name: default_packages_json
+
 #     - name: Extract rpm packages
 #       ansible.builtin.set_fact:
 #         aarch64_base_image_packages: >-
-#           {{ default_json.default.cluster
+#           {{ default_packages_json.default_packages.cluster
 #             | selectattr('type', 'equalto', 'rpm')
 #             | map(attribute='package')
 #             | list }}
