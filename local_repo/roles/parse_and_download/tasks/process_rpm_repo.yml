@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
+
 - name: Prepare software packages tasklist
   prepare_tasklist:
     csv_file_path: "{{ base_path }}"
@@ -19,6 +20,7 @@
     local_repo_config_path: "{{ local_repo_config_path }}"
     log_dir: "{{ base_path }}"
     key_path: "{{ project_input_path }}"
+    sub_urls: "{{ sub_final_repo_urls }}"
   register: result
 
 - name: Process URL mirrors from local_repo_config

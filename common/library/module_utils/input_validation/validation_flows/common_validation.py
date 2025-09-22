@@ -174,6 +174,16 @@ def validate_software_config(
     failures = []
     fail_data = []
 
+    # Ensure "default_packages" is present in software_config.json
+    software_names = [pkg.get('name') for pkg in data.get('softwares', [])]
+    if "default_packages" not in software_names:
+        errors.append(
+            create_error_msg(
+                "Validation Error: ",
+                "default_packages",
+                "is mandatory in softwares_config.json but is missing."
+            )
+        )
     for software_pkg in data['softwares']:
         software = software_pkg['name']
         arch_list = software_pkg.get('arch')
