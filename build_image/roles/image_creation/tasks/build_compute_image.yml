@@ -67,10 +67,6 @@
         label: "{{ item.item.key }}"
 
   rescue:
-    - name: Log failure for OpenCHAMI job
-      ansible.builtin.debug:
-        msg: "OpenCHAMI job for {{ item.item.key }} failed after retries."
-
     - name: Fail explicitly if job failed
       ansible.builtin.fail:
         msg: "{{ compute_image_failure_msg }}"

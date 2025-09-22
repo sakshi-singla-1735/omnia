@@ -20,7 +20,7 @@
     - name: Set dynamic run tags including 'provision'
       when: not config_file_status | default(false) | bool
       ansible.builtin.set_fact:
-        omnia_run_tags: "{{ (ansible_run_tags | default([]) + ['provision']) | unique }}"
+        omnia_run_tags: "{{ (ansible_run_tags | default([]) + ['provision', 'slurm']) | unique }}"
         cacheable: true
 
 - name: Invoke validate_config.yml to perform L1 and L2 validations
@@ -36,6 +36,7 @@
   ansible.builtin.import_playbook: ../utils/include_input_dir.yml
   vars:
     openchami_vars_suppport: true
+    omnia_metadata_support: true
 
 - name: Create oim group and provision group
   ansible.builtin.import_playbook: ../utils/create_container_group.yml
@@ -62,4 +63,6 @@
   hosts: oim
   connection: ssh
   roles:
+    - nfs_client
+    - slurm_config
     - configure_ochami

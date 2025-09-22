@@ -24,7 +24,7 @@
         omnia_run_tags: "{{ (ansible_run_tags | default([]) + ['build_image']) | unique }}"
         cacheable: true
 
-- name: Invoke validate_config.yml to perform L1 and L2 validations with prepare_oim tag
+- name: Invoke validate_config.yml to perform L1 and L2 validations with build_image tag
   ansible.builtin.import_playbook: ../input_validation/validate_config.yml
   tags: always
 
@@ -34,7 +34,9 @@
 - name: Include input project directory
   when: not project_dir_status | default(false) | bool
   ansible.builtin.import_playbook: ../utils/include_input_dir.yml
-  tags: always
+  vars:
+    openchami_vars_suppport: true
+    omnia_metadata_support: true
 
 - name: Create oim group and provision group
   ansible.builtin.import_playbook: ../utils/create_container_group.yml
@@ -42,7 +44,16 @@
     oim_group: true
   tags: always
 
-- name: Fetch fetch_packages
+- name: Configure auth for openchami
+  hosts: oim
+  connection: ssh
+  tasks:
+    - name: Openchami cluster authentication
+      ansible.builtin.include_tasks: "{{ playbook_dir }}/../common/tasks/common/openchami_auth.yml"
+      vars:
+        oim_node_name: "{{ hostvars['localhost']['oim_node_name'] }}"
+
+- name: Fetch packages
   hosts: localhost
   connection: local
   gather_facts: false
