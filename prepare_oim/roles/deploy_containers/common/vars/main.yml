@@ -28,9 +28,6 @@ internal_nfs_services:
 ntp_firewall_service: ntp
 
 # Usage: prepare_oim_completion.yml
-omnia_service_path:
-  - { src: "{{ role_path }}/templates/omnia.service.j2", dest: "/etc/systemd/system/omnia.target", mode: "0644" }
-
 telemetry_dir: "/opt/omnia/telemetry"
 dir_permissions_755: "0755"
 bmc_group_data_filename: "{{ telemetry_dir }}/bmc_group_data.csv"
@@ -49,5 +46,11 @@ podman_login_fail_msg: "Podman login failed. Please ensure the podman login cred
 
 # Usage: add_known_hosts.yml
 ssh_config: "/root/.ssh/config"
-
 kubespray_versions: "{{ hostvars['localhost']['kubespray_versions'] | default([]) }}"
+
+# Usage: omnia_service.yml
+omnia_service_path:
+  - { src: "{{ role_path }}/templates/omnia.service.j2", dest: "/etc/systemd/system/omnia.target", mode: "0644" }
+network_services:
+  - network-online.target
+  - NetworkManager-wait-online.service

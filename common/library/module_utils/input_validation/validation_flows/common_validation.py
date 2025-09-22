@@ -440,7 +440,8 @@ def get_matching_clusters_for_nfs(nfs_name, omnia_config):
             matching_clusters["service_k8s_cluster"] = svc
 
     # Compute k8s
-    for comp in omnia_config.get("compute_k8s_cluster", []):
+    for comp in omnia_config.get("
+                                 _cluster", []):
         if (
             comp.get("nfs_storage_name") == nfs_name
             and comp.get("deployment") is True
@@ -996,25 +997,25 @@ def is_ip_in_range(ip_str, ip_range_str):
         return False
     
 
-def validate_k8s(data, admin_networks, softwares, ha_config, tag_names, errors, 
+def validate_k8s(data, admin_bmc_networks, softwares, ha_config, tag_names, errors, 
                  omnia_base_dir, project_name, logger, module, input_file_path):
     """
     Validates Kubernetes cluster configurations.
 
     Parameters:
         data (dict): A dictionary containing Kubernetes cluster configurations.
-        admin_networks (dict): A dictionary containing admin network information.
+        admin_bmc_networks (dict): A dictionary containing admin BMC network information.
         softwares (list): A list of software name sin software_config.
         errors (list): A list to store error messages.
     """
-    admin_dynamic_range = admin_networks["admin_network"]["dynamic_range"]
-    primary_oim_admin_ip = admin_networks["admin_network"]["primary_oim_admin_ip"]
+
+    admin_dynamic_range = admin_bmc_networks["admin_network"]["dynamic_range"]
+
+    primary_oim_admin_ip = admin_bmc_networks["admin_network"]["primary_oim_admin_ip"]
     
     # service_k8s_cluster = data["service_k8s_cluster"]
     cluster_set = {}
-    if "compute_k8s" in softwares and "compute_k8s" in tag_names:
-        cluster_set["compute_k8s_cluster"] = data.get(
-            "compute_k8s_cluster", [])
+
     if "service_k8s" in softwares and "service_k8s" in tag_names:
         cluster_set["service_k8s_cluster"] = data.get(
             "service_k8s_cluster", [])
@@ -1080,7 +1081,7 @@ def validate_k8s(data, admin_networks, softwares, ha_config, tag_names, errors,
                 #csi validation
                 if (
                       "csi_driver_powerscale" in softwares
-                      and ("k8s" in softwares or "service_k8s" in softwares)
+                      and ("service_k8s" in softwares)
                     ):
 
                     csi_secret_file_path = kluster.get("csi_powerscale_driver_secret_file_path")
