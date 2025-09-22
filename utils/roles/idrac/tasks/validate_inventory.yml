@@ -20,7 +20,7 @@
     - groups['all'] is defined
     - (groups['all'] | length == 0)
 
-- name: Kube node group to contain atleast 1 kube node
+- name: Validate bmc group
   ansible.builtin.assert:
     that: "groups['bmc'] | length | int >= 1"
     success_msg: "{{ bmc_validation_fail_msg }}"
