@@ -1,6 +1,6 @@
 {
   "title": "omnia_config.yaml",
-  "description": "Omina config related parameters",
+  "description": "Omnia config related parameters",
   "type": "object",
   "properties": {
     "slurm_cluster": {
