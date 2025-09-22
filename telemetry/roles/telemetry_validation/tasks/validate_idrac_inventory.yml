@@ -24,7 +24,7 @@
     that:
       - "hostvars[item]['bmc_ip'] is defined"
       - "hostvars[item]['bmc_ip'] != ''"
-    fail_msg: "{{ service_kube_node_details_fail_msg }}"
+    fail_msg: "{{ service_kube_control_plane_details_fail_msg }}"
   loop: "{{ groups['kube_control_plane'] }}"
 
 - name: Validate kube_control_plane BMC IP is a valid IPv4 address
