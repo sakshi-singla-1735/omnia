@@ -48,7 +48,7 @@ login_dir:
 innodb_buffer_pool_size: 1G
 innodb_lock_wait_timeout: 120
 # TODO tmp
-nodes_yaml: "/opt/workdir/nodes/nodes.yaml"
+nodes_yaml: "{{ hostvars['localhost']['oim_shared_path'] }}/omnia/openchami/workdir/nodes/nodes.yaml"
 cloud_init_out: "{{ slurm_config_path }}"
 ssh_key: "ssh-ed25519 dummy_value_for_testing_cloudinit_template_rendering root@omnia_core"
 bmc_username: "{{ hostvars['localhost']['bmc_username'] }}"

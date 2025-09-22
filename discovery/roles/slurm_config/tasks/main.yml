@@ -25,6 +25,8 @@
 - name: Read the slurm mount point
   ansible.builtin.set_fact:
     share_path: "{{ (nfs_client_params | selectattr('nfs_name', 'equalto', nfs_storage_name) | first).client_share_path }}"
+    nfs_server_ip: "{{ (nfs_client_params | selectattr('nfs_name', 'equalto', nfs_storage_name) | first).server_ip }}"
+    nfs_server_path: "{{ (nfs_client_params | selectattr('nfs_name', 'equalto', nfs_storage_name) | first).server_share_path }}"
 
 - name: Get the slurm hostnames
   ansible.builtin.include_tasks: read_slurm_hostnames.yml
@@ -40,29 +42,6 @@
   ansible.builtin.set_fact:
     share_prefix: "{{ slurm_config_path }}"
   when: conf_in_nfs
-
-# - name: Create the slurm directory on share
-#   ansible.builtin.file:
-#     path: "{{ item }}"
-#     state: directory
-#     owner: root
-#     group: root
-#     mode: "{{ common_mode }}"
-#   loop:
-#     - "{{ slurm_config_path }}"
-#     - "{{ slurm_config_path }}etc"
-#     - "{{ slurm_config_path }}etc/munge"
-#     - "{{ slurm_config_path }}etc/slurm"
-#     - "{{ slurm_config_path }}etc/slurm/epilog.d"
-#     - "{{ slurm_config_path }}etc/my.cnf.d"
-#     - "{{ slurm_config_path }}var"
-#     - "{{ slurm_config_path }}var/lib"
-#     - "{{ slurm_config_path }}var/lib/mysql"
-#     - "{{ slurm_config_path }}var/log"
-#     - "{{ slurm_config_path }}var/log/mariadb"
-#     - "{{ slurm_config_path }}var/log/slurm"
-#     - "{{ slurm_config_path }}var/log/spool"
-#     - "{{ slurm_config_path }}cloud_init_out" #TODO: cloud inits
 
 - name: Create the slurm ctld directory on share
   ansible.builtin.file:
@@ -173,11 +152,11 @@
 
 - name: Get the slurm NFS path
   ansible.builtin.debug:
-    msg: "The slurm NFS path is {{ mounted_dict[share_path] }}/slurm"
+    msg: "The slurm NFS path is {{ share_path }}/slurm"
 
 - name: NFS path for cloud init
   ansible.builtin.set_fact:
-    cloud_init_nfs_path: "{{ mounted_dict[share_path] }}/slurm"
+    cloud_init_nfs_path: "{{ nfs_server_ip }}:{{ nfs_server_path }}/slurm"
 
 - name: Generate cloud init
   ansible.builtin.include_tasks: cloud_inits.yml
