@@ -994,24 +994,22 @@ def is_ip_in_range(ip_str, ip_range_str):
         return start_ip <= ip <= end_ip
     except ValueError:
         return False
-    
 
-def validate_k8s(data, admin_bmc_networks, softwares, ha_config, tag_names, errors, 
+
+def validate_k8s(data, admin_networks, softwares, ha_config, tag_names, errors, 
                  omnia_base_dir, project_name, logger, module, input_file_path):
     """
     Validates Kubernetes cluster configurations.
 
     Parameters:
         data (dict): A dictionary containing Kubernetes cluster configurations.
-        admin_bmc_networks (dict): A dictionary containing admin BMC network information.
+        admin_networks (dict): A dictionary containing admin network information.
         softwares (list): A list of software name sin software_config.
         errors (list): A list to store error messages.
     """
+    admin_dynamic_range = admin_networks["admin_network"]["dynamic_range"]
+    primary_oim_admin_ip = admin_networks["admin_network"]["primary_oim_admin_ip"]
 
-    admin_dynamic_range = admin_bmc_networks["admin_network"]["dynamic_range"]
-
-    primary_oim_admin_ip = admin_bmc_networks["admin_network"]["primary_oim_admin_ip"]
-    
     # service_k8s_cluster = data["service_k8s_cluster"]
     cluster_set = {}
 
