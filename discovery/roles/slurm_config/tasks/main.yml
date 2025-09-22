@@ -157,6 +157,3 @@
 - name: NFS path for cloud init
   ansible.builtin.set_fact:
     cloud_init_nfs_path: "{{ nfs_server_ip }}:{{ nfs_server_path }}/slurm"
-
-- name: Generate cloud init
-  ansible.builtin.include_tasks: cloud_inits.yml
