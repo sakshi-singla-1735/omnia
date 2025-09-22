@@ -1,7 +1,7 @@
 {
     "slurm_custom": {
         "cluster": [
-            {"package": "munge", "type": "rpm", "repo_name": "aarch64_appstrem"},
+            {"package": "munge", "type": "rpm", "repo_name": "aarch64_appstream"},
             {"package": "firewalld", "type": "rpm", "repo_name": "aarch64_baseos"},
             {"package": "python3-firewall", "type": "rpm", "repo_name": "aarch64_baseos"}
         ]
@@ -10,9 +10,9 @@
         "cluster": [
             {"package": "slurm-slurmctld", "type": "rpm", "repo_name": "aarch64_slurm_custom"},
             {"package": "slurm-slurmdbd", "type": "rpm", "repo_name": "aarch64_slurm_custom"},
-            {"package": "python3-PyMySQL", "type": "rpm", "repo_name": "aarch64_appstrem"},
-            {"package": "mysql-server", "type": "rpm", "repo_name": "aarch64_appstrem"},
-            {"package": "mariadb-server", "type": "rpm", "repo_name": "aarch64_appstrem"}
+            {"package": "python3-PyMySQL", "type": "rpm", "repo_name": "aarch64_appstream"},
+            {"package": "mysql-server", "type": "rpm", "repo_name": "aarch64_appstream"},
+            {"package": "mariadb-server", "type": "rpm", "repo_name": "aarch64_appstream"}
         ]
     },
     "slurm_node": {

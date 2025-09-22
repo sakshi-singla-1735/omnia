@@ -78,7 +78,7 @@ user_registry:
 #   sslclientkey: Path to SSL client key (if using SSL)
 #   sslclientcert: Path to SSL client certificate (if using SSL)
 #   policy      : Repository policy if mentioned allowed values (always, partial, never). IF not mentioned will consider from software_config.json
-#   name        : Name of the repository
+#   name        : Name of the repository [ Allowed repo names <arch>_codeready-builder, <arch>_appstream, <arch>_baseos
 # Notes:
 #   - Do not use Jinja variables in this configuration.
 #   - Omit SSL fields entirely if SSL is not in use.
