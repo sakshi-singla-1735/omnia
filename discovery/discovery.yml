@@ -36,6 +36,7 @@
   ansible.builtin.import_playbook: ../utils/include_input_dir.yml
   vars:
     openchami_vars_suppport: true
+    omnia_metadata_support: true
 
 - name: Create oim group and provision group
   ansible.builtin.import_playbook: ../utils/create_container_group.yml

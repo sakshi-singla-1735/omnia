@@ -1,10 +1,10 @@
 #!/usr/bin/python
 
-from ansible.module_utils.basic import AnsibleModule
 import os
 import json
 import yaml
 
+from ansible.module_utils.basic import AnsibleModule
 
 def load_yaml_file(path, module):
     """
@@ -153,6 +153,7 @@ def process_functional_group(fg_name, base_name, arch, os_version, input_project
         if not sw_data:
             continue
 
+        # pylint: disable=line-too-long
         # Special handling for slurm_custom.json
         if json_file == "slurm_custom.json":
             packages.extend(collect_packages_from_json(sw_data, fg_name=fg_name, slurm_defined=True))
@@ -206,6 +207,7 @@ def run_module():
     # Build list of allowed softwares (from software_config.json)
     allowed_softwares = {sw["name"] for sw in software_config.get("softwares", [])}
 
+    # pylint: disable=line-too-long
     # Functional group → json files mapping
     software_map = {
         "service_kube_node_x86_64": ["service_k8s.json", "nfs.json", "openldap.json", "ofed.json"],
@@ -246,6 +248,11 @@ def run_module():
 
 
 def main():
+    """
+    Main entry point of the module.
+
+    This function calls the run_module function to execute the module's logic.
+    """
     run_module()
 
 

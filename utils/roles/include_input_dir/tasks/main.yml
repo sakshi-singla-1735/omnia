@@ -43,3 +43,7 @@
 - name: Include openchami vars
   ansible.builtin.include_vars: "{{ role_path }}/../../../common/vars/openchami_vars.yml"
   when: openchami_vars_suppport | default(false)
+
+- name: Include oim metadata vars
+  ansible.builtin.include_vars: "{{ omnia_metadata_file_path }}"
+  when: omnia_metadata_support | default(false)
