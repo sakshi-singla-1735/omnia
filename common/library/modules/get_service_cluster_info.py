@@ -32,8 +32,7 @@ def get_service_cluster_node_details(nodes_info, functional_groups_info):
         node = sn['name']
         service_tag = sn['xname']
         role = sn['group']
-        parent =
-        cluster_name =  next((g["cluster"] for g in functional_groups_info if g["name"] == role), None)
+        cluster_name =  next((g["cluster_name"] for g in functional_groups_info if g["name"] == role), None)
 
         if "service_kube_node_x86_64" in role or "service_kube_node_aarch64" in role:
             data[service_tag] = {
