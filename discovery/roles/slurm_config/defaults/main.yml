@@ -227,7 +227,7 @@ __slurm_default_config:
   SlurmctldPort: 6817
   SlurmdPort: 6818
   SrunPortRange: "60001-63000"
-  StateSaveLocation: "{{ share_prefix }}var/spool/state"
+  StateSaveLocation: "/var/spool/state"
   SlurmdSpoolDir: "/var/spool/slurmd/"
   ReturnToService: 2
   SchedulerType: sched/backfill
@@ -238,8 +238,8 @@ __slurm_default_config:
   JobAcctGatherType: jobacct_gather/linux
   JobAcctGatherFrequency: 30
   SelectType: select/linear
-  SlurmctldLogFile: "{{ share_prefix }}var/log/slurmctld.log"
-  SlurmdLogFile: "{{ share_prefix }}%n/var/log/slurmd.log"
+  SlurmctldLogFile: "/var/log/slurm/slurmctld.log"
+  SlurmdLogFile: "/var/log/slurm/slurmd.log"
   SlurmctldPidFile: /var/run/slurmctld.pid
   SlurmdPidFile: /var/run/slurmd.pid
   AuthType: auth/munge
@@ -249,7 +249,7 @@ __slurm_default_config:
   Epilog: "/etc/slurm/epilog.d/logout_user.sh"
 __slurm_dbd_default_config:
   AuthType: auth/munge
-  LogFile: "{{ share_prefix }}var/log/slurmdbd.log"
+  LogFile: "/var/log/slurmdbd.log"
   PidFile: /var/run/slurmdbd.pid
   SlurmUser: "{{ slurm_user }}"
   StorageType: accounting_storage/mysql

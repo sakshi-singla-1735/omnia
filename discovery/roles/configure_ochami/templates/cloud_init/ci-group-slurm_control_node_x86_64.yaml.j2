@@ -65,18 +65,6 @@
             CREATE USER 'slurm'@'%' IDENTIFIED BY '{{ slurm_db_password }}';
             GRANT ALL PRIVILEGES ON slurm_acct_db.* TO 'slurm'@'%';
             FLUSH PRIVILEGES;
-        - path: /etc/fstab
-          content: |
-            {{ cloud_init_nfs_path }}/$(hostname -s)/etc/slurm  /etc/slurm   nfs   defaults,_netdev   0  0
-            {{ cloud_init_nfs_path }}/$(hostname -s)/etc/my.cnf.d  /etc/my.cnf.d   nfs   defaults,_netdev   0  0
-            {{ cloud_init_nfs_path }}/$(hostname -s)/var/lib/mysql  /var/lib/mysql  nfs   defaults,_netdev   0  0
-            {{ cloud_init_nfs_path }}/$(hostname -s)/var/log/mariadb /var/log/mariadb nfs   defaults,_netdev   0  0
-            {{ cloud_init_nfs_path }}/$(hostname -s)/var/log/slurm /var/log/slurm nfs  defaults,_netdev   0  0
-            {{ cloud_init_nfs_path }}/$(hostname -s)/var/spool /var/spool nfs  defaults,_netdev   0  0
-            {{ cloud_init_nfs_path }}/$(hostname -s)/etc/sssd /etc/sssd  nfs  defaults,_netdev   0  0
-            {{ cloud_init_nfs_path }}/$(hostname -s)/etc/openldap /etc/openldap nfs  defaults,_netdev   0  0
-            {{ cloud_init_nfs_path }}/$(hostname -s)/etc/munge /etc/munge nfs  defaults,_netdev   0  0
-          permissions: '0644'
 
       runcmd:
          - /usr/local/bin/set-hostname-by-mac.sh
@@ -84,7 +72,15 @@
          - groupadd -r slurm
          - useradd -r -g slurm -d /var/lib/slurm -s /sbin/nologin slurm
 
-         - mkdir -p /var/log/slurm /var/run/slurm /var/spool /etc/slurm /var/lib/slurm /etc/my.cnf.d /etc/munge /var/lib/mysql /var/log/mariadb /etc/sssd /etc/openldap 
+         - mkdir -p /var/log/slurm /var/run/slurm /var/spool /etc/slurm /var/lib/slurm /etc/my.cnf.d /etc/munge /var/lib/mysql /var/log/mariadb
+         - echo "{{ cloud_init_nfs_path }}/$(hostname -s)/etc/slurm      /etc/slurm       nfs defaults,_netdev 0 0" >> /etc/fstab
+         - echo "{{ cloud_init_nfs_path }}/$(hostname -s)/etc/my.cnf.d   /etc/my.cnf.d    nfs defaults,_netdev 0 0" >> /etc/fstab
+         - echo "{{ cloud_init_nfs_path }}/$(hostname -s)/var/lib/mysql  /var/lib/mysql   nfs defaults,_netdev 0 0" >> /etc/fstab
+         - echo "{{ cloud_init_nfs_path }}/$(hostname -s)/var/log/mariadb /var/log/mariadb nfs defaults,_netdev 0 0" >> /etc/fstab
+         - echo "{{ cloud_init_nfs_path }}/$(hostname -s)/var/log/slurm  /var/log/slurm   nfs defaults,_netdev 0 0" >> /etc/fstab
+         - echo "{{ cloud_init_nfs_path }}/$(hostname -s)/var/spool      /var/spool       nfs defaults,_netdev 0 0" >> /etc/fstab
+         - echo "{{ cloud_init_nfs_path }}/$(hostname -s)/etc/munge      /etc/munge       nfs defaults,_netdev 0 0" >> /etc/fstab
+         - chmod 644 /etc/fstab
          - mount -a
          - chown -R slurm:slurm /var/log/slurm
          - chown -R slurm:slurm /var/run/slurm
@@ -101,8 +97,6 @@
          - chmod 644 /etc/slurm/slurm.conf
          - chmod 600 /etc/slurm/slurmdbd.conf
          - chown -R slurm:slurm /etc/slurm/slurmdbd.conf
-         - chmod 600 /etc/sssd/sssd.conf
-         - sudo chown root:root /etc/sssd/sssd.conf
          - sed -i 's/^PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config.d/50-cloud-init.conf
          
          - mkdir -p /var/spool/slurmctld /var/spool/state
@@ -120,12 +114,6 @@
          - systemctl enable --now mariadb
          - mysql -u root < /root/init_slurm_db.sql
 
-         # openldap commands
-         - systemctl start sssd
-         - authselect select sssd with-mkhomedir --force
-         - systemctl enable --now oddjobd.service
-         - systemctl enable --now sssd
-         - systemctl start sssd
          - systemctl enable sshd
          - systemctl start sshd
          - systemctl restart slurmctld

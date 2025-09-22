@@ -55,24 +55,19 @@
             {{ ip_name_map[key] }} {{ key }}
 {% endfor %}
 
-        - path: /etc/fstab
-          content: |
-            {{ cloud_init_nfs_path }}/$HOST/var/log/slurm  /var/log/slurm  nfs   defaults,_netdev   0  0
-            {{ cloud_init_nfs_path }}/$HOST/var/spool /var/spool  nfs   defaults,_netdev   0  0
-            {{ cloud_init_nfs_path }}/$HOST/var/lib/slurm /var/lib/slurm  nfs   defaults,_netdev   0  0
-            {{ cloud_init_nfs_path }}/$HOST/etc/slurm/epilog.d /etc/slurm/epilog.d  nfs   defaults,_netdev   0  0
-            {{ cloud_init_nfs_path }}/$HOST/etc/munge /etc/munge nfs  defaults,_netdev   0  0
-            {{ cloud_init_nfs_path }}/$HOST/etc/sssd /etc/sssd nfs  defaults,_netdev   0  0
-            {{ cloud_init_nfs_path }}/$HOST/etc/openldap /etc/openldap nfs  defaults,_netdev   0  0
-          permissions: '0644'
       runcmd:
         - /usr/local/bin/set-hostname-by-mac.sh
         - useradd -mG wheel -p '$6$VHdSKZNm$O3iFYmRiaFQCemQJjhfrpqqV7DdHBi5YpY6Aq06JSQpABPw.3d8PQ8bNY9NuZSmDv7IL/TsrhRJ6btkgKaonT.' testuser
         - groupadd -r slurm
         - useradd -r -g slurm -d /var/lib/slurm -s /sbin/nologin slurm
 
-        - mkdir -p /var/log/slurm /var/run/slurm /var/spool /var/lib/slurm /etc/slurm/epilog.d /etc/munge /etc/sssd /etc/openldap
-
+        - mkdir -p /var/log/slurm /var/run/slurm /var/spool /var/lib/slurm /etc/slurm/epilog.d /etc/munge
+        - echo "{{ cloud_init_nfs_path }}/$(hostname -s)/var/log/slurm  /var/log/slurm   nfs defaults,_netdev 0 0" >> /etc/fstab
+        - echo "{{ cloud_init_nfs_path }}/$(hostname -s)/var/spool      /var/spool       nfs defaults,_netdev 0 0" >> /etc/fstab
+        - echo "{{ cloud_init_nfs_path }}/$(hostname -s)/etc/slurm/epilog.d     etc/slurm/epilog.d      nfs defaults,_netdev 0 0" >> /etc/fstab
+        - echo "{{ cloud_init_nfs_path }}/$(hostname -s)/var/spool      /var/spool       nfs defaults,_netdev 0 0" >> /etc/fstab
+        - echo "{{ cloud_init_nfs_path }}/$(hostname -s)/etc/munge      /etc/munge       nfs defaults,_netdev 0 0" >> /etc/fstab
+        - chmod 644 /etc/fstab
         - mount -a
         - yes | cp /etc/slurm/epilog.d/slurmd.service /usr/lib/systemd/system/
         - chown -R slurm:slurm /var/log/slurm
@@ -82,9 +77,8 @@
         - chown -R munge:munge /etc/munge/munge.key
         - chmod 755 /var/log/slurm /var/run/slurm /var/spool /var/lib/slurm
         - chmod 400 /etc/munge/munge.key
-        - chmod 600 /etc/sssd/sssd.conf
-        - sudo chown root:root /etc/sssd/sssd.conf
         - chmod 755 /etc/slurm/epilog.d/
+        - chmod +x /etc/slurm/epilog.d/logout_user.sh
         - mkdir -p /var/spool/slurmd
         - chmod 755 /var/spool/slurmd
         - chown -R slurm:slurm /var/spool/slurmd
@@ -103,12 +97,6 @@
         - systemctl enable slurmd
         - systemctl start slurmd
         - systemctl daemon-reexec
-          # openldap commands
-        - systemctl start sssd
-        - authselect select sssd with-mkhomedir --force
-        - systemctl enable --now oddjobd.service
-        - systemctl enable --now sssd
-        - systemctl start sssd
         - systemctl restart sshd
 
 
