@@ -35,7 +35,7 @@
     - name: Validate inventory
       ansible.builtin.include_role:
         name: idrac
-        tasks_from: tasks/validate_inventory.yml
+        tasks_from: validate_inventory.yml
 
 - name: Deploy OS via idrac
   hosts: bmc
