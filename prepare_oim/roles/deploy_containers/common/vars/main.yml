@@ -53,4 +53,4 @@ omnia_service_path:
   - { src: "{{ role_path }}/templates/omnia.service.j2", dest: "/etc/systemd/system/omnia.target", mode: "0644" }
 network_services:
   - network-online.target
-  - network.target
+  - NetworkManager-wait-online.service
