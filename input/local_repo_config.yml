@@ -87,9 +87,9 @@ user_registry:
 # rhel_os_url_x86_64:
 #   - { url: "http://crb.com/CRB/x86_64/os/", gpgkey: "http://crb.com/CRB/x86_64/os/RPM-GPG-KEY", sslcacert: "", sslclientkey: "", sslclientcert: "", policy: "", name: "x86_64_codeready-builder" }
 rhel_os_url_x86_64:
-  - {url: "", gpgkey: "", sslcacert: "", sslclientkey: "", sslclientcert: "" ,name: "x86_64_codeready-builder"}
-  - {url: "", gpgkey: "", sslcacert: "", sslclientkey: "", sslclientcert: "", name: "x86_64_appstream"}
-  - {url: "", gpgkey: "", sslcacert: "", sslclientkey: "", sslclientcert: "", name: "x86_64_baseos"}
+  - {url: "", gpgkey: "", name: "x86_64_codeready-builder"}
+  - {url: "", gpgkey: "", name: "x86_64_appstream"}
+  - {url: "", gpgkey: "", name: "x86_64_baseos"}
 
 # Example:
 # rhel_os_url_aarch64:
