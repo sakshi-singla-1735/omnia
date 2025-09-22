@@ -23,11 +23,6 @@
               "slurm_node_aarch64"
             ]
           },
-          "location_id": {
-            "type": "string",
-            "description": "Scalable unit and rack number range is 0-99. Format: SU-<n>.RACK-<n>",
-            "pattern": "^(SU-\\d{1,2}\\.RACK-\\d{1,2})$"
-          },
           "cluster_name": {
             "type": "string",
             "pattern": "^$|^[a-zA-Z0-9_]+$",
@@ -41,7 +36,6 @@
         },
         "required": [
           "name",
-          "location_id",
           "cluster_name",
           "parent"
         ]

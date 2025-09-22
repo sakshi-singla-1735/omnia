@@ -28,13 +28,12 @@ load_json = validation_utils.load_json
 
 file_names = config.files
 
-
-# --- Duplicate check for functional groups ---
+#  Duplicate check for functional groups  
 def validate_functional_group_duplicates(functional_groups):
     errors = []
     seen_combinations = set()
     for idx, group in enumerate(functional_groups):
-        key = (group.get("name", ""), group.get("location_id", ""), group.get("cluster_name", ""))
+        key = (group.get("name", ""), group.get("cluster_name", ""))
         if key in seen_combinations:
             errors.append(
                 create_error_msg(
@@ -53,7 +52,11 @@ def validate_non_empty_clustername(functional_groups):
         "slurm_control_node_x86_64",
         "slurm_node_x86_64",
         "slurm_node_aarch64",
-        "service_kube_node_x86_64"
+        "service_kube_node_x86_64",
+        "login_node_x86_64",
+        "login_compiler_node_x86_64",
+        "login_node_aarch64",
+        "login_compiler_node_aarch64"
     }
     for group in functional_groups:
         name = group.get("name", "")
@@ -68,7 +71,30 @@ def validate_non_empty_clustername(functional_groups):
             )
     return errors
 
-# --- SLURM/K8s cluster validations ---
+# Validate if any login functional group is defined, then clustername should match with at least one slurm clustername.
+def validate_login_node_clustername(functional_groups):
+    errors = []
+    login_clusters = set()
+    slurm_clusters = set()
+    for group in functional_groups:
+        name = group.get("name", "")
+        cluster_name = group.get("cluster_name", "")
+        if "login" in name and cluster_name:
+            login_clusters.add(cluster_name)
+        if "slurm" in name and cluster_name:
+            slurm_clusters.add(cluster_name)
+    for cluster in login_clusters:
+        if cluster not in slurm_clusters:
+            errors.append(
+                create_error_msg(
+                    "login_node",
+                    cluster,
+                    en_us_validation_msg.LOGIN_NODE_WITHOUT_SLURM_MSG.format(cluster=cluster)
+                )
+            )
+    return errors
+
+#  SLURM/K8s cluster validations  
 def validate_slurm_k8s_clusters(functional_groups):
     errors = []
 
@@ -110,7 +136,7 @@ def validate_slurm_k8s_clusters(functional_groups):
 
     return errors
 
-# --- Top-level validation ---
+#  Top-level validation  
 def validate_top_level(data): 
     errors = []
     if not data or not isinstance(data, dict):
@@ -133,7 +159,7 @@ def validate_top_level(data):
         )
     return errors
 
-# --- Parent validation for slurm_node ---
+#  Parent validation for slurm_node  
 
 def validate_slurm_node_parent(functional_groups):
     errors = []
@@ -150,7 +176,7 @@ def validate_slurm_node_parent(functional_groups):
             )
     return errors
 
-# --- Functional group structure validation ---
+#  Functional group structure validation  
 def validate_functional_groups_structure(functional_groups):
     errors = []
     if not isinstance(functional_groups, list):
@@ -174,8 +200,8 @@ def validate_functional_groups_structure(functional_groups):
             )
             continue
 
-        # Required fields
-        for field in ["name", "location_id", "cluster_name", "parent"]:
+        # Required fields``
+        for field in ["name", "cluster_name", "parent"]:
             if field not in group:
                 errors.append(
                     create_error_msg(
@@ -187,7 +213,8 @@ def validate_functional_groups_structure(functional_groups):
                 group[field] = ""  # prevent further key errors
 
     return errors
-#--- Software mapping validation (helper) ---
+
+# Software mapping validation  
 def validate_software_section_mappings(functional_groups, software_data):
     """
     Validates the software section mappings for a given list of functional groups and software data.
@@ -205,11 +232,11 @@ def validate_software_section_mappings(functional_groups, software_data):
     slurm_section = software_data.get("slurm", [])
 
     SOFTWARE_REQUIREMENTS = {
-        "service_kube_node": ["service_k8s", "nfs", "openldap", "ofed"],
-        "slurm_control_node": ["slurm", "nfs", "openldap", "ofed"],
-        "slurm_node": ["slurm", "nfs", "openldap", "ofed", "cuda"],
-        "login_node": ["slurm", "nfs", "openldap", "ofed"],
-        "login_compiler_node": ["slurm", "nfs", "openldap", "ofed", "ucx", "openmpi"],
+        "service_kube_node": ["service_k8s", "nfs"],
+        "slurm_control_node": ["slurm", "nfs"],
+        "slurm_node": ["slurm", "nfs"],
+        "login_node": ["slurm", "nfs"],
+        "login_compiler_node": ["slurm", "nfs"],
     }
 
     # Only these softwares are valid for aarch64
@@ -257,7 +284,7 @@ def validate_software_section_mappings(functional_groups, software_data):
 
     return errors
 
-# --- Main validator ---
+#  Main validator  
 def validate_functional_groups_config(
     input_file_path, data, logger, _module, _omnia_base_dir, _module_utils_base, _project_name
 ):
@@ -279,6 +306,7 @@ def validate_functional_groups_config(
     errors.extend(validate_functional_group_duplicates(functional_groups))
     errors.extend(validate_non_empty_clustername(functional_groups))
     errors.extend(validate_slurm_k8s_clusters(functional_groups))
+    errors.extend(validate_login_node_clustername(functional_groups))
     errors.extend(validate_slurm_node_parent(functional_groups))
     software_file = create_file_path(input_file_path, "software_config.json")
     software_json = load_json(software_file)

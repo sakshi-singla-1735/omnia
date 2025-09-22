@@ -24,8 +24,6 @@
 # Note: Nested functional_groups are not supported.
 # The functional_groups are case sensitive
 #   - name:               - <Mandatory> Name of the functional_group, can be any of the following Omnia defined functional_groups.
-#     location_id:        - <Mandatory> SU-<n>.RACK-<n> Scalable unit and rack number range is 0-99. This input is case-sensitive.
-#                            Please use uppercase letters only.
 #     cluster_name:       - <Conditional Mandatory> Name of the cluster to which the group belongs. This input is case-sensitive.
 #                            This will remain empty for groups which are not associated with any kubernetes functional_groups.
 #     parent:             - <Conditional Mandatory> list of service tag of associated active service kube node(s).
@@ -57,7 +55,6 @@
 functional_groups:
 
   - name: "slurm_control_node_x86_64"
-    location_id: SU-1.RACK-1
     cluster_name: ""
     parent: ""
 
@@ -73,12 +70,10 @@ functional_groups:
 # The nodes in this functional_group can be used to run Slurm worker.
 #
   - name: "slurm_node_x86_64"
-    location_id: SU-1.RACK-1
     cluster_name: ""
     parent: ""
 
   # - name: "slurm_node_aarch64"
-  #   location_id: SU-1.RACK-1
   #   cluster_name: ""
   #   parent: ""
 
@@ -96,7 +91,6 @@ functional_groups:
 # The nodes in this functional_group can be used to run Kubernetes worker on service cluster.
 #
   # - name: "service_kube_node_x86_64"
-  #   location_id: SU-1.RACK-1
   #   cluster_name: ""
   #   parent: ""
 
@@ -112,12 +106,10 @@ functional_groups:
 # The user is not allowed to change the name of this functional_group.
 #
   # - name: "login_node_x86_64"
-  #   location_id: SU-1.RACK-1
   #   cluster_name: ""
   #   parent: ""
 
   # - name: "login_node_aarch64"
-  #   location_id: SU-1.RACK-1
   #   cluster_name: ""
   #   parent: ""
 
@@ -133,11 +125,9 @@ functional_groups:
 # The nodes in this functional_group can be used to compile the code.
 #
   # - name: "login_compiler_node_x86_64"
-  #   location_id: SU-1.RACK-1
   #   cluster_name: ""
   #   parent: ""
 
   # - name: "login_compiler_node_aarch64"
-  #   location_id: SU-1.RACK-1
   #   cluster_name: ""
   #   parent: ""

@@ -52,8 +52,6 @@ SWITCH_DETAILS_INCOMPLETE_MSG = ("If providing switch details, please provide bo
 SWITCH_DETAILS_NO_BMC_DETAILS_MSG = ("If switch details are provided then bmc_detail's "
                                     "static_range must also be provided.")
 INVALID_GROUP_NAME_MSG = "Groups must be defined in the form of grp<n> where n is 0-99."
-INVALID_LOCATION_ID_MSG = ("location_id must follow the format SU-<n>.RACK-<n> where n is 0-99. "
-                          "This input is case-sensitive. Please use uppercase letters only.")
 INVALID_ATTRIBUTES_ROLE_MSG = ("Please provide valid attributes for the role, "
                               "both 'name' and 'groups' are mandatory.")
 NO_GROUPS_MSG = "Outer Group object was probably not defined."
@@ -94,7 +92,7 @@ EACH_FUNCTIONAL_GROUP_NOT_DICT_MSG = (
 )
 MISSING_FIELD_FUNCTIONAL_GROUP_MSG = "Missing required field: {field}"
 DUPLICATE_FUNCTIONAL_GROUP_COMBINATION_MSG = (
-    "Duplicate functional group combination (name, location_id, cluster_name)."
+    "Duplicate functional group combination (name, cluster_name)."
 )
 SLURM_NODE_PARENT_MISSING_MSG = (
     "Functional group '{name}' must have a non-empty 'parent' field."    
@@ -109,6 +107,11 @@ SLURM_NODE_WITHOUT_CONTROL_MSG = (
 SLURM_KUBE_CLUSTER_OVERLAP_MSG = (
     "Cluster '{cluster}' is defined for both SLURM nodes and Kubernetes nodes. Overlap not allowed."
 )
+LOGIN_NODE_WITHOUT_SLURM_MSG = (
+    "Login node defined for cluster '{cluster}' but no corresponding slurm_control_node exists."
+    "Please make sure cluster name is same for slurm cluster and login_node functional groups."
+)   
+
 # provision_config.yml
 PRIMARY_ADMIN_BMC_IP_SAME_MSG = "primary_oim_admin_ip and primary_oim_bmc_ip should not be the same."
 PRIMARY_ADMIN_IP_INVALID_MSG = "primary_oim_admin_ip is not a valid IPv4 address."
