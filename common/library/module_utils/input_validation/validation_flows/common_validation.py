@@ -440,8 +440,7 @@ def get_matching_clusters_for_nfs(nfs_name, omnia_config):
             matching_clusters["service_k8s_cluster"] = svc
 
     # Compute k8s
-    for comp in omnia_config.get("
-                                 _cluster", []):
+    for comp in omnia_config.get("compute_k8s_cluster", []):
         if (
             comp.get("nfs_storage_name") == nfs_name
             and comp.get("deployment") is True
