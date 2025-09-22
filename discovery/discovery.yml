@@ -63,7 +63,5 @@
   connection: ssh
   roles:
     - nfs_client
-    - role: slurm_config # slurm needs atleast one node with group slurm_control_node_<arch>
-      vars: # example to show that variables can be overridden
-        nodes_yaml: "/opt/workdir/nodes/nodes.yaml"
+    - slurm_config
     - configure_ochami

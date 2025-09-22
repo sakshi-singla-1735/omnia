@@ -17,7 +17,7 @@
     ssh_combo: "{{ ssh_combo | default({}) | combine({'localhost': ansible_play_hosts}) }}"
 
 - name: Manager set
-  ansible.builtin.include_tasks: manager.yml
+  ansible.builtin.include_tasks: controller.yml
   vars:
     manager: localhost
 
