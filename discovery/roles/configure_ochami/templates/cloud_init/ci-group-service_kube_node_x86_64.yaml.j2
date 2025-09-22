@@ -304,7 +304,10 @@
         - mkdir -p {{ k8s_client_share_path }}
         - mount -a
         - mkdir -p {{ k8s_client_share_path }}/kube_node_configs/{% raw %}{{ ds.meta_data.instance_data.local_ipv4 }}{% endraw %}
+
+
         - sed -i 's|^#{{ nfs_server }}:{{ k8s_server_share_path }}/kube_node_configs/{% raw %}{{ ds.meta_data.instance_data.local_ipv4 }}{% endraw %}|{{ nfs_server }}:{{ k8s_server_share_path }}/kube_node_configs/{% raw %}{{ ds.meta_data.instance_data.local_ipv4 }}{% endraw %}|' /etc/fstab
+        
         - mount -a
         - rm -rf /var/lib/containerd/*
 
