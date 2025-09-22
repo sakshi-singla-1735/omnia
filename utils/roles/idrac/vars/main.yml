@@ -23,7 +23,7 @@ pxe_provisioning_fail_msg: "OS provisioning using PXE failed. This could be due 
 retries_count: 3
 
 # Usage: validate_inventory.yml
-bmc_empty_inventory_fail_msg: >
- "Failed. Inventory not provided.
-  Please re-run the playbook with an inventory that includes the groups 'bmc' by using the -i inventory option"
+bmc_empty_inventory_fail_msg: |
+  Failed. Inventory not provided.
+  Please re-run the playbook with an inventory that includes the groups 'bmc' by using the -i inventory option.
 bmc_validation_fail_msg: "Failed. bmc group in inventory must have atleast one node."
