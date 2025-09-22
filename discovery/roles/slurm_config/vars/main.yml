@@ -27,8 +27,6 @@ ctld_dir:
   - /var/log/mariadb
   - /var/log/slurm
   - /var/spool
-  - /etc/sssd
-  - /etc/openldap
   - /etc/munge
 
 cmpt_dir:
@@ -37,13 +35,9 @@ cmpt_dir:
   - /var/lib/slurm
   - /etc/slurm/epilog.d
   - /etc/munge
-  - /etc/sssd
-  - /etc/openldap
 
 login_dir:
   - /etc/munge
-  - /etc/sssd
-  - /etc/openldap
 
 innodb_buffer_pool_size: 1G
 innodb_lock_wait_timeout: 120
