@@ -30,6 +30,15 @@ file_names = config.files
 
 #  Duplicate check for functional groups  
 def validate_functional_group_duplicates(functional_groups):
+    """
+    Validates a list of functional groups for duplicate combinations.
+    
+    Parameters:
+        functional_groups (list): A list of dictionaries, where each dictionary represents a functional group.
+        
+    Returns:
+        list: A list of error messages.
+    """
     errors = []
     seen_combinations = set()
     for idx, group in enumerate(functional_groups):
@@ -47,6 +56,15 @@ def validate_functional_group_duplicates(functional_groups):
     return errors
 
 def validate_non_empty_clustername(functional_groups):
+    """
+    Validates that cluster names are not empty for certain functional groups.
+
+    Args:
+        functional_groups (list): A list of dictionaries, where each dictionary represents a functional group.
+
+    Returns:
+        list: A list of error messages.
+    """
     errors = []
     non_empty_clustername = {
         "slurm_control_node_x86_64",
@@ -73,6 +91,15 @@ def validate_non_empty_clustername(functional_groups):
 
 # Validate if any login functional group is defined, then clustername should match with at least one slurm clustername.
 def validate_login_node_clustername(functional_groups):
+    """
+    Validates that login nodes have corresponding slurm clusters.
+    
+    Parameters:
+        functional_groups (list): A list of dictionaries, where each dictionary represents a functional group.
+    
+    Returns:
+        list: A list of error messages.
+    """
     errors = []
     login_clusters = set()
     slurm_clusters = set()
@@ -96,6 +123,14 @@ def validate_login_node_clustername(functional_groups):
 
 #  SLURM/K8s cluster validations  
 def validate_slurm_k8s_clusters(functional_groups):
+    """
+    Validates that SLURM and Kubernetes clusters do not overlap.
+    Ensures that SLURM nodes have corresponding control nodes and that SLURM and Kubernetes clusters are distinct.
+    Args:
+        functional_groups (list): A list of dictionaries, where each dictionary represents a functional group.
+    Returns:
+        list: A list of error messages.
+    """
     errors = []
 
     slurm_control_clusters = set()
@@ -138,6 +173,15 @@ def validate_slurm_k8s_clusters(functional_groups):
 
 #  Top-level validation  
 def validate_top_level(data): 
+    """
+    Validates the top-level data for functional_groups_config.yml.
+
+    Parameters:
+        data (dict): The data to be validated.
+
+    Returns:
+        list: A list of error messages encountered during validation.
+    """
     errors = []
     if not data or not isinstance(data, dict):
         errors.append(
@@ -162,6 +206,15 @@ def validate_top_level(data):
 #  Parent validation for slurm_node  
 
 def validate_slurm_node_parent(functional_groups):
+    """
+    Validates the parent field for Slurm nodes in functional groups.
+
+    Parameters:
+        functional_groups (list): A list of dictionaries, where each dictionary represents a functional group.
+
+    Returns:
+        list: A list of error messages.
+    """
     errors = []
     for group in functional_groups:
         name = group.get("name", "")
@@ -178,6 +231,15 @@ def validate_slurm_node_parent(functional_groups):
 
 #  Functional group structure validation  
 def validate_functional_groups_structure(functional_groups):
+    """
+    Validates the structure of the functional groups data.
+
+    Args:
+        functional_groups (list): A list of functional group dictionaries.
+
+    Returns:
+        list: A list of error messages if the structure is invalid, otherwise an empty list.
+    """
     errors = []
     if not isinstance(functional_groups, list):
         errors.append(
@@ -240,7 +302,7 @@ def validate_software_section_mappings(functional_groups, software_data):
     }
 
     # Only these softwares are valid for aarch64
-    AARCH64_SUPPORTED = {"slurm_custom", "cuda", "nfs"}
+    AARCH64_SUPPORTED = {"slurm_custom  ", "cuda", "nfs"}
 
     for fg in functional_groups:
         fg_name = fg.get("name", "")
@@ -288,6 +350,21 @@ def validate_software_section_mappings(functional_groups, software_data):
 def validate_functional_groups_config(
     input_file_path, data, logger, _module, _omnia_base_dir, _module_utils_base, _project_name
 ):
+    """
+    Validates the functional_groups_config.yml file for correctness.
+    
+    Args:
+        input_file_path (str): The path to the input file.
+        data (dict): The data to be validated.
+        logger (Logger): A logger instance.
+        _module (Module): A module instance.
+        _omnia_base_dir (str): The base directory of the Omnia configuration.
+        _module_utils_base (str): The base directory of the module utils.
+        _project_name (str): The name of the project.
+
+    Returns:
+        list: A list of errors encountered during validation.
+    """
     errors = []
 
     # Top-level checks
