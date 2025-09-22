@@ -783,6 +783,11 @@ EOF
         rm -rf "$omnia_path/omnia/.data/oim_metadata.yml"
         exit 1
     fi
+
+    systemctl start firewalld
+    systemctl enable firewalld
+    firewall-cmd --permanent --zone=public --add-port=2222/tcp
+    firewall-cmd --reload
 }
 
 # This function sets up the configuration for the Omnia core.
