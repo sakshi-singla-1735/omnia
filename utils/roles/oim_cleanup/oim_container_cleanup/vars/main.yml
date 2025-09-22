@@ -119,3 +119,12 @@ omnia_target_file:
   - /etc/systemd/system/omnia.target
   - /etc/systemd/system/default.target.wants/omnia.target
   - /etc/systemd/system/multi-user.target.wants/omnia.target
+
+openchami_services:
+  - openchami.target
+  - openchami-cert-internal-network.service
+  - openchami-cert-trust.service
+  - openchami-external-network.service
+  - openchami-internal-network.service
+  - openchami-jwt-internal-network.service
+  
