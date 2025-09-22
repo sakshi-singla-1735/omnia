@@ -9,6 +9,7 @@
     validate_certs: false
     return_content: true
     body_format: json
+    timeout: 60
     headers:
       Accept: "application/json"
       Content-Type: "application/json"
