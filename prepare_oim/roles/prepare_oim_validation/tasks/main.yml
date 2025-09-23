@@ -28,5 +28,5 @@
 - name: Check k8s support
   ansible.builtin.include_tasks: check_k8s_support.yml
 
-- name: Check service_node role is present in roles_config.yml
+- name: Check service_node role is present in functional_groups_config.yml
   ansible.builtin.include_tasks: check_service_role.yml
