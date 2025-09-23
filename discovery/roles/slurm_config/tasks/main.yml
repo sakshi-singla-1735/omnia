@@ -60,18 +60,8 @@
     owner: root
     group: root
     mode: "{{ common_mode }}"
-  when: cmpt_list
-  loop: "{{ cmpt_list | product(cmpt_dir) }}"
-
-- name: Create the slurm login directory on share
-  ansible.builtin.file:
-    path: "{{ slurm_config_path }}/{{ item[0] }}{{ item[1] }}"
-    state: directory
-    owner: root
-    group: root
-    mode: "{{ common_mode }}"
-  when: login_list
-  loop: "{{ login_list | product(login_dir) }}"
+  when: cmpt_list or login_list
+  loop: "{{ (cmpt_list + login_list) | product(cmpt_dir) }}"
 
 - name: Check if munge key exists top level
   ansible.builtin.stat:
@@ -145,6 +135,17 @@
     mode: "{{ conf_file_mode }}"
   when: cmpt_list
   loop: "{{ cmpt_list | product(['logout_user.sh', 'slurmd.service']) }}"
+
+- name: Create slurmd.service in login
+  ansible.builtin.template:
+    src: "{{ item.1 }}.j2"
+    dest: "{{ slurm_config_path }}/{{ item.0 }}/etc/slurm/epilog.d/{{ item.1 }}"
+    owner: "{{ root_user }}"
+    group: "{{ root_group }}"
+    mode: "{{ conf_file_mode }}"
+  when: login_list
+  loop: "{{ login_list | product(['slurmd.service']) }}"
+
 
 - name: Mount facts items to dict
   ansible.builtin.set_fact:
