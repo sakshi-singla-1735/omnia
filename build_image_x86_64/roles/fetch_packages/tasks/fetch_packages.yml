@@ -34,28 +34,6 @@
         var: x86_64_base_image_packages
         verbosity: 2
 
-# ---- Uncomment while aarch64 support is added
-# - name: Fetch aarch64 default_packages.json software packages
-#   when: fg_aarch64
-#   block:
-#     - name: Load default_packages.json
-#       ansible.builtin.include_vars:
-#         file: "{{ default_json_path }}"
-#         name: default_packages_json
-
-#     - name: Extract rpm packages
-#       ansible.builtin.set_fact:
-#         aarch64_base_image_packages: >-
-#           {{ default_packages_json.default_packages.cluster
-#             | selectattr('type', 'equalto', 'rpm')
-#             | map(attribute='package')
-#             | list }}
-
-#     - name: Debug package
-#       ansible.builtin.debug:
-#         var: aarch64_base_image_packages
-#         verbosity: 2
-
 - name: Read packages for compute image softwares
   image_package_collector:
     functional_groups_file: "{{ functional_groups_file_path }}"
