@@ -50,7 +50,7 @@ package_type_list: ["rpm", "deb", "tarball", "image", "manifest", "pip_module", 
 dynamic_k8s_json_log_dir: "/opt/omnia/log/local_repo"
 
 # Usage: validate_k8s_json.yml
-kubeadm_package_name: "kubeadm-v1.31.4"
+kubeadm_package_name: "kubeadm-v1.31.4-amd64"
 
 # Usage: main.yml
 nfs_shared_path: "/opt/omnia"
@@ -88,6 +88,18 @@ root_user_name: "root"
 user_fail_msg: "Failed. Omnia playbooks should run as root user."
 warning_wait_time_warning: 15
 warning_msg_local_repo: "[WARNING] Omnia will remove any package/software conflicting with the requirements."
+
+# Usage: check_rhel_subscription.yml
+rhel_repo_cert_dir: "{{ hostvars['localhost']['oim_shared_path'] }}/omnia/rhel_repo_certs"
+omnia_rhel_cert_dir: "/opt/omnia/rhel_repo_certs"  # Define NFS share path
+rhel_version: 10
+required_repos:
+  - codeready-builder
+  - baseos
+  - appstream
+redhat_uep_cert: "/etc/rhsm/ca/redhat-uep.pem"
+entitlement_path: "/etc/pki/entitlement"
+redhat_repo_file: "/etc/yum.repos.d/redhat.repo"
 
 # Usage: validate_software_config_json.yml
 sw_config_json_path: "{{ project_input_path }}/software_config.json"

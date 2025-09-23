@@ -26,6 +26,9 @@ module_log_dir = {
 # log path for input validator
 INPUT_VALIDATOR_LOG_PATH = '/opt/omnia/log/core/playbooks/'
 
+ENTITLEMENT_PEM = '/etc/pki/entitlement/*.pem'
+REDHAT_REPO_FILE = '/etc/yum.repos.d/redhat.repo'
+
 # dict to hold the file names. If any file's name changes just change it here.
 files = {
     "local_repo_config": "local_repo_config.yml",
@@ -69,15 +72,10 @@ input_file_inventory = {
         files["omnia_config"],
         files["high_availability_config"]
     ],
-    "compute_k8s": [
-        files['functional_groups_config'],
-        files["omnia_config"],
-        files["high_availability_config"]
-    ],
     "service_k8s": [
-        files['functional_groups_config'],
         files["omnia_config"],
-        files["high_availability_config"]
+        files["high_availability_config"],
+        files["functional_groups_config"]
     ],
     "storage": [files["storage_config"]],
     "prepare_oim": [

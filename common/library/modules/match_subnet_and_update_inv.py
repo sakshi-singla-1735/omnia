@@ -16,7 +16,7 @@
 """
 Ansible module to find the network interface in a given subnet
 and update kube_vip_interface and kube_vip_cidr in the kube_control_plane group
-of the inventory file.
+of the inventory file. Also duplicates the kube_control_plane block into kube_node.
 """
 
 import ipaddress
@@ -25,12 +25,13 @@ from ansible.module_utils.basic import AnsibleModule
 
 
 def update_kube_control_plane_block(inventory_path, hostname, matched_iface, prefix_len):
-    """Update or append kube_vip_interface and kube_vip_cidr for the given host in the kube_control_plane group."""
+    """Update kube_control_plane block for the given host."""
     with open(inventory_path, 'r', encoding='utf-8') as f:
         lines = f.readlines()
 
     in_control_plane = False
     updated = False
+    control_plane_lines = []
 
     for i, line in enumerate(lines):
         stripped = line.strip()
@@ -39,7 +40,6 @@ def update_kube_control_plane_block(inventory_path, hostname, matched_iface, pre
             in_control_plane = stripped == "[kube_control_plane]"
 
         if in_control_plane and re.match(rf"^{re.escape(hostname)}\b", stripped):
-            # Start with the current line
             new_line = stripped
 
             # Update or append kube_vip_interface
@@ -54,16 +54,60 @@ def update_kube_control_plane_block(inventory_path, hostname, matched_iface, pre
             else:
                 new_line += f' kube_vip_cidr={prefix_len}'
 
-            # Update in-memory lines
             lines[i] = new_line + "\n"
             updated = True
-            break
+
+        if in_control_plane and stripped and not stripped.startswith('['):
+            control_plane_lines.append(lines[i])
 
     if updated:
         with open(inventory_path, 'w', encoding='utf-8') as f:
             f.writelines(lines)
 
-    return updated
+    return updated, control_plane_lines
+
+
+def update_kube_node_block(inventory_path, control_plane_lines):
+    """Ensure kube_node block matches kube_control_plane block (idempotent, no duplicates)."""
+    with open(inventory_path, 'r', encoding='utf-8') as f:
+        lines = f.readlines()
+
+    new_lines = []
+    in_kube_node = False
+    kube_node_found = False
+    existing_kube_node_lines = []
+
+    for line in lines:
+        stripped = line.strip()
+
+        if stripped.startswith('['):
+            if stripped == "[kube_node]":
+                kube_node_found = True
+                in_kube_node = True
+                continue  # skip the old header, we will rebuild
+            else:
+                in_kube_node = False
+
+        if in_kube_node:
+            if stripped and not stripped.startswith('['):
+                existing_kube_node_lines.append(line)
+            continue  # skip old kube_node lines
+        else:
+            new_lines.append(line)
+
+    # Normalize whitespace to compare
+    existing_clean = [ln.strip() for ln in existing_kube_node_lines]
+    control_plane_clean = [ln.strip() for ln in control_plane_lines]
+
+    # Only update kube_node if different
+    if existing_clean != control_plane_clean:
+        new_lines.append("\n[kube_node]\n")
+        new_lines.extend(control_plane_lines)
+
+    with open(inventory_path, 'w', encoding='utf-8') as f:
+        f.writelines(new_lines)
+
+    return True
 
 
 def run_module():
@@ -106,10 +150,14 @@ def run_module():
             result["matched_interface"] = matched_iface
             result["vip_cidr"] = prefix_len
             if not module.check_mode:
-                updated = update_kube_control_plane_block(inventory_path, hostname, matched_iface, prefix_len)
+                updated, cp_lines = update_kube_control_plane_block(
+                    inventory_path, hostname, matched_iface, prefix_len
+                )
+                if cp_lines:
+                    update_kube_node_block(inventory_path, cp_lines)
                 result["updated_inventory"] = updated
                 result["changed"] = updated
-            result["msg"] = f"Matched interface {matched_iface} with CIDR /{prefix_len} and updated kube_control_plane group."
+            result["msg"] = f"Matched interface {matched_iface} with CIDR /{prefix_len}, updated kube_control_plane and duplicated into kube_node."
         else:
             result["msg"] = "No matching interface found."
 

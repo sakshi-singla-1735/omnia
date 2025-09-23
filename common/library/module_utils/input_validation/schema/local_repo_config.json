@@ -310,13 +310,16 @@
       "description": "URL for Ubuntu OS packages, mandatory when cluster_os_type is Ubuntu."
     },
     "rhel_os_url_x86_64": {
-      "type": "array",
+      "type": [
+        "array",
+        "null"
+      ],
       "items": {
         "type": "object",
         "properties": {
           "gpgkey": {
             "type": "string",
-            "pattern": "^(|https?:\\/\\/\\S.+)$"
+            "pattern": "^(|[a-zA-Z][a-zA-Z0-9+.-]*:\\/\\/\\S+)$"
           },
           "url": {
             "type": "string",
@@ -329,10 +332,29 @@
             "pattern": "^(?!\\s*$).+"
           },
           "policy": {
+            "type": "string",
             "enum": [
               "always",
               "partial",
               "never"
+            ]
+          },
+          "sslcacert": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "sslclientkey": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "sslclientcert": {
+            "type": [
+              "string",
+              "null"
             ]
           }
         },
@@ -341,17 +363,99 @@
           "url",
           "name"
         ],
-        "additionalProperties": false
+        "allOf": [
+          {
+            "if": {
+              "required": [
+                "sslcacert"
+              ],
+              "properties": {
+                "sslcacert": {
+                  "minLength": 1
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "sslclientkey",
+                "sslclientcert"
+              ],
+              "properties": {
+                "sslclientkey": {
+                  "minLength": 1
+                },
+                "sslclientcert": {
+                  "minLength": 1
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "sslclientkey"
+              ],
+              "properties": {
+                "sslclientkey": {
+                  "minLength": 1
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "sslcacert",
+                "sslclientcert"
+              ],
+              "properties": {
+                "sslcacert": {
+                  "minLength": 1
+                },
+                "sslclientcert": {
+                  "minLength": 1
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "sslclientcert"
+              ],
+              "properties": {
+                "sslclientcert": {
+                  "minLength": 1
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "sslcacert",
+                "sslclientkey"
+              ],
+              "properties": {
+                "sslcacert": {
+                  "minLength": 1
+                },
+                "sslclientkey": {
+                  "minLength": 1
+                }
+              }
+            }
+          }
+        ]
       }
     },
     "rhel_os_url_aarch64": {
-      "type": "array",
+      "type": [
+        "array",
+        "null"
+      ],
       "items": {
         "type": "object",
         "properties": {
           "gpgkey": {
             "type": "string",
-            "pattern": "^(|https?:\\/\\/\\S.+)$"
+            "pattern": "^(|[a-zA-Z][a-zA-Z0-9+.-]*:\\/\\/\\S+)$"
           },
           "url": {
             "type": "string",
@@ -364,10 +468,29 @@
             "pattern": "^(?!\\s*$).+"
           },
           "policy": {
+            "type": "string",
             "enum": [
               "always",
               "partial",
               "never"
+            ]
+          },
+          "sslcacert": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "sslclientkey": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "sslclientcert": {
+            "type": [
+              "string",
+              "null"
             ]
           }
         },
@@ -376,7 +499,86 @@
           "url",
           "name"
         ],
-        "additionalProperties": false
+        "allOf": [
+          {
+            "if": {
+              "required": [
+                "sslcacert"
+              ],
+              "properties": {
+                "sslcacert": {
+                  "minLength": 1
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "sslclientkey",
+                "sslclientcert"
+              ],
+              "properties": {
+                "sslclientkey": {
+                  "minLength": 1
+                },
+                "sslclientcert": {
+                  "minLength": 1
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "sslclientkey"
+              ],
+              "properties": {
+                "sslclientkey": {
+                  "minLength": 1
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "sslcacert",
+                "sslclientcert"
+              ],
+              "properties": {
+                "sslcacert": {
+                  "minLength": 1
+                },
+                "sslclientcert": {
+                  "minLength": 1
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "sslclientcert"
+              ],
+              "properties": {
+                "sslclientcert": {
+                  "minLength": 1
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "sslcacert",
+                "sslclientkey"
+              ],
+              "properties": {
+                "sslcacert": {
+                  "minLength": 1
+                },
+                "sslclientkey": {
+                  "minLength": 1
+                }
+              }
+            }
+          }
+        ]
       }
     },
     "omnia_repo_url_rhel_x86_64": {
@@ -661,8 +863,6 @@
     }
   },
   "required": [
-    "rhel_os_url_aarch64",
-    "rhel_os_url_x86_64",
     "omnia_repo_url_rhel_aarch64",
     "omnia_repo_url_rhel_x86_64"
   ],

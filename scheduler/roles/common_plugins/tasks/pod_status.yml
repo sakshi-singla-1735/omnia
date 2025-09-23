@@ -21,38 +21,46 @@
     track_file_path: "{{ track_file_path }}"
   register: k8s_status
   failed_when: false
+  tags: pod_status
 
 - name: Handle case when Kubernetes is not accessible
   ansible.builtin.debug:
     msg: "{{ k8s_not_accessible_msg }}"
   when: not k8s_status.k8s_accessible
+  tags: pod_status
 
 - name: Skip remaining tasks if Kubernetes is inaccessible
   ansible.builtin.meta: end_host
   when: not k8s_status.k8s_accessible
+  tags: pod_status
 
 - name: Handle namespace not found
   ansible.builtin.fail:
     msg: "{{ k8s_namespace_error_msg }}"
   when: k8s_status.namespace_error | length > 0
+  tags: pod_status
 
 - name: Display node status table
   ansible.builtin.debug:
     msg: "{{ k8s_status.node_table.split('\n') }}"
+  tags: pod_status
 
 - name: Display pod status table
   ansible.builtin.debug:
     msg: "{{ k8s_status.pod_table.split('\n') }}"
+  tags: pod_status
 
 - name: Warn if any node is NotReady
   ansible.builtin.debug:
     msg: "{{ k8s_node_not_ready }}"
   when: k8s_status.not_ready_nodes | length > 0
+  tags: pod_status
 
 - name: Warn if any pods are not Running or Succeeded
   ansible.builtin.debug:
     msg: "{{ k8s_pods_failed_msg }}"
   when: k8s_status.failed_pods | length > 0
+  tags: pod_status
 
 - name: Set k8s cluster issue message if needed
   ansible.builtin.set_fact:
@@ -67,6 +75,7 @@
   when: >
     (k8s_status.not_ready_nodes | length > 0) or
     (k8s_status.failed_pods | length > 0)
+  tags: pod_status
 
 - name: Fail if any node or pod is not healthy
   ansible.builtin.fail:
@@ -74,6 +83,7 @@
   when: >
     (k8s_status.not_ready_nodes | length > 0) or
     (k8s_status.failed_pods | length > 0)
+  tags: pod_status
 
 - name: K8S Status
   ansible.builtin.debug:
@@ -81,3 +91,4 @@
   when: >
     (k8s_status.not_ready_nodes | length == 0) and
     (k8s_status.failed_pods | length == 0)
+  tags: pod_status
