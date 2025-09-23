@@ -72,6 +72,6 @@ suffix_regexp: "dc=omnia,dc=test"
 db_config_name_regexp: "cn=admin"
 sha_pswd_regexp: "{SSHA}CcEj20AyhrDhWhFGlu01HWnn8eKP1sH3"
 
-#Usage: configure_bootstrap_ldif.yml
+# Usage: configure_bootstrap_ldif.yml
 common_name_regexp: "cn: admin"
 domain_component: "dc: omnia"
