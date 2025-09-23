@@ -210,6 +210,7 @@ def run_module():
     # pylint: disable=line-too-long
     # Functional group → json files mapping
     software_map = {
+        "default_x86_64": ["nfs.json", "openldap.json"],
         "service_kube_node_x86_64": ["service_k8s.json", "nfs.json", "openldap.json", "ofed.json"],
         "slurm_control_node_x86_64": ["slurm_custom.json", "nfs.json", "openldap.json", "ofed.json"],
         "slurm_node_x86_64": ["slurm_custom.json", "nfs.json", "openldap.json", "ofed.json", "cuda.json"],
