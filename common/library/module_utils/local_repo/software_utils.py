@@ -363,7 +363,8 @@ def parse_repo_urls(repo_config, local_repo_config_path,
                 "url": rendered_url,
                 "gpgkey": rendered_gpgkey,
                 "version": version if version else "null",
-                "policy": policy
+                "policy": policy,
+                "sw_arch": arch
             })
 
     return parsed_repos, True

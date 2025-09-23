@@ -39,15 +39,15 @@
       ansible.builtin.set_fact:
         service_k8s_playbook: true
 
-- name: Invoke validate_config.yml to perform L1 and L2 validations for k8s
-  ansible.builtin.import_playbook: ../input_validation/validate_config.yml
+  # - name: Invoke validate_config.yml to perform L1 and L2 validations for k8s
+  #  ansible.builtin.import_playbook: ../input_validation/validate_config.yml
 
 - name: Validate inventory
   ansible.builtin.import_playbook: ../utils/inventory_validation.yml
   when: not ( hostvars['127.0.0.1']['inventory_validation_executed'] | default(false) | bool )
 
 - name: Gather facts from all the nodes
-  hosts: login_node, kube_control_plane, kube_node, etcd
+  hosts: kube_control_plane, etcd
   gather_facts: true
 
 - name: Validate scheduler input parameters
@@ -60,9 +60,6 @@
         name: cluster_validation
         tasks_from: validation_status_check.yml
 
-- name: Update Repositories/Registries on nodes
-  ansible.builtin.import_playbook: ../utils/update_user_repo.yml
-
 - name: Create kubespray container group
   ansible.builtin.import_playbook: ../utils/create_container_group.yml
   vars:
@@ -71,7 +68,7 @@
   when: hostvars['127.0.0.1']['k8s_support']
 
 - name: Prepare kube control plane, kube nodes and etcd for kubernetes installations
-  hosts: kube_control_plane, kube_node, etcd
+  hosts: kube_control_plane, etcd
   gather_facts: false
   any_errors_fatal: true
   roles:
@@ -116,17 +113,25 @@
     - hostvars[groups['kube_control_plane'][0]]['k8s_new_nodes'] != ''
 
 - name: Update containerd config on nodes
-  hosts: kube_control_plane, kube_node
+  hosts: kube_control_plane
   gather_facts: false
   roles:
     - update_containerd_config
 
 - name: Pull k8s images
-  hosts: kube_control_plane, kube_node, etcd
+  hosts: kube_control_plane, etcd
   gather_facts: false
   any_errors_fatal: true
   roles:
     - k8s_prepare_images
+
+- name: Prepare kube node configs
+  hosts: kube_control_plane[0]
+  gather_facts: false
+  any_errors_fatal: true
+  tags: kubeadm_token
+  roles:
+    - kube_node_configs
 
 - name: Deploy plugins on kube control nodes
   hosts: kube_control_plane[0]
@@ -139,22 +144,22 @@
       xilinx-device-plugin: false
       nfs-subdir-external-provisioner: true
       multus-device-plugin: false
-      whereabouts-device-plugin: true
+      whereabouts-device-plugin: false
   roles:
     - common_plugins
 
-- name: CSI powerscale image pulling
-  hosts: kube_node, kube_control_plane
-  tasks:
-    - name: Pull images
-      ansible.builtin.include_role:
-        name: k8s_csi_powerscale_plugin
-        tasks_from: csi_powerscale_image_pull.yml
-      when:
-        - hostvars['127.0.0.1']['csi_driver_powerscale_precheck_pass'] | default(false) | bool
+ # - name: CSI powerscale image pulling
+ #   hosts: kube_control_plane
+ #   tasks:
+ #     - name: Pull images
+ #       ansible.builtin.include_role:
+ #         name: k8s_csi_powerscale_plugin
+ #         tasks_from: csi_powerscale_image_pull.yml
+ #       when:
+ #         - hostvars['127.0.0.1']['csi_driver_powerscale_precheck_pass'] | default(false) | bool
 
-- name: Install CSI powerscale plugin on kube control nodes
-  hosts: kube_control_plane[0]
-  gather_facts: false
-  roles:
-    - k8s_csi_powerscale_plugin
+ # - name: Install CSI powerscale plugin on kube control nodes
+ #   hosts: kube_control_plane[0]
+ #   gather_facts: false
+ #   roles:
+ #     - k8s_csi_powerscale_plugin

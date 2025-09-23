@@ -17,14 +17,14 @@
   ansible.builtin.fail:
     msg: "{{ invalid_kube_inventory_fail_msg }}"
   when:
-    - "('kube_control_plane' not in groups or 'kube_node' not in groups or 'etcd' not in groups)"
+    - "('kube_control_plane' not in groups or 'etcd' not in groups)"
 
 - name: Ensure correct Kubernetes in non-HA setup
   when:
     - cluster_type != "unknown"
     - not enable_k8s_ha
   block:
-    - name: Kube control plane group to contain at least 1 kube control plane
+    - name: Kube control plane group to contain at least 3 kube control plane
       ansible.builtin.assert:
         that:
           - "((groups['kube_control_plane'] | length | int) >= 1)"
@@ -43,7 +43,7 @@
     - cluster_type != "unknown"
     - enable_k8s_ha
   block:
-    - name: Kube control plane group to contain more than 1 kube control plane
+    - name: Kube control plane group to contain atleast 3 kube control plane
       ansible.builtin.assert:
         that:
           - "((groups['kube_control_plane'] | length | int) > 1)"
@@ -69,7 +69,6 @@
     groups: k8s_cluster
   with_items:
     - "{{ groups['kube_control_plane'] }}"
-    - "{{ groups['kube_node'] }}"
 
 - name: Add all hosts in k8s_cluster and etcd to group k8s_cluster_all
   ansible.builtin.add_host:

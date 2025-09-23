@@ -42,6 +42,7 @@ capital_hostname_fail_msg: |
   Refer documentation for more details."
 temp_pxe_file_path: "/opt/omnia/openchami/temp_pxe_file.csv"
 file_mode: "0644"
+functional_groups_file_path: "{{ hostvars['localhost']['input_project_dir'] }}/functional_groups_config.yml"
 
 # Usage: updates_hosts.yml
 hosts_file_path: /opt/omnia/hosts
