@@ -4,7 +4,7 @@ rhel_base_compute_image: "{{ oim_node_name }}/rhel-{{ item.key }}"
 cluster_name: "{{ oim_node_name }}"
 cluster_domain: "{{ domain_name }}"
 group_name: "{{ item.key }}"
-rhel_base_compute_mounts: {{ ochami_mounts | join(' ') }}
+rhel_base_compute_mounts: {{ ochami_compute_mounts | join(' ') }}
 image_build_name: {{ ochami_x86_64_image | join (' ') }}
 rhel_base_compute_command_options: {{ ochami_base_command | join (' ') }}
 
