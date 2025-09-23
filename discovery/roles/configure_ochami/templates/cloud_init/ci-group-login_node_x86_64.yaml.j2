@@ -1,5 +1,6 @@
 - name: {{ functional_group_name }}
-  description: "{{ functional_group_name }} config"
+  description: "{{ functional_group_name }}"
+
   file:
     encoding: plain
     content: |
@@ -10,6 +11,7 @@
         settings: [append]
       - name: dict
         settings: [no_replace, recurse_list]
+
       users:
         - name: root
           ssh_authorized_keys: "{{ read_ssh_key.stdout }}"
@@ -55,12 +57,17 @@
           permissions: '0755'
           content: |
             {{ lookup('template', 'templates/openldap/update_ldap_conf.sh.j2') | indent(12) }}
+        - path: /etc/hosts
+          append: true
+          content: |
+{% for key in ip_name_map | sort %}
+            {{ ip_name_map[key] }} {{ key }}
+{% endfor %}
 
       runcmd:
         - /usr/local/bin/set-hostname-by-mac.sh
         - /usr/local/bin/update_ldap_conf.sh
         - authselect select sssd with-mkhomedir --force
-        - sed -i 's/^PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config.d/50-cloud-init.conf
         - setenforce 0
         - sudo systemctl enable --now oddjobd.service
         - sudo systemctl enable --now sssd
@@ -70,3 +77,34 @@
         - sudo systemctl stop firewalld
         - sudo systemctl disable firewalld
         - sudo systemctl restart sssd
+        - groupadd -r slurm
+        - useradd -r -g slurm -d /var/lib/slurm -s /sbin/nologin slurm
+
+        - mkdir -p /var/log/slurm /var/run/slurm /var/spool /var/lib/slurm /etc/slurm/epilog.d /etc/munge
+        - echo "{{ cloud_init_nfs_path }}/$(hostname -s)/var/log/slurm  /var/log/slurm   nfs defaults,_netdev 0 0" >> /etc/fstab
+        - echo "{{ cloud_init_nfs_path }}/$(hostname -s)/var/spool      /var/spool       nfs defaults,_netdev 0 0" >> /etc/fstab
+        - echo "{{ cloud_init_nfs_path }}/$(hostname -s)/etc/slurm/epilog.d     etc/slurm/epilog.d      nfs defaults,_netdev 0 0" >> /etc/fstab
+        - echo "{{ cloud_init_nfs_path }}/$(hostname -s)/var/spool      /var/spool       nfs defaults,_netdev 0 0" >> /etc/fstab
+        - echo "{{ cloud_init_nfs_path }}/$(hostname -s)/etc/munge      /etc/munge       nfs defaults,_netdev 0 0" >> /etc/fstab
+        - chmod 644 /etc/fstab
+        - mount -a
+        - yes | cp /etc/slurm/epilog.d/slurmd.service /usr/lib/systemd/system/
+        - chown -R slurm:slurm /var/log/slurm
+        - chown -R slurm:slurm /var/run/slurm
+        - chown -R slurm:slurm /var/spool
+        - chown -R slurm:slurm /var/lib/slurm
+        - chown -R munge:munge /etc/munge/munge.key
+        - chmod 755 /var/log/slurm /var/run/slurm /var/spool /var/lib/slurm
+        - chmod 400 /etc/munge/munge.key
+        - chmod 755 /etc/slurm/epilog.d/
+        - mkdir -p /var/spool/slurmd
+        - chmod 755 /var/spool/slurmd
+        - chown -R slurm:slurm /var/spool/slurmd
+        - systemctl enable sshd
+        - systemctl start sshd
+        - systemctl enable munge
+        - systemctl start munge
+        - systemctl enable slurmd
+        - systemctl start slurmd
+        - systemctl daemon-reexec
+        - systemctl restart sshd
