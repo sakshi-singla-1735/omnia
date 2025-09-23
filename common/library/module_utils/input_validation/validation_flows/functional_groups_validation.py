@@ -338,7 +338,7 @@ def validate_software_section_mappings(functional_groups, software_data):
     errors = []
 
     softwares_list = software_data.get("softwares", [])
-    slurm_section = software_data.get("slurm", [])
+    slurm_section = software_data.get("slurm_custom", [])
 
     SOFTWARE_REQUIREMENTS = {
         "service_kube_node": ["service_k8s", "nfs"],
@@ -381,7 +381,7 @@ def validate_software_section_mappings(functional_groups, software_data):
                 create_error_msg(
                     fg_name,
                     expected_slurm_entry,
-                    f"For Functional group '{fg_name}', slurm entry: 'slurm': [{{'name': '{expected_slurm_entry}'}}] missing in software_config.json. Please add the missing entry and try again."
+                    f"For Functional group '{fg_name}', slurm entry: 'slurm_custom': [{{'name': '{expected_slurm_entry}'}}] missing in software_config.json. Please add the missing entry and try again."
                 )
             )
 
