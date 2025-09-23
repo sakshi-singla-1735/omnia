@@ -78,7 +78,7 @@ user_registry:
 #   sslclientkey: Path to SSL client key (if using SSL)
 #   sslclientcert: Path to SSL client certificate (if using SSL)
 #   policy      : Repository policy if mentioned allowed values (always, partial, never). IF not mentioned will consider from software_config.json
-#   name        : Name of the repository
+#   name        : Name of the repository [ Allowed repo names <arch>_codeready-builder, <arch>_appstream, <arch>_baseos
 # Notes:
 #   - Do not use Jinja variables in this configuration.
 #   - Omit SSL fields entirely if SSL is not in use.
@@ -87,9 +87,9 @@ user_registry:
 # rhel_os_url_x86_64:
 #   - { url: "http://crb.com/CRB/x86_64/os/", gpgkey: "http://crb.com/CRB/x86_64/os/RPM-GPG-KEY", sslcacert: "", sslclientkey: "", sslclientcert: "", policy: "", name: "x86_64_codeready-builder" }
 rhel_os_url_x86_64:
-  - {url: "", gpgkey: "", sslcacert: "", sslclientkey: "", sslclientcert: "" ,name: "x86_64_codeready-builder"}
-  - {url: "", gpgkey: "", sslcacert: "", sslclientkey: "", sslclientcert: "", name: "x86_64_appstream"}
-  - {url: "", gpgkey: "", sslcacert: "", sslclientkey: "", sslclientcert: "", name: "x86_64_baseos"}
+  - {url: "", gpgkey: "", name: "x86_64_codeready-builder"}
+  - {url: "", gpgkey: "", name: "x86_64_appstream"}
+  - {url: "", gpgkey: "", name: "x86_64_baseos"}
 
 # Example:
 # rhel_os_url_aarch64:

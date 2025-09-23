@@ -16,6 +16,7 @@
 # Usage: main.yml
 omnia_input_dir: /opt/omnia/input
 omnia_input_config_file: "{{ omnia_input_dir }}/default.yml"
+omnia_metadata_file_path: "/opt/omnia/.data/oim_metadata.yml"
 omnia_input_config_syntax_fail_msg: |
   "Unable to load the Omnia project configuration file at {{ omnia_input_config_file }}.
   Please ensure the file exists and has valid YAML syntax before re-running the playbook."

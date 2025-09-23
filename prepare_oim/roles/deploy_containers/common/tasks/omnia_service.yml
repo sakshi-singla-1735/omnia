@@ -12,6 +12,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 ---
+
 - name: Set kubespray service
   ansible.builtin.set_fact:
     kubespray_service_list: ""
@@ -20,6 +21,13 @@
   ansible.builtin.set_fact:
     kubespray_service_list: "{{ kubespray_versions | map('regex_replace', '^(.*)$', 'omnia_kubespray_\\1.service') | join(' ') }}"
   when: kubespray_versions is defined
+
+- name: Start network manager services
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    state: restarted
+    enabled: true
+  with_items: "{{ network_services }}"
 
 - name: Create omnia.target service
   ansible.builtin.template:
