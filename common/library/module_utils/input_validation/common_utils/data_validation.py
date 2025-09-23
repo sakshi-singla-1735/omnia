@@ -72,8 +72,6 @@ def schema(config):
                 # Custom error messages for regex pattern failures
                 if "Groups" == error_path:
                     error.message = en_us_validation_msg.INVALID_GROUP_NAME_MSG
-                elif "location_id" in error_path:
-                    error.message = en_us_validation_msg.INVALID_LOCATION_ID_MSG
                 elif "ports" in error_path:
                     error.message = en_us_validation_msg.INVALID_SWITCH_PORTS_MSG
                 # TODO: Add a syntax error message for roles
