@@ -13,16 +13,16 @@
 #  limitations under the License.
 ---
 
-- name: Include roles_config.yml
+- name: Include functional_groups_config.yml
   block:
-    - name: Include roles_config.yml
-      ansible.builtin.include_vars: "{{ roles_config_path }}"
-      register: include_roles_config
+    - name: Include functional_groups_config.yml
+      ansible.builtin.include_vars: "{{ functional_groups_config_path }}"
+      register: include_functional_groups_config
       tags: init
   rescue:
-    - name: Failed to include  roles_config.yml
+    - name: Failed to include functional_groups_config.yml
       ansible.builtin.fail:
-        msg: "{{ roles_config_syntax_fail_msg }} Error: {{ include_roles_config.message }}"
+        msg: "{{ functional_groups_config_syntax_fail_msg }} Error: {{ include_functional_groups_config.message }}"
 
 - name: Determine layer
   ansible.builtin.set_fact:
