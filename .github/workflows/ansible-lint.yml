@@ -9,7 +9,7 @@ on:
       - pub/local_repo_arch
       - pub/provision_arch
       - pub/ochami
-      - pub_ochami_64
+      - pub/ochami_aarch64
 
 jobs:
   build:
