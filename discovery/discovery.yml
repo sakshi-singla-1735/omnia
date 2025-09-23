@@ -63,6 +63,7 @@
   hosts: oim
   connection: ssh
   roles:
+    - k8s_prereq
     - nfs_client
     - slurm_config
     - configure_ochami

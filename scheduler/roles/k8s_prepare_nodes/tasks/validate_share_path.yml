@@ -13,26 +13,18 @@
 #  limitations under the License.
 ---
 
-- name: Set share_path
-  ansible.builtin.set_fact:
-    share_path: "{{ hostvars['127.0.0.1']['share_path'] }}"
+# NFS setup
+- name: Install NFS client package
+  ansible.builtin.package:
+    name: "{{ nfs_package }}"
+    state: present
 
-- name: Check share_path directory exists
-  ansible.builtin.stat:
-    path: "{{ share_path }}"
-  register: share_path_status
-
-- name: Check share_path is mounted
-  ansible.builtin.shell: >
-    set -o pipefail && \
-    mount | grep nfs | grep " {{ share_path }} "
+- name: Check NFS export availability
+  ansible.builtin.command: "showmount -e {{ nfs_server_ip }}"
+  register: nfs_exports
   changed_when: false
-  register: check_share_path_mount
-  failed_when: false
 
-- name: Fail if share_path is not NFS share
+- name: Fail if expected NFS export is not available
   ansible.builtin.fail:
-    msg: "{{ invalid_nfs_share_path }}"
-  when:
-    - not share_path_status.stat.exists or
-      share_path not in check_share_path_mount.stdout
+    msg: "NFS export {{ nfs_server_share_path }} not found on {{ nfs_server_ip }}"
+  when: nfs_server_share_path not in nfs_exports.stdout
