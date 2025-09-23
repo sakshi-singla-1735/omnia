@@ -47,6 +47,7 @@ openchami_packages:
   - ochami
   - openchami
   - s3cmd
+  - epel-release
 
 openchami_containers:
   - minio-server
@@ -119,3 +120,19 @@ omnia_target_file:
   - /etc/systemd/system/omnia.target
   - /etc/systemd/system/default.target.wants/omnia.target
   - /etc/systemd/system/multi-user.target.wants/omnia.target
+
+openchami_services:
+  - openchami.target
+  - openchami-cert-internal-network.service
+  - openchami-cert-trust.service
+  - openchami-external-network.service
+  - openchami-internal-network.service
+  - openchami-jwt-internal-network.service
+  - bss-init.service
+  - smd-init.service
+  - step-ca-db-volume.service
+  - step-ca-home-volume.service
+  - postgres-data-volume.service
+  - hydra-gen-jwks.service
+  - hydra-migrate.service
+  - haproxy-certs-volume.service
