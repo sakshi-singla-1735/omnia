@@ -32,7 +32,7 @@
 groups:
   grp0:
     location_id: SU-1.RACK-1
-    parent: "x1000c1s7b1n0"
+    parent: ""
 
   grp1:
     location_id: SU-1.RACK-1
@@ -54,10 +54,10 @@ groups:
 # +----------------------------------+-------------------+     +------------------------+--------------+
 # | Functional Group Name            | Layer             |     | Functional Group Name  | Layer        |
 # +----------------------------------+-------------------+     +------------------------+--------------+
-# |  service_kube_node_x86_64        | management        |     | default_x86_64         | compute      |
-# |  login_node_x86_64               | management        |     | default_aarch64        | compute      |
-# |  login_node_aarch64              | management        |     | slurm_node_x86_64      | compute      |
-# |  login_compiler_node_x86_64      | management        |     | slurm_node_aarch64     |              |
+# |  service_kube_node_x86_64        | management        |     | slurm_node_x86_64      | compute      |
+# |  login_node_x86_64               | management        |     | slurm_node_aarch64     | compute      |
+# |  login_node_aarch64              | management        |     |                        |              |
+# |  login_compiler_node_x86_64      | management        |     |                        |              |
 # |  login_compiler_node_aarch64     | management        |     |                        |              |
 # |  slurm_control_node_x86_64       | management        |     |                        |              |
 # +----------------------------------+-------------------+     +------------------------+--------------+
@@ -74,12 +74,10 @@ groups:
 # The nodes in this functional_group can be used to run Slurm head.
 # This functional_group belongs to the compute layer.
 functional_groups:
-
   - name: "slurm_control_node_x86_64"
     cluster_name: ""
     group:
-      - grp1
-
+      - grp0
 
 #
 # Slurm Worker functional_groups: (x86_64 / aarch64)
@@ -95,12 +93,12 @@ functional_groups:
   - name: "slurm_node_x86_64"
     cluster_name: ""
     group:
-      - grp0
+      - grp1
 
   # - name: "slurm_node_aarch64"
   #   cluster_name: ""
   #   group:
-  #     - grp1
+  #     - grp2
 
 #
 # Service k8s Worker functional_groups: (x86_64)
@@ -118,7 +116,7 @@ functional_groups:
   # - name: "service_kube_node_x86_64"
   #   cluster_name: ""
   #   group:
-  #     - grp1
+  #     - grp3
 
 #
 # Login Node functional_groups: (x86_64 / aarch64)
@@ -134,12 +132,12 @@ functional_groups:
   # - name: "login_node_x86_64"
   #   cluster_name: ""
   #   group:
-  #     - grp1
+  #     - grp4
 
   # - name: "login_node_aarch64"
   #   cluster_name: ""
   #   group:
-  #     - grp1
+  #     - grp5
 
 #
 # Login_Compiler Node functional_groups: (x86_64 / aarch64)
@@ -155,9 +153,9 @@ functional_groups:
   # - name: "login_compiler_node_x86_64"
   #   cluster_name: ""
   #   group:
-  #     - grp1
+  #     - grp6
 
   # - name: "login_compiler_node_aarch64"
   #   cluster_name: ""
   #   group:
-  #     - grp1
+  #     - grp7
