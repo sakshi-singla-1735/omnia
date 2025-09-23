@@ -40,7 +40,7 @@
       ansible.builtin.set_fact:
         slurm_nfs: "{{ nfs_client_params | selectattr('nfs_name', 'in', filter_slurm_nfs) | list }}"
 
-    - name: Add the slurm to  
+    - name: Add the slurm nfs
       ansible.builtin.set_fact:
         storage_to_be_mounted: "{{ storage_to_be_mounted + slurm_nfs }}"
 
