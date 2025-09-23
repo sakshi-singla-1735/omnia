@@ -15,6 +15,9 @@
 ---
 
 auth_service_directories: "{{ omnia_nfs_share }}/authservice"
+openldap_tls_certs_directory: "{{ auth_service_directories }}/tls"
+rhel_cert_file: "ldapserver.crt"
+rhel_cert_key: "ldapserver.key"
 openldap_ports:
   - 389
   - 636
@@ -63,3 +66,12 @@ oim_certs_dir: "/opt/omnia/security/certs/"
 
 # Usage: configure_sssd_conf.yml
 sssd_conf_dest: "{{ auth_service_directories }}/sssd.conf"
+
+# Usage: configure_slapd_conf.yml
+suffix_regexp: "dc=omnia,dc=test"
+db_config_name_regexp: "cn=admin"
+sha_pswd_regexp: "{SSHA}CcEj20AyhrDhWhFGlu01HWnn8eKP1sH3"
+
+#Usage: configure_bootstrap_ldif.yml
+common_name_regexp: "cn: admin"
+domain_component: "dc: omnia"

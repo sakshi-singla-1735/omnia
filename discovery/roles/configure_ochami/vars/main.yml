@@ -55,3 +55,13 @@ discovery_completion_msg: |
   Next, you can either manually PXE boot the nodes or use the utils/set_pxe_boot.yml playbook
   by specifying a bmc group in your inventory to initiate the PXE boot process.
   Once the nodes have booted, proceed to run telemetry/telemetry.yml to start collecting telemetry data.
+
+# Usage: ci-group-login_node_x86_64.yaml.j2
+tls_cert_path: "/etc/openldap/certs/"
+ldap_conf_dest: "/etc/openldap/ldap.conf"
+sasl_nocanon_regxp: "SASL_NOCANON\ton"
+sasl_nacanon_replace1: "SASL_NOCANON\ton\nBASE\t{{ hostvars['localhost']['ldap_search_base'] }}"
+sasl_nacanon_replace2: "SASL_NOCANON\ton\nURI\tldap://{{ hostvars['localhost']['ldap_server_ip'] }}"
+sasl_nacanon_replace3: "SASL_NOCANON\ton\nTLS_CACERT\t{{ tls_cert_path }}"
+sasl_nacanon_replace4: "SASL_NOCANON\ton\nURI\tldap://{{ hostvars['localhost']['ldap_server_ip'] }}:636"
+file_mode: "0644"

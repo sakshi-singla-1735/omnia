@@ -31,17 +31,17 @@
     - name: Update the domain name
       ansible.builtin.replace:
         path: "{{ slapd_conf_dest }}"
-        regexp: "dc=omnia,dc=test"
+        regexp: "{{ suffix_regexp }}"
         replace: "{{ reqd_domain_name }}"
 
     - name: Update the db config name
       ansible.builtin.replace:
         path: "{{ slapd_conf_dest }}"
-        regexp: "cn=admin"
+        regexp: "{{ db_config_name_regexp }}"
         replace: "cn={{ hostvars['127.0.0.1']['openldap_db_username'] }}"
 
     - name: Update the SHA password
       ansible.builtin.replace:
         path: "{{ slapd_conf_dest }}"
-        regexp: "{SSHA}CcEj20AyhrDhWhFGlu01HWnn8eKP1sH3"
+        regexp: "{{ sha_pswd_regexp }}"
         replace: "{{ openldap_db_password_hash }}"
