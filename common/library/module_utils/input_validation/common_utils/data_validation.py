@@ -47,6 +47,7 @@ def schema(config):
     project_name = config["project_name"]
     logger = config["logger"]
     module = config["module"]
+    error_bucket = []
     try:
         input_data, extension = get.input_data(
             input_file_path, omnia_base_dir, project_name, logger, module
@@ -54,7 +55,8 @@ def schema(config):
 
         # If input_data is None, it means there was a YAML syntax error
         if input_data is None:
-            return False
+            error_bucket.append("input data reading failed.")
+            return error_bucket
 
         # Load schema
         with open(schema_file_path, "r", encoding="utf-8") as schema_file:
@@ -78,7 +80,6 @@ def schema(config):
                 # elif 'is not of type' in error.message:
                 #     error.message = en_us_validation_msg.INVALID_ATTRIBUTES_ROLE_MSG
                 error_msg = f"Validation Error at {error_path}: {error.message}"
-
                 # For passwords, mask the value so that no password values are logged
                 if error.path and error.path[-1] in passwords_set:
                     parts = error.message.split(" ", 1)
@@ -87,7 +88,7 @@ def schema(config):
                     error_msg = f"Validation Error at {error_path}: {' '.join(parts)}"
                 # For all other fields, just log the value
                 logger.error(error_msg)
-
+                error_bucket.append(error_msg)
                 # get the line number and log it
                 line_number, is_line_num = None, False
                 if "json" in extension:
@@ -106,23 +107,23 @@ def schema(config):
                         else f"Error occurs on object or list entry on line {line_number}"
                     )
                     logger.error(message)
+                    error_bucket.append(message)
             logger.error(en_us_validation_msg.get_schema_failed(input_file_path))
-            return False
-        logger.info(en_us_validation_msg.get_schema_success(input_file_path))
-        return True
+            error_bucket.append(en_us_validation_msg.get_schema_failed(input_file_path))
     except jsonschema.exceptions.SchemaError as schemaerror:
         message = f"Internal schema validation error: {schemaerror.message}"
         logger.error(message)
-        return False
+        error_bucket.append(message)
     except ValueError as valueerror:
         message = f"Value error at {input_file_path}: {valueerror}"
         logger.error(message)
-        return False
+        error_bucket.append(message)
     except Exception as exception:
         message = f"An unexpected error occurred: {exception}"
         logger.error(message)
-        return False
-
+        error_bucket.append(message)
+    logger.info(en_us_validation_msg.get_schema_success(input_file_path))
+    return error_bucket
 
 # Code to run the L2 validation validate_input_logic function.
 def logic(config):

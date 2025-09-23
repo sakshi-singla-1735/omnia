@@ -1,6 +1,6 @@
 {
   "title": "omnia_config.yaml",
-  "description": "Omnia config related parameters",
+  "description": "Omnia slurm and k8s config related parameters",
   "type": "object",
   "properties": {
     "slurm_cluster": {
@@ -218,10 +218,6 @@
         }
       ]
       }
-    },
-    "run_intel_gaudi_tests": {
-      "description": "Set to true to run validation tests; default will not run the tests.",
-      "type": "boolean"
     }
 },
   "required": [
