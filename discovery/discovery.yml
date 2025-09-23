@@ -62,9 +62,24 @@
 - name: Discover nodes, configure bss and cloud-init
   hosts: oim
   connection: ssh
-  roles:
-    - k8s_prereq
-    - nfs_client
-    - slurm_config
-    - openldap
-    - configure_ochami
+  tasks:
+    - name: K8s pre_requisite
+      ansible.builtin.include_role:
+        name: k8s_prereq
+
+    - name: NFS client config
+      ansible.builtin.include_role:
+        name: nfs_client
+
+    - name: Discover nodes
+      ansible.builtin.include_role:
+        name: configure_ochami
+        tasks_from: discover_mapping_nodes.yml
+
+    - name: Slurm config
+      ansible.builtin.include_role:
+        name: slurm_config
+
+    - name: Configure ochami
+      ansible.builtin.include_role:
+        name: configure_ochami
