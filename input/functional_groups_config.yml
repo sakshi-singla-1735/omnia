@@ -61,7 +61,19 @@ groups:
 # |  login_compiler_node_aarch64     | management        |     |                        |              |
 # |  slurm_control_node_x86_64       | management        |     |                        |              |
 # +----------------------------------+-------------------+     +------------------------+--------------+
-
+#
+#
+# Recommended software should be present in software_config.json file for each functional_group of x86_64:
+#
+# +----------------------------------+--------------------------------------------------------------------------------------+
+# | Functional Group Name            | Recommended Software                                                                 |
+# +----------------------------------+--------------------------------------------------------------------------------------+
+# | service_kube_node_x86_64         | service_k8s.json, nfs.json, openldap.json, ofed.json                                 |
+# | slurm_control_node_x86_64        | slurm_custom.json, nfs.json, openldap.json, ofed.json                                |
+# | slurm_node_x86_64                | slurm_custom.json, nfs.json, openldap.json, ofed.json, cuda.json                     |
+# | login_node_x86_64                | slurm_custom.json, nfs.json, openldap.json, ofed.json                                |
+# | login_compiler_node_x86_64       | slurm_custom.json, nfs.json, openldap.json, ofed.json, ucx.json, openmpi.json        |
+# +----------------------------------+--------------------------------------------------------------------------------------+
 #
 # Slurm Head functional_groups: (x86_64)
 # -----------------------------------------------------------------------------------------------------
