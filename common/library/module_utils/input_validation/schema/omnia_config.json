@@ -218,10 +218,6 @@
         }
       ]
       }
-    },
-    "run_intel_gaudi_tests": {
-      "description": "Set to true to run validation tests; default will not run the tests.",
-      "type": "boolean"
     }
 },
   "required": [

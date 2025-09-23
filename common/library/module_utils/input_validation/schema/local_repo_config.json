@@ -856,10 +856,6 @@
     "pulp_protocol_https": {
       "type": "boolean",
       "description": "Set to true to enable secure (HTTPS) connection to the Pulp server. Default is false."
-    },
-    "enable_routed_internet": {
-      "type": "boolean",
-      "description": " enable_routed_internet should be set to true for clusters with partial or no dedicated internet access."
     }
   },
   "required": [
