@@ -23,9 +23,3 @@
 
 - name: Include pre_requisite.yml
   ansible.builtin.include_tasks: pre_requisite.yml
-
-- name: Include include_composable_funtional_groups_config
-  ansible.builtin.include_tasks: include_composable_funtional_groups_config.yml
-  when:
-    - (omnia_run_tags | default([]) | difference(['all']) | length == 0)
-      or 'provision' in (omnia_run_tags | default([]))

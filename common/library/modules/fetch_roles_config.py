@@ -21,10 +21,10 @@ This module provides functions for fetching roles from an OmniDB database.
 from ansible.module_utils.basic import AnsibleModule
 
 MANAGEMENT_LAYER_ROLES = {
-    "oim_ha_node", "service_node", "login_node", "compiler_node", "kube_control_plane", "etcd",
-    "slurm_control_node", "auth_server", "service_kube_control_plane", "service_etcd", "service_kube_node"
+    "login_node_x86_64", "login_compiler_node_x86_64", "login_node_aarch64", "login_compiler_node_aarch64",
+    "slurm_control_node_x86_64", "service_kube_node_x86_64"
     }
-SECOND_LAYER_ROLES = {"default", "kube_node", "slurm_node"}
+SECOND_LAYER_ROLES = {"default_x86_64", "slurm_node_x86_64", "slurm_node_aarch64"}
 NON_SERVICE_ROLES = (MANAGEMENT_LAYER_ROLES | SECOND_LAYER_ROLES) - {"service_node"}
 
 def validate_roles(roles, layer, module, management_layer_roles=MANAGEMENT_LAYER_ROLES, second_layer_roles=SECOND_LAYER_ROLES, non_service_roles=NON_SERVICE_ROLES): # type: ignore
@@ -67,12 +67,12 @@ def validate_roles(roles, layer, module, management_layer_roles=MANAGEMENT_LAYER
             if not defined_roles.intersection(second_layer_roles):
                 raise ValueError(
                     f"At least one role must be defined from - \
-                        {second_layer_roles} in roles_config.yml")
+                        {second_layer_roles} in functional_groups_config.yml")
         else:
             if not defined_roles.intersection(non_service_roles):
                 raise ValueError(
                     f"At least one role must be defined from - \
-                        {non_service_roles} roles_config.yml")
+                        {non_service_roles} functional_groups_config.yml")
 
     # Collect all groups used by management_layer and compute-layer roles
     management_layer_groups = {group for role in management_layer_roles \
@@ -150,7 +150,7 @@ def roles_groups_mapping(groups_data, roles_data, layer):
             - groups_roles_info (dict): A dictionary containing the groups and roles information.
 
     Raises:
-        Exception: If a group doesn't exist in the roles_config.yml Groups dict.
+        Exception: If a group doesn't exist in the functional_groups_config.yml Groups dict.
     """
 
 
@@ -183,7 +183,7 @@ def roles_groups_mapping(groups_data, roles_data, layer):
 
             else:
                 raise ValueError(
-                    f"Group '{group}' doesn't exist in roles_config.yml Groups dict"
+                    f"Group '{group}' doesn't exist in functional_groups_config.yml Groups dict"
                     )
 
     return bmc_check, switch_check, roles_groups_data, groups_roles_info
