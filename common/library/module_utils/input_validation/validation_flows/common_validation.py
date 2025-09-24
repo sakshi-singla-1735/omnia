@@ -1142,7 +1142,6 @@ def validate_omnia_config(
     softwares = software_config_json["softwares"]
     sw_list = [k['name'] for k in softwares]
 
-
     if ("service_k8s" in sw_list) and \
         ("service_k8s" in tag_names):
         admin_networks = get_admin_networks(
@@ -1155,6 +1154,24 @@ def validate_omnia_config(
             ha_config[k] = [xha["cluster_name"] for xha in ha_config.get(k, [])]
         validate_k8s(data, admin_networks, sw_list, ha_config, tag_names,
                         errors, omnia_base_dir, project_name, logger, module, input_file_path)
+    # slurm L2
+    if (("slurm" in sw_list or "slurm_custom" in sw_list) and "slurm" in tag_names):
+        storage_config = create_file_path(
+            input_file_path, file_names["storage_config"])
+        with open(storage_config, "r", encoding="utf-8") as f:
+            st_config = yaml.safe_load(f)
+        
+        slurm_nfs = [clst.get('nfs_storage_name') for clst in data.get('slurm_cluster')]
+        nfs_names = [st.get('nfs_name') for st in st_config.get('nfs_client_params')]
+
+        diff_set = set(slurm_nfs).difference(set(nfs_names))
+        if diff_set:
+            errors.append(
+                create_error_msg(
+                    input_file_path,
+                    "slurm NFS not provided",
+                    f"NFS name {', '.join(diff_set)} required for slurm is not defined in {storage_config}"
+                    ))
     return errors
 
 def check_is_service_cluster_functional_groups_defined(

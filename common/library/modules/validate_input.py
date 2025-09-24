@@ -145,7 +145,7 @@ def main():
                 module.fail_json(msg=error_message)
 
             # Validate the schema of the input file (L1)
-            schema_status = validate.schema({
+            l1_errors = validate.schema({
                                 "input_file_path": input_file_path,
                                 "schema_file_path": schema_file_path,
                                 "passwords_set": passwords_set,
@@ -154,11 +154,16 @@ def main():
                                 "logger": logger,
                                 "module": module,
                             })
+            if l1_errors:
+                error_bucket = error_bucket + l1_errors
+                schema_status = False
+            else:
+                schema_status = True
 
             # Validate the logic of the input file (L2) if L1 is success
             logic_status = True
             if schema_status:
-                errors = validate.logic({
+                l2_errors = validate.logic({
                             "input_file_path": input_file_path,
                             "module_utils_base": module_utils_base,
                             "omnia_base_dir": omnia_base_dir,
@@ -166,8 +171,8 @@ def main():
                             "logger": logger,
                             "module": module,
                         })
-                if errors:
-                    error_bucket = error_bucket + errors
+                if l2_errors:
+                    error_bucket = error_bucket + l2_errors
                     logic_status = False
                 else:
                     logic_status = True
