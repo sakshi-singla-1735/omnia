@@ -62,11 +62,3 @@
   ansible.builtin.set_fact:
     oim_pxe_ip: "{{ network_data.admin_network.primary_oim_admin_ip }}"
     cacheable: true
-
-# Create template directory if missing
-- name: Create template directory
-  ansible.builtin.file:
-    path: "{{ template_path }}"
-    state: directory
-    mode: "0755"
-  become: true

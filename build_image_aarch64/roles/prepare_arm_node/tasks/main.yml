@@ -70,7 +70,7 @@
     path: /etc/hosts
     line: "{{ hostvars['localhost']['oim_pxe_ip'] }} {{ hostvars['localhost']['oim_hostname'] }}"
     state: present
-    mode: "0644"
+    mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
     create: true
 
 # Verify the entry exists in /etc/hosts
