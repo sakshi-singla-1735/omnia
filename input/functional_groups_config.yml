@@ -28,7 +28,8 @@
 #     location_id:        - <Mandatory> SU-<n>.RACK-<n> Scalable unit and rack number range is 0-99. This input is case-sensitive. Please use uppercase letters only.
 #     parent:             - <Conditional Mandatory> list of service tag of associated active service node(s).
 #                         - This field will be mandatory for group of nodes which is associated with 'slurm_node' functional_groups.
-
+#                         - This should be in some xname format.
+#                         - eg:- parent: "x1000c1s7b1n1"
 groups:
   grp0:
     location_id: SU-1.RACK-1
@@ -47,6 +48,7 @@ groups:
 #     cluster_name:       - <Conditional Mandatory> Name of the cluster to which the group belongs. This input is case-sensitive.
 #                            This will remain empty for groups which are not associated with any kubernetes functional_groups.
 #     group:              - <Mandatory> list of groups defined by the user
+#                         - This should be unique for each functional_group
 #
 
 # This table lists the functional_groups and the layers they belong to in the cluster.
@@ -61,7 +63,19 @@ groups:
 # |  login_compiler_node_aarch64     | management        |     |                        |              |
 # |  slurm_control_node_x86_64       | management        |     |                        |              |
 # +----------------------------------+-------------------+     +------------------------+--------------+
-
+#
+#
+# Recommended software should be present in software_config.json file for each functional_group of x86_64:
+#
+# +----------------------------------+--------------------------------------------------------------------------------------+
+# | Functional Group Name            | Recommended Software                                                                 |
+# +----------------------------------+--------------------------------------------------------------------------------------+
+# | service_kube_node_x86_64         | service_k8s.json, nfs.json, openldap.json, ofed.json                                 |
+# | slurm_control_node_x86_64        | slurm_custom.json, nfs.json, openldap.json, ofed.json                                |
+# | slurm_node_x86_64                | slurm_custom.json, nfs.json, openldap.json, ofed.json, cuda.json                     |
+# | login_node_x86_64                | slurm_custom.json, nfs.json, openldap.json, ofed.json                                |
+# | login_compiler_node_x86_64       | slurm_custom.json, nfs.json, openldap.json, ofed.json, ucx.json, openmpi.json        |
+# +----------------------------------+--------------------------------------------------------------------------------------+
 #
 # Slurm Head functional_groups: (x86_64)
 # -----------------------------------------------------------------------------------------------------
