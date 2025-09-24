@@ -76,6 +76,17 @@
         name: deploy_containers/common
         tasks_from: add_known_hosts.yml
 
+- name: OpenLDAP Pre_req generate ssha password
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tags: auth
+  tasks:
+    - name: Generate LDAP password hashes  # noqa:role-name[path]
+      ansible.builtin.include_role:
+        name: deploy_containers/auth
+        tasks_from: generate_ldap_password_hashes.yml
+
 - name: Deploy the pulp container
   hosts: oim
   connection: ssh
@@ -89,7 +100,6 @@
       tags: kubespray
     - role: deploy_containers/auth  # noqa:role-name[path]
       tags: auth
-
 
 - name: Verify openchami install status
   hosts: oim

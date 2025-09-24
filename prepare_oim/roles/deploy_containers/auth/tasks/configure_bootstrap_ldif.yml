@@ -56,4 +56,4 @@
       ansible.builtin.replace:
         path: "{{ bootstrap_ldif_dest }}"
         regexp: "{{ sha_pswd_regexp }}"
-        replace: "{{ openldap_db_password_hash }}"
+        replace: "{{ hostvars['localhost']['openldap_db_password_hash'] }}"

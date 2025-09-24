@@ -38,10 +38,10 @@
       ansible.builtin.replace:
         path: "{{ slapd_conf_dest }}"
         regexp: "{{ db_config_name_regexp }}"
-        replace: "cn={{ hostvars['127.0.0.1']['openldap_db_username'] }}"
+        replace: "cn={{ hostvars['localhost']['openldap_db_username'] }}"
 
     - name: Update the SHA password
       ansible.builtin.replace:
         path: "{{ slapd_conf_dest }}"
         regexp: "{{ sha_pswd_regexp }}"
-        replace: "{{ openldap_db_password_hash }}"
+        replace: "{{ hostvars['localhost']['openldap_db_password_hash'] }}"

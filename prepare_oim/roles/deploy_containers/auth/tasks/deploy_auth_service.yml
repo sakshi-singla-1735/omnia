@@ -18,30 +18,18 @@
   ansible.builtin.file:
     path: "{{ auth_service_directories }}"
     state: directory
-    mode: '0755'
+    mode: "{{ dir_permissions_755 }}"
 
 - name: Include security config file
   ansible.builtin.include_tasks: include_security_config.yml
 
 - name: Update Openldap server container configs
   block:
-
-    - name: Generate LDAP password hashes
-      ansible.builtin.include_tasks: generate_ldap_password_hashes.yml
-
     - name: Update slapd.conf
       ansible.builtin.include_tasks: configure_slapd_conf.yml
 
     - name: Update bootstrap.ldif
       ansible.builtin.include_tasks: configure_bootstrap_ldif.yml
-
-# - name: Update Openldap client configs
-#  block:
-#    - name: update ldap conf
-#      ansible.builtin.include_tasks: configure_ldap_conf.yml
-
-#    - name: update sssd conf
-#      ansible.builtin.include_tasks: configure_sssd_conf.yml
 
 - name: Check if {{ auth_service_container_name }} is already running and port is occupied # noqa: name[template]
   containers.podman.podman_container_info:
