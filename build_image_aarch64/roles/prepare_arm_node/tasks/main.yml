@@ -55,7 +55,7 @@
 - name: Fail if machine is not aarch64
   ansible.builtin.fail:
     msg: "{{ not_aarch64_error_msg }}"
-  when: arch_result.stdout != "x86_64"
+  when: arch_result.stdout != "aarch64"
 
 # Remove any existing entries for OIM hostname in /etc/hosts
 - name: Remove any existing entries for OIM hostname in /etc/hosts
@@ -110,7 +110,7 @@
   ansible.builtin.file:
     path: "{{ nfs_info.shared_path }}"
     state: directory
-    mode: "0755"
+    mode: "{{ hostvars['localhost']['dir_permissions_755'] }}"
   become: true
 
 - name: Check if NFS is mounted
