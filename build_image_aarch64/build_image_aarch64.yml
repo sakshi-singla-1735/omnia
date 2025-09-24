@@ -18,10 +18,10 @@
   connection: local
   tags: always
   tasks:
-    - name: Set dynamic run tags including 'build_image'
+    - name: Set dynamic run tags including 'build_aarch_image'
       when: not config_file_status | default(false) | bool
       ansible.builtin.set_fact:
-        omnia_run_tags: "{{ (ansible_run_tags | default([]) + ['build_image']) | unique }}"
+        omnia_run_tags: "{{ (ansible_run_tags | default([]) + ['build_aarch_image']) | unique }}"
         cacheable: true
 
 - name: Invoke validate_config.yml to perform L1 and L2 validations with build_image tag
@@ -37,6 +37,22 @@
   vars:
     openchami_vars_suppport: true
     omnia_metadata_support: true
+
+- name: Gather OIM data
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Include gather_oim_data role
+      ansible.builtin.include_role:
+        name: prepare_arm_node
+        tasks_from: gather_oim_data.yml
+        vars_from: main
+
+- name: Prepare aarch64 nodes
+  hosts: admin_aarch64
+  gather_facts: false
+  roles:
+    - prepare_arm_node
 
 - name: Create oim group and provision group
   ansible.builtin.import_playbook: ../utils/create_container_group.yml
@@ -60,7 +76,7 @@
   roles:
     - fetch_packages
 
-- name: Openchmi build image for aarch64
+- name: Openchmi build image for aarch_64
   hosts: localhost
   connection: local
   gather_facts: false
