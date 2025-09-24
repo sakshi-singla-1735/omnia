@@ -18,20 +18,6 @@
 # SIMPLY APPEND THE REQUIRED VALUES AGAINST THE PARAMETER OF YOUR CHOICE.
 # ***********************************************************************
 
-# This variable is used to accept the domain name the user intends to configure
-# This variable is a mandatory requirement of both FreeIPA and OpenLDAP Client
-# Eg: ipa.test
-# This field is mandatory for both OpenLDAP and FreeIPA Authentication
-# For FreeIPA - the format is omnia.test
-# For OpenLDAP - if dc=omnia,dc=test, Provide omnia.test
-# For OpenLDAP - If dc=dell,dc=omnia,dc=com Provide dell.omnia.com
-domain_name: "omnia.test"
-
-# ---------------------------FreeIPA---------------------------
-# A Kerberos realm is the domain over which a Kerberos authentication server has the authority to authenticate a user, host or service.
-# A realm name is often, but not always the upper case version of the name of the DNS domain over which it presides
-realm_name: "OMNIA.TEST"
-
 # ---------------------------OpenLDAP---------------------------
 # Connection Type can be TLS, SSL
 # If TLS is given, valid server certificates are mandatory

@@ -16,7 +16,6 @@
         - name: root
           ssh_authorized_keys: "{{ read_ssh_key.stdout }}"
       disable_root: false
-
       write_files:
         - path: /usr/local/bin/set-hostname-by-mac.sh
           permissions: '0755'
@@ -43,11 +42,21 @@
 
             echo 'root:{{ hostvars['localhost']['provision_password'] }}' | chpasswd
             timedatectl set-timezone {{ hostvars['localhost']['timezone'] }}
+            localectl set-locale LANG={{ hostvars['localhost']['language'] }}
             sed -i 's/^#PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config
             sed -i 's/^#PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config
             sed -i 's/^PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config.d/50-cloud-init.conf
             systemctl restart sshd
-
+        - path: /etc/sssd/sssd.conf
+          owner: root:root
+          permissions: '0600'
+          content: |
+            {{ lookup('template', 'templates/openldap/sssd.conf.j2') | indent(6) }}
+        - path: /usr/local/bin/update_ldap_conf.sh
+          owner: root:root
+          permissions: '0755'
+          content: |
+            {{ lookup('template', 'templates/openldap/update_ldap_conf.sh.j2') | indent(12) }}
         - path: /etc/hosts
           append: true
           content: |
@@ -57,7 +66,17 @@
 
       runcmd:
         - /usr/local/bin/set-hostname-by-mac.sh
-        - useradd -mG wheel -p '$6$VHdSKZNm$O3iFYmRiaFQCemQJjhfrpqqV7DdHBi5YpY6Aq06JSQpABPw.3d8PQ8bNY9NuZSmDv7IL/TsrhRJ6btkgKaonT.' testuser
+        - /usr/local/bin/update_ldap_conf.sh
+        - authselect select sssd with-mkhomedir --force
+        - setenforce 0
+        - sudo systemctl enable --now oddjobd.service
+        - sudo systemctl enable --now sssd
+        - sudo systemctl enable --now sssd
+        - setsebool -P authlogin_nsswitch_use_ldap on
+        - setsebool -P authlogin_yubikey on
+        - sudo systemctl stop firewalld
+        - sudo systemctl disable firewalld
+        - sudo systemctl restart sssd
         - groupadd -r slurm
         - useradd -r -g slurm -d /var/lib/slurm -s /sbin/nologin slurm
 
@@ -81,12 +100,6 @@
         - mkdir -p /var/spool/slurmd
         - chmod 755 /var/spool/slurmd
         - chown -R slurm:slurm /var/spool/slurmd
-
-
-
-        - setenforce 0
-        - systemctl stop firewalld
-        - systemctl disable firewalld
         - systemctl enable sshd
         - systemctl start sshd
         - systemctl enable munge
@@ -95,4 +108,3 @@
         - systemctl start slurmd
         - systemctl daemon-reexec
         - systemctl restart sshd
-

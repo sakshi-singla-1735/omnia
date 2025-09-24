@@ -1,6 +1,6 @@
 [Unit]
 Description=Top-level target for Omnia Core and OpenCHAMI
-Requires=omnia_core.service openchami.target pulp.service registry.service minio.service {{ kubespray_service_list }}
+Requires=omnia_core.service openchami.target pulp.service registry.service minio.service omnia_auth.service {{ kubespray_service_list }}
 After=network.target
 Wants=network-online.target
 
