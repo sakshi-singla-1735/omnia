@@ -62,7 +62,7 @@
             SHOW DATABASES;
 
             CREATE DATABASE slurm_acct_db;
-            CREATE USER 'slurm'@'%' IDENTIFIED BY '{{ slurm_db_password }}';
+            CREATE USER 'slurm'@'%' IDENTIFIED BY '{{ hostvars['localhost']['slurm_db_password'] }}';
             GRANT ALL PRIVILEGES ON slurm_acct_db.* TO 'slurm'@'%';
             FLUSH PRIVILEGES;
 
