@@ -39,44 +39,13 @@
             "server_ip",
             "server_share_path",
             "client_share_path",
-            "client_mount_options",
-            "nfs_server"
+            "client_mount_options"
           ]
         },
         "minItems": 1
-      },
-      "beegfs_rdma_support": {
-        "type": "boolean",
-        "default": false
-      },
-      "beegfs_ofed_kernel_modules_path": {
-        "type": "string",
-        "default": "/usr/src/ofa_kernel/default/include"
-      },
-      "beegfs_mgmt_server": {
-        "type": "string",
-        "format": "ipv4"
-      },
-      "beegfs_mounts": {
-        "type": "string",
-        "default": "/mnt/beegfs"
-      },
-      "beegfs_unmount_client": {
-        "type": "boolean",
-        "default": false
-      },
-      "beegfs_version_change": {
-        "type": "boolean",
-        "default": false
-      },
-      "beegfs_secret_storage_filepath": {
-        "type": "string",
-        "minLength": 1
       }
     },
     "required": [
-      "nfs_client_params",
-      "beegfs_mgmt_server",
-      "beegfs_secret_storage_filepath"
+      "nfs_client_params"
     ]
   }
