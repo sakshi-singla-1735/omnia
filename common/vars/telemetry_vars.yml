@@ -11,3 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+rhel_repos:
+  - { name: 'RHEL10_Epel', url: 'https://dl.fedoraproject.org/pub/epel/10.0/Everything/x86_64/', gpg: 'https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-10' }      # noqa: yaml[line-length]
+  - { name: 'RHEL10_BaseOS', url: 'http://linuxlib.us.dell.com/pub/redhat/RHEL10/10.0/BaseOS/x86_64/os/', gpg: 'http://linuxlib.us.dell.com/pub/Distros/RedHat/RHEL10/10.0/BaseOS/x86_64/os/RPM-GPG-KEY-redhat-beta' }     # noqa: yaml[line-length]
+  - { name: 'RHEL10_AppStream', url: 'http://linuxlib.us.dell.com/pub/redhat/RHEL10/10.0/AppStream/x86_64/os/', gpg: 'http://linuxlib.us.dell.com/pub/Distros/RedHat/RHEL10/10.0/AppStream/x86_64/os/RPM-GPG-KEY-redhat-beta' }     # noqa: yaml[line-length]
