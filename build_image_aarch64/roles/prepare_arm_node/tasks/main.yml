@@ -51,7 +51,7 @@
   register: arch_result
   changed_when: false
 
-# Fail the play if the target machine is not ARM64 (aarch64)
+# Fail the play if the target machine is not aarch64
 - name: Fail if machine is not aarch64
   ansible.builtin.fail:
     msg: "{{ not_aarch64_error_msg }}"

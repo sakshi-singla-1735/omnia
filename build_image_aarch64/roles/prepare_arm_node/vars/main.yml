@@ -24,10 +24,10 @@ no_inventory_error_msg: "No inventory provided. Please specify an inventory with
 admin_aarch64_empty_error_msg: "The inventory group 'admin_aarch64' does not exist or has no hosts."
 admin_aarch64_count_error_msg: "The inventory group 'admin_aarch64' must have exactly one host."
 network_spec_syntax_fail_msg: "Failed to load network_spec.yml due to syntax error"
-not_aarch64_error_msg: "This is not an ARM64 (aarch64) machine. Only ARM64 nodes can be used to build the image."
+not_aarch64_error_msg: "This is not an aarch64 machine. Only ARM nodes can be used to build the image."
 nfs_not_configured_msg: >
-  To build AArch64 images on an ARM node, the NFS server must be configured on the OIM.
+  To build aarch64 images on an ARM node, the NFS server must be configured on the OIM.
   Please run oim_cleanup.yml and reinstall the omnia_core container with the NFS option.
 ochami_tar_fail_msg: >
-  Ochami ARM image file not found at the expected path.
+  Ochami aarch64 image file not found at the expected path.
   Please run 'prepare_oim.yml' to generate the image tar before executing this playbook.

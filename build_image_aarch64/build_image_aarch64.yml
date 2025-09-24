@@ -48,7 +48,7 @@
         tasks_from: gather_oim_data.yml
         vars_from: main
 
-- name: Prepare AArch64 nodes
+- name: Prepare aarch64 nodes
   hosts: admin_aarch64
   gather_facts: false
   roles:
