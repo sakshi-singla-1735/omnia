@@ -80,6 +80,10 @@
       ansible.builtin.include_role:
         name: slurm_config
 
+    - name: Openldap pre_req
+      ansible.builtin.include_role:
+        name: openldap
+
     - name: Configure ochami
       ansible.builtin.include_role:
         name: configure_ochami
