@@ -40,4 +40,4 @@
   rescue:
     - name: Warn missing vars files
       ansible.builtin.fail:
-        msg: "Failed to Get variable"
+        msg: "{{ openldap_fail_msg }}"
