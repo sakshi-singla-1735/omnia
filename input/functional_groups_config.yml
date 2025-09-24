@@ -89,7 +89,7 @@ groups:
 # This functional_group belongs to the compute layer.
 functional_groups:
   - name: "slurm_control_node_x86_64"
-    cluster_name: ""
+    cluster_name: "slurm_cluster"
     group:
       - grp0
 
@@ -105,7 +105,7 @@ functional_groups:
 # The nodes in this functional_group can be used to run Slurm worker.
 #
   - name: "slurm_node_x86_64"
-    cluster_name: ""
+    cluster_name: "slurm_cluster"
     group:
       - grp1
 
