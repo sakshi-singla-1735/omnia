@@ -59,3 +59,11 @@
   when:
     - not hostvars['localhost']['k8s_offline_install']
     - not hostvars['localhost']['enable_routed_internet']
+
+# Save pulled images as tar files (only kube_node_image_versions + image_versions)
+- name: Save K8s service images to tar
+  ansible.builtin.command: nerdctl save -o /root/k8s/{{ hostvars['localhost']['k8s_version'] }}/kube_node_configs/k8s-images/{{ item | regex_replace('[^a-zA-Z0-9_.-]', '_') }}.tar {{ item }} # noqa: yaml[line-length]
+  with_items: "{{ csi_powerscale_image_versions }}"
+  changed_when: true
+  delegate_to: "{{ groups['kube_control_plane'][0] }}"
+

@@ -148,18 +148,18 @@
   roles:
     - common_plugins
 
- # - name: CSI powerscale image pulling
- #   hosts: kube_control_plane
- #   tasks:
- #     - name: Pull images
- #       ansible.builtin.include_role:
- #         name: k8s_csi_powerscale_plugin
- #         tasks_from: csi_powerscale_image_pull.yml
- #       when:
- #         - hostvars['127.0.0.1']['csi_driver_powerscale_precheck_pass'] | default(false) | bool
+- name: CSI powerscale image pulling
+  hosts: kube_control_plane[0]
+  tasks:
+    - name: Pull images
+      ansible.builtin.include_role:
+        name: k8s_csi_powerscale_plugin
+        tasks_from: csi_powerscale_image_pull.yml
+      when:
+        - hostvars['127.0.0.1']['csi_driver_powerscale_precheck_pass'] | default(false) | bool
 
- # - name: Install CSI powerscale plugin on kube control nodes
- #   hosts: kube_control_plane[0]
- #   gather_facts: false
- #   roles:
- #     - k8s_csi_powerscale_plugin
+- name: Install CSI powerscale plugin on kube control nodes
+  hosts: kube_control_plane[0]
+  gather_facts: false
+  roles:
+    - k8s_csi_powerscale_plugin
