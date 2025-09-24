@@ -68,7 +68,7 @@ def validate_provision_config(
         errors.append(
             create_error_msg("language", input_file_path, en_us_validation_msg.LANGUAGE_EMPTY_MSG)
         )
-    elif "en-US" not in language:
+    elif "en_US.UTF-8" not in language:
         errors.append(
             create_error_msg("language", input_file_path, en_us_validation_msg.LANGUAGE_FAIL_MSG)
         )
@@ -101,6 +101,7 @@ def validate_provision_config(
                 en_us_validation_msg.DEFAULT_LEASE_TIME_FAIL_MSG,
             )
         )
+    return errors
 
 
 
@@ -132,7 +133,6 @@ def validate_network_spec(
 
     for network in data["Networks"]:
         errors.extend(_validate_admin_network(network))
-        errors.extend(_validate_bmc_network(network))
 
     return errors
 
@@ -150,13 +150,16 @@ def _validate_admin_network(network):
     Validates:
         - Netmask bits
         - Network gateway
-        - Static and dynamic IP ranges
+        - Dynamic IP ranges
     """
     errors = []
     if "admin_network" not in network:
         return errors
 
     admin_net = network["admin_network"]
+    primary_oim_admin_ip = admin_net.get("primary_oim_admin_ip", "")
+    primary_oim_bmc_ip = admin_net.get("primary_oim_bmc_ip", "")
+    dynamic_range = admin_net.get("dynamic_range", "")
 
     # Validate netmask_bits
     if "netmask_bits" in admin_net:
@@ -170,119 +173,105 @@ def _validate_admin_network(network):
                 )
             )
 
-    # Validate network gateway
-    if "network_gateway" in admin_net and admin_net["network_gateway"]:
-        gateway = admin_net["network_gateway"]
-        if not validation_utils.validate_ipv4(gateway):
-            errors.append(
-                create_error_msg(
-                    "admin_network.network_gateway",
-                    gateway,
-                    en_us_validation_msg.NETWORK_GATEWAY_FAIL_MSG,
-                )
-            )
-
     # Validate IP ranges
-    if "static_range" in admin_net and "dynamic_range" in admin_net:
+    if "dynamic_range" in admin_net:
         errors.extend(
             _validate_ip_ranges(
-                admin_net["static_range"], admin_net["dynamic_range"], "admin_network", netmask
+                admin_net["dynamic_range"], "admin_network", netmask
             )
         )
 
+    #  Admin and BMC IP should not be the same
+    errors.extend(validate_admin_bmc_ip_not_same(primary_oim_admin_ip, primary_oim_bmc_ip))
+
+    # Both should be valid IPv4 addresses (BMC IP is optional)
+    errors.extend(validate_admin_bmc_ip_valid(primary_oim_admin_ip, primary_oim_bmc_ip))
+
+    # Neither should be in the dynamic_range
+    errors.extend(validate_admin_bmc_ip_not_in_dynamic_range(primary_oim_admin_ip, primary_oim_bmc_ip, dynamic_range))
+
+
     return errors
 
-
-def _validate_bmc_network(network):
+def validate_admin_bmc_ip_not_same(primary_oim_admin_ip, primary_oim_bmc_ip):
     """
-    Validates the BMC (Baseboard Management Controller) network configuration.
-
-    Args:
-        network (dict): BMC network configuration dictionary containing network settings
-
-    Returns:
-        list: List of validation errors for BMC network, empty if no errors found
-
-    Validates:
-        - Netmask bits
-        - Network gateway
-        - Dynamic range and dynamic conversion static range
+    Validates that primary_oim_admin_ip and primary_oim_bmc_ip are not the same.
     """
     errors = []
-    if "bmc_network" not in network:
-        return errors
-
-    bmc_net = network.get("bmc_network", {})
-
-    # Skip validation if BMC network is empty
-    if not any(bmc_net.values()):
-        return errors
-
-    # Validate netmask_bits
-    if bmc_net.get("netmask_bits"):
-        netmask = bmc_net["netmask_bits"]
-        if not validation_utils.validate_netmask_bits(netmask):
-            errors.append(
-                create_error_msg(
-                    "bmc_network.netmask_bits", netmask, en_us_validation_msg.NETMASK_BITS_FAIL_MSG
-                )
-            )
-
-    # Validate network gateway
-    if bmc_net.get("network_gateway"):
-        gateway = bmc_net["network_gateway"]
-        if not validation_utils.validate_ipv4(gateway):
-            errors.append(
-                create_error_msg(
-                    "bmc_network.network_gateway",
-                    gateway,
-                    en_us_validation_msg.NETWORK_GATEWAY_FAIL_MSG,
-                )
-            )
-
-    # Validate IP ranges
-    if bmc_net.get("dynamic_range") and bmc_net.get("dynamic_conversion_static_range"):
-        errors.extend(
-            _validate_ip_ranges(
-                bmc_net["dynamic_conversion_static_range"],
-                bmc_net["dynamic_range"],
-                "bmc_network",
-                netmask,
+    if primary_oim_admin_ip and primary_oim_bmc_ip and primary_oim_admin_ip == primary_oim_bmc_ip:
+        errors.append(
+            create_error_msg(
+                "primary_oim_admin_ip",
+                primary_oim_admin_ip,
+                en_us_validation_msg.PRIMARY_ADMIN_BMC_IP_SAME_MSG
             )
         )
-
     return errors
 
-
-def _validate_ip_ranges(static_range, dynamic_range, network_type, netmask_bits):
+def validate_admin_bmc_ip_valid(primary_oim_admin_ip, primary_oim_bmc_ip):
     """
-    Validates and checks for overlap between static and dynamic IP ranges.
+    Validates that both primary_oim_admin_ip and primary_oim_bmc_ip are valid IPv4 addresses.
+    """
+    errors = []
+    if primary_oim_admin_ip and not validation_utils.validate_ipv4(primary_oim_admin_ip):
+        errors.append(
+            create_error_msg(
+                "primary_oim_admin_ip",
+                primary_oim_admin_ip,
+                en_us_validation_msg.PRIMARY_ADMIN_IP_INVALID_MSG
+            )
+        )
+    if primary_oim_bmc_ip and not validation_utils.validate_ipv4(primary_oim_bmc_ip):
+        errors.append(
+            create_error_msg(
+                "primary_oim_bmc_ip",
+                primary_oim_bmc_ip,
+                en_us_validation_msg.PRIMARY_BMC_IP_INVALID_MSG
+            )
+        )
+    return errors
+
+def validate_admin_bmc_ip_not_in_dynamic_range(primary_oim_admin_ip, primary_oim_bmc_ip, dynamic_range):
+    """
+    Validates that neither primary_oim_admin_ip nor primary_oim_bmc_ip are within the dynamic_range.
+    """
+    errors = []
+    if dynamic_range:
+        if primary_oim_admin_ip and validation_utils.is_ip_within_range(dynamic_range, primary_oim_admin_ip):
+            errors.append(
+                create_error_msg(
+                    "primary_oim_admin_ip",
+                    primary_oim_admin_ip,
+                    en_us_validation_msg.PRIMARY_ADMIN_IP_IN_DYNAMIC_RANGE_MSG
+                )
+            )
+        if primary_oim_bmc_ip and validation_utils.is_ip_within_range(dynamic_range, primary_oim_bmc_ip):
+            errors.append(
+                create_error_msg(
+                    "primary_oim_bmc_ip",
+                    primary_oim_bmc_ip,
+                    en_us_validation_msg.PRIMARY_BMC_IP_IN_DYNAMIC_RANGE_MSG
+                )
+            )
+    return errors
+
+def _validate_ip_ranges(dynamic_range, network_type, netmask_bits):
+    """
+    Validates a dynamic IP range for a given network type and netmask.
 
     Args:
-        static_range (str): IP range for static addresses (format: "start_ip-end_ip")
         dynamic_range (str): IP range for dynamic addresses (format: "start_ip-end_ip")
-        network_type (str): Type of network being validated ("admin_network" or "bmc_network")
+        network_type (str): Type of network being validated ("admin_network")
         netmask_bits (str): The netmask bits value to validate IP ranges against
 
     Returns:
         list: List of validation errors for IP ranges, empty if no errors found
 
     Validates:
-        - IP range format
-        - Overlap between static and dynamic ranges
-        - IP ranges are within valid netmask boundaries
+        - Dynamic IP range format.
+        - Dynamic IP range is within valid netmask boundaries.
     """
     errors = []
-
-    # Validate range formats
-    if not validation_utils.validate_ipv4_range(static_range):
-        errors.append(
-            create_error_msg(
-                f"{network_type}.static_range",
-                static_range,
-                en_us_validation_msg.RANGE_IP_CHECK_FAIL_MSG,
-            )
-        )
 
     if not validation_utils.validate_ipv4_range(dynamic_range):
         errors.append(
@@ -293,35 +282,8 @@ def _validate_ip_ranges(static_range, dynamic_range, network_type, netmask_bits)
             )
         )
 
-    # Check for overlap if both ranges are valid
-    if validation_utils.validate_ipv4_range(static_range) and validation_utils.validate_ipv4_range(
-        dynamic_range
-    ):
-        does_overlap, _ = validation_utils.check_overlap([static_range, dynamic_range])
-        if does_overlap:
-            range_info = {"static_range": static_range, "dynamic_range": dynamic_range}
-            errors.append(
-                create_error_msg(
-                    f"{network_type}.ranges",
-                    range_info,
-                    en_us_validation_msg.RANGE_IP_CHECK_OVERLAP_MSG,
-                )
-            )
-
     # Validate that IP ranges are within the netmask boundaries
     if netmask_bits:
-        # Check static range
-        if validation_utils.validate_ipv4_range(
-            static_range
-        ) and not validation_utils.is_range_within_netmask(static_range, netmask_bits):
-            errors.append(
-                create_error_msg(
-                    f"{network_type}.static_range",
-                    static_range,
-                    en_us_validation_msg.RANGE_NETMASK_BOUNDARY_FAIL_MSG,
-                )
-            )
-
         # Check dynamic range
         if validation_utils.validate_ipv4_range(
             dynamic_range

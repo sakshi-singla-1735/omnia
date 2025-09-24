@@ -78,12 +78,61 @@ SERVICE_NODE_ENTRY_INVALID_ROLES_CONFIG_MSG = ("The 'service_node' role defined 
     " is not currently supported and is reserved for future use. Please remove or update this role"
     " to avoid configuration errors.")
 
+# Functional Groups Config Validation Messages
+
+EMPTY_OR_SYNTAX_ERROR_FUNCTIONAL_GROUPS_CONFIG_MSG = (
+    "The functional_groups_config.yml file is empty or has syntax errors." 
+    "It must contain a valid 'functional_groups' section with proper YAML formatting."
+    "Check the file content and rerun the playbook."
+)
+MISSING_GROUPS_SECTION_MSG = (
+    "The functional_groups_config.yml file is empty or has syntax errors." 
+    "It must contain a valid 'groups' section with proper YAML formatting."
+    "Check the file content and rerun the playbook."
+)
+MISSING_FUNCTIONAL_GROUPS_SECTION_MSG = (
+    "The functional_groups_config.yml file must contain a valid 'functional_groups' section. It must be a non-empty list."
+)
+NON_EMPTY_CLUSTER_NAME_MSG = "Cluster name must not be empty for '{name}' functional group."
+FUNCTIONAL_GROUPS_NOT_LIST_MSG = (
+    "The 'functional_groups' key must be associated with a list of functional group definitions."
+)
+EACH_FUNCTIONAL_GROUP_NOT_DICT_MSG = (
+    "Each functional group entry must be a dictionary with required fields."
+)
+MISSING_FIELD_FUNCTIONAL_GROUP_MSG = "Missing required field: {field}"
+DUPLICATE_FUNCTIONAL_GROUP_NAME_MSG = (
+    "Duplicate functional group name found."
+)
+LOGIN_NODE_WITHOUT_SLURM_MSG = (
+    "Login node defined for cluster '{cluster}' but no corresponding slurm_control_node exists."
+    "Please make sure cluster name is same for slurm cluster and login_node functional groups."
+)
+SLURM_NODE_PARENT_MISSING_MSG = (
+    "Functional group '{name}' must have a non-empty 'parent' field."    
+)
+MISSING_FUNCTIONAL_GROUPS_SECTION_MSG = (
+    "The 'functional_groups' section is missing or null. It must be a non-empty list."
+)
+SLURM_NODE_WITHOUT_CONTROL_MSG = (
+    "Slurm node defined for cluster '{cluster}' but no corresponding slurm_control_node exists. "
+    "Please make sure cluster name is same for slurm_control_node and slurm_node functional groups."
+)
+SLURM_KUBE_CLUSTER_OVERLAP_MSG = (
+    "Cluster '{cluster}' is defined for both SLURM nodes and Kubernetes nodes. Overlap not allowed."
+)
+
 # provision_config.yml
+PRIMARY_ADMIN_BMC_IP_SAME_MSG = "primary_oim_admin_ip and primary_oim_bmc_ip should not be the same."
+PRIMARY_ADMIN_IP_INVALID_MSG = "primary_oim_admin_ip is not a valid IPv4 address."
+PRIMARY_BMC_IP_INVALID_MSG = "primary_oim_bmc_ip is not a valid IPv4 address."
+PRIMARY_ADMIN_IP_IN_DYNAMIC_RANGE_MSG = "primary_oim_admin_ip should not be within the dynamic_range."
+PRIMARY_BMC_IP_IN_DYNAMIC_RANGE_MSG = "primary_oim_bmc_ip should not be within the dynamic_range."
 DEFAULT_LEASE_TIME_FAIL_MSG = "Please provide a valid default_lease_time."
 TIMEZONE_FAIL_MSG = ("Unsupported Timezone. Please check the timezone.txt file "
                     "for a list of valid timezones.")
 ENABLE_SWITCH_BASED_FAIL_MSG = "enable_switch_based must be set to either true or false."
-LANGUAGE_FAIL_MSG = "Only en-US language supported"
+LANGUAGE_FAIL_MSG = "Only en_US.UTF-8 language supported"
 LANGUAGE_EMPTY_MSG = "Language setting cannot be empty"
 PUBLIC_NIC_FAIL_MSG = "public_nic is empty. Please provide a public_nic value."
 PXE_MAPPING_FILE_PATH_FAIL_MSG = ("File path is invalid. Please ensure the file path specified in "
@@ -152,21 +201,15 @@ SWITCH_SNMP3_PASSWORD_FAIL_MSG = ("switch_snmp3_password must be at least 3 char
 
 
 # telemetry_config.yml
-UNSUPPORTED_IDRAC_TELEMETRY_COLLECTION_TYPE= ("unsupported. 'kafka' or 'prometheus' "
-                                              "is the supported telemetry collection type.")
 KAFKA_ENABLE_FEDERATED_IDRAC_TELEMETRY_COLLECTION= ("requires federated_idrac_telemetry_collection "
                                              "to be enabled. Please rerun the playbook "
                                              "with federated_idrac_telemetry_collection true"
                                              "in telemetry_config.yml.")
 TELEMETRY_SERVICE_CLUSTER_ENTRY_MISSING_ROLES_CONFIG_MSG= ("requires service k8s roles to be "
-                                             "defined in roles_config.yml. Please either configure "
-                                             "service k8s roles in roles_config.yml "
-                                             "or disable federated_idrac_telemetry_collection "
+                                             "defined in functional_groups_config.yml. Please either configure "
+                                             "service k8s roles in functional_groups_config.yml "
+                                             "or disable idrac_telemetry_support "
                                              "in telemetry_config.yml and rerun the playbook.")
-ENABLE_FEDERATED_IDRAC_TELEMETRY_COLLECTION=("it is recommended to set "
-                                             "federated_idrac_telemetry_collection to true "
-                                             "in telemetry_config.yml as service k8s cluster "
-                                             "is defined in roles_config.yml.")
 
 def boolean_fail_msg(value):
     """Returns a formatted message indicating boolean_fail_msg."""

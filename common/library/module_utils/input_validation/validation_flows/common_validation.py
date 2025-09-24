@@ -948,11 +948,11 @@ def validate_server_spec(
     return errors
 
 
-def get_admin_bmc_networks(
+def get_admin_networks(
     input_file_path, logger, module, omnia_base_dir, module_utils_base, project_name
 ):
     """
-    Retrieves the admin and BMC networks from the network specification.
+    Retrieves the admin network from the network specification.
 
     Args:
         input_file_path (str): The path to the input file.
@@ -963,23 +963,23 @@ def get_admin_bmc_networks(
         project_name (str): The name of the project.
 
     Returns:
-        dict: A dictionary containing the admin and BMC networks.
+        dict: A dictionary containing the admin network.
     """
     network_spec_file_path = create_file_path(input_file_path, file_names["network_spec"])
     network_spec_json = validation_utils.load_yaml_as_json(
         network_spec_file_path, omnia_base_dir, project_name, logger, module
     )
-    admin_bmc_networks = {}
+    admin_networks = {}
 
     for network in network_spec_json["Networks"]:
         for key, value in network.items():
             if key in ["admin_network"]:
                 dynamic_range = value.get("dynamic_range", "N/A")
-                admin_bmc_networks[key] = {
+                admin_networks[key] = {
                     "dynamic_range": dynamic_range,
                     "primary_oim_admin_ip": value.get("primary_oim_admin_ip")
                 }
-    return admin_bmc_networks
+    return admin_networks
 
 def is_ip_in_range(ip_str, ip_range_str):
     """
@@ -994,24 +994,22 @@ def is_ip_in_range(ip_str, ip_range_str):
         return start_ip <= ip <= end_ip
     except ValueError:
         return False
-    
 
-def validate_k8s(data, admin_bmc_networks, softwares, ha_config, tag_names, errors, 
+
+def validate_k8s(data, admin_networks, softwares, ha_config, tag_names, errors, 
                  omnia_base_dir, project_name, logger, module, input_file_path):
     """
     Validates Kubernetes cluster configurations.
 
     Parameters:
         data (dict): A dictionary containing Kubernetes cluster configurations.
-        admin_bmc_networks (dict): A dictionary containing admin BMC network information.
+        admin_networks (dict): A dictionary containing admin network information.
         softwares (list): A list of software name sin software_config.
         errors (list): A list to store error messages.
     """
+    admin_dynamic_range = admin_networks["admin_network"]["dynamic_range"]
+    primary_oim_admin_ip = admin_networks["admin_network"]["primary_oim_admin_ip"]
 
-    admin_dynamic_range = admin_bmc_networks["admin_network"]["dynamic_range"]
-
-    primary_oim_admin_ip = admin_bmc_networks["admin_network"]["primary_oim_admin_ip"]
-    
     # service_k8s_cluster = data["service_k8s_cluster"]
     cluster_set = {}
 
@@ -1158,7 +1156,7 @@ def validate_omnia_config(
 
     if ("service_k8s" in sw_list) and \
         ("service_k8s" in tag_names):
-        admin_bmc_networks = get_admin_bmc_networks(
+        admin_networks = get_admin_networks(
             input_file_path, logger, module, omnia_base_dir, module_utils_base, project_name)
         ha_config_path = create_file_path(
             input_file_path, file_names["high_availability_config"])
@@ -1166,19 +1164,16 @@ def validate_omnia_config(
             ha_config = yaml.safe_load(f)
         for k in ["service_k8s_cluster_ha"]:
             ha_config[k] = [xha["cluster_name"] for xha in ha_config.get(k, [])]
-        validate_k8s(data, admin_bmc_networks, sw_list, ha_config, tag_names,
+        validate_k8s(data, admin_networks, sw_list, ha_config, tag_names,
                         errors, omnia_base_dir, project_name, logger, module, input_file_path)
     return errors
 
-def check_is_service_cluster_roles_defined(
-        errors,
-        input_file_path,
-        omnia_base_dir,
-        project_name,
-        logger,
-        module):
+def check_is_service_cluster_functional_groups_defined(
+    errors, input_file_path, omnia_base_dir, project_name, logger, module
+):
     """
-    Checks if the required service cluster roles are configured in the roles_config.yml file.
+    Checks if 'service_kube_node_x86_64' is configured in the functional_groups_config.yml file,
+    and ensures its cluster_name does not overlap with any Slurm role.
 
     Args:
         errors (list): A list to store error messages.
@@ -1189,16 +1184,51 @@ def check_is_service_cluster_roles_defined(
         module (object): A module object for logging messages.
 
     Returns:
-        True if service cluster roles are defined else returns False
+        True if 'service_kube_node_x86_64' is defined and valid, else False
     """
-    roles_config_file_path = create_file_path(input_file_path, file_names["roles_config"])
-    roles_config_json = validation_utils.load_yaml_as_json(
-        roles_config_file_path, omnia_base_dir, project_name, logger, module)
-    roles_details = roles_config_json.get("Roles", [])
-    # Extract the 'name' values from List1
-    roles_configured = [item['name'] for item in roles_details]
-    service_cluster_roles = ["service_kube_control_plane","service_etcd","service_kube_node"]
-    return all(role in roles_configured for role in service_cluster_roles)
+    functional_groups_config_file_path = create_file_path(
+        input_file_path, file_names["functional_groups_config"]
+    )
+    functional_groups_config_json = validation_utils.load_yaml_as_json(
+        functional_groups_config_file_path, omnia_base_dir, project_name, logger, module
+    )
+    functional_groups = functional_groups_config_json.get("functional_groups", [])
+
+    kube_cluster = None
+    slurm_clusters = set()
+
+    for group in functional_groups:
+        name = group.get("name", "")
+        cluster = group.get("cluster_name", "")
+
+        # Capture kube service cluster
+        if name == "service_kube_node_x86_64":
+            kube_cluster = cluster
+
+        # Collect slurm clusters
+        if name in [
+            "slurm_control_node_x86_64",
+            "slurm_node_x86_64",
+            "slurm_node_aarch64",
+        ]:
+            if cluster:
+                slurm_clusters.add(cluster)
+
+    if kube_cluster:
+        if kube_cluster in slurm_clusters:
+            errors.append(
+                create_error_msg(
+                    "functional_groups_config.yml",
+                    kube_cluster,
+                    en_us_validation_msg.SLURM_KUBE_CLUSTER_OVERLAP_MSG.format(
+                        cluster=kube_cluster
+                    ),
+                )
+            )
+            return False
+        return True
+
+    return False
 
 def validate_telemetry_config(
     input_file_path,
@@ -1236,51 +1266,19 @@ def validate_telemetry_config(
     errors = []
 
     idrac_telemetry_support = data.get("idrac_telemetry_support")
-    federated_idrac_telemetry_collection = data.get("federated_idrac_telemetry_collection")
-
-    collection_type = data.get("idrac_telemetry_collection_type")
-    if idrac_telemetry_support:
-        if collection_type:
-            if collection_type not in config.supported_telemetry_collection_type:
-                errors.append(create_error_msg(
-                    "idrac_telemetry_collection_type",
-                    collection_type,
-                    en_us_validation_msg.UNSUPPORTED_IDRAC_TELEMETRY_COLLECTION_TYPE
-                    )
-                )
-                return errors
-
-            if collection_type == "kafka" and not federated_idrac_telemetry_collection:
-                errors.append(create_error_msg(
-                    "for idrac_telemetry_collection_type",
-                    collection_type,
-                    en_us_validation_msg.KAFKA_ENABLE_FEDERATED_IDRAC_TELEMETRY_COLLECTION
-                    )
-                )
-                return errors
-
-        is_service_cluster_defined = check_is_service_cluster_roles_defined(errors,
-                                    input_file_path,
-                                    omnia_base_dir,
-                                    project_name,
-                                    logger,
-                                    module)
-
-        if federated_idrac_telemetry_collection and not is_service_cluster_defined:
-            errors.append(create_error_msg(
-                "federated_idrac_telemetry_collection can be",
-                federated_idrac_telemetry_collection,
-                en_us_validation_msg.TELEMETRY_SERVICE_CLUSTER_ENTRY_MISSING_ROLES_CONFIG_MSG
-                )
-            )
-        elif not federated_idrac_telemetry_collection and is_service_cluster_defined:
-            errors.append(create_error_msg(
-                "federated_idrac_telemetry_collection",
-                federated_idrac_telemetry_collection,
-                en_us_validation_msg.ENABLE_FEDERATED_IDRAC_TELEMETRY_COLLECTION
-                )
-            )
-
+    is_service_cluster_defined = check_is_service_cluster_functional_groups_defined(errors,
+                                input_file_path,
+                                omnia_base_dir,
+                                project_name,
+                                logger,
+                                module)
+    if idrac_telemetry_support and not is_service_cluster_defined:
+        errors.append(create_error_msg(
+            "idrac_telemetry_support can be",
+            idrac_telemetry_support,
+            en_us_validation_msg.TELEMETRY_SERVICE_CLUSTER_ENTRY_MISSING_ROLES_CONFIG_MSG
+            )    
+        )
     return errors
 
 def validate_additional_software(

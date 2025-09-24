@@ -17,29 +17,42 @@
 
 import re
 import pandas as pd
-
+import yaml
 from ansible.module_utils.basic import AnsibleModule
 
-def main():
+
+def load_functional_groups_yaml(path, module):
+    """Load functional group names from YAML."""
+    try:
+        with open(path, 'r') as f:
+            data = yaml.safe_load(f)
+        return set(
+            fg.get("name") if isinstance(fg, dict) else str(fg)
+            for fg in data.get("functional_groups", [])
+        )
+    except Exception as e:
+        module.fail_json(msg=f"Failed to load functional_groups_config.yml: {str(e)}")
+
+
+def check_functional_groups_in_mapping(csv_file, config_fgs, module):
+    """Check that all functional groups in mapping file exist in functional_groups YAML."""
+    mapping_fgs = set(csv_file['FUNCTIONAL_GROUP_NAME'].str.strip().unique())
+    missing_fgs = mapping_fgs - config_fgs
+    if missing_fgs:
+        module.fail_json(
+            msg=f"The following FUNCTIONAL_GROUP_NAME(s) are missing in functional_groups_config.yml: {', '.join(missing_fgs)}"
+        )
+
+
+def validate_mapping_file(mapping_file_path, functional_groups_file, module):
     """
-	Validate a mapping file.
-
-	Parameters:
-		mapping_file_path (str): The path to the mapping file.
-
-	"""
-
-    module_args = {
-        'mapping_file_path': {'type': 'path', 'required': True }
-    }
-
-
-    module = AnsibleModule(argument_spec=module_args, supports_check_mode=False)
-
-
-    mapping_file_path = module.params.get('mapping_file_path')
-
-    # Validate the mapping file
+    Validate CSV mapping file:
+        - Mandatory columns
+        - Non-null values
+        - MAC addresses format
+        - Service tags
+        - Functional groups existence in YAML
+    """
     try:
         csv_file = pd.read_csv(mapping_file_path)
         if len(csv_file) == 0:
@@ -55,8 +68,8 @@ def main():
             if col not in csv_file.columns:
                 module.fail_json(msg=f"Missing mandatory column: {col}")
 
-        non_null_col = ["FUNCTIONAL_GROUP_NAME", "SERVICE_TAG", "ADMIN_MAC", "HOSTNAME", "ADMIN_IP", "BMC_MAC", "BMC_IP"]
-        for col in non_null_col:
+        # Validate non-null values
+        for col in mandatory_col:
             if csv_file[col].isnull().values.any():
                 module.fail_json(msg=f"Null values found in column: {col}")
 
@@ -73,7 +86,11 @@ def main():
 
         for mac in csv_file['BMC_MAC']:
             if not re.match(pattern, mac):
-                module.fail_json(msg=f"Invalid ADMIN_MAC: {mac}")
+                module.fail_json(msg=f"Invalid BMC_MAC: {mac}")
+
+        # Validate functional groups presence in YAML
+        config_fgs = load_functional_groups_yaml(functional_groups_file, module)
+        check_functional_groups_in_mapping(csv_file, config_fgs, module)
 
         # If all checks pass
         module.exit_json(changed=False, msg="Mapping file is valid")
@@ -81,5 +98,30 @@ def main():
     except Exception as e:
         module.fail_json(msg=str(e))
 
-if __name__ == '__main__':
+
+def run_module():
+    module_args = {
+        'mapping_file_path': {'type': 'path', 'required': True },
+        'functional_groups_file_path': {'type': 'path', 'required': True }
+    }
+
+    module = AnsibleModule(argument_spec=module_args, supports_check_mode=False)
+    mapping_file_path = module.params.get('mapping_file_path')
+    functional_groups_file_path = module.params["functional_groups_file_path"]
+
+    validate_mapping_file(mapping_file_path, functional_groups_file_path, module)
+
+
+def main():
+    """
+	Validate a mapping file.
+
+	Parameters:
+		mapping_file_path (str): The path to the mapping file.
+
+	"""
+    run_module()
+
+
+if __name__ == "__main__":
     main()

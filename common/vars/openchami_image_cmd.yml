@@ -20,32 +20,16 @@ base_image_commands:
   - "echo DRACUT LOG:; cat /tmp/dracut.log"
 
 default_x86_64_compute_commands:
-  - "useradd -mG wheel -p '$6$VHdSKZNm$O3iFYmRiaFQCemQJjhfrpqqV7DdHBi5YpY6Aq06JSQpABPw.3d8PQ8bNY9NuZSmDv7IL/TsrhRJ6btkgKaonT.' testuser"
+  - "echo 'Default x86_64 compute'"
 
 login_node_x86_64_compute_commands:
-  - "useradd -mG wheel -p '$6$VHdSKZNm$O3iFYmRiaFQCemQJjhfrpqqV7DdHBi5YpY6Aq06JSQpABPw.3d8PQ8bNY9NuZSmDv7IL/TsrhRJ6btkgKaonT.' testuser"
-  - "groupadd -r slurm"
-  - "useradd -r -g slurm -d /var/lib/slurm -s /sbin/nologin slurm"
-  - "mkdir -p /var/log/slurm /var/run/slurm /var/spool/slurmd /etc/slurm /var/lib/slurm"
-  - "chown -R slurm:slurm /var/log/slurm /var/run/slurm /var/spool/slurmd /etc/slurm /var/lib/slurm"
-  - "chmod 755 /var/log/slurm /var/run/slurm /var/spool/slurmd /etc/slurm /var/lib/slurm"
+  - "echo 'Login node x86_64 compute'"
 
 service_kube_node_x86_64_compute_commands:
-  - "echo 'Service kube node'"
+  - "echo 'Service kube node x86_64 compute'"
 
 slurm_control_node_x86_64_compute_commands:
-  - "echo 'Slurm Control node'"
+  - "echo 'Slurm Control node x86_64 compute'"
 
 slurm_node_x86_64_compute_commands:
-  - "echo 'Slurm node'"
-
-# login_compute_commands:
-# k8s_head_compute_commands:
-
-
-# ------------------------------------------ temporary ---------------------
-
-rhel_repos:
-  - { name: 'RHEL10_Epel', url: '', gpg: '' }
-  - { name: 'RHEL10_BaseOS', url: '', gpg: '' }
-  - { name: 'RHEL10_AppStream', url: '', gpg: '' }
+  - "echo 'Slurm node x86_64 compute'"

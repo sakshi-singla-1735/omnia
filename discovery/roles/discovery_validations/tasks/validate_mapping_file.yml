@@ -34,6 +34,7 @@
 - name: Validate mapping file
   validate_mapping_file:
     mapping_file_path: "{{ temp_pxe_file_path }}"
+    functional_groups_file_path: "{{ functional_groups_file_path }}"
 
 - name: Read host mapping file from CSV file and return a dictionary
   community.general.read_csv:

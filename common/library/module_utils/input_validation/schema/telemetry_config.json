@@ -3,46 +3,16 @@
   "title": "Telemetry Configuration",
   "type": "object",
   "properties": {
-
     "idrac_telemetry_support": {
       "type": "boolean"
-    },
-    "idrac_telemetry_collection_type": {
-      "type": "string"
-    },
-    "federated_idrac_telemetry_collection": {
-      "type": "boolean"
-    },
-    "kafka_configurations": {
-      "type": "object"
     }
   },
-  "required": [
-    "idrac_telemetry_support",
-    "idrac_telemetry_collection_type",
-    "federated_idrac_telemetry_collection"
-  ],
+  "required": ["idrac_telemetry_support"],
   "allOf": [
     {
       "if": {
         "properties": {
-          "idrac_telemetry_support": {
-                "const": true
-          }
-        }
-      },
-      "then":{
-        "required": [
-          "idrac_telemetry_collection_type"
-        ]
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "idrac_telemetry_collection_type": {
-            "const": "kafka"
-          }
+          "idrac_telemetry_support": { "const": true }
         }
       },
       "then": {
@@ -72,7 +42,8 @@
               "log_retention_hours",
               "log_retention_bytes",
               "topic_partitions"
-            ]
+            ],
+            "additionalProperties": false
           }
         }
       }
