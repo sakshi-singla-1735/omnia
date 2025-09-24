@@ -28,19 +28,28 @@ create_file_path = validation_utils.create_file_path
 
 
 def check_subscription_status():
+    """
+    Check if the system has an active Red Hat subscription.
+    Subscription status is considered True if either entitlement
+    certificates exist or the required Red Hat repository URLs are present.
+
+    Returns:
+        bool: True if the system is subscribed (either entitlement certs
+              exist or required repos are present), False otherwise.
+    """    
     # 1. Check entitlement certs
     entitlement_certs = glob.glob(config.ENTITLEMENT_PEM)
     has_entitlement = len(entitlement_certs) > 0
 
-    # 2. Check repos in /etc/yum.repos.d/redhat.repo
+    # 2. Check redhat repos in redhat.repo
     repo_urls = []
     redhat_repo = config.REDHAT_REPO_FILE
     if os.path.exists(redhat_repo):
         with open(redhat_repo, "r") as f:
             for line in f:
-                if line.startswith("baseurl="):
+                if line.startswith("baseurl ="):
                     url = line.split("=", 1)[1].strip()
-                    if re.search(r"(codeready-builder|baseos|appstream)", url):
+                    if re.search(r"(codeready-builder|baseos|appstream)", url, re.IGNORECASE):
                         repo_urls.append(url)
 
     has_repos = len(repo_urls) > 0

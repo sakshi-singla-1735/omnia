@@ -35,6 +35,7 @@ pulp_cleanup_directory:
   - "{{ omnia_nfs_share }}/offline_repo"
   - "{{ omnia_nfs_share }}/log/local_repo"
   - "{{ omnia_nfs_share }}/k8s_dynamic_json"
+  - "{{ omnia_nfs_share }}/rhel_repo_certs"
 track_file_path: "{{ omnia_nfs_share }}/pulp/pulp_crt_track.txt"
 
 # Usage: cleanup_kubespray.yml
