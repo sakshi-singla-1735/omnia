@@ -38,14 +38,6 @@ slurm_cluster:
     restart_slurm_services: true
     nfs_storage_name: nfs_slurm
 
-# ----------------------------VERIFY INTEL GAUDI INSTALLATION------------------------------------------------------
-
-# It's recommended to do extensive tests hl_qual and hccl when installing a new Gaudi node. This takes around 20mins.
-# To do that during provisioning this variable has to be set to true.
-# By default  no tests are run
-run_intel_gaudi_tests: false
-
-
 # ----------------------------K8S------------------------------------------------------
 #For both service nodes k8s cluster and compute nodes k8s cluster below parameters are required,(List)
 # - cluster_name is required field
