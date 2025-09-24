@@ -15,7 +15,7 @@
 ---
 
 auth_service_directories: "{{ omnia_nfs_share }}/authservice"
-openldap_tls_certs_directory: "{{ auth_service_directories }}/tls"
+openldap_tls_certs_directory: "{{ auth_service_directories }}/tls_certs"
 rhel_cert_file: "ldapserver.crt"
 rhel_cert_key: "ldapserver.key"
 openldap_ports:

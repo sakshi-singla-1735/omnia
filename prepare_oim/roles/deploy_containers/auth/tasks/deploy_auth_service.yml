@@ -20,6 +20,12 @@
     state: directory
     mode: "{{ dir_permissions_755 }}"
 
+- name: Create openldap tls cert directory
+  ansible.builtin.file:
+    path: "{{ openldap_tls_certs_directory }}"
+    state: directory
+    mode: "{{ dir_permissions_755 }}"
+
 - name: Include security config file
   ansible.builtin.include_tasks: include_security_config.yml
 
@@ -30,6 +36,15 @@
 
     - name: Update bootstrap.ldif
       ansible.builtin.include_tasks: configure_bootstrap_ldif.yml
+
+    - name: Generate TLS certificates
+      ansible.builtin.command: |
+        openssl req -new -newkey rsa:4096 -days 365 -nodes -x509 -subj "/C=/ST=/L=/O=/CN={{ admin_nic_ip }}"
+        -addext "subjectAltName=IP:{{ admin_nic_ip }}"
+        -keyout {{ openldap_tls_certs_directory }}/{{ rhel_cert_key }}
+        -out {{ openldap_tls_certs_directory }}/{{ rhel_cert_file }}
+      changed_when: false
+      no_log: true
 
 - name: Check if {{ auth_service_container_name }} is already running and port is occupied # noqa: name[template]
   containers.podman.podman_container_info:
