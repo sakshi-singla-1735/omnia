@@ -16,7 +16,7 @@
 
 metadata_file_path: "/opt/omnia/offline_repo/.data/localrepo_metadata.yml"
 local_repo_check_msg: |
-  Failure: metadata file is not present at path {{ metadata_file_path }}.
+  Failure: metadata file path {{ metadata_file_path }} is not present.
   Please make sure that local_repo.yml playbook is executed successfully.
 input_project_dir: "{{ hostvars['localhost']['input_project_dir'] }}"
 functional_groups_file_path: "{{ input_project_dir }}/functional_groups_config.yml"
