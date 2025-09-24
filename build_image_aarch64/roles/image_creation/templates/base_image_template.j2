@@ -4,16 +4,16 @@ rhel_base_image: "{{ oim_node_name }}/{{ rhel_base_image_name }}"
 cluster_name: "{{ oim_node_name }}"
 cluster_domain: "{{ domain_name }}"
 rhel_base_mounts: {{ ochami_mounts | join(' ') }}
-image_build_name: {{ ochami_x86_64_image | join(' ') }}
+image_build_name: {{ ochami_aarch64_image | join(' ') }}
 rhel_base_command_options: {{ ochami_base_command | join(' ') }}
 
 rhel_repos:
-{% for repo in rhel_x86_64_repos %}
+{% for repo in rhel_aarch64_repos %}
   - { name: '{{ repo.name }}', url: '{{ repo.base_url }}', gpg: '{{ repo.gpg }}' }
 {% endfor %}
 
 base_image_packages:
-{% for pkg in x86_64_base_image_packages %}
+{% for pkg in aarch64_base_image_packages %}
   - {{ pkg }}
 {% endfor %}
 
