@@ -28,11 +28,12 @@
 #     location_id:        - <Mandatory> SU-<n>.RACK-<n> Scalable unit and rack number range is 0-99. This input is case-sensitive. Please use uppercase letters only.
 #     parent:             - <Conditional Mandatory> list of service tag of associated active service node(s).
 #                         - This field will be mandatory for group of nodes which is associated with 'slurm_node' functional_groups.
-
+#                         - This should be in some xname format.
+#                         - eg:- parent: "x1000c1s7b1n1"
 groups:
   grp0:
     location_id: SU-1.RACK-1
-    parent: "x1000c1s7b1n0"
+    parent: ""
 
   grp1:
     location_id: SU-1.RACK-1
@@ -47,6 +48,7 @@ groups:
 #     cluster_name:       - <Conditional Mandatory> Name of the cluster to which the group belongs. This input is case-sensitive.
 #                            This will remain empty for groups which are not associated with any kubernetes functional_groups.
 #     group:              - <Mandatory> list of groups defined by the user
+#                         - This should be unique for each functional_group
 #
 
 # This table lists the functional_groups and the layers they belong to in the cluster.
@@ -54,14 +56,26 @@ groups:
 # +----------------------------------+-------------------+     +------------------------+--------------+
 # | Functional Group Name            | Layer             |     | Functional Group Name  | Layer        |
 # +----------------------------------+-------------------+     +------------------------+--------------+
-# |  service_kube_node_x86_64        | management        |     | default_x86_64         | compute      |
-# |  login_node_x86_64               | management        |     | default_aarch64        | compute      |
-# |  login_node_aarch64              | management        |     | slurm_node_x86_64      | compute      |
-# |  login_compiler_node_x86_64      | management        |     | slurm_node_aarch64     |              |
+# |  service_kube_node_x86_64        | management        |     | slurm_node_x86_64      | compute      |
+# |  login_node_x86_64               | management        |     | slurm_node_aarch64     | compute      |
+# |  login_node_aarch64              | management        |     |                        |              |
+# |  login_compiler_node_x86_64      | management        |     |                        |              |
 # |  login_compiler_node_aarch64     | management        |     |                        |              |
 # |  slurm_control_node_x86_64       | management        |     |                        |              |
 # +----------------------------------+-------------------+     +------------------------+--------------+
-
+#
+#
+# Recommended software should be present in software_config.json file for each functional_group of x86_64:
+#
+# +----------------------------------+--------------------------------------------------------------------------------------+
+# | Functional Group Name            | Recommended Software                                                                 |
+# +----------------------------------+--------------------------------------------------------------------------------------+
+# | service_kube_node_x86_64         | service_k8s.json, nfs.json, openldap.json, ofed.json                                 |
+# | slurm_control_node_x86_64        | slurm_custom.json, nfs.json, openldap.json, ofed.json                                |
+# | slurm_node_x86_64                | slurm_custom.json, nfs.json, openldap.json, ofed.json, cuda.json                     |
+# | login_node_x86_64                | slurm_custom.json, nfs.json, openldap.json, ofed.json                                |
+# | login_compiler_node_x86_64       | slurm_custom.json, nfs.json, openldap.json, ofed.json, ucx.json, openmpi.json        |
+# +----------------------------------+--------------------------------------------------------------------------------------+
 #
 # Slurm Head functional_groups: (x86_64)
 # -----------------------------------------------------------------------------------------------------
@@ -74,12 +88,10 @@ groups:
 # The nodes in this functional_group can be used to run Slurm head.
 # This functional_group belongs to the compute layer.
 functional_groups:
-
   - name: "slurm_control_node_x86_64"
     cluster_name: ""
     group:
-      - grp1
-
+      - grp0
 
 #
 # Slurm Worker functional_groups: (x86_64 / aarch64)
@@ -95,12 +107,12 @@ functional_groups:
   - name: "slurm_node_x86_64"
     cluster_name: ""
     group:
-      - grp0
+      - grp1
 
   # - name: "slurm_node_aarch64"
   #   cluster_name: ""
   #   group:
-  #     - grp1
+  #     - grp2
 
 #
 # Service k8s Worker functional_groups: (x86_64)
@@ -118,7 +130,7 @@ functional_groups:
   # - name: "service_kube_node_x86_64"
   #   cluster_name: ""
   #   group:
-  #     - grp1
+  #     - grp3
 
 #
 # Login Node functional_groups: (x86_64 / aarch64)
@@ -134,12 +146,12 @@ functional_groups:
   # - name: "login_node_x86_64"
   #   cluster_name: ""
   #   group:
-  #     - grp1
+  #     - grp4
 
   # - name: "login_node_aarch64"
   #   cluster_name: ""
   #   group:
-  #     - grp1
+  #     - grp5
 
 #
 # Login_Compiler Node functional_groups: (x86_64 / aarch64)
@@ -155,9 +167,9 @@ functional_groups:
   # - name: "login_compiler_node_x86_64"
   #   cluster_name: ""
   #   group:
-  #     - grp1
+  #     - grp6
 
   # - name: "login_compiler_node_aarch64"
   #   cluster_name: ""
   #   group:
-  #     - grp1
+  #     - grp7

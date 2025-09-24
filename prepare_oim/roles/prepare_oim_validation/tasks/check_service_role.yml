@@ -13,19 +13,23 @@
 #  limitations under the License.
 ---
 
-- name: Include roles_config.yml
+- name: Include functional_groups_config.yml
   block:
-    - name: Include roles_config.yml
-      ansible.builtin.include_vars: "{{ roles_config_path }}"
-      register: roles_config_data
+    - name: Include functional_groups_config.yml
+      ansible.builtin.include_vars: "{{ functional_groups_config_path }}"
+      register: functional_groups_config_data
   rescue:
-    - name: Failed to include  roles_config.yml
+    - name: Failed to include functional_groups_config.yml
       ansible.builtin.fail:
-        msg: "{{ roles_config_syntax_fail_msg }} Error: {{ include_roles_config.message }}"
+        msg: "{{ functional_groups_config_syntax_fail_msg }} Error: {{ include_roles_config.message }}"
+
+- name: Register NFS Check
+  ansible.builtin.set_fact:
+    nfs_used: "{{ omnia_share_option == 'NFS' }}"
 
 - name: Fail if service k8s cluster role is defined but external NFS is not configured
   when: >
-    (roles_config_data.ansible_facts.Roles | selectattr('name', 'equalto', 'service_kube_node') | list | length > 0) and
+    (functional_groups_config_data.ansible_facts.functional_groups | selectattr('name', 'equalto', 'service_kube_node_x86_64') | list | length > 0) and
     (not nfs_used or (nfs_type | default('') != 'external'))
   ansible.builtin.fail:
     msg: >-

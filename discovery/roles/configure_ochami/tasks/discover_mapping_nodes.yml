@@ -13,61 +13,64 @@
 # limitations under the License.
 ---
 
-- name: Set openchami SELinux context
-  ansible.builtin.command: chcon -R system_u:object_r:container_file_t:s0 "{{ hostvars['localhost']['oim_shared_path'] }}/omnia/openchami"
-  changed_when: true
-  failed_when: false
-
-- name: Include openchami vars
-  ansible.builtin.include_vars: "{{ openchami_config_vars_path }}"
-
-- name: Create ochami nodes directory
-  ansible.builtin.file:
-    path: "{{ nodes_dir }}"
-    state: directory
-    mode: "{{ hostvars['localhost']['dir_permissions_755'] }}"
-
-- name: Load the openchami nodes.yaml
-  ansible.builtin.template:
-    src: "{{ openchami_nodes_template }}"
-    dest: "{{ openchami_nodes_vars_path }}"
-    mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
-  vars:
-    nodes: "{{ hostvars['localhost']['read_mapping_file']['dict'] | dict2items }}"
-
-- name: Create telemetry directory
-  ansible.builtin.file:
-    path: "{{ telemetry_share_path }}"
-    state: directory
-    mode: "{{ hostvars['localhost']['dir_permissions_755'] }}"
-
-- name: Load BMC-group data file
-  ansible.builtin.template:
-    src: "{{ bmc_group_data_template }}"
-    dest: "{{ bmc_group_data_file }}"
-    mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
-  vars:
-    nodes: "{{ hostvars['localhost']['read_mapping_file']['dict'] | dict2items }}"
-
-- name: Discover ochami nodes
+- name: Configure the ochami
+  environment: "{{ hostvars['oim']['ochami_env'] }}"
   block:
-    - name: Discover ochami nodes
-      ansible.builtin.command: /usr/bin/ochami discover static -f yaml -d @"{{ nodes_dir }}/nodes.yaml" --overwrite
+    - name: Set openchami SELinux context
+      ansible.builtin.command: chcon -R system_u:object_r:container_file_t:s0 "{{ hostvars['localhost']['oim_shared_path'] }}/omnia/openchami"
       changed_when: true
-      register: openchami_discover
-  rescue:
-    - name: Failed to discover nodes
+      failed_when: false
+
+    - name: Include openchami vars
+      ansible.builtin.include_vars: "{{ openchami_config_vars_path }}"
+
+    - name: Create ochami nodes directory
+      ansible.builtin.file:
+        path: "{{ nodes_dir }}"
+        state: directory
+        mode: "{{ hostvars['localhost']['dir_permissions_755'] }}"
+
+    - name: Load the openchami nodes.yaml
+      ansible.builtin.template:
+        src: "{{ openchami_nodes_template }}"
+        dest: "{{ openchami_nodes_vars_path }}"
+        mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
+      vars:
+        nodes: "{{ hostvars['localhost']['read_mapping_file']['dict'] | dict2items }}"
+
+    - name: Create telemetry directory
+      ansible.builtin.file:
+        path: "{{ telemetry_share_path }}"
+        state: directory
+        mode: "{{ hostvars['localhost']['dir_permissions_755'] }}"
+
+    - name: Load BMC-group data file
+      ansible.builtin.template:
+        src: "{{ bmc_group_data_template }}"
+        dest: "{{ bmc_group_data_file }}"
+        mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
+      vars:
+        nodes: "{{ hostvars['localhost']['read_mapping_file']['dict'] | dict2items }}"
+
+    - name: Discover ochami nodes
+      block:
+        - name: Discover ochami nodes
+          ansible.builtin.command: /usr/bin/ochami discover static -f yaml -d @"{{ nodes_dir }}/nodes.yaml" --overwrite
+          changed_when: true
+          register: openchami_discover
+      rescue:
+        - name: Failed to discover nodes
+          ansible.builtin.debug:
+            msg: "{{ discover_fail_msg }}. Error: {{ openchami_discover.stderr_lines }}"
+
+    - name: Verify node created in smd
+      ansible.builtin.shell: |
+        set -o pipefail && \
+        /usr/bin/ochami smd component get | jq '.Components[] | select(.Type == "Node")'
+      changed_when: true
+      register: openchami_smd_status
+
+    - name: Openchami smd status output
       ansible.builtin.debug:
-        msg: "{{ discover_fail_msg }}. Error: {{ openchami_discover.stderr_lines }}"
-
-- name: Verify node created in smd
-  ansible.builtin.shell: |
-    set -o pipefail && \
-    /usr/bin/ochami smd component get | jq '.Components[] | select(.Type == "Node")'
-  changed_when: true
-  register: openchami_smd_status
-
-- name: Openchami smd status output
-  ansible.builtin.debug:
-    msg: "{{ openchami_smd_status.stdout_lines }}"
-    verbosity: 2
+        msg: "{{ openchami_smd_status.stdout_lines }}"
+        verbosity: 2

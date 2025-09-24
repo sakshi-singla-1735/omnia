@@ -100,16 +100,16 @@ def validate_mapping_file(mapping_file_path, functional_groups_file, module):
 
 
 def run_module():
-    module_args = dict(
-        mapping_file_path=dict(type="path", required=True),
-        functional_groups_file=dict(type="path", required=True)  # required now
-    )
+    module_args = {
+        'mapping_file_path': {'type': 'path', 'required': True },
+        'functional_groups_file_path': {'type': 'path', 'required': True }
+    }
 
-    module = AnsibleModule(argument_spec=module_args, supports_check_mode=True)
-    mapping_file_path = module.params["mapping_file_path"]
-    functional_groups_file = module.params["functional_groups_file"]
+    module = AnsibleModule(argument_spec=module_args, supports_check_mode=False)
+    mapping_file_path = module.params.get('mapping_file_path')
+    functional_groups_file_path = module.params["functional_groups_file_path"]
 
-    validate_mapping_file(mapping_file_path, functional_groups_file, module)
+    validate_mapping_file(mapping_file_path, functional_groups_file_path, module)
 
 
 def main():

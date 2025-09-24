@@ -12,148 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
-- name: Include variable file omnia_config.yml
-  ansible.builtin.include_vars: "{{ input_project_dir }}/omnia_config.yml"
+- name: Load software_config.json as software_config
+  ansible.builtin.include_vars:
+    file: "{{ software_config_file }}"
+    name: software_config
 
-- name: Include storage vars
-  ansible.builtin.include_vars: "{{ input_project_dir }}/storage_config.yml"
-
-- name: Set facts for slurm
+- name: Check if slurm support is true
   ansible.builtin.set_fact:
-    nfs_storage_name: "{{ slurm_cluster[0].nfs_storage_name }}"
-
-- name: Read the slurm mount point
-  ansible.builtin.set_fact:
-    share_path: "{{ (nfs_client_params | selectattr('nfs_name', 'equalto', nfs_storage_name) | first).client_share_path }}"
-    nfs_server_ip: "{{ (nfs_client_params | selectattr('nfs_name', 'equalto', nfs_storage_name) | first).server_ip }}"
-    nfs_server_path: "{{ (nfs_client_params | selectattr('nfs_name', 'equalto', nfs_storage_name) | first).server_share_path }}"
+    slurm_support: "{{ software_config.softwares | selectattr('name', 'in', ['slurm', 'slurm_custom']) | list | length > 0 }}"
 
 - name: Get the slurm hostnames
   ansible.builtin.include_tasks: read_slurm_hostnames.yml
 
-- name: Set facts for slurm
-  ansible.builtin.set_fact:
-    cluster_name: "{{ slurm_cluster[0].cluster_name }}"
-    slurm_installation_type: "{{ slurm_cluster[0].installation_type }}"
-    restart_slurm_services: "{{ slurm_cluster[0].restart_slurm_services }}"
-    slurm_config_path: "{{ share_path }}/{{ slurm_dir_name }}"
-
-- name: Set facts for slurm
-  ansible.builtin.set_fact:
-    share_prefix: "{{ slurm_config_path }}"
-  when: conf_in_nfs
-
-- name: Create the slurm ctld directory on share
-  ansible.builtin.file:
-    path: "{{ slurm_config_path }}/{{ item[0] }}{{ item[1] }}"
-    state: directory
-    owner: root
-    group: root
-    mode: "{{ common_mode }}"
-  when: ctld_list
-  loop: "{{ ctld_list | product(ctld_dir) }}"
-
-- name: Create the slurm cmpt directory on share
-  ansible.builtin.file:
-    path: "{{ slurm_config_path }}/{{ item[0] }}{{ item[1] }}"
-    state: directory
-    owner: root
-    group: root
-    mode: "{{ common_mode }}"
-  when: cmpt_list
-  loop: "{{ cmpt_list | product(cmpt_dir) }}"
-
-- name: Create the slurm login directory on share
-  ansible.builtin.file:
-    path: "{{ slurm_config_path }}/{{ item[0] }}{{ item[1] }}"
-    state: directory
-    owner: root
-    group: root
-    mode: "{{ common_mode }}"
-  when: login_list
-  loop: "{{ login_list | product(login_dir) }}"
-
-- name: Check if munge key exists top level
-  ansible.builtin.stat:
-    path: "{{ slurm_config_path }}/munge.key"
-  register: munge_present
-
-- name: Ensure munge key is generated
-  ansible.builtin.shell: "{{ munge_key_cmd }} > {{ slurm_config_path }}/munge.key"
-  when: not munge_present.stat.exists
-  register: munge_gen
-  changed_when: munge_gen.rc == 0
-
-- name: Distribute the munge key
-  ansible.builtin.copy:
-    src: "{{ slurm_config_path }}/munge.key"
-    dest: "{{ slurm_config_path }}/{{ item }}/etc/munge/munge.key"
-    mode: "{{ common_mode }}"
-    remote_src: true
-  loop: "{{ (ctld_list | default([])) +
-            (cmpt_list | default([])) +
-            (login_list | default([])) }}"
-
-- name: Slurm dict ops
-  ansible.builtin.set_fact:
-    slurm_conf_dict: "{{ __slurm_default_config | ansible.builtin.combine(slurm_config | default({})) }}"
-    cgroup_conf_dict: "{{ __cgroup_default_config | ansible.builtin.combine(cgroup | default({})) }}"
-    slurm_dbd_conf_dict: "{{ __slurm_dbd_default_config | ansible.builtin.combine(slurm_dbd_config | default({})) }}"
-
-- name: Verify slurm conf keys only
-  ansible.builtin.assert:
-    that:
-      - (slurm_conf_dict.keys() | list) | difference(__slurm_conf_keys) | length == 0
-      # TODO: Add support for cgroup and slurmdbd
-    fail_msg: "The following slurm config keys are invalid: {{ slurm_conf_dict.keys() | list | difference(__slurm_conf_keys) | join(', ') }}"
-
-- name: Read NodeName parameters
-  ansible.builtin.include_tasks: read_node_idrac.yml
-  when: cmpt_list
-  loop: "{{ cmpt_list }}"
-
-- name: Create slurm.conf for ctld only
-  ansible.builtin.template:
-    src: "{{ item.1 }}.conf.j2"
-    dest: "{{ slurm_config_path }}/{{ item.0 }}/etc/slurm/{{ item.1 }}.conf"
-    owner: "{{ root_user }}"
-    group: "{{ root_group }}"
-    mode: "{{ conf_file_mode }}"
-  when: ctld_list
-  loop: "{{ ctld_list | product(conf_files) }}"
-
-- name: Create mariadb cnf
-  ansible.builtin.template:
-    src: "mariadb-server.cnf.j2"
-    dest: "{{ slurm_config_path }}/{{ item }}/etc/my.cnf.d/mariadb-server.cnf"
-    owner: "{{ root_user }}"
-    group: "{{ root_group }}"
-    mode: "{{ conf_file_mode }}"
-  when: ctld_list
-  loop: "{{ ctld_list }}"
-
-- name: Generate slurmd opts for Configless
-  ansible.builtin.set_fact:
-    conf_server: "--conf-server {{ ctld_list | map('regex_replace', '$', ':' ~ (slurm_conf_dict['SlurmctldPort'] | string)) | join(',') }}"
-
-- name: Create epilog.sh and slurmd.service
-  ansible.builtin.template:
-    src: "{{ item.1 }}.j2"
-    dest: "{{ slurm_config_path }}/{{ item.0 }}/etc/slurm/epilog.d/{{ item.1 }}"
-    owner: "{{ root_user }}"
-    group: "{{ root_group }}"
-    mode: "{{ conf_file_mode }}"
-  when: cmpt_list
-  loop: "{{ cmpt_list | product(['logout_user.sh', 'slurmd.service']) }}"
-
-- name: Mount facts items to dict
-  ansible.builtin.set_fact:
-    mounted_dict: "{{ ansible_mounts | items2dict(key_name='mount', value_name='device') }}"
-
-- name: Get the slurm NFS path
-  ansible.builtin.debug:
-    msg: "The slurm NFS path is {{ share_path }}/slurm"
-
-- name: NFS path for cloud init
-  ansible.builtin.set_fact:
-    cloud_init_nfs_path: "{{ nfs_server_ip }}:{{ nfs_server_path }}/slurm"
+# This does not consider hierarchy of slurm nodes
+- name: Entering the slurm configuration only if slurm in nodes.yaml
+  ansible.builtin.include_tasks: create_slurm_dir.yml
+  when: ctld_list or (cmpt_list or login_list)

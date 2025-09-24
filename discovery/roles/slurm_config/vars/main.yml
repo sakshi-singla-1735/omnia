@@ -43,8 +43,6 @@ innodb_buffer_pool_size: 1G
 innodb_lock_wait_timeout: 120
 # TODO tmp
 nodes_yaml: "{{ hostvars['localhost']['oim_shared_path'] }}/omnia/openchami/workdir/nodes/nodes.yaml"
-cloud_init_out: "{{ slurm_config_path }}"
-ssh_key: "ssh-ed25519 dummy_value_for_testing_cloudinit_template_rendering root@omnia_core"
 bmc_username: "{{ hostvars['localhost']['bmc_username'] }}"
 bmc_password: "{{ hostvars['localhost']['bmc_password'] }}"
 
@@ -99,9 +97,5 @@ common_mode: "0755"
 slurm_dbd_mode: "0600"
 slurm_db_cnf_mode: "0600"
 
-hosts_file_dest: "/etc/hosts"
-hosts_file_mode: "0644"
-
-# Usage: install_utils_packages.yml
-utils_support: "{{ hostvars['localhost']['utils_support'] }}"
-software_config_json_file: "{{ input_project_dir }}/software_config.json"
+software_config_file: "{{ input_project_dir }}/software_config.json"
+omnia_run_tags: "{{ hostvars['localhost']['omnia_run_tags'] }}"

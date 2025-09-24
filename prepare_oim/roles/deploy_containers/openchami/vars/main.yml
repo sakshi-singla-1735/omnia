@@ -14,10 +14,10 @@
 ---
 
 # Usage: deploy_openchami.yml
-openchami_git_repo: https://github.com/OpenCHAMI/deployment-recipes.git
+openchami_git_repo: https://github.com/abhishek-sa1/deployment-recipes.git
 openchami_share_dir: /opt/omnia/openchami
 openchami_clone_path: "{{ openchami_share_dir }}/deployment-recipes"
-openchami_git_version: main
+openchami_git_version: rhel_support
 clone_retry: "5"
 clone_delay: "10"
 dir_permissions_755: "0755"

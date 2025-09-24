@@ -26,8 +26,8 @@ module_log_dir = {
 # log path for input validator
 INPUT_VALIDATOR_LOG_PATH = '/opt/omnia/log/core/playbooks/'
 
-ENTITLEMENT_PEM = '/etc/pki/entitlement/*.pem'
-REDHAT_REPO_FILE = '/etc/yum.repos.d/redhat.repo'
+ENTITLEMENT_PEM = '/opt/omnia/rhel_repo_certs/*.pem'
+REDHAT_REPO_FILE = '/opt/omnia/rhel_repo_certs/redhat.repo'
 
 # dict to hold the file names. If any file's name changes just change it here.
 files = {
