@@ -122,7 +122,7 @@
 
 # Install NFS client package
 - name: Install NFS client package
-  ansible.builtin.yum:
+  ansible.builtin.dnf:
     name: nfs-utils
     state: present
   when: nfs_mounted.rc != 0
