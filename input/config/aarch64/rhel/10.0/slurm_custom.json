@@ -11,7 +11,6 @@
             {"package": "slurm-slurmctld", "type": "rpm", "repo_name": "aarch64_slurm_custom"},
             {"package": "slurm-slurmdbd", "type": "rpm", "repo_name": "aarch64_slurm_custom"},
             {"package": "python3-PyMySQL", "type": "rpm", "repo_name": "aarch64_appstream"},
-            {"package": "mysql-server", "type": "rpm", "repo_name": "aarch64_appstream"},
             {"package": "mariadb-server", "type": "rpm", "repo_name": "aarch64_appstream"}
         ]
     },
@@ -24,6 +23,7 @@
     },
     "login_node":{
         "cluster": [
+            {"package": "slurm-slurmd", "type": "rpm", "repo_name": "aarch64_slurm_custom"},
             {"package": "slurm", "type": "rpm", "repo_name": "aarch64_slurm_custom"}
         ]
     },
