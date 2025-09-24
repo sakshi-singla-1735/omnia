@@ -18,11 +18,7 @@
 - name: Set server host
   ansible.builtin.set_fact:
     node_host: >-
-      {{
-        hostvars[inventory_hostname]['inventory_hostname']
-        if inventory_hostname != 'localhost'
-        else 'oim'
-      }}
+      {{ hostvars[inventory_hostname]['inventory_hostname'] }}
 
 - name: Initialize variables
   ansible.builtin.set_fact:

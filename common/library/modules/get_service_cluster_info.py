@@ -20,7 +20,7 @@
 
 from ansible.module_utils.basic import AnsibleModule
 
-def get_service_cluster_node_details(nodes_info, functional_groups_info):
+def get_service_cluster_node_details(nodes_info):
     """
     This function retrieves all service cluster node data from the database.
     Returns a dictionary of service cluster node data.
@@ -32,17 +32,17 @@ def get_service_cluster_node_details(nodes_info, functional_groups_info):
         node = sn['name']
         service_tag = sn['xname']
         role = sn['group']
-        cluster_name =  next((g["cluster_name"] for g in functional_groups_info if g["name"] == role), None)
+        # cluster_name =  next((g["cluster_name"] for g in functional_groups_info if g["name"] == role), None)
 
         if "service_kube_node_x86_64" in role or "service_kube_node_aarch64" in role:
             data[service_tag] = {
                 'service_tag': service_tag,
                 'node': node,
-                'cluster_name': cluster_name,
+                # 'cluster_name': cluster_name,
                 'role': role
             }
 
-        # data[service_tag]['parent_status'] = 'service_kube_control_plane' in role
+    data['MGMT_node'] = {'parent_status' : True}
     return data
 
 def check_service_cluster_node_details(group, parent, service_cluster_node_details):
@@ -58,7 +58,7 @@ def check_service_cluster_node_details(group, parent, service_cluster_node_detai
             "Please verify the input and try again."
         )
 
-def get_service_cluster_data(functional_groups_info, service_cluster_node_details, bmc_group_data):
+def get_service_cluster_data(groups_info, service_cluster_node_details, bmc_group_data):
     """
     Generate service cluster node details by analyzing group relationships and BMC group data.
 
@@ -75,8 +75,7 @@ def get_service_cluster_data(functional_groups_info, service_cluster_node_detail
         dict: Updated service_cluster_node_details.
     """
 
-    for group_data in functional_groups_info:
-        group = group_data.get("name", "")
+    for group, group_data in groups_info.items():
         parent = group_data.get("parent", "")
 
         # Skip if service cluster node details check fails
@@ -113,8 +112,9 @@ def main():
         Main function to execute the check_service_cluster_node_details custom module.
     """
     module_args = {
-        'nodes_info': {'type':"dict", 'required':True},
-        'functional_groups_info': {'type':"dict", 'required':True},
+        'nodes_info': {'type':"list", 'required':True},
+        'groups_info': {'type':"dict", 'required':True},
+        'functional_groups_info': {'type':"list", 'required':True},
         'bmc_group_data': {'type':"list", 'required':True}
     }
 
@@ -122,10 +122,11 @@ def main():
 
     try:
         nodes_info = module.params["nodes_info"]
-        functional_groups_info = module.params["functional_groups_info"]
+        # functional_groups_info = module.params["functional_groups_info"]
         bmc_group_data = module.params["bmc_group_data"]
-        service_cluster_node_details = get_service_cluster_node_details(nodes_info, functional_groups_info)
-        service_cluster_node_details = get_service_cluster_data(functional_groups_info, service_cluster_node_details, bmc_group_data)
+        groups_info = module.params["groups_info"]
+        service_cluster_node_details = get_service_cluster_node_details(nodes_info)
+        service_cluster_node_details = get_service_cluster_data(groups_info, service_cluster_node_details, bmc_group_data)
 
         module.exit_json(
             changed=False,

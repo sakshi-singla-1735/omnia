@@ -87,8 +87,8 @@ def validate_bmc_group_data(bmc_group_data, bmc_group_data_headers, bmc_group_da
         if parent:
             sn_bmc_ips.setdefault(parent, []).append(entry['BMC_IP'])
 
-    oim_bmc_ips = [entry['BMC_IP'] for entry in bmc_dict_list if not entry.get('PARENT')]
-    result['bmc_ips'] = {**sn_bmc_ips, 'oim': oim_bmc_ips}
+    mgmt_bmc_ips = [entry['BMC_IP'] for entry in bmc_dict_list if not entry.get('PARENT')]
+    result['bmc_ips'] = {**sn_bmc_ips, 'MGMT_node': mgmt_bmc_ips}
 
 
     return result

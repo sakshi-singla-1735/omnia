@@ -36,6 +36,7 @@
       get_service_cluster_info:
         nodes_info: "{{ hostvars['localhost']['nodes'] }}"
         functional_groups_info: "{{ functional_groups }}"
+        groups_info: "{{ groups }}"
         bmc_group_data: "{{ hostvars['localhost']['bmc_dict_list'] | default([]) }}"
       register: service_cluster_info_output
 
