@@ -40,6 +40,14 @@
     share_prefix: "{{ slurm_config_path }}"
   when: conf_in_nfs
 
+- name: Create the slurm directory in share
+  ansible.builtin.file:
+    path: "{{ slurm_config_path }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "{{ common_mode }}"
+
 - name: Create the slurm ctld directory on share
   ansible.builtin.file:
     path: "{{ slurm_config_path }}/{{ item[0] }}{{ item[1] }}"
@@ -142,7 +150,6 @@
     mode: "{{ conf_file_mode }}"
   when: login_list
   loop: "{{ login_list | product(['slurmd.service']) }}"
-
 
 - name: Mount facts items to dict
   ansible.builtin.set_fact:
