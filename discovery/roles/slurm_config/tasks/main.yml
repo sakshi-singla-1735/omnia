@@ -25,6 +25,6 @@
   ansible.builtin.include_tasks: read_slurm_hostnames.yml
 
 # This does not consider hierarchy of slurm nodes
-- name: Entering the slurm configuration only if slurm in nodes.yaml 
+- name: Entering the slurm configuration only if slurm in nodes.yaml
   ansible.builtin.include_tasks: create_slurm_dir.yml
   when: ctld_list or (cmpt_list or login_list)
