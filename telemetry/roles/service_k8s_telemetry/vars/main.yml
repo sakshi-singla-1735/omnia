@@ -45,8 +45,7 @@ kafka_secrets:
     - "127.0.0.1"
 
 # Usage: idrac_telemetry_deployment.yml
-omnia_nfs_share: "{{ hostvars['localhost']['oim_shared_path'] }}/omnia"
-service_cluster_idrac_telemetry_dir_path: "{{ omnia_nfs_share }}/service_cluster/telemetry/idrac_telemetry"
+service_cluster_idrac_telemetry_dir_path: "/opt/omnia/telemetry/idrac_telemetry"
 dir_permissions_755: "0755"
 idrac_telemetry_github_repo: https://github.com/dell/iDRAC-Telemetry-Reference-Tools.git
 reference_tools_stable_commit: "fd5f384"
