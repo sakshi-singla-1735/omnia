@@ -20,6 +20,6 @@
 
 # Connection Type options: TLS or SSL
 # Default: TLS (validated)
-# If TLS: valid server certificates are required
+# If TLS: secure OpenLDAP connection occurs on port 389
 # If SSL: secure OpenLDAP connection occurs on port 636
 ldap_connection_type: "TLS"
