@@ -16,7 +16,6 @@
   ansible.builtin.slurp:
     src: "{{ nodes_yaml }}"
   register: slurped_yaml
-  no_log: true
 
 - name: Parse YAML into vars
   ansible.builtin.set_fact:
