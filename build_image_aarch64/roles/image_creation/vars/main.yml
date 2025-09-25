@@ -40,11 +40,11 @@ ochami_base_command:
 
 # build_base_image.yml
 openchami_log_dir: /opt/omnia/log/openchami
-openchami_base_image_log_path: "{{ openchami_log_dir }}/base_image.log"
+openchami_aarch64_base_image_log_path: "{{ openchami_log_dir }}/aarch64_base_image.log"
 openchami_base_image_vars_template: "{{ role_path }}/templates/base_image_template.j2"
-openchami_base_image_vars_path: "/opt/omnia/openchami/base_image_template.yaml"
+openchami_aarch64_base_image_vars_path: "/opt/omnia/openchami/aarch64_base_image_template.yaml"
 aarch64_inventory_file: "/tmp/temp_ochami_inventory.ini"
-base_image_failure_msg: "Base image build job failed or timed out. Check logs at path {{ openchami_base_image_log_path }} for details."
+base_image_failure_msg: "Base image build job failed or timed out. Check logs at path {{ openchami_aarch64_base_image_log_path }} for details."
 compute_image_failure_msg: "Compute image build job did not completed successfully."
 
 # build_compute_image.yml

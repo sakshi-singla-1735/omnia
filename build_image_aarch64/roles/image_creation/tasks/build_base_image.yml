@@ -23,14 +23,14 @@
 
 - name: Create base_image.log as a file
   ansible.builtin.file:
-    path: "{{ openchami_base_image_log_path }}"
+    path: "{{ openchami_aarch64_base_image_log_path }}"
     state: touch
     mode: "{{ dir_permissions_644 }}"
 
 - name: Load the openchami image vars
   ansible.builtin.template:
     src: "{{ openchami_base_image_vars_template }}"
-    dest: "{{ openchami_base_image_vars_path }}"
+    dest: "{{ openchami_aarch64_base_image_vars_path }}"
     mode: "{{ dir_permissions_644 }}"
 
 - name: Invoking Openchami playbook for rhel-base image build
@@ -38,9 +38,9 @@
     set -o pipefail
     ansible-playbook {{ openchami_clone_path }}/dell/podman-quadlets/image.yaml \
     -i {{ aarch64_inventory_file }} -v \
-    --extra-vars "@{{ openchami_base_image_vars_path  }}" \
+    --extra-vars "@{{ openchami_aarch64_base_image_vars_path  }}" \
     --tags base_image -v | \
-    /usr/bin/tee {{ openchami_base_image_log_path }}
+    /usr/bin/tee {{ openchami_aarch64_base_image_log_path }}
   async: 3600  # Set async timeout (e.g., 1 hour)
   poll: 0  # Non-blocking (continue the playbook without waiting for completion)
   register: base_image_build
@@ -63,7 +63,7 @@
   always:
     - name: Remove generated base image vars file
       ansible.builtin.file:
-        path: "{{ openchami_base_image_vars_path }}"
+        path: "{{ openchami_aarch64_base_image_vars_path }}"
         state: absent
 
     - name: Set openchami SELinux context
