@@ -42,7 +42,7 @@
       { "package": "quay.io/prometheus/alertmanager", "tag": "v0.28.1", "type": "image" },
       { "package": "quay.io/prometheus/node-exporter", "tag": "v1.9.1", "type": "image" },
       { "package": "quay.io/prometheus/prometheus", "tag": "v3.5.0", "type": "image" },
-	    { "package": "registry.k8s.io/kube-proxy", "tag": "v1.31.4", "type": "image" },
+	  { "package": "registry.k8s.io/kube-proxy", "tag": "v1.31.4", "type": "image" },
       { "package": "registry.k8s.io/ingress-nginx/kube-webhook-certgen", "tag": "v1.6.0", "type": "image" }
     ]
   },
