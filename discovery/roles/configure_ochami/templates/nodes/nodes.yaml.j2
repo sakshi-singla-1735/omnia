@@ -2,6 +2,7 @@ nodes:
 {% for item in nodes %}
 - name: {{ item.value.HOSTNAME }}
   xname: {{ item.value.XNAME }}
+  description: {{ item.value.SERVICE_TAG }}
   nid: {{ loop.index }}
   group: {{ item.value.FUNCTIONAL_GROUP_NAME }}
   bmc_mac: {{ item.value.BMC_MAC }} 
