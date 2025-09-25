@@ -66,11 +66,6 @@
         path: "{{ openchami_base_image_vars_path }}"
         state: absent
 
-    - name: Remove temporary inventory file
-      ansible.builtin.file:
-        path: "{{ aarch64_inventory_file }}"
-        state: absent
-
     - name: Set openchami SELinux context
       ansible.builtin.command: chcon -R system_u:object_r:container_file_t:s0 "{{ oim_shared_path }}/omnia/openchami"
       changed_when: true

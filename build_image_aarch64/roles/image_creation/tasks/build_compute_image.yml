@@ -79,7 +79,7 @@
       loop: "{{ compute_images_dict | dict2items }}"
       loop_control:
         loop_var: item
-    
+
     - name: Remove temporary inventory file
       ansible.builtin.file:
         path: "{{ aarch64_inventory_file }}"
