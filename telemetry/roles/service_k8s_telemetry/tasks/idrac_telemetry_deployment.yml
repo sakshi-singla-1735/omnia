@@ -116,8 +116,6 @@
             port: "{{ mysqldb_container_port1 }}"
           - name: mysql-port-2
             port: "{{ mysqldb_container_port2 }}"
-          - name: pump-port
-            port: "{{ prometheus_pump_port }}"
         selector:
           app: "{{ idrac_telemetry_k8s_name }}"
 
