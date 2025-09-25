@@ -28,7 +28,7 @@
     path: /etc/resolv.conf
     line: 'nameserver 10.233.0.3'
     state: absent
-    backup: yes
+    backup: true
   when: not nameserver_check.changed
 
 - name: Add nameserver 10.233.0.3 at the end
@@ -37,7 +37,7 @@
     line: 'nameserver 10.233.0.3'
     insertafter: EOF
     state: present
-    backup: yes
+    backup: true
   when: not nameserver_check.changed
 
 - name: Install NFS client package

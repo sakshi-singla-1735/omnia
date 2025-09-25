@@ -68,16 +68,16 @@
   delegate_to: "{{ groups['kube_control_plane'][0] }}"
 
 - name: Remove nameserver 10.233.0.3 from /etc/resolv.conf
-  lineinfile:
+  ansible.builtin.lineinfile:
     path: /etc/resolv.conf
     line: 'nameserver 10.233.0.3'
     state: absent
-    backup: yes
+    backup: true
 
 - name: Add nameserver 10.233.0.3 at the end
-  lineinfile:
+  ansible.builtin.lineinfile:
     path: /etc/resolv.conf
     line: 'nameserver 10.233.0.3'
     insertafter: EOF
     state: present
-    backup: yes
+    backup: true

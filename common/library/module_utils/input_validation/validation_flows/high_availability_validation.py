@@ -27,7 +27,7 @@ contains_software = validation_utils.contains_software
 check_mandatory_fields = validation_utils.check_mandatory_fields
 
 
-def get_roles_config_json(input_file_path, logger, module, omnia_base_dir, project_name):
+def get_functional_group_config_json(input_file_path, logger, module, omnia_base_dir, project_name):
     """
     Retrieves the roles configuration from a YAML file.
 
@@ -95,14 +95,13 @@ def get_admin_static_dynamic_ranges(network_spec_json):
     Returns:
         dict: A dictionary containing the static and dynamic ranges of the admin network.
     """
+
     admin_network = {}
     for network in network_spec_json["Networks"]:
         for key, value in network.items():
             if key == "admin_network":
-                static_range = value.get("static_range", "N/A")
                 dynamic_range = value.get("dynamic_range", "N/A")
                 admin_network = {
-                    "static_range": static_range,
                     "dynamic_range": dynamic_range,
                 }
     return admin_network
@@ -150,24 +149,7 @@ def get_admin_netmaskbits(network_spec_json):
     return netmaskbits
 
 
-def get_admin_uncorrelated_node_start_ip(network_spec_json):
-    """
-    Retrieves the get_admin_uncorrelated_node_start_ip for the admin network.
 
-    Parameters:
-        network_spec_json (dict): The network specification JSON.
-
-    Returns:
-        str: The get_admin_uncorrelated_node_start_ip for the admin network, or "N/A" if not found.
-    """
-    admin_uncorrelated_node_start_ip = ""
-    for network in network_spec_json["Networks"]:
-        for key, value in network.items():
-            if key == "admin_network":
-                admin_uncorrelated_node_start_ip = value.get(
-                    "admin_uncorrelated_node_start_ip", "N/A"
-                )
-    return admin_uncorrelated_node_start_ip
 
 
 def get_admin_nic_name(network_spec_json):
@@ -350,7 +332,7 @@ def validate_k8s_head_node_ha(
     config_type,
     ha_data,
     network_spec_data,
-    roles_config_json,
+    functional_group_config_json,
     all_service_tags,
     ha_node_vip_list
 ):
@@ -375,7 +357,6 @@ def validate_k8s_head_node_ha(
         None: Errors are collected in the provided `errors` list.
     """
     admin_network = network_spec_data["admin_network"]
-    admin_static_range = admin_network.get("static_range", "N/A")
     admin_dynamic_range = admin_network.get("dynamic_range", "N/A")
     oim_admin_ip = network_spec_data["oim_admin_ip"]
 
@@ -410,6 +391,7 @@ def validate_k8s_head_node_ha(
             errors.append(
                 create_error_msg("IP overlap -", None, en_us_validation_msg.IP_OVERLAP_FAIL_MSG)
             )
+        
 
 
 def validate_service_node_ha(
@@ -634,19 +616,15 @@ def validate_high_availability_config(
     )
 
     # load roles_config for L2 validations
-    roles_config_json = get_roles_config_json(
+    functional_group_config_json = get_functional_group_config_json(
         input_file_path, logger, module, omnia_base_dir, project_name
     )
+
 
     network_spec_info = {
         "admin_network": get_admin_static_dynamic_ranges(network_spec_json),
         "admin_nic_name": get_admin_nic_name(network_spec_json),
-        "bmc_network": get_bmc_network(network_spec_json),
-        "bmc_nic_name": get_bmc_nic_name(network_spec_json),
         "admin_netmaskbits": get_admin_netmaskbits(network_spec_json),
-        "admin_uncorrelated_node_start_ip": get_admin_uncorrelated_node_start_ip(
-            network_spec_json
-        ),
         "oim_admin_ip": get_primary_oim_admin_ip(network_spec_json)
     }
 
@@ -672,7 +650,7 @@ def validate_high_availability_config(
                     config_type,
                     ha_data,
                     network_spec_info,
-                    roles_config_json,
+                    functional_group_config_json,
                     all_service_tags,
                     ha_node_vip_list,
                 )
