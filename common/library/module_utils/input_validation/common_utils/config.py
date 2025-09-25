@@ -40,10 +40,8 @@ files = {
     "software_config": "software_config.json",
     "storage_config": "storage_config.yml",
     "telemetry_config": "telemetry_config.yml",
-    # "roles_config": "roles_config.yml",
     "functional_groups_config": "functional_groups_config.yml",
-    # "high_availability_config": "high_availability_config.yml",
-    # "additional_software": "additional_software.json"
+    "high_availability_config": "high_availability_config.yml"
 }
 
 # Tags and the files that will be run based off of it
@@ -69,12 +67,13 @@ input_file_inventory = {
     "telemetry": [files["telemetry_config"]],
     "local_repo": [files["local_repo_config"], files["software_config"]],
     "slurm": [
-        files["omnia_config"]
+        files["omnia_config"],
+        files["storage_config"]
         # files["high_availability_config"]
     ],
     "service_k8s": [
         files["omnia_config"],
-        #files["high_availability_config"],
+        files["high_availability_config"],
         files["functional_groups_config"]
     ],
     "storage": [files["storage_config"]],
@@ -94,7 +93,7 @@ input_file_inventory = {
         files["provision_config"],
         files["software_config"],
         files["storage_config"],
-        # files["high_availability_config"],
+        files["high_availability_config"],
         files["functional_groups_config"]
     ],
 }
