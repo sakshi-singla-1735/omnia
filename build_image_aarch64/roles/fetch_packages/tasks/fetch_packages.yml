@@ -29,7 +29,6 @@
             | map(attribute='package')
             | list }}
 
-    - name: Debug package
       ansible.builtin.debug:
         var: aarch64_base_image_packages
         verbosity: 2
@@ -41,13 +40,13 @@
         input_project_dir: "{{ input_project_dir }}"
       register: compute_images_output
 
-    - name: Save packages for x86_64 keys in compute_images_dict
+    - name: Save packages for aarch64 keys in compute_images_dict
       ansible.builtin.set_fact:
         compute_images_dict: >-
           {{
             compute_images_output.compute_images_dict
             | dict2items
-            | selectattr('key', 'search', '_x86_64$')
+            | selectattr('key', 'search', '_aarch64$')
             | items2dict
           }}
 
