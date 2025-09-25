@@ -63,7 +63,7 @@ software_config_syntax_fail_msg: "Failed. Syntax errors present in software_conf
 # Usage: validate_idrac_inventory.yml
 bmc_group_data_file_not_found_msg: "Failed. The BMC data file: {{ bmc_group_data_filename }} does not exist.
  Please execute discovery_provision.yml to Generate BMC data file."
-bmc_group_data_headers: "BMC_IP,FUNCTIONAL_GROUP,PARENT"
+bmc_group_data_headers: "BMC_IP,GROUP_NAME,PARENT"
 service_kube_control_plane_group_fail_msg: "Failed. The group 'kube_control_plane' is not defined in inventory."
 service_kube_control_plane_details_fail_msg: "Failed. The group 'kube_control_plane' does not have bmc_ip defined."
 service_kube_control_plane_invalid_ip_fail_msg: "Failed. The group 'kube_control_plane' has an invalid bmc_ip defined."
