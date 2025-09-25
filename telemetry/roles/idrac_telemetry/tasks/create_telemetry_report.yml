@@ -17,6 +17,6 @@
   ansible.builtin.template:
     src: "{{ telemetry_report_template }}"
     dest: >-
-      {{ telemetry_report_path_sn }}
+      {{ telemetry_report_path }}
     mode: "{{ filemode }}"
     force: true
