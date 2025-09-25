@@ -37,5 +37,8 @@
 - name: Cleanup openchami container
   ansible.builtin.import_tasks: cleanup_openchami.yml
 
+- name: Cleanup auth container
+  ansible.builtin.include_tasks: cleanup_auth.yml
+
 - name: Cleanup common configuration
   ansible.builtin.include_tasks: cleanup_common.yml
