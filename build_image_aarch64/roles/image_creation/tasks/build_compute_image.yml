@@ -35,14 +35,6 @@
   loop_control:
     loop_var: item
 
-- name: Create temporary inventory with ochami group
-  ansible.builtin.copy:
-    dest: "{{ aarch64_inventory_file }}"
-    content: |
-      [ochami]
-      {{ groups['admin_aarch64'] | join('\n') }}
-    mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
-
 - name: Invoking OpenCHAMI playbooks asynchronously for compute image_build
   ansible.builtin.shell: |
     set -o pipefail
@@ -87,6 +79,11 @@
       loop: "{{ compute_images_dict | dict2items }}"
       loop_control:
         loop_var: item
+    
+    - name: Remove temporary inventory file
+      ansible.builtin.file:
+        path: "{{ aarch64_inventory_file }}"
+        state: absent
 
     - name: Set openchami SELinux context
       ansible.builtin.command: chcon -R system_u:object_r:container_file_t:s0 "{{ oim_shared_path }}/omnia/openchami"

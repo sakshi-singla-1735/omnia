@@ -5,12 +5,12 @@ cluster_name: "{{ oim_node_name }}"
 cluster_domain: "{{ domain_name }}"
 group_name: "{{ item.key }}"
 rhel_base_compute_mounts: {{ ochami_compute_mounts | join(' ') }}
-image_build_name: {{ ochami_aarch64_image | join (' ') }}
+image_build_name: {{ ochami_aarch64_image  | join (' ') }}
 rhel_base_compute_command_options: {{ ochami_base_command | join (' ') }}
 
 rhel_repos:
 {% if 'x86_64' in functional_group %}
-{% set rhel_repo = rhel_aarch_64_repos %}
+{% set rhel_repo = rhel_x86_64_repos %}
 {% else %}
 {% set rhel_repo = [] %}
 {% endif %}
