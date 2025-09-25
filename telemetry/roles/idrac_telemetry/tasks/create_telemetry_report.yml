@@ -20,3 +20,10 @@
       {{ telemetry_report_path }}
     mode: "{{ filemode }}"
     force: true
+    delegate_to: localhost
+
+- name: Telemetry Report Overview
+  ansible.builtin.debug:
+    msg: "{{ telemetry_report.splitlines() }}"
+  when:
+    - hostvars['localhost']['idrac_telemetry_support']

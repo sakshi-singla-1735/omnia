@@ -82,18 +82,6 @@
         name: service_k8s_telemetry
         tasks_from: generate_service_cluster_metadata.yml
 
-# - name: Add telemetry hosts in inventory
-#   hosts: localhost
-#   connection: local
-#   gather_facts: false
-#   tasks:
-#     - name: Add telemetry hosts in inventory
-#       ansible.builtin.include_role:
-#         name: telemetry_validation
-#         tasks_from: add_host_goups
-#       when:
-#         - idrac_telemetry_support
-
 - name: Deployment of telemetry pods in service cluster
   hosts: kube_control_plane[0]
   connection: ssh
@@ -110,54 +98,6 @@
     - name: Enable idrac telemetry
       ansible.builtin.include_role:
         name: idrac_telemetry
-
-- name: Telemetry report overview
-  hosts: kube_control_plane[0]
-  connection: ssh
-  gather_facts: false
-  vars:
-    telemetry_report: |
-          ---- Telemetry Report Overview ----
-
-          IP count with Telemetry not supported: {{ failed_idrac_count | int + invalid_idrac_count | int }}
-          IP count with Telemetry activated in current execution: {{ telemetry_idrac_count | int }}
-
-          {% if (failed_idrac_count | int + invalid_idrac_count | int) > 0 %}
-          Potential reasons for telemetry not being initiated include Redfish connectivity problems, timeout issues,
-          iDRAC datacenter license constraints, or firmware-related problems.
-          {% endif %}
-          {% if idrac_redfish_disabled | length > 0 %}
-          IPs with Redfish disabled:
-          {% for item in idrac_redfish_disabled %}
-            - {{ item }}
-          {% endfor %}
-          {% endif %}
-          {% if idrac_invalid_creds | length > 0 %}
-          IPs with invalid credentials:
-          {% for item in idrac_invalid_creds %}
-            - {{ item }}
-          {% endfor %}
-          {% endif %}
-          {% if idrac_unreachable | length > 0 %}
-          IPs with unreachable BMC:
-          {% for item in idrac_unreachable %}
-            - {{ item }}
-          {% endfor %}
-          {% endif %}
-          {% if failed_idrac | length > 0 %}
-          Telemetry not supported because of iDRAC Datacenter license constraints or firmware issues.
-          IPs List:
-          {% for item in failed_idrac %}
-            - {{ item }}
-          {% endfor %}
-          {% endif %}
-
-  tasks:
-    - name: Telemetry Report Overview
-      ansible.builtin.debug:
-        msg: "{{ telemetry_report.splitlines() }}"
-      when:
-        - hostvars['localhost']['idrac_telemetry_support']
 
 - name: Detailed Telemetry Report
   hosts: localhost
