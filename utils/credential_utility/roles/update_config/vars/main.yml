@@ -45,6 +45,9 @@ omnia_credentials:
   local_repo:
     optional:
       - { username: docker_username, password: docker_password }
+  slurm:
+    mandatory:
+      - { password: slurm_db_password }
   slurm_custom:
     mandatory:
       - { password: slurm_db_password }
