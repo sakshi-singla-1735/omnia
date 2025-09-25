@@ -115,6 +115,8 @@ spec:
               value: "/bitnami/kafka/config/certs/kafka.truststore.pem"
             - name: KAFKA_TLS_CLIENT_AUTH
               value: "none"
+            - name: KAFKA_CFG_LOG_SEGMENT_BYTES
+              value: "{{ hostvars['localhost']['kafka_configurations']['log_segment_bytes'] }}"
             - name: KAFKA_CFG_LOG_RETENTION_HOURS
               value: "{{ hostvars['localhost']['kafka_configurations']['log_retention_hours'] }}"
             - name: KAFKA_CFG_LOG_RETENTION_BYTES
