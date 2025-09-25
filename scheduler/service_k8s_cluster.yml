@@ -149,7 +149,7 @@
     - common_plugins
 
 - name: CSI powerscale image pulling
-  hosts: kube_control_plane[0]
+  hosts: kube_control_plane
   tasks:
     - name: Pull images
       ansible.builtin.include_role:

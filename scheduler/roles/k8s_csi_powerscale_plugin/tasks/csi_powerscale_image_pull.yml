@@ -66,3 +66,18 @@
   with_items: "{{ csi_powerscale_image_versions }}"
   changed_when: true
   delegate_to: "{{ groups['kube_control_plane'][0] }}"
+
+- name: Remove nameserver 10.233.0.3 from /etc/resolv.conf
+  lineinfile:
+    path: /etc/resolv.conf
+    line: 'nameserver 10.233.0.3'
+    state: absent
+    backup: yes
+
+- name: Add nameserver 10.233.0.3 at the end
+  lineinfile:
+    path: /etc/resolv.conf
+    line: 'nameserver 10.233.0.3'
+    insertafter: EOF
+    state: present
+    backup: yes
