@@ -17,16 +17,6 @@
   when:
     - hostvars['localhost']['idrac_telemetry_support']
   block:
-    - name: Include functional_groups_config.yml
-      block:
-        - name: Include functional_groups_config.yml
-          ansible.builtin.include_vars: "{{ functional_groups_config_path }}"
-          register: include_functional_groups_config
-      rescue:
-        - name: Failed to include functional_groups_config.yml
-          ansible.builtin.fail:
-            msg: "{{ functional_groups_config_syntax_fail_msg }} Error: {{ include_functional_groups_config.message }}"
-
     - name: Include service_cluster metadata if already exists
       ansible.builtin.include_vars: "{{ service_cluster_metadata_path }}"
       no_log: true
@@ -35,8 +25,7 @@
     - name: Fetch service_cluster info
       get_service_cluster_info:
         nodes_info: "{{ hostvars['localhost']['nodes'] }}"
-        functional_groups_info: "{{ functional_groups }}"
-        groups_info: "{{ groups }}"
+        functional_groups_file_path: "{{ functional_groups_config_path }}"
         bmc_group_data: "{{ hostvars['localhost']['bmc_dict_list'] | default([]) }}"
       register: service_cluster_info_output
 
