@@ -11,4 +11,5 @@
   },
   "required": [
     "ldap_connection_type"
+  ]
 }
