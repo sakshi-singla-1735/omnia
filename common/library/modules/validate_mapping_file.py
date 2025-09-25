@@ -19,6 +19,24 @@ import re
 import pandas as pd
 import yaml
 from ansible.module_utils.basic import AnsibleModule
+from string import ascii_lowercase
+
+def generate_alpha_sequence(n, start='b'):
+    """Generate alphabetical strings starting from 'b': b, c, ..., z, ba, bb, ..."""
+    result = []
+    i = 0
+    start_index = ascii_lowercase.index(start)
+    while len(result) < n:
+        s = ''
+        temp = i
+        while True:
+            s = ascii_lowercase[(temp % 26 + start_index) % 26] + s
+            temp = temp // 26 - 1
+            if temp < 0:
+                break
+        result.append(s)
+        i += 1
+    return result
 
 
 def load_functional_groups_yaml(path, module):
@@ -92,12 +110,28 @@ def validate_mapping_file(mapping_file_path, functional_groups_file, module):
         config_fgs = load_functional_groups_yaml(functional_groups_file, module)
         check_functional_groups_in_mapping(csv_file, config_fgs, module)
 
+        # The resulting XNAME values will have the format 'x1000c1s7<b><d>n<d>', where <b> is a letter and <d> is a digit
+        xname_values = []
+        alpha_sequence = generate_alpha_sequence(100)  # 100 groups of 10 = 1000 entries
+
+        for i in range(len(csv_file)):
+            group_index = i // 10
+            digit = i % 10
+            alpha_part = alpha_sequence[group_index]
+            num_part = group_index + 1
+            xname = f'x1000c1s7{alpha_part}{num_part}n{digit}'
+            xname_values.append(xname)
+
+        csv_file['XNAME'] = xname_values
+
+        # Update the mapping file with the new XNAME values
+        csv_file.to_csv(mapping_file_path, index=False)
+
         # If all checks pass
         module.exit_json(changed=False, msg="Mapping file is valid")
 
     except Exception as e:
         module.fail_json(msg=str(e))
-
 
 def run_module():
     module_args = {
