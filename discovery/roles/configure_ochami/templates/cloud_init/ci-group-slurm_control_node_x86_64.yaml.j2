@@ -85,7 +85,11 @@
          - useradd -mG wheel -p '$6$VHdSKZNm$O3iFYmRiaFQCemQJjhfrpqqV7DdHBi5YpY6Aq06JSQpABPw.3d8PQ8bNY9NuZSmDv7IL/TsrhRJ6btkgKaonT.' testuser
          - groupadd -r slurm
          - useradd -r -g slurm -d /var/lib/slurm -s /sbin/nologin slurm
-
+{% if hostvars['localhost']['openldap_support'] %}
+         - mkdir /ldapcerts
+         - echo "{{ cloud_init_nfs_path_openldap }}/certs                /ldapcerts       nfs defaults,_netdev 0 0" >> /etc/fstab
+         - echo "{{ cloud_init_nfs_path_openldap }}/ldapuser             /home            nfs defaults,_netdev 0 0" >> /etc/fstab
+{% endif %}
          - mkdir -p /var/log/slurm /var/run/slurm /var/spool /etc/slurm /var/lib/slurm /etc/my.cnf.d /etc/munge /var/lib/mysql /var/log/mariadb
          - echo "{{ cloud_init_nfs_path }}/$(hostname -s)/etc/slurm      /etc/slurm       nfs defaults,_netdev 0 0" >> /etc/fstab
          - echo "{{ cloud_init_nfs_path }}/$(hostname -s)/etc/my.cnf.d   /etc/my.cnf.d    nfs defaults,_netdev 0 0" >> /etc/fstab
@@ -96,6 +100,10 @@
          - echo "{{ cloud_init_nfs_path }}/$(hostname -s)/etc/munge      /etc/munge       nfs defaults,_netdev 0 0" >> /etc/fstab
          - chmod 644 /etc/fstab
          - mount -a
+{% if hostvars['localhost']['openldap_support'] %}
+         - yes | cp /ldapcerts/* /etc/openldap/certs
+         - umount /ldapcerts
+{% endif %}
          - chown -R slurm:slurm /var/log/slurm
          - chown -R slurm:slurm /var/run/slurm
          - chown -R slurm:slurm /etc/slurm

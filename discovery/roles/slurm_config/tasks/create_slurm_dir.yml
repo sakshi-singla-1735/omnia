@@ -73,7 +73,7 @@
 
 - name: Copy the openldap certs
   ansible.builtin.copy:
-    src: "/opt/omnia/auth/"
+    src: "{{ auth_tls_certs_path }}"
     dest: "{{ openldap_config_path }}/certs"
     mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
   when: hostvars['localhost']['openldap_support']
