@@ -18,7 +18,17 @@
 
 """Ansible module to check telemetry service cluster node details."""
 
+import yaml
 from ansible.module_utils.basic import AnsibleModule
+
+def load_functional_groups_yaml(path, module):
+    """Load functional group names from YAML."""
+    try:
+        with open(path, 'r') as f:
+            data = yaml.safe_load(f)
+        return data.get("groups", {})
+    except ValueError as e:
+        module.fail_json(msg=f"Failed to load functional_groups_config.yml: {str(e)}")
 
 def get_service_cluster_node_details(nodes_info):
     """
@@ -113,8 +123,7 @@ def main():
     """
     module_args = {
         'nodes_info': {'type':"list", 'required':True},
-        'groups_info': {'type':"dict", 'required':True},
-        'functional_groups_info': {'type':"list", 'required':True},
+        'functional_groups_file_path': {'type':"path", 'required':True},
         'bmc_group_data': {'type':"list", 'required':True}
     }
 
@@ -122,9 +131,9 @@ def main():
 
     try:
         nodes_info = module.params["nodes_info"]
-        # functional_groups_info = module.params["functional_groups_info"]
         bmc_group_data = module.params["bmc_group_data"]
-        groups_info = module.params["groups_info"]
+        functional_groups_file_path = module.params["functional_groups_file_path"]
+        groups_info = load_functional_groups_yaml(functional_groups_file_path, module)
         service_cluster_node_details = get_service_cluster_node_details(nodes_info)
         service_cluster_node_details = get_service_cluster_data(groups_info, service_cluster_node_details, bmc_group_data)
 
