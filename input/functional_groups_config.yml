@@ -19,9 +19,9 @@
 # ***********************************************************************
 
 #*************************************************************************************************************************
-# Groups
+# groups
 #*************************************************************************************************************************
-# functional_groups_config.yml file takes input parameters for the composable roles and groups.
+# functional_groups_config.yml file takes input parameters for the composable functional_groups and groups.
 # This file contains functional groups and Groups used by the omnia for cluster formation.
 # Groups: - Groups will contain the list of groups defined by the user. User must define atleast one group.
 #   grpN:                 - <Mandatory> "grpN" -  User defined name of the group. Range for N is 0-99
@@ -46,8 +46,7 @@ groups:
 # Note: Nested functional_groups are not supported.
 # The functional_groups are case sensitive
 #   - name:               - <Mandatory> Name of the functional_group, can be any of the following Omnia defined functional_groups.
-#     cluster_name:       - <Conditional Mandatory> Name of the cluster to which the group belongs. This input is case-sensitive.
-#                            This will remain empty for groups which are not associated with any kubernetes functional_groups.
+#     cluster_name:       - <Mandatory> Name of the cluster to which the functional group belongs. This input is case-sensitive.
 #     group:              - <Mandatory> list of groups defined by the user
 #                         - This should be unique for each functional_group
 #

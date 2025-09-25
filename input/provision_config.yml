@@ -18,7 +18,7 @@
 # SIMPLY APPEND THE REQUIRED VALUES AGAINST THE PARAMETER OF YOUR CHOICE.
 # ***********************************************************************
 
-#### Optional
+#### Mandatory
 # This depicts the path where user has kept the PXE mapping file.
 # The mapping file consists of the Service tag, Admin MAC,Hostname and its respective admin IP address and/or BMC IP.
 # Ensure that admin IPs given in mapping file are within the network defined in the network_spec.yml
