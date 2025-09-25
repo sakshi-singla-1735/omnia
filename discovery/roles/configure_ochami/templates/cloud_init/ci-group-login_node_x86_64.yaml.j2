@@ -84,6 +84,9 @@
         - sudo systemctl stop firewalld
         - sudo systemctl disable firewalld
         - sudo systemctl restart sssd
+        - mkdir /ldapcerts
+        - echo "{{ cloud_init_nfs_path_openldap }}/certs                /ldapcerts       nfs defaults,_netdev 0 0" >> /etc/fstab
+        - echo "{{ cloud_init_nfs_path_openldap }}/ldapuser             /home            nfs defaults,_netdev 0 0" >> /etc/fstab
 {% endif %}
 
         - groupadd -r slurm
@@ -97,6 +100,10 @@
         - echo "{{ cloud_init_nfs_path }}/$(hostname -s)/etc/munge      /etc/munge       nfs defaults,_netdev 0 0" >> /etc/fstab
         - chmod 644 /etc/fstab
         - mount -a
+{% if hostvars['localhost']['openldap_support'] %}
+        - yes | cp /ldapcerts/* /etc/openldap/certs
+        - umount /ldapcerts
+{% endif %}
         - yes | cp /etc/slurm/epilog.d/slurmd.service /usr/lib/systemd/system/
         - chown -R slurm:slurm /var/log/slurm
         - chown -R slurm:slurm /var/run/slurm
