@@ -47,16 +47,19 @@
             sed -i 's/^#PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config
             sed -i 's/^PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config.d/50-cloud-init.conf
             systemctl restart sshd
+
         - path: /etc/sssd/sssd.conf
           owner: root:root
           permissions: '0600'
           content: |
             {{ lookup('template', 'templates/openldap/sssd.conf.j2') | indent(6) }}
+
         - path: /usr/local/bin/update_ldap_conf.sh
           owner: root:root
           permissions: '0755'
           content: |
             {{ lookup('template', 'templates/openldap/update_ldap_conf.sh.j2') | indent(12) }}
+
         - path: /etc/hosts
           append: true
           content: |

@@ -19,6 +19,24 @@ import re
 import pandas as pd
 import yaml
 from ansible.module_utils.basic import AnsibleModule
+from string import ascii_lowercase
+
+def generate_alpha_sequence(n, start='b'):
+    """Generate alphabetical strings starting from 'b': b, c, ..., z, ba, bb, ..."""
+    result = []
+    i = 0
+    start_index = ascii_lowercase.index(start)
+    while len(result) < n:
+        s = ''
+        temp = i
+        while True:
+            s = ascii_lowercase[(temp % 26 + start_index) % 26] + s
+            temp = temp // 26 - 1
+            if temp < 0:
+                break
+        result.append(s)
+        i += 1
+    return result
 
 
 def load_functional_groups_yaml(path, module):
@@ -63,34 +81,51 @@ def validate_mapping_file(mapping_file_path, functional_groups_file, module):
         csv_file.columns = csv_file.columns.str.strip()
 
         # Validate columns
-        mandatory_col = ["FUNCTIONAL_GROUP_NAME", "SERVICE_TAG", "ADMIN_MAC", "HOSTNAME", "ADMIN_IP", "BMC_MAC", "BMC_IP"]
+        mandatory_col = ["FUNCTIONAL_GROUP_NAME", "GROUP_NAME", "SERVICE_TAG", "ADMIN_MAC", "HOSTNAME", "ADMIN_IP", "BMC_MAC", "BMC_IP"]
         for col in mandatory_col:
             if col not in csv_file.columns:
-                module.fail_json(msg=f"Missing mandatory column: {col}")
+                module.fail_json(msg=f"Missing mandatory column: {col} in mapping file.")
 
         # Validate non-null values
         for col in mandatory_col:
             if csv_file[col].isnull().values.any():
-                module.fail_json(msg=f"Null values found in column: {col}")
+                module.fail_json(msg=f"Null values found in column: {col} in mapping file.")
 
         # Validate service tags
         for st in csv_file['SERVICE_TAG']:
             if not st.isalnum():
-                module.fail_json(msg=f"Invalid service tag: {st}")
+                module.fail_json(msg=f"Invalid service tag: {st} in mapping file.")
 
         # Validate MAC addresses
         pattern = r"^([0-9a-fA-F]{2}[:-]){5}[0-9a-fA-F]{2}$"
         for mac in csv_file['ADMIN_MAC']:
             if not re.match(pattern, mac):
-                module.fail_json(msg=f"Invalid ADMIN_MAC: {mac}")
+                module.fail_json(msg=f"Invalid ADMIN_MAC: {mac} in mapping file.")
 
         for mac in csv_file['BMC_MAC']:
             if not re.match(pattern, mac):
-                module.fail_json(msg=f"Invalid BMC_MAC: {mac}")
+                module.fail_json(msg=f"Invalid BMC_MAC: {mac} in mapping file.")
 
         # Validate functional groups presence in YAML
         config_fgs = load_functional_groups_yaml(functional_groups_file, module)
         check_functional_groups_in_mapping(csv_file, config_fgs, module)
+
+        # The resulting XNAME values will have the format 'x1000c1s7<b><d>n<d>', where <b> is a letter and <d> is a digit
+        xname_values = []
+        alpha_sequence = generate_alpha_sequence(100)  # 100 groups of 10 = 1000 entries
+
+        for i in range(len(csv_file)):
+            group_index = i // 10
+            digit = i % 10
+            alpha_part = alpha_sequence[group_index]
+            num_part = group_index + 1
+            xname = f'x1000c1s7{alpha_part}{num_part}n{digit}'
+            xname_values.append(xname)
+
+        csv_file['XNAME'] = xname_values
+
+        # Update the mapping file with the new XNAME values
+        csv_file.to_csv(mapping_file_path, index=False)
 
         # If all checks pass
         module.exit_json(changed=False, msg="Mapping file is valid")
@@ -98,8 +133,15 @@ def validate_mapping_file(mapping_file_path, functional_groups_file, module):
     except Exception as e:
         module.fail_json(msg=str(e))
 
+def main():
+    """
+	Validate a mapping file.
 
-def run_module():
+	Parameters:
+		mapping_file_path (str): The path to the mapping file.
+        functional_groups_file_path (str): The path to the functional_groups file.
+
+	"""
     module_args = {
         'mapping_file_path': {'type': 'path', 'required': True },
         'functional_groups_file_path': {'type': 'path', 'required': True }
@@ -110,17 +152,6 @@ def run_module():
     functional_groups_file_path = module.params["functional_groups_file_path"]
 
     validate_mapping_file(mapping_file_path, functional_groups_file_path, module)
-
-
-def main():
-    """
-	Validate a mapping file.
-
-	Parameters:
-		mapping_file_path (str): The path to the mapping file.
-
-	"""
-    run_module()
 
 
 if __name__ == "__main__":

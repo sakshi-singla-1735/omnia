@@ -18,12 +18,12 @@
 # SIMPLY APPEND THE REQUIRED VALUES AGAINST THE PARAMETER OF YOUR CHOICE.
 # ***********************************************************************
 
-#### Optional
+#### Mandatory
 # This depicts the path where user has kept the PXE mapping file.
 # The mapping file consists of the Service tag, Admin MAC,Hostname and its respective admin IP address and/or BMC IP.
-# Ensure that admin IPs given in mapping file are within the admin_static_ranges.
+# Ensure that admin IPs given in mapping file are within the network defined in the network_spec.yml
 # A templates for mapping file exists in omnia/examples, namely, pxe_mapping_file.csv
-# Format of csv: SERVICE_TAG,ADMIN_MAC,HOSTNAME,ADMIN_IP,BMC_IP
+# Format of csv: FUNCTIONAL_GROUP_NAME,GROUP_NAME,SERVICE_TAG,HOSTNAME,ADMIN_MAC,ADMIN_IP,BMC_MAC,BMC_IP
 pxe_mapping_file_path: ""
 
 #### Mandatory

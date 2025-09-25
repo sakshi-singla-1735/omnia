@@ -20,6 +20,7 @@ import os
 import yaml
 import ipaddress
 import subprocess
+from collections import Counter
 from ast import literal_eval
 import ansible.module_utils.input_validation.common_utils.data_fetch as fetch
 from ansible.module_utils.input_validation.validation_flows import csi_driver_validation
@@ -184,6 +185,18 @@ def validate_software_config(
                 "is mandatory in softwares_config.json but is missing."
             )
         )
+
+    # Ensure software names are unique in ['softwares']
+    sw_duplicates = [sw_name for sw_name, count in Counter(software_names).items() if count > 1]
+    if sw_duplicates:
+        errors.append(
+            create_error_msg(
+                "Validation Error: ",
+                "Duplicate software names found:",
+                f"{', '.join(sw_duplicates)}"
+            )
+        )
+
     for software_pkg in data['softwares']:
         software = software_pkg['name']
         arch_list = software_pkg.get('arch')
