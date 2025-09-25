@@ -106,16 +106,16 @@
          - setenforce 0
          - systemctl enable firewalld
          - systemctl start firewalld
-         - firewall-cmd --permanent --add-port={{  __slurm_default_config.SlurmctldPort }}/tcp
-         - firewall-cmd --permanent --add-port={{  __slurm_default_config.SlurmctldPort }}/udp
+         - firewall-cmd --permanent --add-port={{ slurm_conf_dict.SlurmctldPort }}/tcp
+         - firewall-cmd --permanent --add-port={{ slurm_conf_dict.SlurmctldPort }}/udp
 
-         - firewall-cmd --permanent --add-port={{  __slurm_default_config.SlurmdPort }}/tcp
-         - firewall-cmd --permanent --add-port={{ __slurm_default_config.SlurmdPort }}/udp
+         - firewall-cmd --permanent --add-port={{ slurm_dbd_port }}/tcp
+         - firewall-cmd --permanent --add-port={{ slurm_dbd_port }}/udp
 
-         - firewall-cmd --permanent --add-port={{ __slurm_dbd_default_config.slurm_dbd_port }}/tcp
          - firewall-cmd --permanent --add-port={{ slurm_db_port_default }}/tcp
          - firewall-cmd --permanent --add-service=ssh
-         - firewall-cmd --permanent --add-port={{ __slurm_default_config.SrunPortRange }}/tcp
+         - firewall-cmd --permanent --add-port={{ slurm_conf_dict.SrunPortRange }}/tcp
+         - firewall-cmd --permanent --add-port={{ slurm_conf_dict.SrunPortRange }}/udp
          - firewall-cmd --reload
          - systemctl enable munge
          - systemctl start munge
