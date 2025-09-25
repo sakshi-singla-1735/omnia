@@ -112,7 +112,7 @@
         name: idrac_telemetry
 
 - name: Telemetry report overview
-  hosts: localhost
+  hosts: kube_control_plane[0]
   connection: ssh
   gather_facts: false
   vars:
@@ -164,10 +164,10 @@
   connection: local
   gather_facts: false
   vars:
-    telemetry_report_path_oim: "/opt/omnia/telemetry/idrac_telemetry_report.yml"
+    telemetry_report_path: "/opt/omnia/telemetry/idrac_telemetry_report.yml"
   tasks:
     - name: Detailed Telemetry Report
       ansible.builtin.debug:
-        msg: "Check the file at {{ telemetry_report_path_oim }} in omnia_core container for detailed telemetry report."
+        msg: "Check the file at {{ telemetry_report_path }} in omnia_core container for detailed telemetry report."
       when:
         - hostvars['localhost']['idrac_telemetry_support']
