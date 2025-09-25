@@ -20,7 +20,7 @@
       {{ telemetry_report_path }}
     mode: "{{ filemode }}"
     force: true
-    delegate_to: localhost
+  delegate_to: localhost
 
 - name: Telemetry Report Overview
   ansible.builtin.debug:
