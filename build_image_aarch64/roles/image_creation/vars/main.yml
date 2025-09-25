@@ -25,7 +25,7 @@ openchami_work_dir: "{{ oim_shared_path }}/omnia/openchami/workdir"
 ochami_mounts:
   - --user 0 --privileged
   - -v {{ oim_shared_path }}/omnia/pulp/settings/certs/pulp_webserver.crt:/etc/pki/ca-trust/source/anchors/pulp_webserver.crt:z
-  - -v {{ openchami_work_dir }}/images/{{ rhel_base_image_name }}-{{ rhel_tag }}.yaml:/home/builder/config.yaml:z
+  - -v {{ openchami_work_dir }}/images/{{ rhel_aarch64_base_image_name }}-{{ rhel_tag }}.yaml:/home/builder/config.yaml:z
 ochami_compute_mounts:
   - --user 0 --privileged
   - -v {{ oim_shared_path }}/omnia/pulp/settings/certs/pulp_webserver.crt:/etc/pki/ca-trust/source/anchors/pulp_webserver.crt:z
@@ -33,18 +33,18 @@ ochami_compute_mounts:
 
 ochami_aarch64_image:
   - --entrypoint /bin/bash
-  - ghcr.io/openchami/image-build:latest
+  - localhost/ochami-arm
 ochami_base_command:
   - -c 'update-ca-trust extract && image-build --config /home/builder/config.yaml --log-level DEBUG'
 
 
 # build_base_image.yml
 openchami_log_dir: /opt/omnia/log/openchami
-openchami_base_image_log_path: "{{ openchami_log_dir }}/base_image.log"
+openchami_aarch64_base_image_log_path: "{{ openchami_log_dir }}/aarch64_base_image.log"
 openchami_base_image_vars_template: "{{ role_path }}/templates/base_image_template.j2"
-openchami_base_image_vars_path: "/opt/omnia/openchami/base_image_template.yaml"
+openchami_aarch64_base_image_vars_path: "/opt/omnia/openchami/aarch64_base_image_template.yaml"
 aarch64_inventory_file: "/tmp/temp_ochami_inventory.ini"
-base_image_failure_msg: "Base image build job failed or timed out. Check logs at path {{ openchami_base_image_log_path }} for details."
+base_image_failure_msg: "Base image build job failed or timed out. Check logs at path {{ openchami_aarch64_base_image_log_path }} for details."
 compute_image_failure_msg: "Compute image build job did not completed successfully."
 
 # build_compute_image.yml

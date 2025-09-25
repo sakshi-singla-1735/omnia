@@ -29,23 +29,29 @@
             | map(attribute='package')
             | list }}
 
-    - name: Debug package
+    - name: Debug package aarch64_base_image_packages
       ansible.builtin.debug:
         var: aarch64_base_image_packages
         verbosity: 2
 
-- name: Read packages for compute image softwares
-  image_package_collector:
-    functional_groups_file: "{{ functional_groups_file_path }}"
-    software_config_file: "{{ software_config_file_path }}"
-    input_project_dir: "{{ input_project_dir }}"
-  register: compute_images_output
+    - name: Read packages for compute image softwares
+      image_package_collector:
+        functional_groups_file: "{{ functional_groups_file_path }}"
+        software_config_file: "{{ software_config_file_path }}"
+        input_project_dir: "{{ input_project_dir }}"
+      register: compute_images_output
 
-- name: Debug software directory compute_images_dict
-  ansible.builtin.debug:
-    var: compute_images_output.compute_images_dict
-    verbosity: 2
+    - name: Save packages for aarch64 keys in compute_images_dict
+      ansible.builtin.set_fact:
+        compute_images_dict: >-
+          {{
+            compute_images_output.compute_images_dict
+            | dict2items
+            | selectattr('key', 'search', '_aarch64$')
+            | items2dict
+          }}
 
-- name: Save compute_images_dict as a fact
-  ansible.builtin.set_fact:
-    compute_images_dict: "{{ compute_images_output.compute_images_dict }}"
+    - name: Debug software directory compute_images_dict
+      ansible.builtin.debug:
+        var: compute_images_dict
+        verbosity: 2

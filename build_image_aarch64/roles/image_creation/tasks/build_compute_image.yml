@@ -13,6 +13,14 @@
 #  limitations under the License.
 ---
 
+- name: Create temporary inventory with ochami group
+  ansible.builtin.copy:
+    dest: "{{ aarch64_inventory_file }}"
+    content: |
+      [ochami]
+      {{ groups['admin_aarch64'] | join('\n') }}
+    mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
+
 - name: Create compute image log files
   ansible.builtin.file:
     path: "{{ openchami_log_dir }}/{{ item.key }}_compute_image.log"
