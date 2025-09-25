@@ -15,12 +15,13 @@
 
 - name: Pre-checks for service cluster k8s
   block:
-    - name: Install python
+    - name: Install kube_control_plane packages
       ansible.builtin.package:
-        name: "{{ hostvars['localhost']['python_package_name'] }}"
+        name: "{{ item }}"
         state: present
+      loop: "{{ hostvars['localhost']['rpm_package_names'] }}"
 
-    - name: Set ansible_python_interpreter to Python 3.11
+    - name: Set ansible_python_interpreter
       ansible.builtin.set_fact:
         ansible_python_interpreter: "{{ hostvars['localhost']['python_version'] }}"
 

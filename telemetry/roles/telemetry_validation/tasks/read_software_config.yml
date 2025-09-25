@@ -74,20 +74,19 @@
 
     - name: Extract service_k8s.json and set facts for pip_modules and python_version
       ansible.builtin.set_fact:
-        python_package_name: >-
+        rpm_package_names: >-
           {{ telemetry_packages['service_kube_control_plane']['cluster']
-          | selectattr('type', 'equalto', 'rpm')
-          | selectattr('package', 'search', '^python3\.\d+$')
-          | map(attribute='package') | join }}
+            | selectattr('type', 'equalto', 'rpm')
+            | map(attribute='package') | list }}
         k8s_pip_packages: >-
           {{ telemetry_packages['service_kube_control_plane']['cluster']
             | selectattr('type', 'equalto', 'pip_module')
             | map(attribute='package')
             | list }}
 
-- name: Extract python version from python package name
+- name: Extract python RPM package name
   ansible.builtin.set_fact:
-    python_version: "{{ python_package_name }}"
+    python_version: "{{ rpm_package_names | select('match', '^python3\\.[0-9]+$') | list | first }}""
 
 - name: Include local_repo_access.yml
   ansible.builtin.include_vars: "{{ local_repo_access_path }}"
