@@ -66,4 +66,3 @@
   with_items: "{{ csi_powerscale_image_versions }}"
   changed_when: true
   delegate_to: "{{ groups['kube_control_plane'][0] }}"
-

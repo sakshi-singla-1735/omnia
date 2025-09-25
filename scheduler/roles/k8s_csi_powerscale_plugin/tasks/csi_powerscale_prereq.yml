@@ -25,6 +25,24 @@
       ansible.builtin.fail:
         msg: "{{ k8s_not_deployed }}"
 
+- name: Move any 10.233.*.* nameserver to the end of /etc/resolv.conf
+  ansible.builtin.blockinfile:
+    path: /etc/resolv.conf
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - cluster nameserver"
+    block: |
+      {% set resolv_lines = lookup('file', '/etc/resolv.conf').splitlines() %}
+      {% set cluster_ns = [] %}
+      {% set others = [] %}
+      {% for l in resolv_lines %}
+      {%   if l is match('^nameserver 10\\.233\\..*') %}
+      {%     set _ = cluster_ns.append(l) %}
+      {%   else %}
+      {%     set _ = others.append(l) %}
+      {%   endif %}
+      {% endfor %}
+      {{ (others + cluster_ns) | join('\n') }}
+  become: true
+
 # Check if powerscale is already deployed
 - name: Verify powerscale is deployed on cluster
   ansible.builtin.shell: >
