@@ -8,7 +8,7 @@ image_build_name: {{ ochami_aarch64_image | join(' ') }}
 rhel_base_command_options: {{ ochami_base_command | join(' ') }}
 
 rhel_repos:
-{% for repo in rhel_aarch64_repos %}
+{% for repo in rhel_aarch_64_repos %}
   - { name: '{{ repo.name }}', url: '{{ repo.base_url }}', gpg: '{{ repo.gpg }}' }
 {% endfor %}
 

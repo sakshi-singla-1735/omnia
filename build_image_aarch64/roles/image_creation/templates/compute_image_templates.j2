@@ -10,7 +10,7 @@ rhel_base_compute_command_options: {{ ochami_base_command | join (' ') }}
 
 rhel_repos:
 {% if 'x86_64' in functional_group %}
-{% set rhel_repo = rhel_aarch64_repos %}
+{% set rhel_repo = rhel_aarch_64_repos %}
 {% else %}
 {% set rhel_repo = [] %}
 {% endif %}
