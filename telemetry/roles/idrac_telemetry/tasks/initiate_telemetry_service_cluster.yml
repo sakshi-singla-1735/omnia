@@ -44,12 +44,6 @@
     parent_to_bmc_ip_details: "{{ hostvars['localhost']['bmc_ips'] }}"
   register: idrac_podname_idracips
 
-- name: Fetch the kube control plane cluster name
-  ansible.builtin.set_fact:
-    kube_control_plane_cluster_name: "{{ item.value.cluster_name }}"
-  loop: "{{ service_cluster_metadata | dict2items }}"
-  when: "'service_kube_control_plane' in item.value.role"
-
 - name: Show iDRAC IPs for each pod
   ansible.builtin.debug:
     msg: >-
