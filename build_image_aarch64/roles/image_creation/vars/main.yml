@@ -31,19 +31,19 @@ ochami_compute_mounts:
   - -v {{ oim_shared_path }}/omnia/pulp/settings/certs/pulp_webserver.crt:/etc/pki/ca-trust/source/anchors/pulp_webserver.crt:z
   - -v {{ openchami_work_dir }}/images/rhel-{{ item.key }}-{{ rhel_tag }}.yaml:/home/builder/config.yaml:z
 
-ochami_x86_64_image:
+ochami_aarch64_image:
   - --entrypoint /bin/bash
   - ghcr.io/openchami/image-build:latest
 ochami_base_command:
   - -c 'update-ca-trust extract && image-build --config /home/builder/config.yaml --log-level DEBUG'
 
-# ochami_aarch64_image: ""
 
 # build_base_image.yml
 openchami_log_dir: /opt/omnia/log/openchami
-openchami_aarch64_base_image_log_path: "{{ openchami_log_dir }}/aarch64_base_image.log"
+openchami_base_image_log_path: "{{ openchami_log_dir }}/base_image.log"
 openchami_base_image_vars_template: "{{ role_path }}/templates/base_image_template.j2"
 openchami_base_image_vars_path: "/opt/omnia/openchami/base_image_template.yaml"
+aarch64_inventory_file: "/tmp/temp_ochami_inventory.ini"
 base_image_failure_msg: "Base image build job failed or timed out. Check logs at path {{ openchami_base_image_log_path }} for details."
 compute_image_failure_msg: "Compute image build job did not completed successfully."
 

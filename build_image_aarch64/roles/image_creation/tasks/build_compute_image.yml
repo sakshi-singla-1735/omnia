@@ -39,7 +39,7 @@
   ansible.builtin.shell: |
     set -o pipefail
     ansible-playbook {{ openchami_clone_path }}/dell/podman-quadlets/image.yaml \
-      -i {{ openchami_clone_path }}/dell/podman-quadlets/inventory -v \
+    -i {{ aarch64_inventory_file }} -v \
       --extra-vars '@{{ openchami_dir }}/{{ item.key }}_compute_images.yaml' \
       -e "minio_s3_username={{ minio_s3_username }}" \
       -e "minio_s3_password={{ minio_s3_password }}" \
@@ -79,6 +79,11 @@
       loop: "{{ compute_images_dict | dict2items }}"
       loop_control:
         loop_var: item
+
+    - name: Remove temporary inventory file
+      ansible.builtin.file:
+        path: "{{ aarch64_inventory_file }}"
+        state: absent
 
     - name: Set openchami SELinux context
       ansible.builtin.command: chcon -R system_u:object_r:container_file_t:s0 "{{ oim_shared_path }}/omnia/openchami"
