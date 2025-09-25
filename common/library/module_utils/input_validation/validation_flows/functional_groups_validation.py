@@ -214,7 +214,7 @@ def validate_non_empty_clustername(functional_groups):
     return errors
 
 # Slurm/K8s cluster validation
-def validate_slurm_k8s_clusters(functional_groups):
+def validate_slurm_k8s_clusters(functional_groups, input_file_path):
     """
     Validates that SLURM and Kubernetes clusters do not overlap.
     Ensures that SLURM nodes have corresponding control nodes and that SLURM and Kubernetes clusters are distinct.
@@ -225,74 +225,57 @@ def validate_slurm_k8s_clusters(functional_groups):
     """
     errors = []
 
-    slurm_control_clusters = set()
-    slurm_node_clusters = set()
-    kube_clusters = set()
+    omnia_config_file = create_file_path(input_file_path, "omnia_config.yml")
+    omnia_config = load_yaml(omnia_config_file)
+    slurm_cluster = [c.get('cluster_name') for c in omnia_config.get('slurm_cluster')]
+    service_k8s_cluster = [c.get('cluster_name') for c in omnia_config.get('service_k8s_cluster')]
 
-    for fg in functional_groups:
-        name = fg.get("name", "")
-        cluster = fg.get("cluster_name", "")
-        if "slurm_control_node" in name and cluster:
-            slurm_control_clusters.add(cluster)
-        elif "slurm_node" in name and cluster:
-            slurm_node_clusters.add(cluster)
-        elif "kube" in name and cluster:
-            kube_clusters.add(cluster)
+    slurm_control_clusters = {fg.get("cluster_name") for fg in functional_groups
+     if (fg.get('name').startswith('slurm_control_node') and fg.get("cluster_name"))}
 
-    # Slurm node requires control node
-    for cluster in slurm_node_clusters:
-        if cluster not in slurm_control_clusters:
-            errors.append(
-                create_error_msg(
-                    "slurm_node",
-                    cluster,
-                    en_us_validation_msg.SLURM_NODE_WITHOUT_CONTROL_MSG.format(cluster=cluster)
-                )
-            )
+    slurm_node_clusters = {fg.get("cluster_name") for fg in functional_groups
+     if (fg.get('name').startswith('slurm_node') and fg.get("cluster_name"))}
+
+    login_clusters = {fg.get("cluster_name") for fg in functional_groups
+     if (fg.get('name').startswith('login_') and fg.get("cluster_name"))}
+
+    kube_clusters = {fg.get("cluster_name") for fg in functional_groups
+     if (fg.get('name').startswith('service_kube') and fg.get("cluster_name"))}
+
+    slurm_union = (set(slurm_control_clusters) | set(slurm_node_clusters) | set(login_clusters))
+
+    slurm_cluster_not_fg = slurm_union - set(slurm_cluster)
+    if slurm_cluster_not_fg:
+        errors.append(create_error_msg("slurm_cluster", slurm_cluster_not_fg,
+            f"Slurm cluster mentioned in functional_groups not in omnia_config.yml - {', '.join(slurm_cluster_not_fg)}"
+            ))
+
+    k8s_cluster_not_fg =  set(kube_clusters) - set(service_k8s_cluster)
+    if k8s_cluster_not_fg:
+        errors.append(create_error_msg("slurm_cluster", k8s_cluster_not_fg,
+            f"Service_k8s cluster mentioned in functional_groups not in omnia_config.yml - {', '.join(k8s_cluster_not_fg)}"
+            ))
+
+    slurm_cluster_not_in_control = set(slurm_node_clusters) - set(slurm_control_clusters)
+    if slurm_cluster_not_in_control:
+        errors.append(create_error_msg("slurm_cluster", "slurm node not in slurm control",
+            en_us_validation_msg.SLURM_NODE_WITHOUT_CONTROL_MSG.format(cluster=", ".join(slurm_cluster_not_in_control))
+        ))
+
+    login_cluster_not_in_control = set(login_clusters) - set(slurm_control_clusters)
+    if login_cluster_not_in_control:
+        errors.append(create_error_msg("slurm_cluster", "login not in slurm control",
+            en_us_validation_msg.LOGIN_NODE_WITHOUT_SLURM_MSG.format(cluster=', '.join(login_cluster_not_in_control))
+            ))
 
     # Slurm clusters cannot overlap with kube clusters
-    overlap = slurm_control_clusters.union(slurm_node_clusters).intersection(kube_clusters)
-    for cluster in overlap:
+    overlap = slurm_union & kube_clusters
+    if overlap:
         errors.append(
-            create_error_msg(
-                "functional_groups",
-                cluster,
-                en_us_validation_msg.SLURM_KUBE_CLUSTER_OVERLAP_MSG.format(cluster=cluster)
-            )
-        )
+            create_error_msg("functional_groups", "Cluster overlap",
+                en_us_validation_msg.SLURM_KUBE_CLUSTER_OVERLAP_MSG.format(cluster=", ".join(overlap))
+            ))
 
-    return errors
-
-# Login node cluster validation
-def validate_login_node_clustername(functional_groups):
-    """
-    Validates that login nodes have corresponding slurm clusters.
-
-    Args:
-        functional_groups (list): A list of dictionaries, where each dictionary represents a functional group.
-
-    Returns:
-        list: A list of error messages.
-    """
-    errors = []
-    login_clusters = set()
-    slurm_clusters = set()
-    for fg in functional_groups:
-        name = fg.get("name", "")
-        cluster = fg.get("cluster_name", "")
-        if "login" in name and cluster:
-            login_clusters.add(cluster)
-        if "slurm" in name and cluster:
-            slurm_clusters.add(cluster)
-    for cluster in login_clusters:
-        if cluster not in slurm_clusters:
-            errors.append(
-                create_error_msg(
-                    "login_node",
-                    cluster,
-                    en_us_validation_msg.LOGIN_NODE_WITHOUT_SLURM_MSG.format(cluster=cluster)
-                )
-            )
     return errors
 
 # Slurm node parent validation
@@ -414,8 +397,7 @@ def validate_functional_groups_config(input_file_path, data, logger, _module, _o
     # Modular validations
     errors.extend(validate_functional_group_duplicates(functional_groups))
     errors.extend(validate_non_empty_clustername(functional_groups))
-    errors.extend(validate_slurm_k8s_clusters(functional_groups))
-    errors.extend(validate_login_node_clustername(functional_groups))
+    errors.extend(validate_slurm_k8s_clusters(functional_groups, input_file_path))
     errors.extend(validate_slurm_node_parent(functional_groups, groups))
 
     # Software validation
