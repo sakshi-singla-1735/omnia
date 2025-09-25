@@ -30,3 +30,6 @@
 
 - name: Check service_node role is present in functional_groups_config.yml
   ansible.builtin.include_tasks: check_service_role.yml
+
+- name: Check openldap support
+  ansible.builtin.include_tasks: check_openldap_support.yml

@@ -71,4 +71,5 @@
     - k8s_prereq
     - nfs_client
     - slurm_config
+    - openldap
     - configure_ochami

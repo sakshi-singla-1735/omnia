@@ -15,7 +15,6 @@
 
 # This file is used to specify the network configuration.
 #
-# The variables in this file are divided into two sections: 'admin_network' and 'bmc_network'.
 # 'admin_network' is a mandatory field, essential for PXE boot and host communication."
 #
 # The 'admin_network' section contains the following variables:

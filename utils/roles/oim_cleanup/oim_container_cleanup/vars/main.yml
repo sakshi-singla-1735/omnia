@@ -137,3 +137,9 @@ openchami_services:
   - hydra-gen-jwks.service
   - hydra-migrate.service
   - haproxy-certs-volume.service
+
+# Usage: cleanup_auth.yml
+auth_cleanup_directory:
+  - "{{ omnia_nfs_share }}/auth"
+
+auth_service_container_name: omnia_auth

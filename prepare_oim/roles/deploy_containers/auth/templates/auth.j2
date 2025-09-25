@@ -1,0 +1,20 @@
+[Unit]
+Description=OpenLDAP container managed by systemd
+
+[Container]
+Image={{ auth_service_image_name }}
+ContainerName={{ auth_service_container_name }}
+
+# Publish ports
+{% for port in openldap_ports %}
+PublishPort=0.0.0.0:{{ port }}:{{ port }}
+{% endfor %}
+
+# Mount configuration and bootstrap files (read-only, with SELinux relabel)
+Volume={{ slapd_conf_dest }}:/etc/openldap/slapd.conf:ro,Z
+Volume={{ bootstrap_ldif_dest }}:/container-init/bootstrap.ldif:ro,Z
+
+[Service]
+Restart=always
+[Install]
+WantedBy=multi-user.target
