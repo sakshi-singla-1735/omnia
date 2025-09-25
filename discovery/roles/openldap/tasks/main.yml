@@ -37,6 +37,24 @@
       ansible.builtin.set_fact:
         ldap_default_bind_dn: "cn={{ hostvars['localhost']['openldap_db_username'] }},{{ ldap_search_base }}"
 
+    - name: Delete existing temporary openldap cert directory if present
+      ansible.builtin.file:
+        path: "{{ openldap_cert_dir }}"
+        state: absent
+
+    - name: Recreate temporary openldap cert directory
+      ansible.builtin.file:
+        path: "{{ openldap_cert_dir }}"
+        state: directory
+        mode: "{{ hostvars['localhost']['dir_permissions_755'] }}"
+
+    - name: Copy the openldap certs
+      ansible.builtin.copy:
+        src: "{{ openldap_cert_src_dir }}
+        dest: "{{ openldap_cert_dest_dir
+        mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
+      
+
   rescue:
     - name: Warn missing vars files
       ansible.builtin.fail:

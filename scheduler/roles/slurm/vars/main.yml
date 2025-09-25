@@ -29,6 +29,7 @@ slurm_support: "{{ hostvars['localhost']['slurm_support'] }}"
 slurm_share_prefix: "/"
 slurm_config_dir: etc/slurm
 slurm_dir_name: "slurm/"
+openldap_dir_name: "openldap/"
 slurm_dbd_port: 6819
 slurm_dbd_db_username: "{{ slurm_user }}"
 slurmdbd_conf_path: "/etc/slurm/slurmdbd.conf"

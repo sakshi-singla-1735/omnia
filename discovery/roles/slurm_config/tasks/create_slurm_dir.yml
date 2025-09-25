@@ -37,6 +37,11 @@
 
 - name: Set facts for slurm
   ansible.builtin.set_fact:
+    openldap_config_path: "{{ share_path }}/{{ openldap_dir_name }}"
+      
+
+- name: Set facts for slurm
+  ansible.builtin.set_fact:
     share_prefix: "{{ slurm_config_path }}"
   when: conf_in_nfs
 
@@ -47,6 +52,20 @@
     owner: root
     group: root
     mode: "{{ common_mode }}"
+
+- name: Create the openldap directory in share
+  ansible.builtin.file:
+    path: "{{ openldap_config_path }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "{{ common_mode }}"
+
+- name: Copy the openldap certs
+  ansible.builtin.copy:
+    src: "/opt/omnia/auth/hello.cert"
+    dest: "{{ openldap_config_path }}
+    mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
 
 - name: Create the slurm ctld directory on share
   ansible.builtin.file:
@@ -162,3 +181,7 @@
 - name: NFS path for cloud init
   ansible.builtin.set_fact:
     cloud_init_nfs_path: "{{ nfs_server_ip }}:{{ nfs_server_path }}/slurm"
+
+- name: NFS path for cloud init
+  ansible.builtin.set_fact:
+    cloud_init_nfs_path_openldap: "{{ nfs_server_ip }}:{{ nfs_server_path }}/openldap"
