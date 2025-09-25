@@ -35,7 +35,7 @@
 
     - name: Set the ldap_connection_type required by LDAP
       ansible.builtin.set_fact:
-        ldap_default_bind_dn: "cn={{ hostvars['localhost']['openldap_db_username'] }},{{ ldap_search_base }}"  
+        ldap_default_bind_dn: "cn={{ hostvars['localhost']['openldap_db_username'] }},{{ ldap_search_base }}"
   rescue:
     - name: Warn missing vars files
       ansible.builtin.fail:
