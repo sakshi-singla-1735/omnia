@@ -18,8 +18,8 @@
     path: "{{ service_cluster_idrac_telemetry_dir_path }}"
     state: directory
     mode: "{{ dir_permissions_755 }}"
-  delegate_to: oim
-  connection: ssh
+  delegate_to: localhost
+  connection: local
 
 - name: Git checkout for iDRAC Telemetry Reference Tools
   block:
@@ -29,8 +29,8 @@
         dest: "{{ idrac_telemetry_reference_git_clone_path }}"
         version: "{{ reference_tools_stable_commit }}"
         update: false
-      delegate_to: oim
-      connection: ssh
+      delegate_to: localhost
+      connection: local
       register: clone_idrac_telemetry
       until: clone_idrac_telemetry is succeeded
       retries: "{{ max_retries }}"
