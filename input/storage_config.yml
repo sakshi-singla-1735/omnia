@@ -46,8 +46,14 @@
 # - { server_ip: 198.168.0.2, server_share_path: "/mnt/share2", client_share_path: "/mnt/mount2", client_mount_options: "nosuid,rw,sync,hard", nfs_server: false , slurm_share: true, k8s_share: false}
 nfs_client_params:
   - server_ip: "" # Provide the IP of the NFS server
-    server_share_path: "" # Provide server share path of the NFS Server
-    client_share_path: ""
+    server_share_path: "/mnt/share/omnia" # Provide server share path of the NFS Server
+    client_share_path: /share_omnia
     client_mount_options: "nosuid,rw,sync,hard,intr"
     nfs_server: false
     nfs_name: nfs_slurm
+  - server_ip: "" # Provide the IP of the NFS server
+    server_share_path: "/mnt/share/openldap" # Provide server share path of the NFS Server
+    client_share_path: /home
+    client_mount_options: "nosuid,rw,sync,hard,intr"
+    nfs_server: false
+    nfs_name: nfs_openldap
