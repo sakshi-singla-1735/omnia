@@ -28,7 +28,7 @@
             | selectattr('type', 'equalto', 'rpm')
             | map(attribute='package')
             | list }}
-
+    - name:
       ansible.builtin.debug:
         var: aarch64_base_image_packages
         verbosity: 2
