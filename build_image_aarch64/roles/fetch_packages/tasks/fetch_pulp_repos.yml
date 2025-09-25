@@ -31,7 +31,7 @@
     pulp rpm distribution list --field name,base_url
   register: pulp_endpoints
   changed_when: false
- 
+
 - name: Fetch pulp endpoints only if aarch_64 functional_group present
   when: fg_aarch64
   block:
