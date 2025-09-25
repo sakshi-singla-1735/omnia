@@ -40,7 +40,7 @@ def get_service_cluster_node_details(nodes_info):
 
     for sn in nodes_info:
         node = sn['name']
-        service_tag = sn['xname']
+        service_tag = sn['description']
         role = sn['group']
         # cluster_name =  next((g["cluster_name"] for g in functional_groups_info if g["name"] == role), None)
 
