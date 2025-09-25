@@ -3,6 +3,6 @@
     ids:
 {% for item in nodes %}
 {% if item.value.FUNCTIONAL_GROUP_NAME == functional_group_name %}
-      - {{ item.value.SERVICE_TAG }}
+      - {{ item.value.XNAME }}
 {% endif %}
 {% endfor %}
