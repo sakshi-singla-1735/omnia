@@ -14,7 +14,7 @@
       { "package": "docker.io/rmohr/activemq", "type": "image", "tag": "5.15.9" },
       { "package": "docker.io/prom/prometheus", "type": "image", "tag": "v3.4.1" },
       { "package": "docker.io/library/mysql", "type": "image", "tag": "9.3.0" },
-      { "package": "docker.io/bitnami/kafka", "type": "image", "tag": "3.9.0" },
+      { "package": "docker.io/bitnamilegacy/kafka", "type": "image", "tag": "3.9.0" },
       { "package": "cryptography==45.0.7", "type": "pip_module" },
       { "package": "omsdk==1.2.518", "type": "pip_module" },
       { "package": "cffi==1.17.1", "type": "pip_module" },
@@ -42,7 +42,7 @@
       { "package": "quay.io/prometheus/alertmanager", "tag": "v0.28.1", "type": "image" },
       { "package": "quay.io/prometheus/node-exporter", "tag": "v1.9.1", "type": "image" },
       { "package": "quay.io/prometheus/prometheus", "tag": "v3.5.0", "type": "image" },
-	  { "package": "registry.k8s.io/kube-proxy", "tag": "v1.31.4", "type": "image" },
+	    { "package": "registry.k8s.io/kube-proxy", "tag": "v1.31.4", "type": "image" },
       { "package": "registry.k8s.io/ingress-nginx/kube-webhook-certgen", "tag": "v1.6.0", "type": "image" }
     ]
   },

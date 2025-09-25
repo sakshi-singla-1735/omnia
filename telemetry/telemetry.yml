@@ -103,7 +103,7 @@
       ansible.builtin.include_role:
         name: service_k8s_telemetry
 
-- name: Enable idrac telemetry in OIM
+- name: Enable idrac telemetry
   hosts: kube_control_plane[0]
   gather_facts: false
   tasks:
