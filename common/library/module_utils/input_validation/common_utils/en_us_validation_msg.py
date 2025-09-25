@@ -326,11 +326,6 @@ DUPLICATE_ACTIVE_NODE_SERVICE_TAG = ("the service tag configured for a active no
 DUPLICATE_PASSIVE_NODE_SERVICE_TAG = ("the service tag configured for a passive node is already "
                                      "present elsewhere in the config file. ")
 
-def user_name_duplicate(duplicate_usernames):
-    """Returns error message for duplicate usernames found in configuration files."""
-    return (f'duplicate username detected {duplicate_usernames}. Check that usernames are unique '
-            f'in passwordless_ssh_config.yml')
-
 # addtional_software
 ADDITIONAL_SOFTWARE_FAIL_MSG = "The additional_software is mandatory in additional_software.json"
 ADDITIONAL_SOFTWARE_SUBGROUP_FAIL_MSG = ("The role or group name, [{0}] is present in subgroup "

@@ -452,68 +452,12 @@ def get_matching_clusters_for_nfs(nfs_name, omnia_config):
         ):
             matching_clusters["service_k8s_cluster"] = svc
 
-    # Compute k8s
-    for comp in omnia_config.get("compute_k8s_cluster", []):
-        if (
-            comp.get("nfs_storage_name") == nfs_name
-            and comp.get("deployment") is True
-        ):
-            matching_clusters["compute_k8s_cluster"] = comp
-
     # Slurm
     for slurm in omnia_config.get("slurm_cluster", []):
         if slurm.get("nfs_storage_name") == nfs_name:
             matching_clusters["slurm_cluster"] = slurm
 
     return matching_clusters
-
-def validate_openmpi_ucx_dependencies(matching_clusters, softwares, errors):
-    """
-    Validate UCX/OpenMPI dependencies:
-    - If UCX/OpenMPI + Slurm → slurm cluster must be in matching_clusters
-    - If UCX/OpenMPI + no Slurm + service_k8s → service_k8s cluster must be in matching_clusters
-    - If UCX/OpenMPI + no Slurm + compute_k8s → compute_k8s cluster must be in matching_clusters
-    """
-
-    has_ucx_or_openmpi = (
-        contains_software(softwares, "ucx") or contains_software(softwares, "openmpi")
-    )
-
-    if not has_ucx_or_openmpi:
-        return  # No UCX/OpenMPI → no dependency check
-
-    # Case 1: Slurm required
-    if contains_software(softwares, "slurm"):
-        if "slurm_cluster" not in matching_clusters:
-            errors.append(
-                create_error_msg(
-                    "OpenMPI/UCX requires a corresponding",
-                    "slurm_cluster",
-                    "entry in omnia_config.yml with deployment enabled."
-                )
-            )
-
-    # Case 2: Service K8s required
-    elif contains_software(softwares, "service_k8s"):
-        if "service_k8s" not in matching_clusters:
-            errors.append(
-                create_error_msg(
-                    "OpenMPI/UCX requires a corresponding",
-                    "service_k8s",
-                    "entry in omnia_config.yml with deployment enabled."
-                )
-            )
-
-    # Case 3: Compute K8s required
-    elif contains_software(softwares, "compute_k8s"):
-        if "compute_k8s" not in matching_clusters:
-            errors.append(
-                create_error_msg(
-                    "OpenMPI/UCX requires a corresponding",
-                    "compute_k8s",
-                    "entry in omnia_config.yml with deployment enabled."
-                )
-            )
 
 def validate_storage_config(
     input_file_path, data, logger, module, omnia_base_dir, module_utils_base, project_name
@@ -546,10 +490,6 @@ def validate_storage_config(
     with open(software_config_file_path, "r", encoding="utf-8") as schema_file:
         software_config_json = json.load(schema_file)
     softwares = software_config_json["softwares"]
-    for software in softwares:
-        if software.get('name') == 'beegfs' and 'version' not in software:
-            errors.append(create_error_msg("beegfs", "",
-                                           en_us_validation_msg.BEEGFS_VERSION_FAIL_MSG))
 
     allowed_options = {"nosuid", "rw", "sync", "hard", "intr"}
 
@@ -578,134 +518,6 @@ def validate_storage_config(
                     f"with deployment enabled for NFS '{nfs_strg_name}'."
                 )
             )
-        else: # Only validate if clusters are found
-            validate_openmpi_ucx_dependencies(matching_clusters, softwares, errors)
-
-    #     slurm_share_raw = str(nfs_client_params.get("slurm_share", "false")).strip().lower()
-    #     if slurm_share_raw == "true":
-    #         if not slurm_share_val:
-    #             slurm_share_val = True
-    #         else:
-    #             multiple_slurm_share_val = True
-
-    #     k8s_share_raw = str(nfs_client_params.get("k8s_share", "false")).strip().lower()
-    #     if k8s_share_raw == "true":
-    #         if not k8s_share_val:
-    #             k8s_share_val = True
-    #         else:
-    #             multiple_k8s_share_val = True
-
-    # if (contains_software(softwares, "slurm") and not slurm_share_val) or multiple_slurm_share_val:
-    #     errors.append(
-    #         create_error_msg(
-    #             "slurm_share",
-    #             slurm_share_val,
-    #             en_us_validation_msg.SLURM_SHARE_FAIL_MSG
-    #         )
-    #     )
-
-    # if (contains_software(softwares, "k8s") and not k8s_share_val) or multiple_k8s_share_val:
-    #     errors.append(
-    #         create_error_msg(
-    #             "k8s_share",
-    #             k8s_share_val,
-    #             en_us_validation_msg.K8S_SHARE_FAIL_MSG
-    #         )
-    #     )
-
-    # if contains_software(softwares, "ucx") or contains_software(softwares, "openmpi"):
-    #     if not k8s_share_val or not slurm_share_val:
-    #         errors.append(
-    #             create_error_msg(
-    #                 "nfs_client_params",
-    #                 "",
-    #                 en_us_validation_msg.BENCHMARK_TOOLS_FAIL_MSG
-    #             )
-    #         )
-    #     elif multiple_slurm_share_val or multiple_k8s_share_val:
-    #         errors.append(
-    #             create_error_msg(
-    #                 "nfs_client_params",
-    #                 "",
-    #                 en_us_validation_msg.MULT_SHARE_FAIL_MSG
-    #             )
-    #         )
-
-    beegfs_mounts = data["beegfs_mounts"]
-    if beegfs_mounts != "/mnt/beegfs":
-        beegfs_unmount_client = data["beegfs_unmount_client"]
-        if not beegfs_unmount_client:
-            errors.append(
-                create_error_msg(
-                    "beegfs_unmount_client",
-                    beegfs_unmount_client,
-                    en_us_validation_msg.BEEGFS_UNMOUNT_CLIENT_FAIL_MSG,
-                )
-            )
-
-    return errors
-
-
-# for  passwordless_ssh_config.yml this is run
-def validate_usernames(
-    input_file_path, data, logger, module, omnia_base_dir, module_utils_base, project_name
-):
-    """
-    Validates the usernames.
-
-    Args:
-        input_file_path (str): The path to the input file.
-        data (dict): The data to be validated.
-        logger (Logger): A logger instance.
-        module (Module): A module instance.
-        omnia_base_dir (str): The base directory of the Omnia configuration.
-        module_utils_base (str): The base directory of the module utils.
-        project_name (str): The name of the project.
-
-    Returns:
-        list: A list of errors encountered during validation.
-    """
-    errors = []
-
-    passwordless_ssh_config_file_path = create_file_path(
-        input_file_path, file_names["passwordless_ssh_config"]
-    )
-    passwordless_ssh_config_json = validation_utils.load_yaml_as_json(
-        passwordless_ssh_config_file_path,
-        omnia_base_dir,
-        project_name,
-        logger,
-        module,
-    )
-
-    pw_ssh_user_name = passwordless_ssh_config_json["user_name"]
-
-    pw_ssh_user_name = pw_ssh_user_name.split(",")
-
-    # Combine all usernames into a single list
-    all_usernames = pw_ssh_user_name
-
-    # Create a dictionary to store the count of each username
-    username_count = {}
-    for username in all_usernames:
-        if username == "":
-            continue
-        if username in username_count:
-            username_count[username] += 1
-        else:
-            username_count[username] = 1
-
-    # Find usernames that appear more than once
-    duplicate_usernames = [username for username, count in username_count.items() if count > 1]
-    if len(duplicate_usernames) > 0:
-        errors.append(
-            create_error_msg(
-                "user_name",
-                data["user_name"],
-                en_us_validation_msg.user_name_duplicate(duplicate_usernames),
-            )
-        )
-
     return errors
 
 

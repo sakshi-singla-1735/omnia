@@ -15,11 +15,7 @@
 
 - name: Get service_cluster kube-control-plane node count
   ansible.builtin.set_fact:
-    cp_node_count: "{{ node_info.resources
-                       | selectattr('metadata.labels', 'defined')
-                       | selectattr('metadata.labels', 'search', 'node-role.kubernetes.io/control-plane')
-                       | list
-                       | length }}"
+    cp_node_count: "{{ groups['kube_control_plane'] | length }}"
 
 - name: Create Kafka headless service
   kubernetes.core.k8s:

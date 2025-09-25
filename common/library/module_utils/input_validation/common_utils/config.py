@@ -34,16 +34,13 @@ files = {
     "local_repo_config": "local_repo_config.yml",
     "network_spec": "network_spec.yml",
     "omnia_config": "omnia_config.yml",
-    "passwordless_ssh_config": "passwordless_ssh_config.yml",
     "provision_config": "provision_config.yml",
     "security_config": "security_config.yml",
     "software_config": "software_config.json",
     "storage_config": "storage_config.yml",
     "telemetry_config": "telemetry_config.yml",
-    # "roles_config": "roles_config.yml",
     "functional_groups_config": "functional_groups_config.yml",
-    # "high_availability_config": "high_availability_config.yml",
-    # "additional_software": "additional_software.json"
+    "high_availability_config": "high_availability_config.yml"
 }
 
 # Tags and the files that will be run based off of it
@@ -62,19 +59,18 @@ input_file_inventory = {
         # files["high_availability_config"]
     ],
     "security": [
-        files["software_config"],
-        files["security_config"],
-        files["passwordless_ssh_config"]
+        files["security_config"]
     ],
     "telemetry": [files["telemetry_config"]],
     "local_repo": [files["local_repo_config"], files["software_config"]],
     "slurm": [
-        files["omnia_config"]
+        files["omnia_config"],
+        files["storage_config"]
         # files["high_availability_config"]
     ],
     "service_k8s": [
         files["omnia_config"],
-        #files["high_availability_config"],
+        files["high_availability_config"],
         files["functional_groups_config"]
     ],
     "storage": [files["storage_config"]],
@@ -85,7 +81,6 @@ input_file_inventory = {
     # "high_availability": [files["high_availability_config"]],
     # "additional_software": [files["additional_software"]],
     "all": [
-        files["passwordless_ssh_config"],
         files["local_repo_config"],
         files["network_spec"],
         files["omnia_config"],
@@ -94,7 +89,7 @@ input_file_inventory = {
         files["provision_config"],
         files["software_config"],
         files["storage_config"],
-        # files["high_availability_config"],
+        files["high_availability_config"],
         files["functional_groups_config"]
     ],
 }

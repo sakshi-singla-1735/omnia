@@ -41,7 +41,7 @@ def get_roles_config_json(input_file_path, logger, module, omnia_base_dir, proje
     Returns:
         dict: The roles configuration as json.
     """
-    roles_config_file_path = create_file_path(input_file_path, file_names["roles_config"])
+    roles_config_file_path = create_file_path(input_file_path, file_names["functional_groups_config"])
     roles_config_json = validation_utils.load_yaml_as_json(
         roles_config_file_path, omnia_base_dir, project_name, logger, module
     )
@@ -603,9 +603,7 @@ ha_validation = {
     "service_node_ha": validate_service_node_ha,
     # Add more config_type functions here as needed
     "oim_ha": validate_oim_ha,
-    "slurm_head_node_ha": validate_slurm_head_node_ha,
-    "service_k8s_cluster_ha": validate_k8s_head_node_ha,
-    "compute_k8s_cluster_ha": validate_k8s_head_node_ha
+    "service_k8s_cluster_ha": validate_k8s_head_node_ha
 }
 
 
@@ -703,9 +701,7 @@ def validate_high_availability_config(
     ha_configs = [
         ("oim_ha", ["admin_virtual_ip_address", "active_node_service_tag", "passive_nodes"]),
         ("service_node_ha", ["service_nodes"]),
-        ("slurm_head_node_ha", ["virtual_ip_address", "active_node_service_tag", "passive_nodes"]),
-        ("compute_k8s_head_node_ha", ["virtual_ip_address", "active_node_service_tags"]),
-        ("service_k8s_head_node_ha", ["virtual_ip_address", "active_node_service_tags"])
+        ("service_k8s_cluster_ha", ["virtual_ip_address", "active_node_service_tags"])
     ]
 
     for config_name, mandatory_fields in ha_configs:
