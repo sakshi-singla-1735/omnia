@@ -24,15 +24,6 @@
             },
             "client_mount_options": {
               "type": "string"
-            },
-            "nfs_server": {
-              "type": "boolean"
-            },
-            "slurm_share": {
-              "type": "boolean"
-            },
-            "k8s_share": {
-              "type": "boolean"
             }
           },
           "required": [

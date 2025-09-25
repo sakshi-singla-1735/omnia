@@ -67,7 +67,8 @@ input_file_inventory = {
     "telemetry": [files["telemetry_config"]],
     "local_repo": [files["local_repo_config"], files["software_config"]],
     "slurm": [
-        files["omnia_config"]
+        files["omnia_config"],
+        files["storage_config"]
         # files["high_availability_config"]
     ],
     "service_k8s": [
