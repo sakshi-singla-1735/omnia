@@ -48,6 +48,7 @@
             sed -i 's/^PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config.d/50-cloud-init.conf
             systemctl restart sshd
 
+{% if hostvars['localhost']['openldap_support'] %}
         - path: /etc/sssd/sssd.conf
           owner: root:root
           permissions: '0600'
@@ -59,6 +60,7 @@
           permissions: '0755'
           content: |
             {{ lookup('template', 'templates/openldap/update_ldap_conf.sh.j2') | indent(12) }}
+{% endif %}
 
         - path: /etc/hosts
           append: true
@@ -69,9 +71,11 @@
 
       runcmd:
         - /usr/local/bin/set-hostname-by-mac.sh
+        - setenforce 0
+
+{% if hostvars['localhost']['openldap_support'] %}
         - /usr/local/bin/update_ldap_conf.sh
         - authselect select sssd with-mkhomedir --force
-        - setenforce 0
         - sudo systemctl enable --now oddjobd.service
         - sudo systemctl enable --now sssd
         - sudo systemctl enable --now sssd
@@ -80,6 +84,8 @@
         - sudo systemctl stop firewalld
         - sudo systemctl disable firewalld
         - sudo systemctl restart sssd
+{% endif %}
+
         - groupadd -r slurm
         - useradd -r -g slurm -d /var/lib/slurm -s /sbin/nologin slurm
 

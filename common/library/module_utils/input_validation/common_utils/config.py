@@ -34,7 +34,6 @@ files = {
     "local_repo_config": "local_repo_config.yml",
     "network_spec": "network_spec.yml",
     "omnia_config": "omnia_config.yml",
-    "passwordless_ssh_config": "passwordless_ssh_config.yml",
     "provision_config": "provision_config.yml",
     "security_config": "security_config.yml",
     "software_config": "software_config.json",
@@ -60,9 +59,7 @@ input_file_inventory = {
         # files["high_availability_config"]
     ],
     "security": [
-        files["software_config"],
-        files["security_config"],
-        files["passwordless_ssh_config"]
+        files["security_config"]
     ],
     "telemetry": [files["telemetry_config"]],
     "local_repo": [files["local_repo_config"], files["software_config"]],
@@ -84,7 +81,6 @@ input_file_inventory = {
     # "high_availability": [files["high_availability_config"]],
     # "additional_software": [files["additional_software"]],
     "all": [
-        files["passwordless_ssh_config"],
         files["local_repo_config"],
         files["network_spec"],
         files["omnia_config"],

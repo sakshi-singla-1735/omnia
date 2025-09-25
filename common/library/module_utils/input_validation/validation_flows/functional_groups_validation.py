@@ -344,11 +344,11 @@ def validate_software_section_mappings(functional_groups, software_data):
         "service_kube_node": ["service_k8s", "nfs"],
         "slurm_control_node": ["slurm_custom", "nfs"],
         "slurm_node": ["slurm_custom", "nfs"],
-        "login_node": ["slurm_custom", "nfs"],
-        "login_compiler_node": ["slurm_custom", "nfs"],
+        "login_node": ["slurm_custom", "nfs", "openldap"],
+        "login_compiler_node": ["slurm_custom", "nfs", "openldap"],
     }
 
-    AARCH64_SUPPORTED = {"slurm_custom  ", "cuda", "nfs"}
+    AARCH64_SUPPORTED = {"slurm_custom", "nfs"}
 
     for fg in functional_groups:
         fg_name = fg.get("name", "")
