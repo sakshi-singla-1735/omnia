@@ -38,7 +38,7 @@
     set -o pipefail
     ansible-playbook {{ openchami_clone_path }}/dell/podman-quadlets/image.yaml \
     -i {{ aarch64_inventory_file }} -v \
-    --extra-vars "@{{ openchami_aarch64_base_image_vars_path  }}" \
+    --extra-vars "@{{ openchami_aarch64_base_image_vars_path }}" \
     --tags base_image -v | \
     /usr/bin/tee {{ openchami_aarch64_base_image_log_path }}
   async: 3600  # Set async timeout (e.g., 1 hour)

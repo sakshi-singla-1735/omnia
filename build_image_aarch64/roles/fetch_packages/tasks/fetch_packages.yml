@@ -29,7 +29,7 @@
             | map(attribute='package')
             | list }}
 
-    - name: Debug package del
+    - name: Debug package aarch64_base_image_packages
       ansible.builtin.debug:
         var: aarch64_base_image_packages
         verbosity: 2

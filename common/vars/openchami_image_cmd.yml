@@ -36,4 +36,4 @@ slurm_node_x86_64_compute_commands:
   - "echo 'Slurm node x86_64 compute'"
 
 slurm_node_aarch64_compute_commands:
-  - "echo 'Slurm node x86_64 compute'"
+  - "echo 'Slurm node aarch64 compute'"
