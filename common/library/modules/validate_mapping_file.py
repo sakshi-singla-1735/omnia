@@ -81,30 +81,30 @@ def validate_mapping_file(mapping_file_path, functional_groups_file, module):
         csv_file.columns = csv_file.columns.str.strip()
 
         # Validate columns
-        mandatory_col = ["FUNCTIONAL_GROUP_NAME", "SERVICE_TAG", "ADMIN_MAC", "HOSTNAME", "ADMIN_IP", "BMC_MAC", "BMC_IP"]
+        mandatory_col = ["FUNCTIONAL_GROUP_NAME", "GROUP_NAME", "SERVICE_TAG", "ADMIN_MAC", "HOSTNAME", "ADMIN_IP", "BMC_MAC", "BMC_IP"]
         for col in mandatory_col:
             if col not in csv_file.columns:
-                module.fail_json(msg=f"Missing mandatory column: {col}")
+                module.fail_json(msg=f"Missing mandatory column: {col} in mapping file.")
 
         # Validate non-null values
         for col in mandatory_col:
             if csv_file[col].isnull().values.any():
-                module.fail_json(msg=f"Null values found in column: {col}")
+                module.fail_json(msg=f"Null values found in column: {col} in mapping file.")
 
         # Validate service tags
         for st in csv_file['SERVICE_TAG']:
             if not st.isalnum():
-                module.fail_json(msg=f"Invalid service tag: {st}")
+                module.fail_json(msg=f"Invalid service tag: {st} in mapping file.")
 
         # Validate MAC addresses
         pattern = r"^([0-9a-fA-F]{2}[:-]){5}[0-9a-fA-F]{2}$"
         for mac in csv_file['ADMIN_MAC']:
             if not re.match(pattern, mac):
-                module.fail_json(msg=f"Invalid ADMIN_MAC: {mac}")
+                module.fail_json(msg=f"Invalid ADMIN_MAC: {mac} in mapping file.")
 
         for mac in csv_file['BMC_MAC']:
             if not re.match(pattern, mac):
-                module.fail_json(msg=f"Invalid BMC_MAC: {mac}")
+                module.fail_json(msg=f"Invalid BMC_MAC: {mac} in mapping file.")
 
         # Validate functional groups presence in YAML
         config_fgs = load_functional_groups_yaml(functional_groups_file, module)
@@ -133,7 +133,15 @@ def validate_mapping_file(mapping_file_path, functional_groups_file, module):
     except Exception as e:
         module.fail_json(msg=str(e))
 
-def run_module():
+def main():
+    """
+	Validate a mapping file.
+
+	Parameters:
+		mapping_file_path (str): The path to the mapping file.
+        functional_groups_file_path (str): The path to the functional_groups file.
+
+	"""
     module_args = {
         'mapping_file_path': {'type': 'path', 'required': True },
         'functional_groups_file_path': {'type': 'path', 'required': True }
@@ -144,17 +152,6 @@ def run_module():
     functional_groups_file_path = module.params["functional_groups_file_path"]
 
     validate_mapping_file(mapping_file_path, functional_groups_file_path, module)
-
-
-def main():
-    """
-	Validate a mapping file.
-
-	Parameters:
-		mapping_file_path (str): The path to the mapping file.
-
-	"""
-    run_module()
 
 
 if __name__ == "__main__":
