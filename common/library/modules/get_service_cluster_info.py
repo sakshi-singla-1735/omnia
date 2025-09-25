@@ -52,7 +52,7 @@ def get_service_cluster_node_details(nodes_info):
                 'role': role
             }
 
-    data['MGMT_node'] = {'parent_status' : True}
+    data['MGMT_node'] = {'parent_status' : True, 'service_tag' : 'MGMT_node', 'role': 'service_kube_control_plane'}
     return data
 
 def check_service_cluster_node_details(group, parent, service_cluster_node_details):
