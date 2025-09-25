@@ -89,8 +89,9 @@
         - groupadd -r slurm
         - useradd -r -g slurm -d /var/lib/slurm -s /sbin/nologin slurm
 
-        - mkdir -p /var/log/slurm /var/run/slurm /var/spool /var/lib/slurm /etc/slurm/epilog.d /etc/munge /openldap
-        - echo "{{ cloud_init_nfs_path_openldap }}                      /openldap            nfs defaults,_netdev 0 0" >> /etc/fstab
+        - mkdir -p /var/log/slurm /var/run/slurm /var/spool /var/lib/slurm /etc/slurm/epilog.d /etc/munge /ldapcerts
+        - echo "{{ cloud_init_nfs_path_openldap }}/certs                /ldapcerts       nfs defaults,_netdev 0 0" >> /etc/fstab
+        - echo "{{ cloud_init_nfs_path_openldap }}/ldapuser             /home            nfs defaults,_netdev 0 0" >> /etc/fstab
         - echo "{{ cloud_init_nfs_path }}/$(hostname -s)/var/log/slurm  /var/log/slurm   nfs defaults,_netdev 0 0" >> /etc/fstab
         - echo "{{ cloud_init_nfs_path }}/$(hostname -s)/var/spool      /var/spool       nfs defaults,_netdev 0 0" >> /etc/fstab
         - echo "{{ cloud_init_nfs_path }}/$(hostname -s)/etc/slurm/epilog.d     /etc/slurm/epilog.d      nfs defaults,_netdev 0 0" >> /etc/fstab
@@ -98,13 +99,14 @@
         - echo "{{ cloud_init_nfs_path }}/$(hostname -s)/etc/munge      /etc/munge       nfs defaults,_netdev 0 0" >> /etc/fstab
         - chmod 644 /etc/fstab
         - mount -a
-        - yes | cp /openldap/* /etc/openldap/certs
+        - yes | cp /ldapcerts/* /etc/openldap/certs
         - yes | cp /etc/slurm/epilog.d/slurmd.service /usr/lib/systemd/system/
         - chown -R slurm:slurm /var/log/slurm
         - chown -R slurm:slurm /var/run/slurm
         - chown -R slurm:slurm /var/spool
         - chown -R slurm:slurm /var/lib/slurm
         - chown -R munge:munge /etc/munge/munge.key
+        - umount /ldapcerts
         - chmod 755 /var/log/slurm /var/run/slurm /var/spool /var/lib/slurm
         - chmod 400 /etc/munge/munge.key
         - chmod 755 /etc/slurm/epilog.d/
