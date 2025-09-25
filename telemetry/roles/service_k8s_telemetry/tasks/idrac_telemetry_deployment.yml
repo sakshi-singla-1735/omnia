@@ -18,8 +18,6 @@
     path: "{{ service_cluster_idrac_telemetry_dir_path }}"
     state: directory
     mode: "{{ dir_permissions_755 }}"
-  delegate_to: oim
-  connection: ssh
 
 - name: Git checkout for iDRAC Telemetry Reference Tools
   block:
@@ -29,8 +27,6 @@
         dest: "{{ idrac_telemetry_reference_git_clone_path }}"
         version: "{{ reference_tools_stable_commit }}"
         update: false
-      delegate_to: oim
-      connection: ssh
       register: clone_idrac_telemetry
       until: clone_idrac_telemetry is succeeded
       retries: "{{ max_retries }}"
@@ -50,8 +46,6 @@
         dest: "{{ idrac_telemetry_scripting_git_clone_path }}"
         version: "{{ idrac_telemetry_scripting_stable_commit }}"
         update: false
-      delegate_to: oim
-      connection: ssh
       register: clone_idrac_script
       until: clone_idrac_script is succeeded
       retries: "{{ max_retries }}"
@@ -78,7 +72,6 @@
       }}
 
 - name: Wait for Kafka pod to come to ready state
-  when: hostvars['localhost']['idrac_telemetry_collection_type'] == "kafka"
   block:
     - name: Wait for Kafka pod to come to ready state
       ansible.builtin.command: >
@@ -95,12 +88,10 @@
 - name: Set Kafka headless service hostname
   ansible.builtin.set_fact:
     kafka_service_host: "{{ kafka.headless_service_name }}.{{ telemetry_namespace }}.svc.cluster.local"
-  when: hostvars['localhost']['idrac_telemetry_collection_type'] == "kafka"
 
 - name: Set Kafka broker address (IP:PORT)
   ansible.builtin.set_fact:
     kafka_broker: "{{ kafka_service_host }}:{{ kafka.container_port1 }}"
-  when: hostvars['localhost']['idrac_telemetry_collection_type'] == "kafka"
 
 - name: Render and apply idrac-telemetry StatefulSet
   kubernetes.core.k8s:
@@ -125,8 +116,6 @@
             port: "{{ mysqldb_container_port1 }}"
           - name: mysql-port-2
             port: "{{ mysqldb_container_port2 }}"
-          - name: pump-port
-            port: "{{ prometheus_pump_port }}"
         selector:
           app: "{{ idrac_telemetry_k8s_name }}"
 
@@ -143,12 +132,3 @@
     - name: Failed - idrac-telemetry pod is not running
       ansible.builtin.fail:
         msg: "{{ idrac_telemetry_failed_msg }}"
-
-- name: Create metadata file for telemetry
-  ansible.builtin.copy:
-    dest: "{{ telemetry_metadata_path }}"
-    content: |
-      idrac_telemetry_collection_type: {{ hostvars['localhost']['idrac_telemetry_collection_type'] }}
-    mode: "{{ metadata_perm }}"
-  delegate_to: localhost
-  register: metadata_file_created
