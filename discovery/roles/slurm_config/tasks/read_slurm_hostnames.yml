@@ -62,3 +62,6 @@
     login_list: "{{ grouped_nodes | dict2items
                    | selectattr('key', 'match', '^' ~ 'login_node_')
                    | map(attribute='value') | list | flatten }}"
+    compiler_login_list: "{{ grouped_nodes | dict2items
+                   | selectattr('key', 'match', '^login_compiler_node_')
+                   | map(attribute='value') | list | flatten }}"
