@@ -80,7 +80,7 @@
   block:
     - name: Create Quadlet file for auth service
       ansible.builtin.template:
-        src: "authservice.j2"
+        src: "auth.j2"
         dest: "/etc/containers/systemd/{{ auth_service_container_name }}.container"
         owner: root
         group: root

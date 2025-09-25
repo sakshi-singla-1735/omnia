@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# pylint: disable=import-error,no-name-in-module,line-too-long
+
 #!/usr/bin/python
 """Module to map and fetch iDRAC IPs and related information from 
 service cluster metadata and BMC group data. This module reads the
@@ -53,8 +55,8 @@ def fetch_pod_to_idracips(service_cluster_metadata, parent_to_bmc_ip_details, mo
                 role_string = node.get("role", "")
                 roles = [r.strip() for r in role_string.split(",")]
                 if "service_kube_control_plane" in roles:
-                    if 'oim' in parent_to_bmc_ip_details:
-                        idrac_podname_ips[idrac_podname] = parent_to_bmc_ip_details['oim']
+                    if 'MGMT_node' in parent_to_bmc_ip_details:
+                        idrac_podname_ips[idrac_podname] = parent_to_bmc_ip_details['MGMT_node']
 
     if not idrac_podname_ips:
         module.warn("No iDRAC podnames and IPs found in the service cluster metadata.")

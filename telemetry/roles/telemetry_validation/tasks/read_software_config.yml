@@ -46,17 +46,6 @@
   ansible.builtin.set_fact:
     sw_log_lines: "{{ sw_log_content.content | b64decode | split('\n') }}"
 
-# - name: Set service_node_downloaded true if line is present
-#   ansible.builtin.set_fact:
-#     service_node_downloaded: true
-#   when:
-#     - "'service_node,success' in sw_log_lines"
-
-# - name: Fail if service_node,success not found
-#   ansible.builtin.fail:
-#     msg: "{{ local_repo_sn_missing_msg }}"
-#   when: service_node_downloaded is not defined
-
 - name: Set service_k8s_downloaded true if line is present
   ansible.builtin.set_fact:
     service_k8s_downloaded: true
@@ -79,48 +68,25 @@
       ansible.builtin.set_fact:
         cluster_os_version: "{{ software_config['cluster_os_version'] }}"
 
-    # - name: Load service_node.json
-    #   ansible.builtin.set_fact:
-    #     service_node_packages: "{{ lookup('file', sn_packages_file) | from_json }}"
-
     - name: Load service_k8s.json
       ansible.builtin.set_fact:
         telemetry_packages: "{{ lookup('file', k8s_packages_file) | from_json }}"
 
-    # - name: Extract service_node.json and set facts for pip_modules and python_version
-    #   ansible.builtin.set_fact:
-    #     python_package_name: >-
-    #       {{ service_node_packages['service_node']['cluster']
-    #       | selectattr('type', 'equalto', 'rpm')
-    #       | selectattr('package', 'search', 'python3')
-    #       | map(attribute='package') | join }}
-    #     sn_pip_packages: >-
-    #       {{ service_node_packages['service_node']['cluster']
-    #         | selectattr('type', 'equalto', 'pip_module')
-    #         | map(attribute='package')
-    #         | list }}
-
     - name: Extract service_k8s.json and set facts for pip_modules and python_version
       ansible.builtin.set_fact:
-        python_package_name: >-
-          {{ telemetry_packages['service_k8s']['cluster']
-          | selectattr('type', 'equalto', 'rpm')
-          | selectattr('package', 'search', '^python3\.\d+$')
-          | map(attribute='package') | join }}
+        rpm_package_names: >-
+          {{ telemetry_packages['service_kube_control_plane']['cluster']
+            | selectattr('type', 'equalto', 'rpm')
+            | map(attribute='package') | list }}
         k8s_pip_packages: >-
-          {{ telemetry_packages['service_k8s']['cluster']
+          {{ telemetry_packages['service_kube_control_plane']['cluster']
             | selectattr('type', 'equalto', 'pip_module')
             | map(attribute='package')
             | list }}
-        kafka_tarball: >-
-          {{ telemetry_packages['service_k8s']['cluster']
-            | selectattr('type', 'equalto', 'tarball')
-            | selectattr('package', 'search', 'charts-kafka')
-            | map(attribute='package') | join }}
 
-- name: Extract python version from python package name
+- name: Extract python RPM package name
   ansible.builtin.set_fact:
-    python_version: "{{ python_package_name }}"
+    python_version: "{{ rpm_package_names | select('match', '^python3\\.[0-9]+$') | list | first }}"
 
 - name: Include local_repo_access.yml
   ansible.builtin.include_vars: "{{ local_repo_access_path }}"

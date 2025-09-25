@@ -43,7 +43,6 @@
 - name: Set support values
   ansible.builtin.set_fact:
     idrac_telemetry_support: "{{ idrac_telemetry_support | lower }}"
-    federated_idrac_telemetry_collection: "{{ federated_idrac_telemetry_collection | lower }}"
 
 - name: Warning for idrac_telemetry_support is currently set to false
   ansible.builtin.pause:
@@ -56,30 +55,3 @@
     seconds: "{{ pause_time_15 }}"
     prompt: "{{ warning_idrac_telemetry_support_true }}"
   when: idrac_telemetry_support
-
-- name: Check for existing telemetry metadata
-  ansible.builtin.stat:
-    path: "{{ telemetry_metadata_file_path }}"
-  register: telemetry_metadata_stat
-  when: federated_idrac_telemetry_collection
-
-- name: Load existing telemetry metadata
-  ansible.builtin.include_vars:
-    file: "{{ telemetry_metadata_file_path }}"
-    name: existing_metadata
-  when: federated_idrac_telemetry_collection and telemetry_metadata_stat.stat.exists
-
-- name: Fail if collection type changed after initial deployment
-  ansible.builtin.fail:
-    msg: "{{ msg_collection_type_mismatch }}"
-  when: >
-    federated_idrac_telemetry_collection and telemetry_metadata_stat.stat.exists and
-    existing_metadata.idrac_telemetry_collection_type != idrac_telemetry_collection_type
-
-# - name: Validate k8s prometheus, scrape interval and prometheus gaudi
-#   ansible.builtin.include_tasks: validate_k8s_prometheus_prometheus_gaudi.yml
-#   when: k8s_prometheus_support or prometheus_gaudi_support
-
-# - name: Validate k8s prometheus when prometheus gaudi is true
-#   ansible.builtin.include_tasks: validate_prometheus_gaudi.yml
-#   when: prometheus_gaudi_support

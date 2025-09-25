@@ -14,7 +14,7 @@
 
 ---
 
-auth_service_directories: "{{ omnia_nfs_share }}/authservice"
+auth_service_directories: "{{ omnia_nfs_share }}/auth"
 openldap_tls_certs_directory: "{{ auth_service_directories }}/tls_certs"
 rhel_cert_file: "ldapserver.crt"
 rhel_cert_key: "ldapserver.key"
@@ -31,7 +31,7 @@ auth_service_image_pull_fail_msg:
   - Clone the Omnia Artifactory repository
   - git clone https://github.com/dell/omnia-artifactory -b omnia-container
   - Navigate to the repository directory and Build the core image locally
-  - ./build_images.sh authservice
+  - ./build_images.sh auth
 auth_service_quadlet_mode: "0644"
 
 auth_service_container_success_msg: "The {{ auth_service_container_name }} container has been successfully deployed."

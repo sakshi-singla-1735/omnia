@@ -140,6 +140,6 @@ openchami_services:
 
 # Usage: cleanup_auth.yml
 auth_cleanup_directory:
-  - "{{ omnia_nfs_share }}/authservice"
+  - "{{ omnia_nfs_share }}/auth"
 
 auth_service_container_name: omnia_auth
