@@ -45,8 +45,9 @@
   ansible.builtin.set_fact:
     kube_compute_nodes: >-
       {{ service_cluster_metadata | dict2items
-         | selectattr('value.role | default("")', 'search', '^service_kube_node')
-         | sort(attribute='key') | list }}
+         | selectattr("value.role", "defined")
+         | selectattr("value.role", "search", "^service_kube_node")
+         | sort(attribute="key") | list }}
 
 - name: Identify unassigned service nodes and idrac-telemetry pods
   ansible.builtin.set_fact:
