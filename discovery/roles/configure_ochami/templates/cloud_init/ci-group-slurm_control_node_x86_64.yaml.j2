@@ -48,6 +48,20 @@
             sed -i 's/^PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config.d/50-cloud-init.conf
             systemctl restart sshd
 
+{% if hostvars['localhost']['openldap_support'] %}
+        - path: /etc/sssd/sssd.conf
+          owner: root:root
+          permissions: '0600'
+          content: |
+            {{ lookup('template', 'templates/openldap/sssd.conf.j2') | indent(6) }}
+
+        - path: /usr/local/bin/update_ldap_conf.sh
+          owner: root:root
+          permissions: '0755'
+          content: |
+            {{ lookup('template', 'templates/openldap/update_ldap_conf.sh.j2') | indent(12) }}
+{% endif %}
+
         - path: /etc/hosts
           append: true
           content: |
@@ -98,7 +112,7 @@
          - chmod 600 /etc/slurm/slurmdbd.conf
          - chown -R slurm:slurm /etc/slurm/slurmdbd.conf
          - sed -i 's/^PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config.d/50-cloud-init.conf
-         
+
          - mkdir -p /var/spool/slurmctld /var/spool/state
          - chmod 755 /var/spool/state
          - chown -R slurm:slurm /var/spool/state
@@ -119,6 +133,20 @@
          - systemctl restart slurmctld
          - systemctl restart slurmdbd
          - systemctl restart mariadb
+
+{% if hostvars['localhost']['openldap_support'] %}
+         - /usr/local/bin/update_ldap_conf.sh
+         - authselect select sssd with-mkhomedir --force
+         - sudo systemctl enable --now oddjobd.service
+         - sudo systemctl enable --now sssd
+         - sudo systemctl enable --now sssd
+         - setsebool -P authlogin_nsswitch_use_ldap on
+         - setsebool -P authlogin_yubikey on
+         - sudo systemctl stop firewalld
+         - sudo systemctl disable firewalld
+         - sudo systemctl restart sssd
+         - systemctl restart sshd
+{% endif %}
 
 
 
