@@ -50,8 +50,8 @@
         dest: "{{ idrac_telemetry_scripting_git_clone_path }}"
         version: "{{ idrac_telemetry_scripting_stable_commit }}"
         update: false
-  delegate_to: localhost
-  connection: local
+      delegate_to: localhost
+      connection: local
       register: clone_idrac_script
       until: clone_idrac_script is succeeded
       retries: "{{ max_retries }}"
