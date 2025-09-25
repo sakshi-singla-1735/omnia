@@ -4,47 +4,11 @@
   "description": "Schema for LDAP configuration YAML file",
   "type": "object",
   "properties": {
-    "domain_name": {
-      "description": "Domain name for LDAP configuration",
-      "type": "string",
-      "pattern": "^$|^(?!-)[A-Za-z0-9-]+([\\-\\.]{1}[a-z0-9]+)*\\.[A-Za-z]{2,}$"
-    },
-    "realm_name": {
-      "description": "Kerberos realm name for FreeIPA",
-      "type": "string",
-      "pattern": "$|^(?!-)[A-Z0-9-]+([\\-\\.]{1}[A-Z0-9]+)*\\.[A-Z]{2,}$"
-    },
     "ldap_connection_type": {
       "description": "LDAP connection type (TLS or SSL)",
-      "type": "string"
-    },
-    "tls_ca_certificate": {
-      "type": "string",
-      "pattern": "\\.pem$|\\.crt$|^$"
-    },
-    "tls_certificate": {
-      "type": "string",
-      "pattern": "\\.pem$|\\.crt$|^$"
-    },
-    "tls_certificate_key": {
-      "type": "string",
-      "pattern": "\\.key$|^$"
-    },
-    "openldap_organization": {
-      "description": "Organization name for OpenLDAP",
-      "type": "string"
-    },
-    "openldap_organizational_unit": {
-      "description": "Organizational unit for OpenLDAP",
       "type": "string"
     }
   },
   "required": [
-    "domain_name",
-    "realm_name",
-    "tls_ca_certificate",
-    "ldap_connection_type",
-    "openldap_organization",
-    "openldap_organizational_unit"
-  ]
+    "ldap_connection_type"
 }

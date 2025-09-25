@@ -18,30 +18,8 @@
 # SIMPLY APPEND THE REQUIRED VALUES AGAINST THE PARAMETER OF YOUR CHOICE.
 # ***********************************************************************
 
-# ---------------------------OpenLDAP---------------------------
-# Connection Type can be TLS, SSL
-# If TLS is given, valid server certificates are mandatory
-# If SSL is provided, then secure OpenLDAP connection occurs on the port 636
+# Connection Type options: TLS or SSL
+# Default: TLS (validated)
+# If TLS: valid server certificates are required
+# If SSL: secure OpenLDAP connection occurs on port 636
 ldap_connection_type: "TLS"
-
-# These variables accept Certificate file Paths
-# Make sure certificate is present in the path provided
-# The certificate should have .pem or .crt extension.
-# The certificate key should have .key extension
-# These variable are optional i.e. if not provided, self signed certificates will be created
-# The variables accepts values as follows
-# Certificate Authority(CA) issued certificate file path
-tls_ca_certificate: ""
-# OpenLDAP Certificate file path
-tls_certificate: ""
-# OpenLDAP Certificate key file path
-tls_certificate_key: ""
-
-# OpenLDAP server is configured using organizations
-# These organizations and its units are necessary for user creation and group mapping
-# Eg. openldap_organization: "omnia", openldap_organizational_unit: "People"
-# Here user belongs to Omnia organization and is part of People unit
-# The default values are openldap_organization: "omnia", openldap_organizational_unit: "People"
-# Variables can be updated based om user requirements
-openldap_organization: "omnia"
-openldap_organizational_unit: "People"
