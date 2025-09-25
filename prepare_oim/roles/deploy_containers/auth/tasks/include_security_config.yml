@@ -13,20 +13,17 @@
 #  limitations under the License.
 ---
 
-# Usage: main.yml
-storage_config_vars: "{{ hostvars['localhost']['input_project_dir'] }}/storage_config.yml"
-storage_to_be_mounted: []
-software_config_file: "{{ hostvars['localhost']['input_project_dir'] }}/software_config.json"
-# Usage: nfs_client.yml
-mounted_dir_perm: "0755"
-default_client_mount_options: "nosuid,rw,sync,hard,intr"
-nfs_packages:
-  RedHat:
-    - nfs-utils
-    - nfs4-acl-tools
-  Debian:
-    - nfs-common
-    - nfs4-acl-tools
+- name: Include variable file security_config.yml
+  block:
+    - name: Include variable file security_config.yml
+      ansible.builtin.include_vars: "{{ security_config_file }}"
+      register: include_security_config
+      no_log: false
+  rescue:
+    - name: Failed to include security_config.yml
+      ansible.builtin.fail:
+        msg: "{{ security_config_syntax_fail_msg }} Error: {{ include_security_config.message }}"
 
-omnia_config_vars: "{{ hostvars['localhost']['input_project_dir'] }}/omnia_config.yml"
-omnia_run_tags: "{{ hostvars['localhost']['omnia_run_tags'] }}"
+- name: Show security_config.yml
+  ansible.builtin.debug:
+    msg: "{{ security_config_file }}"
