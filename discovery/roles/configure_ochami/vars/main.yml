@@ -44,6 +44,7 @@ cloud_init_dir: "{{ openchami_work_dir }}/cloud-init"
 ci_defaults_dest: '{{ cloud_init_dir }}/ci-defaults.yaml'
 ci_group_load_fail_msg: |
   "Template loading failed. Ensure the template exists in the specified path and is compatible with the defined functional groups."
+default_file_path: "{{ playbook_dir }}/roles/slurm_config/defaults/main.yml"
 
 # Usage: configure_cloud_init_common.yml
 ci_group_common_template: cloud_init/ci-group-common.yaml.j2
@@ -65,3 +66,15 @@ sasl_nacanon_replace2: "SASL_NOCANON\ton\nURI\tldap://{{ hostvars['localhost']['
 sasl_nacanon_replace3: "SASL_NOCANON\ton\nTLS_CACERT\t{{ tls_cert_path }}"
 sasl_nacanon_replace4: "SASL_NOCANON\ton\nURI\tldap://{{ hostvars['localhost']['ldap_server_ip'] }}:636"
 file_mode: "0644"
+
+# Usage: ci-group-slurm_control_node_x86_64.yaml.j2
+slurm_group_name: slurm
+home_dir: /var/lib/slurm
+user: slurm
+munge_user: munge
+munge_group: munge
+mysql_user: mysql
+mysql_group: mysql
+file_mode_400: "0400"
+file_mode_755: "0755"
+file_mode_600: "0600"

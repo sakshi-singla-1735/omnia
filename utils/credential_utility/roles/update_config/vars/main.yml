@@ -36,7 +36,6 @@ omnia_credentials:
     mandatory:
       - { password: provision_password }
       - { username: bmc_username, password: bmc_password }
-      - { password: slurm_db_password }
   prepare_oim:
     optional:
       - { username: docker_username, password: docker_password }
@@ -46,7 +45,7 @@ omnia_credentials:
   local_repo:
     optional:
       - { username: docker_username, password: docker_password }
-  slurm:
+  slurm_custom:
     mandatory:
       - { password: slurm_db_password }
   openldap:
