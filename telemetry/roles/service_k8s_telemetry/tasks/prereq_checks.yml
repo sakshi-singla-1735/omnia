@@ -15,7 +15,7 @@
 
 - name: Pre-checks for service cluster k8s
   block:
-    - name: Install kube_control_plane packages
+    - name: Install prereq rpm packages on service kube control plane
       ansible.builtin.package:
         name: "{{ item }}"
         state: present
