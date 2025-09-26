@@ -199,13 +199,13 @@ def validate_functional_groups_separation(functional_groups):
 
     for fg_group in functional_groups:
         fg_group_name = fg_group.get("name", "")
-        fg_groups[fg_group_name] = set(fg_group.get("groups", []))
+        fg_groups[fg_group_name] = set(fg_group.get("group", []))  # fixed key name
 
-    for fg_group_name, fg_group_val_name in itertools.combinations(fg_groups.keys(), 2):
-        shared = fg_groups[fg_group_name] & fg_groups[fg_group_val_name]
+    for fg_group_name1, fg_group_name2 in itertools.combinations(fg_groups.keys(), 2):
+        shared = fg_groups[fg_group_name1] & fg_groups[fg_group_name2]  # fixed operator
         if shared:
             group_str = ', '.join(shared)
-            msg = f"Group is shared between {fg_group_name} and {fg_group_val_name} functional_groups."
+            msg = f"Group is shared between {fg_group_name1} and {fg_group_name2} functional_groups."
             errors.append(create_error_msg("functional_groups", group_str, msg))
 
     return errors
