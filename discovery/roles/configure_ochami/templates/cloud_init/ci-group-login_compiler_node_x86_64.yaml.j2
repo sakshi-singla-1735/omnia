@@ -56,7 +56,22 @@
 
       runcmd:
         - /usr/local/bin/set-hostname-by-mac.sh
-        - useradd -mG wheel -p '$6$VHdSKZNm$O3iFYmRiaFQCemQJjhfrpqqV7DdHBi5YpY6Aq06JSQpABPw.3d8PQ8bNY9NuZSmDv7IL/TsrhRJ6btkgKaonT.' testuser
+        - setenforce 0
+
+{% if hostvars['localhost']['openldap_support'] %}
+        - /usr/local/bin/update_ldap_conf.sh
+        - authselect select sssd with-mkhomedir --force
+        - sudo systemctl enable --now oddjobd.service
+        - sudo systemctl enable --now sssd
+        - setsebool -P authlogin_nsswitch_use_ldap on
+        - setsebool -P authlogin_yubikey on
+        - sudo systemctl restart sssd
+        - mkdir /ldapcerts
+        - echo "{{ cloud_init_nfs_path_openldap }}/certs                /ldapcerts       nfs defaults,_netdev 0 0" >> /etc/fstab
+        - echo "{{ cloud_init_nfs_path_openldap }}/ldapuser             /home            nfs defaults,_netdev 0 0" >> /etc/fstab
+{% endif %}
+
+        # Slurm changes
         - groupadd -r slurm
         - useradd -r -g slurm -d /var/lib/slurm -s /sbin/nologin slurm
 
@@ -68,6 +83,10 @@
         - echo "{{ cloud_init_nfs_path }}/$(hostname -s)/etc/munge      /etc/munge       nfs defaults,_netdev 0 0" >> /etc/fstab
         - chmod 644 /etc/fstab
         - mount -a
+{% if hostvars['localhost']['openldap_support'] %}
+        - yes | cp /ldapcerts/* /etc/openldap/certs
+        - umount /ldapcerts
+{% endif %}
         - yes | cp /etc/slurm/epilog.d/slurmd.service /usr/lib/systemd/system/
         - chown -R slurm:slurm /var/log/slurm
         - chown -R slurm:slurm /var/run/slurm
@@ -97,18 +116,21 @@
         - systemctl daemon-reexec
         - systemctl restart sshd
 
+{% if hostvars['localhost']['ucx_support'] or hostvars['localhost']['openmpi_support'] %}
         # Add NFS entry and mount
         - mkdir -p {{ client_mount_path }}
         - echo "{{ nfs_src }} {{ client_mount_path }} nfs defaults,_netdev 0 0" >> /etc/fstab
         - mount -a
+{% endif %}
 
+{% if hostvars['localhost']['ucx_support'] %}
         # UCX build and install
         - |
           UCX_BIN={{ client_mount_path }}/benchmarks/ucx
           mkdir -p {{ client_mount_path }}/compile/ucx
           mkdir -p {{ client_mount_path }}/benchmarks/ucx
           cd {{ client_mount_path }}/compile/ucx
-          wget --no-check-certificate https://{{ hostvars['localhost']['admin_nic_ip'] }}:2225/pulp/content/opt/omnia/offline_repo/cluster/x86_64/{{ hostvars['localhost']['cluster_os_type'] }}/{{ hostvars['localhost']['cluster_os_version'] }}/tarball/ucx/ucx.tar.gz
+          wget --no-check-certificate https://{{ hostvars['localhost']['admin_nic_ip'] }}:2225/pulp/content/opt/omnia/offline_repo/cluster/x86_64/{{ hostvars['localhost']['cluster_os_type'] }}/{{ hostvars['localhost']['cluster_os_version'] }}/tarball/ucx/ucx.tar.gz -O ucx.tar.gz
           tar xzf ucx.tar.gz
           cd ucx-*
           mkdir -p build
@@ -116,7 +138,9 @@
           ../contrib/configure-release --prefix={{ client_mount_path }}/benchmarks/ucx
           make -j 8
           make install
+{% endif %}
 
+{% if hostvars['localhost']['openmpi_support'] %}
         # OpenMPI build and install with UCX + Slurm detection
         - |
           OPENMPI_INSTALL_PREFIX="{{ client_mount_path }}/benchmarks/openmpi"
@@ -125,7 +149,8 @@
           mkdir -p $OPENMPI_INSTALL_PREFIX
 
           cd $OPENMPI_SRC
-          wget --no-check-certificate https://{{ hostvars['localhost']['admin_nic_ip'] }}:2225/pulp/content/opt/omnia/offline_repo/cluster/x86_64/{{ hostvars['localhost']['cluster_os_type'] }}/{{ hostvars['localhost']['cluster_os_version'] }}/tarball/openmpi/openmpi.tar.gz
+          wget --no-check-certificate https://{{ hostvars['localhost']['admin_nic_ip'] }}:2225/pulp/content/opt/omnia/offline_repo/cluster/x86_64/{{ hostvars['localhost']['cluster_os_type'] }}/{{ hostvars['localhost']['cluster_os_version'] }}/tarball/openmpi/openmpi.tar.gz -O openmpi.tar.gz
+
           tar xzf openmpi.tar.gz
           cd openmpi-*
           mkdir -p build
@@ -159,4 +184,4 @@
 
           make -j 8
           make install
-            
+ {% endif %}

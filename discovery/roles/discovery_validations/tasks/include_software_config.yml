@@ -57,3 +57,19 @@
 - name: Check if openldap support is true
   ansible.builtin.set_fact:
     openldap_support: "{{ software_config.softwares | selectattr('name', 'equalto', 'openldap') | list | length > 0 }}"
+
+- name: Initialise ucx support variables
+  ansible.builtin.set_fact:
+    ucx_support: false
+
+- name: Check if ucx support is true
+  ansible.builtin.set_fact:
+    ucx_support: "{{ software_config.softwares | selectattr('name', 'equalto', 'ucx') | list | length > 0 }}"
+
+- name: Initialise openmpi support variables
+  ansible.builtin.set_fact:
+    openmpi_support: false
+
+- name: Check if openmpi support is true
+  ansible.builtin.set_fact:
+    openmpi_support: "{{ software_config.softwares | selectattr('name', 'equalto', 'openmpi') | list | length > 0 }}"
