@@ -240,7 +240,7 @@
   ansible.builtin.unarchive:
     src: "{{ regctl_tar_path }}"
     dest: "/tmp/regctl_extract"
-    remote_src: yes
+    remote_src: true
     extra_opts: [--strip-components=0]
   become: true
 
@@ -248,8 +248,8 @@
   ansible.builtin.copy:
     src: "/tmp/regctl_extract/regctl-linux-arm64"
     dest: "{{ regctl_bin_path }}"
-    remote_src: yes
-    mode: "0755"
+    remote_src: true
+    mode: "{{ hostvars['localhost']['dir_permissions_755'] }}"
   become: true
 
 - name: Set registry TLS option using regctl
