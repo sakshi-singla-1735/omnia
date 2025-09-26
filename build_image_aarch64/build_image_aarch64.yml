@@ -48,12 +48,6 @@
         tasks_from: gather_oim_data.yml
         vars_from: main
 
-- name: Prepare aarch64 nodes
-  hosts: admin_aarch64
-  gather_facts: false
-  roles:
-    - prepare_arm_node
-
 - name: Create oim group and provision group
   ansible.builtin.import_playbook: ../utils/create_container_group.yml
   vars:
@@ -69,6 +63,21 @@
       vars:
         oim_node_name: "{{ hostvars['localhost']['oim_node_name'] }}"
 
+- name: Verify aarch64 functional_group presnt
+  hosts: localhost
+  connection: local
+  tasks:
+    - name: Fetch aarch64 functional_groups
+      ansible.builtin.include_role:
+        name: fetch_packages
+        tasks_from: check_aarch64_fg.yml
+
+- name: Prepare aarch64 nodes
+  hosts: admin_aarch64
+  gather_facts: false
+  roles:
+    - prepare_arm_node
+
 - name: Fetch packages for aarch64
   hosts: localhost
   connection: local
@@ -82,3 +91,12 @@
   gather_facts: false
   roles:
     - image_creation
+
+- name: Build aarch64 image completion
+  hosts: localhost
+  connection: local
+  tasks:
+    - name: Build Image completion
+      ansible.builtin.include_role:
+        name: fetch_packages
+        tasks_from: aarch64_build_image_completion.yml

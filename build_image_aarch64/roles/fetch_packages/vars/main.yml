@@ -22,3 +22,10 @@ input_project_dir: "{{ hostvars['localhost']['input_project_dir'] }}"
 functional_groups_file_path: "{{ input_project_dir }}/functional_groups_config.yml"
 software_config_file_path: "{{ input_project_dir }}/software_config.json"
 default_json_path: "{{ input_project_dir }}/config/aarch64/rhel/10.0/default_packages.json"
+aarch64_build_image_completion_msg: |
+  The playbook build_image_aarch64.yml has been completed successfully.
+  To boot x86_64 and aarch64 nodes execute discovery/discovery.yml playbook.
+functional_group_absent_msg: |
+  Failure: No aarch64 functional groups found in functional_group_config.yml input file.
+  Please make sure aarch64 functional_group should be present in input file functional_group_config.yml
+  to execute build_image_aarch64.yml successfully.

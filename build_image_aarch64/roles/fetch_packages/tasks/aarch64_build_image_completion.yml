@@ -13,19 +13,6 @@
 #  limitations under the License.
 ---
 
-- name: Include metadata vars
-  ansible.builtin.include_vars: "{{ omnia_metadata_file }}"
-  register: include_metadata
-  no_log: true
-
-- name: Include global variables from common folder
-  ansible.builtin.include_vars: "{{ role_path }}/../../../common/vars/openchami_image_cmd.yml"
-  register: ochami_image_global_vars
-
-- name: Invoking aarch64 build base image playbook
-  ansible.builtin.include_tasks: build_base_image.yml
-  tags: base_image
-
-- name: Invoking aarch64 build rhel compute image playbooks
-  ansible.builtin.include_tasks: build_compute_image.yml
-  tags: compute_image
+- name: Build Image completion
+  ansible.builtin.debug:
+    msg: "{{ aarch64_build_image_completion_msg.splitlines() | join(' ') }}"

@@ -13,19 +13,6 @@
 # limitations under the License.
 ---
 
-- name: Load functional_group_config.yml
-  ansible.builtin.include_vars:
-    file: "{{ input_project_dir }}/functional_groups_config.yml"
-    name: functional_group_cfg
-
-- name: Check for aarch64 functional groups
-  ansible.builtin.set_fact:
-    fg_aarch64: >-
-      {{ functional_group_cfg.functional_groups
-         | selectattr('name', 'search', '_aarch64$')
-         | list
-         | length > 0 }}
-
 - name: Fetch pulp endpoints only if aarch_64 functional_group present
   when: fg_aarch64
   block:

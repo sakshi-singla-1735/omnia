@@ -21,7 +21,7 @@
       {{ groups['admin_aarch64'] | join('\n') }}
     mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
 
-- name: Create base_image.log as a file
+- name: Create aarch64_base_image.log as a file
   ansible.builtin.file:
     path: "{{ openchami_aarch64_base_image_log_path }}"
     state: touch
