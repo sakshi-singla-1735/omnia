@@ -62,3 +62,54 @@
   ansible.builtin.set_fact:
     oim_pxe_ip: "{{ network_data.admin_network.primary_oim_admin_ip }}"
     cacheable: true
+
+# Create Pulp repo directory
+- name: Ensure pulp repo directory exists
+  ansible.builtin.file:
+    path: "{{ pulp_repo_store_path }}"
+    state: directory
+    mode: "{{ hostvars['localhost']['dir_permissions_755'] }}"
+
+# Validate pulp.repo existence
+- name: Check if pulp.repo exists
+  ansible.builtin.stat:
+    path: "{{ pulp_repo_file_path }}"
+  register: pulp_repo_stat
+
+# Handle missing pulp.repo
+- name: Notify if pulp.repo is missing
+  ansible.builtin.fail:
+    msg: "{{ pulp_repo_missing_error_msg }}"
+  when: not pulp_repo_stat.stat.exists
+
+# Read pulp.repo file
+- name: Read pulp.repo content
+  ansible.builtin.slurp:
+    path: "{{ pulp_repo_file_path }}"
+  register: pulp_repo_content
+  when: pulp_repo_stat.stat.exists
+
+- name: Extract aarch64_baseos repo section
+  ansible.builtin.set_fact:
+    aarch64_baseos_repo: >-
+      {{
+        (pulp_repo_content.content | b64decode)
+        | regex_search(
+            '''(?s)\[aarch64_baseos\].*?(?=\n\[|\Z)'''
+          )
+      }}
+  when: pulp_repo_stat.stat.exists
+
+# Fail if aarch64_appstream repo is not found
+- name: Fail if aarch64_baseos repo section is missing
+  ansible.builtin.fail:
+    msg: "{{ repo_not_found_error_msg }}"
+  when: aarch64_baseos_repo is not defined or aarch64_baseos_repo | length == 0
+
+# Write only aarch64_appstream repo into new pulp.repo
+- name: Write aarch64_appstream repo into pulp repo path
+  ansible.builtin.copy:
+    content: "{{ aarch64_baseos_repo }}"
+    dest: "{{ pulp_repo_store_path }}/pulp.repo"
+    mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
+  when: aarch64_baseos_repo is defined
