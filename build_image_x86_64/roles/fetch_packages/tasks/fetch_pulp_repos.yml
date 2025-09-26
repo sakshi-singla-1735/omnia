@@ -13,28 +13,15 @@
 # limitations under the License.
 ---
 
-- name: Load functional_group_config.yml
-  ansible.builtin.include_vars:
-    file: "{{ input_project_dir }}/functional_groups_config.yml"
-    name: functional_group_cfg
-
-- name: Check for x86_64 functional groups
-  ansible.builtin.set_fact:
-    fg_x86_64: >-
-      {{ functional_group_cfg.functional_groups
-         | selectattr('name', 'search', '_x86_64$')
-         | list
-         | length > 0 }}
-
-- name: Fetch pulp endpoints for x86_64
-  ansible.builtin.command: >
-    pulp rpm distribution list --field name,base_url
-  register: pulp_endpoints
-  changed_when: false
-
 - name: Fetch pulp endpoints only if x86_64 functional_group present
   when: fg_x86_64
   block:
+    - name: Fetch pulp endpoints for x86_64
+      ansible.builtin.command: >
+        pulp rpm distribution list --field name,base_url
+      register: pulp_endpoints
+      changed_when: false
+
     - name: Filter only x86_64 distributions
       ansible.builtin.set_fact:
         pulp_x86_64_distributions: >-
