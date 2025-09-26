@@ -13,9 +13,9 @@ PublishPort=0.0.0.0:{{ port }}:{{ port }}
 # Mount configuration and bootstrap files (read-only, with SELinux relabel)
 Volume={{ slapd_conf_dest }}:/etc/openldap/slapd.conf:ro,Z
 Volume={{ bootstrap_ldif_dest }}:/container-init/bootstrap.ldif:ro,Z
+Volume={{ openldap_tls_certs_directory }}:/etc/openldap/certs:ro,Z
 
 [Service]
 Restart=always
 [Install]
 WantedBy=multi-user.target
-

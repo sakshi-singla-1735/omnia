@@ -20,22 +20,6 @@
 
 import re
 from ansible.module_utils.basic import AnsibleModule
-from ansible.module_utils.discovery.omniadb_connection import execute_select_query # type: ignore
-
-def get_bmc_ips_from_db():
-    """
-	Retrieves BMC IPs from the cluster.nodeinfo table in the database.
-
-	Parameters:
-		None
-
-	Returns:
-		list: A list of BMC IPs.
-	"""
-    sql = "SELECT bmc_ip FROM cluster.nodeinfo"
-    query_result = execute_select_query(query=sql)
-    bmc_ips = [row.get('bmc_ip') for row in query_result if row.get('bmc_ip') is not None]
-    return bmc_ips
 
 def is_valid_ip(ip):
     """
@@ -47,14 +31,13 @@ def is_valid_ip(ip):
     """
     return re.match(r'^\d{1,3}(\.\d{1,3}){3}$', ip)
 
-def validate_bmc_group_data(bmc_group_data, bmc_group_data_headers, federated_telemetry, bmc_group_data_file):
+def validate_bmc_group_data(bmc_group_data, bmc_group_data_headers, bmc_group_data_file, nodes_bmc_ips):
     """
     Validates BMC group data and returns the result along with the list of BMC IPs.
 
     Parameters:
         bmc_group_data (list): List of BMC group data entries.
         bmc_group_data_headers (list): List of expected headers in BMC group data.
-        federated_telemetry (bool): Flag to indicate federated telemetry collection.
         bmc_group_data_file (str): The file containing BMC group data.
 
     Returns:
@@ -67,7 +50,6 @@ def validate_bmc_group_data(bmc_group_data, bmc_group_data_headers, federated_te
 
     if headers != bmc_group_data_headers:
         raise ValueError(f"Failed. Invalid headers in BMC group data file. Expected: {bmc_group_data_headers}, Found: {headers}. {invalid_bmc_group_data_file_msg}")
-    omnia_db_bmc_ips = get_bmc_ips_from_db()
     bmc_dict_list = []
     invalid_ip = []
     external_ip = []
@@ -81,7 +63,7 @@ def validate_bmc_group_data(bmc_group_data, bmc_group_data_headers, federated_te
         ip = entry.get('BMC_IP', '')
         if not is_valid_ip(ip):
             invalid_ip.append(ip)
-        if ip not in omnia_db_bmc_ips:
+        if ip not in nodes_bmc_ips:
             if entry.get('PARENT') or entry.get('GROUP_NAME'):
                 external_ip.append(ip)
         bmc_dict_list.append(entry)
@@ -99,18 +81,15 @@ def validate_bmc_group_data(bmc_group_data, bmc_group_data_headers, federated_te
         "msg": ""
     }
 
-    if federated_telemetry:
-        sn_bmc_ips = {}
-        for entry in bmc_dict_list:
-            parent = entry.get('PARENT')
-            if parent:
-                sn_bmc_ips.setdefault(parent, []).append(entry['BMC_IP'])
+    sn_bmc_ips = {}
+    for entry in bmc_dict_list:
+        parent = entry.get('PARENT')
+        if parent:
+            sn_bmc_ips.setdefault(parent, []).append(entry['BMC_IP'])
 
-        oim_bmc_ips = [entry['BMC_IP'] for entry in bmc_dict_list if not entry.get('PARENT')]
-        result['bmc_ips'] = {**sn_bmc_ips, 'oim': oim_bmc_ips}
-    else:
-        unique_ips = list({entry['BMC_IP'] for entry in bmc_dict_list})
-        result['bmc_ips'] = {'oim': unique_ips}
+    mgmt_bmc_ips = [entry['BMC_IP'] for entry in bmc_dict_list if not entry.get('PARENT')]
+    result['bmc_ips'] = {**sn_bmc_ips, 'MGMT_node': mgmt_bmc_ips}
+
 
     return result
 
@@ -120,9 +99,9 @@ def main():
     Main function for the Ansible module.
     """
     module_args = {
+        "nodes_bmc_ips": {"type": "list", "elements": "str", "required": True},
         "bmc_group_data": {"type": "list", "elements": "str", "required": True},
         "bmc_group_data_headers": {"type": "list", "elements": "str", "required": True},
-        "federated_telemetry": {"type": "bool", "required": False, "default": False},
         "bmc_group_data_file": {"type": "str", "required": False}
     }
 
@@ -130,13 +109,12 @@ def main():
         argument_spec=module_args,
         supports_check_mode=True
     )
-
+    nodes_bmc_ips = module.params['nodes_bmc_ips']
     bmc_group_data = module.params['bmc_group_data']
     bmc_group_data_headers = module.params['bmc_group_data_headers']
-    federated_telemetry = module.params['federated_telemetry']
     bmc_group_data_file = module.params['bmc_group_data_file']
     try:
-        result = validate_bmc_group_data(bmc_group_data, bmc_group_data_headers, federated_telemetry, bmc_group_data_file)
+        result = validate_bmc_group_data(bmc_group_data, bmc_group_data_headers, bmc_group_data_file, nodes_bmc_ips)
         module.exit_json(**result)
     except ValueError as e:
         module.fail_json(msg=f"BMC Group Data Validation failed: {str(e)}")

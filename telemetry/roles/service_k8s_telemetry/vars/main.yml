@@ -45,8 +45,7 @@ kafka_secrets:
     - "127.0.0.1"
 
 # Usage: idrac_telemetry_deployment.yml
-omnia_nfs_share: "{{ hostvars['localhost']['oim_shared_path'] }}/omnia"
-service_cluster_idrac_telemetry_dir_path: "{{ omnia_nfs_share }}/service_cluster/telemetry/idrac_telemetry"
+service_cluster_idrac_telemetry_dir_path: "/opt/omnia/telemetry/idrac_telemetry"
 dir_permissions_755: "0755"
 idrac_telemetry_github_repo: https://github.com/dell/iDRAC-Telemetry-Reference-Tools.git
 reference_tools_stable_commit: "fd5f384"
@@ -84,19 +83,9 @@ kafka_skip_verify: false
 kafka_failed_msg: "Kafka pod did not come to ready state within {{ pod_wait_timeout }}  timeout."
 idrac_telemetry_failed_msg: "idrac-telemetry pod did not come to ready state within {{ pod_wait_timeout }} timeout."
 
-# Usage: prometheus_deployment.yml
-prometheus_pvc_name: "prometheus-pvc"
-prometheus_k8s_name: "prometheus"
-prometheus_configmap_name: "prometheus-config"
-prometheus_image: "docker.io/prom/prometheus:v3.4.1"
-prometheus_container_port: 9090
-prometheus_replicas: 1
-prometheus_storage: 1Gi
-prometheus_service_port: 30090
-
-# Usage: include_composable_roles_config.yml
-roles_config_path: "{{ hostvars['localhost']['input_project_dir'] }}/roles_config.yml"
-roles_config_syntax_fail_msg: "Failed. Syntax errors present in role_config.yml. Fix errors and re-run playbook again."
+# Usage: generate_service_cluster_metadata.yml
+functional_groups_config_path: "{{ hostvars['localhost']['input_project_dir'] }}/functional_groups_config.yml"
+functional_groups_config_syntax_fail_msg: "Failed. Syntax errors present in functional_groups_config.yml. Fix errors and re-run playbook again."
 service_cluster_metadata_path: "/opt/omnia/.data/service_cluster_metadata.yml"
 metadata_perm: "0644"
 

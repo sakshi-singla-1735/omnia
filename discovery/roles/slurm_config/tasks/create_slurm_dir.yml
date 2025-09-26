@@ -35,6 +35,11 @@
     restart_slurm_services: "{{ slurm_cluster[0].restart_slurm_services }}"
     slurm_config_path: "{{ share_path }}/{{ slurm_dir_name }}"
 
+- name: Set facts for openldap
+  ansible.builtin.set_fact:
+    openldap_config_path: "{{ share_path }}/{{ openldap_dir_name }}"
+  when: hostvars['localhost']['openldap_support']
+
 - name: Set facts for slurm
   ansible.builtin.set_fact:
     share_prefix: "{{ slurm_config_path }}"
@@ -47,6 +52,31 @@
     owner: root
     group: root
     mode: "{{ common_mode }}"
+
+- name: Create the openldap certs directory in share
+  ansible.builtin.file:
+    path: "{{ openldap_config_path }}/certs"
+    state: directory
+    owner: root
+    group: root
+    mode: "{{ common_mode }}"
+  when: hostvars['localhost']['openldap_support']
+
+- name: Create the openldap ldapuser directory in share
+  ansible.builtin.file:
+    path: "{{ openldap_config_path }}/ldapuser"
+    state: directory
+    owner: root
+    group: root
+    mode: "{{ common_mode }}"
+  when: hostvars['localhost']['openldap_support']
+
+- name: Copy the openldap certs
+  ansible.builtin.copy:
+    src: "{{ auth_tls_certs_path }}"
+    dest: "{{ openldap_config_path }}/certs"
+    mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
+  when: hostvars['localhost']['openldap_support']
 
 - name: Create the slurm ctld directory on share
   ansible.builtin.file:
@@ -162,3 +192,8 @@
 - name: NFS path for cloud init
   ansible.builtin.set_fact:
     cloud_init_nfs_path: "{{ nfs_server_ip }}:{{ nfs_server_path }}/slurm"
+
+- name: NFS path for cloud init
+  ansible.builtin.set_fact:
+    cloud_init_nfs_path_openldap: "{{ nfs_server_ip }}:{{ nfs_server_path }}/openldap"
+  when: hostvars['localhost']['openldap_support']

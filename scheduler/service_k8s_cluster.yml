@@ -39,8 +39,8 @@
       ansible.builtin.set_fact:
         service_k8s_playbook: true
 
-  # - name: Invoke validate_config.yml to perform L1 and L2 validations for k8s
-  #  ansible.builtin.import_playbook: ../input_validation/validate_config.yml
+- name: Invoke validate_config.yml to perform L1 and L2 validations for k8s
+  ansible.builtin.import_playbook: ../input_validation/validate_config.yml
 
 - name: Validate inventory
   ansible.builtin.import_playbook: ../utils/inventory_validation.yml

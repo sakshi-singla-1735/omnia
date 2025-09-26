@@ -79,19 +79,16 @@
 
     - name: Build aarch64 repo entries from x86_64 list
       ansible.builtin.set_fact:
-        sub_rhel_aarch64_urls: "{{ sub_rhel_aarch64_urls | default([]) + [{
-          'url': item.url | replace('x86_64', 'aarch64'),
+        sub_rhel_aarch64_urls: "{{ sub_rhel_aarch64_urls | default([]) + [{'url': item.url | replace('x86_64', 'aarch64'),
           'name': item.name | replace('x86_64', 'aarch64'),
           'gpgkey': item.gpgkey,
           'policy': item.policy,
           'sslcacert': item.sslcacert,
           'sslclientcert': item.sslclientcert,
-          'sslclientkey': item.sslclientkey
-        }] }}"
+          'sslclientkey': item.sslclientkey}] }}"
       loop: "{{ sub_rhel_x86_64_urls }}"
       loop_control:
         loop_var: item
-
 - name: Build final repo dict
   ansible.builtin.set_fact:
     sub_final_repo_urls:
