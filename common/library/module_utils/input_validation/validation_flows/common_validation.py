@@ -822,7 +822,7 @@ def is_ip_in_range(ip_str, ip_range_str):
 
 
 def validate_k8s(data, admin_networks, softwares, ha_config, tag_names, errors, 
-                 omnia_base_dir, project_name, logger, module, input_file_path):
+                 st_config, module, input_file_path):
     """
     Validates Kubernetes cluster configurations.
 
@@ -859,6 +859,23 @@ def validate_k8s(data, admin_networks, softwares, ha_config, tag_names, errors,
             cluster_name = kluster.get("cluster_name")
             deployment = kluster.get("deployment")
             if deployment:
+                nfs_names = [st.get('nfs_name') for st in st_config.get('nfs_client_params')]
+                k8s_nfs = kluster.get("nfs_storage_name")
+                if not k8s_nfs:
+                    errors.append(
+                        create_error_msg(
+                            f"Cluster - {cluster_name}",
+                            "nfs_storage_name not provided",
+                            f"nfs_storage_name not found in service_k8s_cluster {cluster_name}"
+                        )
+                    )
+                if k8s_nfs not in nfs_names:
+                    errors.append(
+                        create_error_msg(
+                            f"Cluster - {cluster_name} - nfs_storage_name not found",
+                            k8s_nfs,
+                            f"{k8s_nfs} not found in storage_config.yml"
+                        ))
                 if cluster_name not in ha_config.get(k8s_cluster_type+"_ha", []):
                     errors.append(
                         create_error_msg(
@@ -967,6 +984,11 @@ def validate_omnia_config(
     softwares = software_config_json["softwares"]
     sw_list = [k['name'] for k in softwares]
 
+    storage_config = create_file_path(
+        input_file_path, file_names["storage_config"])
+    with open(storage_config, "r", encoding="utf-8") as f:
+        st_config = yaml.safe_load(f)
+
     if ("service_k8s" in sw_list) and \
         ("service_k8s" in tag_names):
         admin_networks = get_admin_networks(
@@ -978,14 +1000,9 @@ def validate_omnia_config(
         for k in ["service_k8s_cluster_ha"]:
             ha_config[k] = [xha["cluster_name"] for xha in ha_config.get(k, [])]
         validate_k8s(data, admin_networks, sw_list, ha_config, tag_names,
-                        errors, omnia_base_dir, project_name, logger, module, input_file_path)
+                        errors, st_config, module, input_file_path)
     # slurm L2
-    if (("slurm" in sw_list or "slurm_custom" in sw_list) and "slurm" in tag_names):
-        storage_config = create_file_path(
-            input_file_path, file_names["storage_config"])
-        with open(storage_config, "r", encoding="utf-8") as f:
-            st_config = yaml.safe_load(f)
-        
+    if (("slurm" in sw_list or "slurm_custom" in sw_list) and "slurm" in tag_names):     
         slurm_nfs = [clst.get('nfs_storage_name') for clst in data.get('slurm_cluster')]
         nfs_names = [st.get('nfs_name') for st in st_config.get('nfs_client_params')]
 
