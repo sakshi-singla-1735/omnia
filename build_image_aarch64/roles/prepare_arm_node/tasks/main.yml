@@ -17,6 +17,7 @@
   ansible.builtin.known_hosts:
     name: "{{ inventory_hostname }}"
     key: "{{ lookup('pipe', 'ssh-keyscan -H ' + inventory_hostname) }}"
+  delegate_to: localhost
 
 # Check if passwordless SSH is enabled from omnia_core to arm node
 - name: Check if passwordless SSH is enabled
@@ -112,6 +113,25 @@
     state: directory
     mode: "{{ hostvars['localhost']['dir_permissions_755'] }}"
   become: true
+
+- name: Copy pulp.repo from omnia_core to target host
+  ansible.builtin.copy:
+    src: "{{ pulp_repo_store_path }}/pulp.repo"
+    dest: /etc/yum.repos.d/pulp.repo
+    mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
+
+# Copy pulp_webserver.crt to target host
+- name: Copy pulp webserver certificate to target host
+  ansible.builtin.copy:
+    src: "{{ pulp_webserver_cert_path }}"
+    dest: "{{ anchors_path }}"
+    mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
+  become: true
+
+- name: Update CA trust on target host
+  ansible.builtin.command: update-ca-trust
+  register: update_ca
+  changed_when: false
 
 - name: Check if NFS is mounted
   ansible.builtin.command:
