@@ -48,6 +48,20 @@
             sed -i 's/^PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config.d/50-cloud-init.conf
             systemctl restart sshd
 
+{% if hostvars['localhost']['openldap_support'] %}
+        - path: /etc/sssd/sssd.conf
+          owner: root:root
+          permissions: '0600'
+          content: |
+            {{ lookup('template', 'templates/openldap/sssd.conf.j2') | indent(6) }}
+
+        - path: /usr/local/bin/update_ldap_conf.sh
+          owner: root:root
+          permissions: '0755'
+          content: |
+            {{ lookup('template', 'templates/openldap/update_ldap_conf.sh.j2') | indent(12) }}
+{% endif %}
+
         - path: /etc/hosts
           append: true
           content: |
@@ -71,6 +85,12 @@
          - useradd -mG wheel -p '$6$VHdSKZNm$O3iFYmRiaFQCemQJjhfrpqqV7DdHBi5YpY6Aq06JSQpABPw.3d8PQ8bNY9NuZSmDv7IL/TsrhRJ6btkgKaonT.' testuser
          - groupadd -r {{ slurm_group_name }}
          - useradd -r -g {{ slurm_group_name }} -d {{ home_dir }} -s /sbin/nologin {{ user }}
+
+{% if hostvars['localhost']['openldap_support'] %}
+         - mkdir /ldapcerts
+         - echo "{{ cloud_init_nfs_path_openldap }}/certs                /ldapcerts       nfs defaults,_netdev 0 0" >> /etc/fstab
+         - echo "{{ cloud_init_nfs_path_openldap }}/ldapuser             /home            nfs defaults,_netdev 0 0" >> /etc/fstab
+{% endif %}
 
          - mkdir -p /var/log/slurm /var/run/slurm /var/spool /etc/slurm /var/lib/slurm /etc/my.cnf.d /etc/munge /var/lib/mysql /var/log/mariadb
          - echo "{{ cloud_init_nfs_path }}/$(hostname -s)/etc/slurm      /etc/slurm       nfs defaults,_netdev 0 0" >> /etc/fstab
@@ -97,8 +117,29 @@
          - chmod {{ file_mode }} /etc/slurm/slurm.conf
          - chmod {{ file_mode_600 }} /etc/slurm/slurmdbd.conf
          - chown -R {{ user }}:{{ slurm_group_name }} /etc/slurm/slurmdbd.conf
+
+{% if hostvars['localhost']['openldap_support'] %}
+         - yes | cp /ldapcerts/* /etc/openldap/certs
+         - umount /ldapcerts
+{% endif %}
+
+         - chown -R slurm:slurm /var/log/slurm
+         - chown -R slurm:slurm /var/run/slurm
+         - chown -R slurm:slurm /etc/slurm
+         - chown -R slurm:slurm /var/lib/slurm
+         - chown -R slurm:slurm /var/spool
+         - chown -R slurm:slurm /etc/my.cnf.d
+         - chown -R munge:munge /etc/munge/munge.key
+         - chown -R mysql:mysql /var/lib/mysql
+         - chown -R slurm:slurm /var/log/mariadb
+         - chmod 400 /etc/munge/munge.key
+         - chmod 755 /var/run/slurm
+         - chmod 755 /var/log/slurm /etc/slurm /var/spool /var/lib/slurm /etc/my.cnf.d /var/lib/mysql /var/log/mariadb
+         - chmod 644 /etc/slurm/slurm.conf
+         - chmod 600 /etc/slurm/slurmdbd.conf
+         - chown -R slurm:slurm /etc/slurm/slurmdbd.conf
          - sed -i 's/^PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config.d/50-cloud-init.conf
-         
+
          - mkdir -p /var/spool/slurmctld /var/spool/state
          - chmod {{ file_mode_755 }} /var/spool/state
          - chown -R {{ user }}:{{ slurm_group_name }} /var/spool/state
@@ -131,6 +172,20 @@
          - systemctl restart slurmctld
          - systemctl restart slurmdbd
          - systemctl restart mariadb
+
+{% if hostvars['localhost']['openldap_support'] %}
+         - /usr/local/bin/update_ldap_conf.sh
+         - authselect select sssd with-mkhomedir --force
+         - sudo systemctl enable --now oddjobd.service
+         - sudo systemctl enable --now sssd
+         - sudo systemctl enable --now sssd
+         - setsebool -P authlogin_nsswitch_use_ldap on
+         - setsebool -P authlogin_yubikey on
+         - sudo systemctl stop firewalld
+         - sudo systemctl disable firewalld
+         - sudo systemctl restart sssd
+         - systemctl restart sshd
+{% endif %}
 
 
 

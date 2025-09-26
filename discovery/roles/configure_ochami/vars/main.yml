@@ -61,7 +61,7 @@ discovery_completion_msg: |
   Once the nodes have booted, proceed to run telemetry/telemetry.yml to start collecting telemetry data.
 
 # Usage: ci-group-login_node_x86_64.yaml.j2
-tls_cert_path: "/etc/openldap/certs/"
+tls_cert_path: "/etc/openldap/certs/ldapserver.crt"
 ldap_conf_dest: "/etc/openldap/ldap.conf"
 sasl_nocanon_regxp: "SASL_NOCANON\ton"
 sasl_nacanon_replace1: "SASL_NOCANON\ton\nBASE\t{{ hostvars['localhost']['ldap_search_base'] }}"
