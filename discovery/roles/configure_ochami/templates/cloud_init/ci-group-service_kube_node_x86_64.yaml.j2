@@ -269,10 +269,22 @@
               --cri-socket /run/containerd/containerd.sock
 
       runcmd:
-
+        
         - mkdir -p /root/k8s-images /etc/containerd /usr/local/bin /etc/systemd/system
         - mkdir -p /etc/kubernetes /opt/cni/bin /etc/cni/net.d /var/lib/containerd /var/lib/containerd-overlay
         - mkdir -p /var/run/containerd /etc/nginx /opt/omnia
+
+        #cloud-config
+        - |
+          tmpfile=$(mktemp)
+          {% for ns in hostvars['localhost']['dns'] %}
+          echo "nameserver {{ ns }}" >> $tmpfile
+          {% endfor %}
+          cat /etc/resolv.conf >> $tmpfile
+          mv $tmpfile /etc/resolv.conf
+          
+        - chattr +i /etc/resolv.conf
+
 
         # SELinux config
 
