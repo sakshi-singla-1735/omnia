@@ -46,9 +46,6 @@
     state: enabled
     permanent: true
   loop: "{{ internal_nfs_services }}"
-  when:
-    - omnia_share_option == 'NFS'
-    - nfs_type == 'internal'
   tags: always
 
 - name: Reload firewalld to apply changes
