@@ -51,6 +51,14 @@ def load_functional_groups_yaml(path, module):
     except Exception as e:
         module.fail_json(msg=f"Failed to load functional_groups_config.yml: {str(e)}")
 
+def load_groups_yaml(path, module):
+    """Load group names from YAML and return as a set."""
+    try:
+        with open(path, 'r') as f:
+            data = yaml.safe_load(f)
+        return set(data.get("groups", {}).keys())
+    except Exception as e:
+        module.fail_json(msg=f"Failed to load groups_config.yml: {str(e)}")
 
 def check_functional_groups_in_mapping(csv_file, config_fgs, module):
     """Check that all functional groups in mapping file exist in functional_groups YAML."""
@@ -59,6 +67,14 @@ def check_functional_groups_in_mapping(csv_file, config_fgs, module):
     if missing_fgs:
         module.fail_json(
             msg=f"The following FUNCTIONAL_GROUP_NAME(s) are missing in functional_groups_config.yml: {', '.join(missing_fgs)}"
+        )
+
+def check_groups_in_mapping(csv_file, config_gs, module):
+    mapping_gs = set(csv_file['GROUP_NAME'].str.strip().unique())
+    missing_gs = mapping_gs - config_gs
+    if missing_gs:
+        module.fail_json(
+            msg=f"The following GROUP_NAME(s) are missing in groups_config.yml: {', '.join(missing_gs)}"
         )
 
 
@@ -108,7 +124,9 @@ def validate_mapping_file(mapping_file_path, functional_groups_file, module):
 
         # Validate functional groups presence in YAML
         config_fgs = load_functional_groups_yaml(functional_groups_file, module)
+        config_gs = load_groups_yaml(functional_groups_file, module)
         check_functional_groups_in_mapping(csv_file, config_fgs, module)
+        check_groups_in_mapping(csv_file, config_gs, module)
 
         # The resulting XNAME values will have the format 'x1000c1s7<b><d>n<d>', where <b> is a letter and <d> is a digit
         xname_values = []
