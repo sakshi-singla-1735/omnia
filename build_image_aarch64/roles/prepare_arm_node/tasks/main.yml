@@ -230,7 +230,7 @@
 - name: Extract regctl binary from tar to temporary folder
   ansible.builtin.unarchive:
     src: "{{ regctl_tar_path }}"
-    dest: "/tmp/regctl_extract"
+    dest: "{{ regctl_temp_dir }}"
     remote_src: true
     extra_opts: [--strip-components=0]
   become: true

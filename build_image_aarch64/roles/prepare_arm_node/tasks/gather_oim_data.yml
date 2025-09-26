@@ -103,7 +103,7 @@
 # Fail if aarch64_appstream repo is not found
 - name: Fail if aarch64_baseos repo section is missing
   ansible.builtin.fail:
-    msg: "The [aarch64_baseos] section was not found in pulp.repo"
+    msg: "{{ repo_not_found_error_msg }}"
   when: aarch64_baseos_repo is not defined or aarch64_baseos_repo | length == 0
 
 # Write only aarch64_appstream repo into new pulp.repo
