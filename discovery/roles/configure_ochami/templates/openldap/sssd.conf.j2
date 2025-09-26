@@ -20,16 +20,11 @@
       ldap_search_base = {{ ldap_search_base }}
       ldap_default_bind_dn = {{ ldap_default_bind_dn }}
       ldap_default_authtok = {{ password }}
-      #ldap_id_use_start_tls = True
-      #ldap_tls_cacert = /etc/openldap/certs/ldapserver.crt
-      #ldap_tls_cacertdir = /etc/openldap/certs
-      #cache_credentials = True
-      #ldap_tls_reqcert = allow
-      ldap_id_use_start_tls = false
+      ldap_id_use_start_tls = True
+      ldap_tls_cacert = /etc/openldap/certs/ldapserver.crt
+      ldap_tls_cacertdir = /etc/openldap/certs
       cache_credentials = True
-      ldap_tls_reqcert = never
-
-      ldap_auth_disable_tls_never_use_in_production = true
+      ldap_tls_reqcert = allow
 
 {% else %}
 

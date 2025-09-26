@@ -521,69 +521,6 @@ def validate_storage_config(
     return errors
 
 
-# for  passwordless_ssh_config.yml this is run
-def validate_usernames(
-    input_file_path, data, logger, module, omnia_base_dir, module_utils_base, project_name
-):
-    """
-    Validates the usernames.
-
-    Args:
-        input_file_path (str): The path to the input file.
-        data (dict): The data to be validated.
-        logger (Logger): A logger instance.
-        module (Module): A module instance.
-        omnia_base_dir (str): The base directory of the Omnia configuration.
-        module_utils_base (str): The base directory of the module utils.
-        project_name (str): The name of the project.
-
-    Returns:
-        list: A list of errors encountered during validation.
-    """
-    errors = []
-
-    passwordless_ssh_config_file_path = create_file_path(
-        input_file_path, file_names["passwordless_ssh_config"]
-    )
-    passwordless_ssh_config_json = validation_utils.load_yaml_as_json(
-        passwordless_ssh_config_file_path,
-        omnia_base_dir,
-        project_name,
-        logger,
-        module,
-    )
-
-    pw_ssh_user_name = passwordless_ssh_config_json["user_name"]
-
-    pw_ssh_user_name = pw_ssh_user_name.split(",")
-
-    # Combine all usernames into a single list
-    all_usernames = pw_ssh_user_name
-
-    # Create a dictionary to store the count of each username
-    username_count = {}
-    for username in all_usernames:
-        if username == "":
-            continue
-        if username in username_count:
-            username_count[username] += 1
-        else:
-            username_count[username] = 1
-
-    # Find usernames that appear more than once
-    duplicate_usernames = [username for username, count in username_count.items() if count > 1]
-    if len(duplicate_usernames) > 0:
-        errors.append(
-            create_error_msg(
-                "user_name",
-                data["user_name"],
-                en_us_validation_msg.user_name_duplicate(duplicate_usernames),
-            )
-        )
-
-    return errors
-
-
 def validate_roce_plugin_config(
     input_file_path, data, logger, module, omnia_base_dir, module_utils_base, project_name
 ):
