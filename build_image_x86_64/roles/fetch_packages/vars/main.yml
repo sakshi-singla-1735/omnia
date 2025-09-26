@@ -22,7 +22,7 @@ input_project_dir: "{{ hostvars['localhost']['input_project_dir'] }}"
 functional_groups_file_path: "{{ input_project_dir }}/functional_groups_config.yml"
 software_config_file_path: "{{ input_project_dir }}/software_config.json"
 default_json_path: "{{ input_project_dir }}/config/x86_64/rhel/10.0/default_packages.json"
-build_image_completion_msg: |
+x86_64_build_image_completion_msg: |
   The playbook build_image_x86_64.yml has been completed successfully.
   To boot x86_64 nodes execute discovery/discovery.yml playbook.
   To build image for aarch64 nodes execute build_image_aarch64/build_image_aarch64.yml playbook.

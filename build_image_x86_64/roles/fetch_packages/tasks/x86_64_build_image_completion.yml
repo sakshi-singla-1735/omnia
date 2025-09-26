@@ -15,4 +15,4 @@
 
 - name: Build Image completion
   ansible.builtin.debug:
-    msg: "{{ build_image_completion_msg.splitlines() | join(' ') }}"
+    msg: "{{ x86_64_build_image_completion_msg.splitlines() | join(' ') }}"

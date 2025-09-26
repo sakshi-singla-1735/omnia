@@ -22,10 +22,10 @@
   ansible.builtin.include_vars: "{{ role_path }}/../../../common/vars/openchami_image_cmd.yml"
   register: ochami_image_global_vars
 
-- name: Invoking build base image playbook
+- name: Invoking x86_64 build base image playbook
   ansible.builtin.include_tasks: build_base_image.yml
   tags: base_image
 
-- name: Invoking build rhel compute image playbooks
+- name: Invoking x86_64 build rhel compute image playbooks
   ansible.builtin.include_tasks: build_compute_image.yml
   tags: compute_image
