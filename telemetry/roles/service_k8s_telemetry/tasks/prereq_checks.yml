@@ -15,6 +15,26 @@
 
 - name: Pre-checks for service cluster k8s
   block:
+    - name: Run pulp status command on omnia_core container
+      ansible.builtin.command: /usr/local/bin/pulp status
+      delegate_to: localhost
+      changed_when: false
+      register: pulp_status_output
+
+    - name: Set pulp content origin value
+      ansible.builtin.set_fact:
+        pulp_content_origin: "{{ (pulp_status_output.stdout | from_json).content_settings.content_origin }}"
+
+    - name: Set fact for pulp protocol
+      ansible.builtin.set_fact:
+        pulp_server_ip: "{{ pulp_content_origin | urlsplit('hostname') }}"
+
+    - name: Set fact for pulp protocol
+      ansible.builtin.set_fact:
+        pulp_server_ip: "{{ pulp_content_origin | urlsplit('hostname') }}"
+      delegate_to: localhost
+      delegate_facts: true
+
     - name: Install prereq rpm packages on service kube control plane
       ansible.builtin.package:
         name: "{{ item }}"
@@ -34,6 +54,7 @@
         name: "{{ item }}"
         extra_args: >
           --find-links={{ hostvars['localhost']['offline_pip_module_path'] }}/{{ item }}/
+          --trusted-host={{ hostvars['localhost']['pulp_server_ip'] }}
           --no-index
       loop: "{{ hostvars['localhost']['k8s_pip_packages'] }}"
 
