@@ -94,3 +94,13 @@
   roles:
     - validation
     - parse_and_download
+
+- name: Localrepo completion
+  hosts: localhost
+  connection: local
+  tasks:
+    - name: Localrepo has completed  # noqa:role-name[path]
+      ansible.builtin.include_role:
+        name: parse_and_download
+        tasks_from: localrepo_completion.yml
+      when: final_status == 'SUCCESS'
