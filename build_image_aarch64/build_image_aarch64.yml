@@ -48,12 +48,6 @@
         tasks_from: gather_oim_data.yml
         vars_from: main
 
-- name: Prepare aarch64 nodes
-  hosts: admin_aarch64
-  gather_facts: false
-  roles:
-    - prepare_arm_node
-
 - name: Create oim group and provision group
   ansible.builtin.import_playbook: ../utils/create_container_group.yml
   vars:
@@ -68,6 +62,21 @@
       ansible.builtin.include_tasks: "{{ playbook_dir }}/../common/tasks/common/openchami_auth.yml"
       vars:
         oim_node_name: "{{ hostvars['localhost']['oim_node_name'] }}"
+
+- name: Verify aarch64 functional_group presnt
+  hosts: localhost
+  connection: local
+  tasks:
+    - name: Fetch aarch64 functional_groups
+      ansible.builtin.include_role:
+        name: fetch_packages
+        tasks_from: check_aarch64_fg.yml
+
+- name: Prepare aarch64 nodes
+  hosts: admin_aarch64
+  gather_facts: false
+  roles:
+    - prepare_arm_node
 
 - name: Fetch packages for aarch64
   hosts: localhost
