@@ -14,6 +14,7 @@
 
 # pylint: disable=import-error,no-name-in-module,too-many-positional-arguments,too-many-arguments
 
+import itertools
 from ansible.module_utils.input_validation.common_utils import validation_utils
 from ansible.module_utils.input_validation.common_utils import config
 from ansible.module_utils.input_validation.common_utils import en_us_validation_msg
@@ -189,9 +190,27 @@ def validate_functional_group_duplicates(functional_groups):
             seen.add(name)
     return errors
 
+def validate_functional_groups_separation(functional_groups):
+    """
+    Validates that groups are not shared between functional groups
+    """
+    errors = []
+    fg_groups = {}
+
+    for fg_group in functional_groups:
+        fg_group_name = fg_group.get("name", "")
+        fg_groups[fg_group_name] = set(fg_group.get("group", []))  # fixed key name
+
+    for fg_group_name1, fg_group_name2 in itertools.combinations(fg_groups.keys(), 2):
+        shared = fg_groups[fg_group_name1] & fg_groups[fg_group_name2]  # fixed operator
+        if shared:
+            group_str = ', '.join(shared)
+            msg = f"Group is shared between {fg_group_name1} and {fg_group_name2} functional_groups."
+            errors.append(create_error_msg("functional_groups", group_str, msg))
+
+    return errors
+
 # Non-empty cluster name validation
-
-
 def validate_non_empty_clustername(functional_groups):
     """
     Validates that cluster names are not empty for certain functional groups.
@@ -433,6 +452,7 @@ def validate_functional_groups_config(
 
     # Modular validations
     errors.extend(validate_functional_group_duplicates(functional_groups))
+    errors.extend(validate_functional_groups_separation(functional_groups))
     errors.extend(validate_non_empty_clustername(functional_groups))
     errors.extend(validate_slurm_k8s_clusters(functional_groups, input_file_path))
     errors.extend(validate_slurm_node_parent(functional_groups, groups))

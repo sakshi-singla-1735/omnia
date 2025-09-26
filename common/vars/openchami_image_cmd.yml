@@ -25,6 +25,9 @@ default_x86_64_compute_commands:
 login_node_x86_64_compute_commands:
   - "echo 'Login node x86_64 compute'"
 
+login_compiler_node_x86_64_compute_commands:
+  - "echo 'Login Compiler node x86_64 compute'"
+
 service_kube_node_x86_64_compute_commands:
   - "echo 'Service kube node x86_64 compute'"
 
