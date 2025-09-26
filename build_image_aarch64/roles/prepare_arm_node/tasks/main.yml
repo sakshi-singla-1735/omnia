@@ -213,3 +213,46 @@
     cmd: "podman images --format '{{ '{{.Repository}}:{{.Tag}}' }}'"
   register: podman_images
   changed_when: false
+
+- name: Set full regctl tar path
+  ansible.builtin.set_fact:
+    regctl_tar_path: "{{ nfs_info.shared_path }}/{{ regctl_tar_path }}"
+
+- name: Check if regctl tar file exists
+  ansible.builtin.stat:
+    path: "{{ regctl_tar_path }}"
+  register: regctl_tar_stat
+  changed_when: false
+
+- name: Fail when regctl tar file does not exist
+  ansible.builtin.fail:
+    msg: "regctl tar file not found at {{ regctl_tar_path }}"
+  when: not regctl_tar_stat.stat.exists
+
+- name: Ensure temporary extraction directory exists
+  ansible.builtin.file:
+    path: /tmp/regctl_extract
+    state: directory
+    mode: "{{ hostvars['localhost']['dir_permissions_755'] }}"
+  become: true
+
+- name: Extract regctl binary from tar to temporary folder
+  ansible.builtin.unarchive:
+    src: "{{ regctl_tar_path }}"
+    dest: "/tmp/regctl_extract"
+    remote_src: yes
+    extra_opts: [--strip-components=0]
+  become: true
+
+- name: Copy and rename regctl binary to /usr/local/bin/regctl
+  ansible.builtin.copy:
+    src: "/tmp/regctl_extract/regctl-linux-arm64"
+    dest: "{{ regctl_bin_path }}"
+    remote_src: yes
+    mode: "0755"
+  become: true
+
+- name: Set registry TLS option using regctl
+  ansible.builtin.command: "{{ regctl_bin_path }} registry set --tls disabled {{ hostvars['localhost']['oim_hostname'] }}:5000"
+  register: regctl_result
+  changed_when: regctl_result.rc == 0
