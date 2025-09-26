@@ -31,9 +31,7 @@
 
     - name: Set fact for pulp protocol
       ansible.builtin.set_fact:
-        pulp_protocol: "{{ pulp_content_origin | urlsplit('scheme') | lower }}"
         pulp_server_ip: "{{ pulp_content_origin | urlsplit('hostname') }}"
-        pulp_registry_port: "{{ pulp_content_origin | urlsplit('port') }}"
       delegate_to: localhost
       delegate_facts: true
 
