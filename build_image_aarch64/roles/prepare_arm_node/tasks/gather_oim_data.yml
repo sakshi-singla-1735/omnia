@@ -68,7 +68,7 @@
   ansible.builtin.file:
     path: "{{ pulp_repo_store_path }}"
     state: directory
-    mode: '0755'
+    mode: "{{ hostvars['localhost']['dir_permissions_755'] }}"
 
 # Validate pulp.repo existence
 - name: Check if pulp.repo exists
