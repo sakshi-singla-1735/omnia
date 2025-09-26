@@ -17,8 +17,8 @@
   ansible.builtin.known_hosts:
     name: "{{ inventory_hostname }}"
     key: "{{ lookup('pipe', 'ssh-keyscan -H ' + inventory_hostname) }}"
+  delegate_to: localhost
 
-# Check if passwordless SSH is enabled from omnia_core to arm node
 - name: Check if passwordless SSH is enabled
   ansible.builtin.command:
     cmd: ssh -o BatchMode=yes -o ConnectTimeout=5 root@{{ inventory_hostname }} 'echo OK'
@@ -57,7 +57,6 @@
     msg: "{{ not_aarch64_error_msg }}"
   when: arch_result.stdout != "aarch64"
 
-# Remove any existing entries for OIM hostname in /etc/hosts
 - name: Remove any existing entries for OIM hostname in /etc/hosts
   ansible.builtin.lineinfile:
     path: /etc/hosts
@@ -81,12 +80,10 @@
   changed_when: false
   failed_when: etc_hosts_check.stdout == ""
 
-# Show verification result
 - name: Display verification result
   ansible.builtin.debug:
     msg: "Entry in /etc/hosts: {{ etc_hosts_check.stdout }}"
 
-# Ping the OIM hostname from arm node to verify connectivity
 - name: Ping OIM hostname from target host
   ansible.builtin.raw: "ping -c 2 {{ hostvars['localhost']['oim_hostname'] }}"
   register: ping_result
@@ -105,13 +102,30 @@
       server_share_path: "{{ hostvars['localhost']['nfs_server_share_path'] }}"
       shared_path: "{{ hostvars['localhost']['oim_shared_path'] }}"
 
-# Ensure mount point exists
 - name: Ensure NFS mount point directory exists
   ansible.builtin.file:
     path: "{{ nfs_info.shared_path }}"
     state: directory
     mode: "{{ hostvars['localhost']['dir_permissions_755'] }}"
   become: true
+
+- name: Copy pulp.repo from omnia_core to target host
+  ansible.builtin.copy:
+    src: "{{ pulp_repo_store_path }}/pulp.repo"
+    dest: "{{ pulp_repo_file_path }}"
+    mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
+
+- name: Copy pulp webserver certificate to target host
+  ansible.builtin.copy:
+    src: "{{ pulp_webserver_cert_path }}"
+    dest: "{{ anchors_path }}"
+    mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
+  become: true
+
+- name: Update CA trust on target host
+  ansible.builtin.command: update-ca-trust
+  register: update_ca
+  changed_when: false
 
 - name: Check if NFS is mounted
   ansible.builtin.command:
@@ -156,7 +170,6 @@
   ansible.builtin.set_fact:
     ochami_tar_path: "{{ nfs_info.shared_path }}/{{ ochami_tar_path }}"
 
-# Check if ochami image tar file exists
 - name: Check if ochami image tar file exists
   ansible.builtin.stat:
     path: "{{ ochami_tar_path }}"
@@ -169,7 +182,6 @@
     msg: "{{ ochami_tar_fail_msg }}"
   when: not ochami_tar_stat.stat.exists
 
-# Load ochami image using Podman
 - name: Load ochami image using Podman
   ansible.builtin.command:
     cmd: "podman load -i {{ ochami_tar_path }}"
@@ -177,7 +189,6 @@
   failed_when: podman_load_result.rc != 0
   changed_when: true
 
-# Extract image name from podman load output
 - name: Extract image name from podman load output
   ansible.builtin.set_fact:
     loaded_image_name: "{{ (podman_load_result.stdout | regex_findall('Loaded image: (.+)'))[0] | trim }}"
@@ -193,3 +204,46 @@
     cmd: "podman images --format '{{ '{{.Repository}}:{{.Tag}}' }}'"
   register: podman_images
   changed_when: false
+
+- name: Set full regctl tar path
+  ansible.builtin.set_fact:
+    regctl_tar_path: "{{ nfs_info.shared_path }}/{{ regctl_tar_path }}"
+
+- name: Check if regctl tar file exists
+  ansible.builtin.stat:
+    path: "{{ regctl_tar_path }}"
+  register: regctl_tar_stat
+  changed_when: false
+
+- name: Fail when regctl tar file does not exist
+  ansible.builtin.fail:
+    msg: "{{ regctl_missing_error_msg }}"
+  when: not regctl_tar_stat.stat.exists
+
+- name: Ensure temporary extraction directory exists
+  ansible.builtin.file:
+    path: "{{ regctl_temp_dir }}"
+    state: directory
+    mode: "{{ hostvars['localhost']['dir_permissions_755'] }}"
+  become: true
+
+- name: Extract regctl binary from tar to temporary folder
+  ansible.builtin.unarchive:
+    src: "{{ regctl_tar_path }}"
+    dest: "{{ regctl_temp_dir }}"
+    remote_src: true
+    extra_opts: [--strip-components=0]
+  become: true
+
+- name: Copy and rename regctl binary to /usr/local/bin/regctl
+  ansible.builtin.copy:
+    src: "{{ regctl_temp_dir }}/regctl-linux-arm64"
+    dest: "{{ regctl_bin_path }}"
+    remote_src: true
+    mode: "{{ hostvars['localhost']['dir_permissions_755'] }}"
+  become: true
+
+- name: Set registry TLS option using regctl
+  ansible.builtin.command: "{{ regctl_bin_path }} registry set --tls disabled {{ hostvars['localhost']['oim_hostname'] }}:5000"
+  register: regctl_result
+  changed_when: regctl_result.rc == 0
