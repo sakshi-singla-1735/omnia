@@ -52,13 +52,13 @@ def load_functional_groups_yaml(path, module):
         module.fail_json(msg=f"Failed to load functional_groups_config.yml: {str(e)}")
 
 def load_groups_yaml(path, module):
-    """Load group names from YAML."""
+    """Load group names from YAML and return as a set."""
     try:
         with open(path, 'r') as f:
             data = yaml.safe_load(f)
-        return data.get("groups", {})
-    except ValueError as e:
-        module.fail_json(msg=f"Failed to load functional_groups_config.yml: {str(e)}")
+        return set(data.get("groups", {}).keys())
+    except Exception as e:
+        module.fail_json(msg=f"Failed to load groups_config.yml: {str(e)}")
 
 def check_functional_groups_in_mapping(csv_file, config_fgs, module):
     """Check that all functional groups in mapping file exist in functional_groups YAML."""

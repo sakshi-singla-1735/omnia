@@ -249,7 +249,7 @@ __slurm_default_config:
   Epilog: "/etc/slurm/epilog.d/logout_user.sh"
 __slurm_dbd_default_config:
   AuthType: auth/munge
-  LogFile: "/var/log/slurmdbd.log"
+  LogFile: "/var/log/slurm/slurmdbd.log"
   PidFile: /var/run/slurmdbd.pid
   SlurmUser: "{{ slurm_user }}"
   StorageType: accounting_storage/mysql
