@@ -56,7 +56,6 @@
 
       runcmd:
         - /usr/local/bin/set-hostname-by-mac.sh
-        - useradd -mG wheel -p '$6$VHdSKZNm$O3iFYmRiaFQCemQJjhfrpqqV7DdHBi5YpY6Aq06JSQpABPw.3d8PQ8bNY9NuZSmDv7IL/TsrhRJ6btkgKaonT.' testuser
         - setenforce 0
 
 {% if hostvars['localhost']['openldap_support'] %}
@@ -131,9 +130,7 @@
           mkdir -p {{ client_mount_path }}/compile/ucx
           mkdir -p {{ client_mount_path }}/benchmarks/ucx
           cd {{ client_mount_path }}/compile/ucx
-          wget --no-check-certificate \
-          https://{{ hostvars['localhost']['admin_nic_ip'] }}:2225/pulp/content/opt/omnia/offline_repo/cluster/x86_64/{{ hostvars['localhost']['cluster_os_type'] }}/{{ hostvars['localhost']['cluster_os_version'] }}/tarball/ucx/ucx.tar.gz \
-          -O ucx.tar.gz
+          wget --no-check-certificate https://{{ hostvars['localhost']['admin_nic_ip'] }}:2225/pulp/content/opt/omnia/offline_repo/cluster/x86_64/{{ hostvars['localhost']['cluster_os_type'] }}/{{ hostvars['localhost']['cluster_os_version'] }}/tarball/ucx/ucx.tar.gz -O ucx.tar.gz
           tar xzf ucx.tar.gz
           cd ucx-*
           mkdir -p build
@@ -152,9 +149,7 @@
           mkdir -p $OPENMPI_INSTALL_PREFIX
 
           cd $OPENMPI_SRC
-         wget --no-check-certificate \
-         https://{{ hostvars['localhost']['admin_nic_ip'] }}:2225/pulp/content/opt/omnia/offline_repo/cluster/x86_64/{{ hostvars['localhost']['cluster_os_type'] }}/{{ hostvars['localhost']['cluster_os_version'] }}/tarball/openmpi/openmpi.tar.gz \
-         -O openmpi.tar.gz
+          wget --no-check-certificate https://{{ hostvars['localhost']['admin_nic_ip'] }}:2225/pulp/content/opt/omnia/offline_repo/cluster/x86_64/{{ hostvars['localhost']['cluster_os_type'] }}/{{ hostvars['localhost']['cluster_os_version'] }}/tarball/openmpi/openmpi.tar.gz -O openmpi.tar.gz
 
           tar xzf openmpi.tar.gz
           cd openmpi-*
