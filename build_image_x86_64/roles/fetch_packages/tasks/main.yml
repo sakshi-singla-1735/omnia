@@ -14,14 +14,15 @@
 ---
 - name: Check local_repo.yml execution
   block:
-    - name: Check if local_repo.yml is executed successfully
+    - name: Check if metadata file exists
       ansible.builtin.stat:
         path: "{{ metadata_file_path }}"
       register: metadata_file_status
-  rescue:
+
     - name: Fail if metadata file is not present
       ansible.builtin.fail:
         msg: "{{ local_repo_check_msg }}"
+      when: not metadata_file_status.stat.exists
 
 - name: Include functional groups config
   ansible.builtin.include_vars:

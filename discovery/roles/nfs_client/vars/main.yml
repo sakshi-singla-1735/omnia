@@ -15,7 +15,8 @@
 
 # Usage: main.yml
 storage_config_vars: "{{ hostvars['localhost']['input_project_dir'] }}/storage_config.yml"
-
+storage_to_be_mounted: []
+software_config_file: "{{ hostvars['localhost']['input_project_dir'] }}/software_config.json"
 # Usage: nfs_client.yml
 mounted_dir_perm: "0755"
 default_client_mount_options: "nosuid,rw,sync,hard,intr"
@@ -28,3 +29,4 @@ nfs_packages:
     - nfs4-acl-tools
 
 omnia_config_vars: "{{ hostvars['localhost']['input_project_dir'] }}/omnia_config.yml"
+omnia_run_tags: "{{ hostvars['localhost']['omnia_run_tags'] }}"

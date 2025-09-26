@@ -38,6 +38,20 @@
       vars:
         nodes: "{{ hostvars['localhost']['read_mapping_file']['dict'] | dict2items }}"
 
+    - name: Create telemetry directory
+      ansible.builtin.file:
+        path: "{{ telemetry_share_path }}"
+        state: directory
+        mode: "{{ hostvars['localhost']['dir_permissions_755'] }}"
+
+    - name: Load BMC-group data file
+      ansible.builtin.template:
+        src: "{{ bmc_group_data_template }}"
+        dest: "{{ bmc_group_data_file }}"
+        mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
+      vars:
+        nodes: "{{ hostvars['localhost']['read_mapping_file']['dict'] | dict2items }}"
+
     - name: Discover ochami nodes
       block:
         - name: Discover ochami nodes

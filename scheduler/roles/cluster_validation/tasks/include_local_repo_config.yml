@@ -23,3 +23,7 @@
     - name: Failed to local_repo_config.yml
       ansible.builtin.fail:
         msg: "{{ local_repo_config_syntax_fail_msg }} Error: {{ include_local_repo_config.message }}"
+
+- name: Set fact for enable routed internet
+  ansible.builtin.set_fact:
+    enable_routed_internet: false

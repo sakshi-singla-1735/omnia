@@ -34,40 +34,24 @@
         var: x86_64_base_image_packages
         verbosity: 2
 
-# ---- Uncomment while aarch64 support is added
-# - name: Fetch aarch64 default_packages.json software packages
-#   when: fg_aarch64
-#   block:
-#     - name: Load default_packages.json
-#       ansible.builtin.include_vars:
-#         file: "{{ default_json_path }}"
-#         name: default_packages_json
+    - name: Read packages for compute image softwares
+      image_package_collector:
+        functional_groups_file: "{{ functional_groups_file_path }}"
+        software_config_file: "{{ software_config_file_path }}"
+        input_project_dir: "{{ input_project_dir }}"
+      register: compute_images_output
 
-#     - name: Extract rpm packages
-#       ansible.builtin.set_fact:
-#         aarch64_base_image_packages: >-
-#           {{ default_packages_json.default_packages.cluster
-#             | selectattr('type', 'equalto', 'rpm')
-#             | map(attribute='package')
-#             | list }}
+    - name: Save packages for x86_64 keys in compute_images_dict
+      ansible.builtin.set_fact:
+        compute_images_dict: >-
+          {{
+            compute_images_output.compute_images_dict
+            | dict2items
+            | selectattr('key', 'search', '_x86_64$')
+            | items2dict
+          }}
 
-#     - name: Debug package
-#       ansible.builtin.debug:
-#         var: aarch64_base_image_packages
-#         verbosity: 2
-
-- name: Read packages for compute image softwares
-  image_package_collector:
-    functional_groups_file: "{{ functional_groups_file_path }}"
-    software_config_file: "{{ software_config_file_path }}"
-    input_project_dir: "{{ input_project_dir }}"
-  register: compute_images_output
-
-- name: Debug software directory compute_images_dict
-  ansible.builtin.debug:
-    var: compute_images_output.compute_images_dict
-    verbosity: 2
-
-- name: Save compute_images_dict as a fact
-  ansible.builtin.set_fact:
-    compute_images_dict: "{{ compute_images_output.compute_images_dict }}"
+    - name: Debug software directory compute_images_dict
+      ansible.builtin.debug:
+        var: compute_images_dict
+        verbosity: 2

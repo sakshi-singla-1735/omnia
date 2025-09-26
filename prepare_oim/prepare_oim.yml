@@ -21,7 +21,7 @@
     - name: Set dynamic run tags including 'prepare_oim'
       when: not config_file_status | default(false) | bool
       ansible.builtin.set_fact:
-        omnia_run_tags: "{{ (ansible_run_tags | default([]) + ['prepare_oim']) | unique }}"
+        omnia_run_tags: "{{ (ansible_run_tags | default([]) + ['prepare_oim']) + ['openldap'] | unique }}"
         cacheable: true
 
 - name: Invoke validate_config.yml to perform L1 and L2 validations with prepare_oim tag
@@ -76,6 +76,17 @@
         name: deploy_containers/common
         tasks_from: add_known_hosts.yml
 
+- name: OpenLDAP Pre_req generate ssha password
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tags: auth
+  tasks:
+    - name: Generate LDAP password hashes  # noqa:role-name[path]
+      ansible.builtin.include_role:
+        name: deploy_containers/auth
+        tasks_from: generate_ldap_password_hashes.yml
+
 - name: Deploy the pulp container
   hosts: oim
   connection: ssh
@@ -87,6 +98,8 @@
       tags: pulp
     - role: deploy_containers/kubespray  # noqa:role-name[path]
       tags: kubespray
+    - role: deploy_containers/auth  # noqa:role-name[path]
+      tags: auth
 
 - name: Verify openchami install status
   hosts: oim

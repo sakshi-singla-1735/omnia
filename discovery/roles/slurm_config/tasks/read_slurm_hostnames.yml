@@ -16,7 +16,6 @@
   ansible.builtin.slurp:
     src: "{{ nodes_yaml }}"
   register: slurped_yaml
-  no_log: true
 
 - name: Parse YAML into vars
   ansible.builtin.set_fact:
@@ -61,4 +60,7 @@
                    | map(attribute='value') | list | flatten }}"
     login_list: "{{ grouped_nodes | dict2items
                    | selectattr('key', 'match', '^' ~ 'login_node_')
+                   | map(attribute='value') | list | flatten }}"
+    compiler_login_list: "{{ grouped_nodes | dict2items
+                   | selectattr('key', 'match', '^login_compiler_node_')
                    | map(attribute='value') | list | flatten }}"
