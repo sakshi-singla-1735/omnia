@@ -24,6 +24,7 @@ oim_os_repo_fail_msg: |
 internal_nfs_services:
   - nfs
   - rpc-bind
+  - mountd
 
 ntp_firewall_service: ntp
 
