@@ -13,9 +13,9 @@
 #  limitations under the License.
 ---
 
-- name: Create base_image.log as a file
+- name: Create x86_64_base_image.log as a file
   ansible.builtin.file:
-    path: "{{ openchami_base_image_log_path }}"
+    path: "{{ openchami_x86_64_base_image_log_path }}"
     state: touch
     mode: "{{ dir_permissions_644 }}"
 
@@ -32,7 +32,7 @@
     -i {{ openchami_clone_path }}/dell/podman-quadlets/inventory -v \
     --extra-vars "@{{ openchami_base_image_vars_path }}" \
     --tags base_image -v | \
-    /usr/bin/tee {{ openchami_base_image_log_path }}
+    /usr/bin/tee {{ openchami_x86_64_base_image_log_path }}
   async: 3600  # Set async timeout (e.g., 1 hour)
   poll: 0  # Non-blocking (continue the playbook without waiting for completion)
   register: base_image_build

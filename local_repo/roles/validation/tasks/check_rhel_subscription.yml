@@ -76,6 +76,18 @@
         mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
         remote_src: true
 
+    - name: Copy Red Hat repo
+      ansible.builtin.copy:
+        src: "{{ redhat_repo_file }}"
+        dest: "{{ rhel_repo_cert_dir }}/redhat.repo"
+        mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
+        remote_src: true
+
+    - name: Set rhel_repo_certs SELinux context
+      ansible.builtin.command: chcon -R system_u:object_r:container_file_t:s0 "{{ rhel_repo_cert_dir }}"
+      changed_when: true
+      failed_when: false
+
     - name: Extract only RHEL baseurls (appstream, baseos, codeready-builder)
       ansible.builtin.shell: |
         set -o pipefail

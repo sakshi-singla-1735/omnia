@@ -48,6 +48,9 @@ omnia_credentials:
   slurm:
     mandatory:
       - { password: slurm_db_password }
+  slurm_custom:
+    mandatory:
+      - { password: slurm_db_password }
   openldap:
     mandatory:
       - { username: openldap_db_username, password: openldap_db_password }

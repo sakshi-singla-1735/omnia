@@ -1,6 +1,6 @@
 {
   "title": "omnia_config.yaml",
-  "description": "Omnia config related parameters",
+  "description": "Omnia slurm and k8s config related parameters",
   "type": "object",
   "properties": {
     "slurm_cluster": {
@@ -15,8 +15,8 @@
             "description": "Unique name for the slurm cluster." 
           },
           "installation_type": { 
-            "description":"slurm installation is supported in configless mode or slurm in nfs",
-            "enum":["configless", "nfs_share"]
+            "description":"slurm installation is supported in configless mode",
+            "enum":["configless"]
           },
           "restart_slurm_services": {
             "description": "indicates whether slurm control node services(slurmctld) should be restarted or not and if  restart_slurm_services is set to true, slurmctld services will be restarted on every execution of omnia.yml",

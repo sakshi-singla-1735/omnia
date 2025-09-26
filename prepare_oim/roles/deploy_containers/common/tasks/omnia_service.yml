@@ -22,6 +22,15 @@
     kubespray_service_list: "{{ kubespray_versions | map('regex_replace', '^(.*)$', 'omnia_kubespray_\\1.service') | join(' ') }}"
   when: kubespray_versions is defined
 
+- name: Initialize auth service variable
+  ansible.builtin.set_fact:
+    auth_service: ""
+
+- name: Set auth service if openldap is present
+  ansible.builtin.set_fact:
+    auth_service: "omnia_auth.service"
+  when: hostvars['localhost']['openldap_support']
+
 - name: Start network manager services
   ansible.builtin.systemd:
     name: "{{ item }}"

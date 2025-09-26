@@ -31,6 +31,17 @@
     cluster_os_type: "{{ software_config.cluster_os_type }}"
     cluster_os_version: "{{ software_config.cluster_os_version }}"
 
+- name: Parse network_spec data
+  ansible.builtin.set_fact:
+    network_data: "{{ network_data | default({}) | combine({item.key: item.value}) }}"
+  with_dict: "{{ Networks }}"
+
+- name: Set admin network nic and ip
+  ansible.builtin.set_fact:
+    admin_nic_ip: "{{ network_data.admin_network.primary_oim_admin_ip }}"
+    admin_nic: "{{ network_data.admin_network.oim_nic_name }}"
+    admin_netmask_bits: "{{ network_data.admin_network.netmask_bits }}"
+
 - name: Initialise variables
   ansible.builtin.set_fact:
     service_k8s_support: false
@@ -38,3 +49,11 @@
 - name: Check if service k8s support is true
   ansible.builtin.set_fact:
     service_k8s_support: "{{ software_config.softwares | selectattr('name', 'equalto', 'service_k8s') | list | length > 0 }}"
+
+- name: Initialise openldap support variables
+  ansible.builtin.set_fact:
+    openldap_support: false
+
+- name: Check if openldap support is true
+  ansible.builtin.set_fact:
+    openldap_support: "{{ software_config.softwares | selectattr('name', 'equalto', 'openldap') | list | length > 0 }}"

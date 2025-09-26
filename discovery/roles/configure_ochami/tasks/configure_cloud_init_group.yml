@@ -13,6 +13,9 @@
 # limitations under the License.
 ---
 
+- name: Include vars from default
+  ansible.builtin.include_vars: "{{ default_file_path }}"
+
 - name: Set the functional_group_name
   ansible.builtin.set_fact:
     functional_group_name: "{{ item }}"
