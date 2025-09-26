@@ -23,6 +23,7 @@ pulp_webserver_cert_path: "/opt/omnia/pulp/settings/certs/pulp_webserver.crt"
 anchors_path: "/etc/pki/ca-trust/source/anchors/pulp_webserver.crt"
 regctl_tar_path: "omnia/offline_repo/cluster/aarch64/rhel/10.0/tarball/regctl-aarch64/regctl-linux-arm64.tar.gz"
 regctl_bin_path: "/usr/local/bin/regctl"
+regctl_temp_dir: "/tmp/regctl_extract"
 
 # Error messages
 no_inventory_error_msg: "No inventory provided. Please specify an inventory with -i option."
@@ -37,3 +38,6 @@ nfs_not_configured_msg: >
 ochami_tar_fail_msg: >
   Ochami aarch64 image file not found at the expected path.
   Please run 'prepare_oim.yml' to generate the image tar before executing this playbook.
+regctl_missing_error_msg: >
+  regctl aarch64 tar file not found.
+  Please run local_repo.yml with default_packages for aarch64 to download regctl, and then rerun the playbook.
