@@ -82,3 +82,12 @@
   gather_facts: false
   roles:
     - image_creation
+
+- name: Build aarch64 image completion
+  hosts: localhost
+  connection: local
+  tasks:
+    - name: Build Image completion
+      ansible.builtin.include_role:
+        name: fetch_packages
+        tasks_from: aarch64_build_image_completion.yml
