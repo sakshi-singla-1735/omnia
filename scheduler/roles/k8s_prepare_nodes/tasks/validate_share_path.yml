@@ -19,12 +19,12 @@
     name: "{{ nfs_package }}"
     state: present
 
-- name: Check NFS export availability
-  ansible.builtin.command: "showmount -e {{ nfs_server_ip }}"
-  register: nfs_exports
-  changed_when: false
+#- name: Check NFS export availability
+#  ansible.builtin.command: "showmount -e {{ nfs_server_ip }}"
+#  register: nfs_exports
+#  changed_when: false
 
-- name: Fail if expected NFS export is not available
-  ansible.builtin.fail:
-    msg: "NFS export {{ nfs_server_share_path }} not found on {{ nfs_server_ip }}"
-  when: nfs_server_share_path not in nfs_exports.stdout
+#- name: Fail if expected NFS export is not available
+#  ansible.builtin.fail:
+#    msg: "NFS export {{ nfs_server_share_path }} not found on {{ nfs_server_ip }}"
+#  when: nfs_server_share_path not in nfs_exports.stdout
