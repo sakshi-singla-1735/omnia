@@ -117,7 +117,7 @@
 - name: Copy pulp.repo from omnia_core to target host
   ansible.builtin.copy:
     src: "{{ pulp_repo_store_path }}/pulp.repo"
-    dest: /etc/yum.repos.d/pulp.repo
+    dest: "{{ pulp_repo_file_path }}"
     mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
 
 # Copy pulp_webserver.crt to target host
