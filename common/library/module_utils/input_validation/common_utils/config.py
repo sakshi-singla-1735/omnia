@@ -41,7 +41,6 @@ files = {
     "telemetry_config": "telemetry_config.yml",
     "functional_groups_config": "functional_groups_config.yml",
     "high_availability_config": "high_availability_config.yml"
-    "high_availability_config": "high_availability_config.yml",
     # "additional_software": "additional_software.json"
 }
 
