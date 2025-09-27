@@ -12,6 +12,11 @@
       - name: dict
         settings: [no_replace, recurse_list]
 
+      users:
+        - name: root
+          ssh_authorized_keys: "{{ read_ssh_key.stdout }}"
+      disable_root: false
+
       write_files:
       #cloud-config
         - path: /usr/local/bin/set-hostname-by-mac.sh
@@ -276,15 +281,23 @@
 
         #cloud-config
         - |
+          chattr -i /etc/resolv.conf 2>/dev/null || true
           tmpfile=$(mktemp)
-          {% for ns in hostvars['localhost']['dns'] %}
-          echo "nameserver {{ ns }}" >> $tmpfile
-          {% endfor %}
-          cat /etc/resolv.conf >> $tmpfile
-          mv $tmpfile /etc/resolv.conf
-          
-        - chattr +i /etc/resolv.conf
 
+          # Add DNS servers from vars, only once each
+          {% for ns in hostvars['localhost']['dns'] %}
+          grep -qxF "nameserver {{ ns }}" $tmpfile || echo "nameserver {{ ns }}" >> $tmpfile
+          {% endfor %}
+
+          # Preserve other lines (like search, options, comments), skip duplicate nameservers
+          grep -v '^nameserver' /etc/resolv.conf | while read line; do
+            grep -qxF "$line" $tmpfile || echo "$line" >> $tmpfile
+          done
+
+          mv $tmpfile /etc/resolv.conf
+
+          # Make resolv.conf immutable
+          chattr +i /etc/resolv.conf
 
         # SELinux config
 
@@ -390,3 +403,7 @@
 
         # Join Kubernetes cluster
         - /usr/local/bin/k8s-join.sh || true
+
+        - cp /etc/kubernetes/kubelet.conf /etc/kubernetes/kubelet.conf.bak
+        - sed -i 's#server: https://[0-9\.]*:6443#server: https://{{ control_plane_ip }}:6443#' /etc/kubernetes/kubelet.conf
+        - systemctl restart kubelet
