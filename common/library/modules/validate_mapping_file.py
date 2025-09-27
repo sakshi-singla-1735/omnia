@@ -128,7 +128,7 @@ def validate_mapping_file(mapping_file_path, functional_groups_file, module):
         check_functional_groups_in_mapping(csv_file, config_fgs, module)
         check_groups_in_mapping(csv_file, config_gs, module)
 
-        # The resulting XNAME values will have the format 'x1000c<d>s7<b><d>n0', where <b> is a letter and <d> is a digit
+        # The resulting XNAME values will have the format 'x1000c0s<d><b><d>n0', where <b> is a letter and <d> is a digit
         xname_values = []
         alpha_sequence = generate_alpha_sequence(100)  # 100 groups of 10 = 1000 entries
 
@@ -137,7 +137,7 @@ def validate_mapping_file(mapping_file_path, functional_groups_file, module):
             digit = i % 10
             alpha_part = alpha_sequence[group_index]
             num_part = group_index + 1
-            xname = f'x1000c{num_part}s7{alpha_part}{digit}n0'
+            xname = f'x1000c0s{num_part}{alpha_part}{digit}n0'
             xname_values.append(xname)
 
         csv_file['XNAME'] = xname_values
