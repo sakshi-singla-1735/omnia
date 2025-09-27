@@ -506,18 +506,18 @@ def validate_storage_config(
                 )
             )
 
-        nfs_strg_name = nfs_client_params["nfs_name"]
-        matching_clusters = get_matching_clusters_for_nfs(nfs_strg_name, omnia_config_json)
+        # nfs_strg_name = nfs_client_params["nfs_name"]
+        # matching_clusters = get_matching_clusters_for_nfs(nfs_strg_name, omnia_config_json)
 
-        if not matching_clusters:
-            errors.append(
-                create_error_msg(
-                    "For the mentioned",
-                    nfs_strg_name,
-                    f"in storage_config.yml, no matching cluster found in omnia_config.yml "
-                    f"with deployment enabled for NFS '{nfs_strg_name}'."
-                )
-            )
+        # if not matching_clusters:
+        #     errors.append(
+        #         create_error_msg(
+        #             "For the mentioned",
+        #             nfs_strg_name,
+        #             f"in storage_config.yml, no matching cluster found in omnia_config.yml "
+        #             f"with deployment enabled for NFS '{nfs_strg_name}'."
+        #         )
+        #     )
     return errors
 
 
