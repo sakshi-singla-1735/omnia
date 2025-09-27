@@ -21,23 +21,6 @@ import yaml
 from ansible.module_utils.basic import AnsibleModule
 from string import ascii_lowercase
 
-def generate_alpha_sequence(n, start='b'):
-    """Generate alphabetical strings starting from 'b': b, c, ..., z, ba, bb, ..."""
-    result = []
-    i = 0
-    start_index = ascii_lowercase.index(start)
-    while len(result) < n:
-        s = ''
-        temp = i
-        while True:
-            s = ascii_lowercase[(temp % 26 + start_index) % 26] + s
-            temp = temp // 26 - 1
-            if temp < 0:
-                break
-        result.append(s)
-        i += 1
-    return result
-
 
 def load_functional_groups_yaml(path, module):
     """Load functional group names from YAML."""
@@ -130,14 +113,16 @@ def validate_mapping_file(mapping_file_path, functional_groups_file, module):
 
         # The resulting XNAME values will have the format 'x1000c0s<d><b><d>n0', where <b> is a letter and <d> is a digit
         xname_values = []
-        alpha_sequence = generate_alpha_sequence(100)  # 100 groups of 10 = 1000 entries
 
         for i in range(len(csv_file)):
-            group_index = i // 10
+            # `c` will be based on i // 100 (every 100 entries we increment `c`)
+            c_index = i // 100
+            # `s` will be based on i // 10 (every 10 entries we increment `s`)
+            s_index = (i // 10) % 10
+            # `digit` cycles from 0 to 9
             digit = i % 10
-            alpha_part = alpha_sequence[group_index]
-            num_part = group_index + 1
-            xname = f'x1000c0s{num_part}{alpha_part}{digit}n0'
+            # Build the 'xname' with updated logic for `c` and `s` indices
+            xname = f'x1000c{c_index}s{s_index}b{digit}n0'
             xname_values.append(xname)
 
         csv_file['XNAME'] = xname_values
