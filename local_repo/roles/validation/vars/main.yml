@@ -117,6 +117,9 @@ specific_softwares:
   - 'intelgaudi'
   - 'openmpi'
   - 'bcm_roce_libraries'
+metadata_file: "/opt/omnia/kubespray/k8s_metadata.yml"
+k8s_metadata_file_not_exist_msg: "The metadata file {{ metadata_file }} is missing. The omnia_kubespray_v2.28.0 container has not been deployed. Please run prepare_oim.yml and then rerun the playbook." # noqa: yaml[line-length]
+
 versions_fail_msg: "Versions were not defined for the following softwares: {{ failed_softwares | join(', ') }} in software_config.json.
 Refer examples/template_{{ cluster_os_type }}_software_config.json and define version details accordingly in {{ project_input_path }}/software_config.json"
 cluster_os_type_fail_msg: "Failed. The supported values of cluster_os_type is Fedora"
