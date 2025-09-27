@@ -1,22 +1,4 @@
-#Batch Scheduler: Slurm
-
-[slurm_control_node]
-node1
-
-[slurm_node]
-node3
-node4
-
-[login_node]
-node5
-
-#General Cluster Storage
-
-[auth_server]
-node12
-
 #AI Scheduler: Kubernetes
-
 [kube_control_plane]
 node1
 
