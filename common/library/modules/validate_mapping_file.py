@@ -24,14 +24,16 @@ from string import ascii_lowercase
 def generate_alpha_sequence(n, start='b'):
     """Generate alphabetical strings starting from 'b': b, c, ..., z, ba, bb, ..."""
     result = []
-    start_index = ascii_lowercase.index(start)
     i = 0
+    start_index = ascii_lowercase.index(start)
     while len(result) < n:
         s = ''
         temp = i
-        while temp >= 0:
-            s = ascii_lowercase[temp % 26 + start_index] + s
+        while True:
+            s = ascii_lowercase[(temp % 26 + start_index) % 26] + s
             temp = temp // 26 - 1
+            if temp < 0:
+                break
         result.append(s)
         i += 1
     return result
