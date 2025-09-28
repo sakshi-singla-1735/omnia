@@ -13,7 +13,7 @@
 # limitations under the License.
 ---
 
-rhel_base_image_name: "rhel-base"
+rhel_x86_64_base_image_name: "rhel-x86_64_base"
 
 base_image_commands:
   - "dracut --add 'dmsquash-live livenet network-manager' --install '/usr/lib/systemd/systemd-sysroot-fstab-check' --kver $(basename /lib/modules/*) -N -f --logfile /tmp/dracut.log 2>/dev/null"   # noqa: yaml[line-length]
@@ -24,6 +24,9 @@ default_x86_64_compute_commands:
 
 login_node_x86_64_compute_commands:
   - "echo 'Login node x86_64 compute'"
+
+login_compiler_node_x86_64_compute_commands:
+  - "echo 'Login Compiler node x86_64 compute'"
 
 service_kube_node_x86_64_compute_commands:
   - "echo 'Service kube node x86_64 compute'"

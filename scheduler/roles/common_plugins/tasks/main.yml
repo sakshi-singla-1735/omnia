@@ -75,17 +75,3 @@
       when:
         - common_plugin['whereabouts-device-plugin']
         - deployment_status.get('whereabouts-device-plugin', '') != 'success'
-
-    - name: Get taints of control-plane nodes
-      ansible.builtin.command:
-        cmd: kubectl get node {{ item }} -o jsonpath='{.spec.taints}'
-      loop: "{{ groups['kube_control_plane'] }}"
-      register: node_taints
-      changed_when: false
-
-    - name: Add control-plane taint if not present
-      ansible.builtin.command:
-        cmd: kubectl taint nodes {{ item.item }} node-role.kubernetes.io/control-plane=:NoSchedule --overwrite
-      loop: "{{ node_taints.results }}"
-      when: "'node-role.kubernetes.io/control-plane' not in item.stdout"
-      changed_when: true

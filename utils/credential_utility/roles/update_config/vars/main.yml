@@ -41,11 +41,14 @@ omnia_credentials:
       - { username: docker_username, password: docker_password }
     mandatory:
       - { password: pulp_password }
-      - { username: minio_s3_username, password: minio_s3_password }
+      - { password: minio_s3_password }
   local_repo:
     optional:
       - { username: docker_username, password: docker_password }
   slurm:
+    mandatory:
+      - { password: slurm_db_password }
+  slurm_custom:
     mandatory:
       - { password: slurm_db_password }
   openldap:

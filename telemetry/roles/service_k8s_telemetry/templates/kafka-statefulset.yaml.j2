@@ -29,12 +29,6 @@ spec:
         app: {{ kafka.app_name }}
     spec:
       affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-              - matchExpressions:
-                  - key: node-role.kubernetes.io/control-plane
-                    operator: Exists
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
             - weight: 100
@@ -47,13 +41,6 @@ spec:
                         - {{ kafka.app_name }}
                 topologyKey: "kubernetes.io/hostname"
       tolerations:
-        - key: node-role.kubernetes.io/control-plane
-          operator: Exists
-          effect: NoSchedule
-        - key: node-role.kubernetes.io/control-plane
-          operator: Exists
-          effect: NoExecute
-          tolerationSeconds: 5
         - key: node.kubernetes.io/not-ready
           operator: Exists
           effect: NoExecute
@@ -128,6 +115,8 @@ spec:
               value: "/bitnami/kafka/config/certs/kafka.truststore.pem"
             - name: KAFKA_TLS_CLIENT_AUTH
               value: "none"
+            - name: KAFKA_CFG_LOG_SEGMENT_BYTES
+              value: "{{ hostvars['localhost']['kafka_configurations']['log_segment_bytes'] }}"
             - name: KAFKA_CFG_LOG_RETENTION_HOURS
               value: "{{ hostvars['localhost']['kafka_configurations']['log_retention_hours'] }}"
             - name: KAFKA_CFG_LOG_RETENTION_BYTES

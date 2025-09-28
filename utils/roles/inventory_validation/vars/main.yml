@@ -36,7 +36,7 @@ cluster_layout_path: "/opt/omnia/omnia_inventory/cluster_layout"
 warning_wait_time: 30
 inventory_warn_msg: |
   "[WARNING] Inventory not provided. Omnia generated inventory detected at {{ cluster_layout_path }}.
-   If roles details are provided in roles_config.yml, the generated inventory will be used and proceeding."
+   If roles details are provided in functional_groups_config.yml, the generated inventory will be used and proceeding."
 
 # Usage: k8s_validations.yml
 k8s_nfs_share: "/opt/omnia/kubespray/{{ hostvars['127.0.0.1']['cluster_var_name'] }}/{{ hostvars['127.0.0.1']['cluster_name'] }}"
@@ -44,7 +44,7 @@ file_mode: '0755'
 file_perm: '0644'
 invalid_kube_inventory_fail_msg: |
   "Failed. service_k8s software is present in software_config.json.
-  Invalid inventory format, specify kube_control_plane, kube_node and etcd group in inventory and re-run playbook"
+  Invalid inventory format, specify kube_control_plane and  etcd group in inventory and re-run playbook"
 kube_one_node_validation_fail_msg: |
   "Failed. service_k8s software is present in software_config.json.
   There should be one entry for kube_control_plane in the inventory"

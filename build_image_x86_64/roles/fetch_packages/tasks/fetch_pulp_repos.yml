@@ -13,36 +13,15 @@
 # limitations under the License.
 ---
 
-- name: Load functional_group_config.yml
-  ansible.builtin.include_vars:
-    file: "{{ input_project_dir }}/functional_groups_config.yml"
-    name: functional_group_cfg
-
-- name: Check for x86_64 functional groups
-  ansible.builtin.set_fact:
-    fg_x86_64: >-
-      {{ functional_group_cfg.functional_groups
-         | selectattr('name', 'search', '_x86_64$')
-         | list
-         | length > 0 }}
-
-# - name: Check for aarch64 functional groups
-#   ansible.builtin.set_fact:
-#     fg_aarch64: >-
-#       {{ functional_group_cfg.functional_groups
-#          | selectattr('name', 'search', '_aarch64$')
-#          | list
-#          | length > 0 }}
-
-- name: Fetch pulp endpoints for x86_64
-  ansible.builtin.command: >
-    pulp rpm distribution list --field name,base_url
-  register: pulp_endpoints
-  changed_when: false
-
 - name: Fetch pulp endpoints only if x86_64 functional_group present
   when: fg_x86_64
   block:
+    - name: Fetch pulp endpoints for x86_64
+      ansible.builtin.command: >
+        pulp rpm distribution list --field name,base_url
+      register: pulp_endpoints
+      changed_when: false
+
     - name: Filter only x86_64 distributions
       ansible.builtin.set_fact:
         pulp_x86_64_distributions: >-
@@ -59,23 +38,3 @@
       ansible.builtin.debug:
         msg: "{{ rhel_x86_64_repos | to_nice_yaml(indent=2) }}"
         verbosity: 2
-
-# - name: Fetch pulp endpoints only if aarch_64 functional_group present
-#   when: fg_aarch64
-#   block:
-    # - name: Filter only aarch_64 distributions
-    #   ansible.builtin.set_fact:
-    #     pulp_aarch_64_distributions: >-
-    #       {{ pulp_endpoints.stdout | from_json
-    #         | selectattr('name', 'match', '^aarch_64')
-    #         | list }}
-
-    # - name: Build rhel_repos list from pulp_aarch_64_distributions
-    #   ansible.builtin.set_fact:
-    #     rhel_aarch_64_repos: >-
-    #       {{ pulp_aarch_64_distributions | map('combine', {'gpg': ''}) | list }}
-
-    # - name: Debug rhel_aarch_64_repos
-    #   ansible.builtin.debug:
-    #     msg: "{{ rhel_aarch_64_repos | to_nice_yaml(indent=2) }}"
-    #     verbosity: 2

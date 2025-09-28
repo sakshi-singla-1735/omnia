@@ -62,7 +62,6 @@ def validate_input_logic(
         "local_repo_config.yml": local_repo_validation.validate_local_repo_config,
         "telemetry_config.yml": common_validation.validate_telemetry_config,
         "security_config.yml": common_validation.validate_security_config,
-        "passwordless_ssh_config.yml": common_validation.validate_usernames,
         "storage_config.yml": common_validation.validate_storage_config,
         "functional_groups_config.yml": functional_groups_validation.validate_functional_groups_config,
         "high_availability_config.yml":
