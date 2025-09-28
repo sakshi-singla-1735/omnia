@@ -1,5 +1,5 @@
 BMC_IP,GROUP_NAME,PARENT
 {{ hostvars['localhost']['Networks'][0].admin_network.primary_oim_bmc_ip }},,
 {% for item in nodes %}
-{{ item.value.BMC_IP }},{{ item.value.GROUP_NAME }},{{ hostvars['localhost']['groups'][item.value.GROUP_NAME].parent | default('') }}
+{{ item.value.BMC_IP }},{{ item.value.GROUP_NAME }},{{ groups[item.value.GROUP_NAME].parent | default('') }}
 {% endfor %}
