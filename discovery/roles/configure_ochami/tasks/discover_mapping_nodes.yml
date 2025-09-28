@@ -51,7 +51,7 @@
         mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
       vars:
         nodes: "{{ hostvars['localhost']['read_mapping_file']['dict'] | dict2items }}"
-        groups: "{{ (lookup('file', hostvars['localhost']['input_project_dir'] ~ '/functional_groups_config.yml') | from_yaml).groups }}"
+        group_data: "{{ (lookup('file', hostvars['localhost']['input_project_dir'] ~ '/functional_groups_config.yml') | from_yaml).groups }}"
 
     - name: Discover ochami nodes
       block:

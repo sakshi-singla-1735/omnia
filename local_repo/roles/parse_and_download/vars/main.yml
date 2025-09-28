@@ -33,6 +33,11 @@ omnia_credentials_yaml_path: "{{ project_input_path }}/omnia_config_credentials.
 omnia_credentials_vault_path: "{{ project_input_path }}/.omnia_config_credentials_key"
 clean_rpms: true
 rpm_dir_path: "{{ repo_store_path }}/offline_repo/cluster/{{ item }}/rhel/10.0/rpm"
+localrepo_completion_msg: |
+  The playbook local_repo.yml has been completed successfully. To build image for nodes
+  please execute the playbook build_image_<arch>/build_image_<arch>.yml as the next step.
+    To build image for x86_64 nodes execute build_image_x86_64/build_image_x86_64.yml playbook.
+
 local_repo_py_module_vars:
   default_vars: &sw_defaults
     timeout: 2000  # Timeout in seconds for each thread
