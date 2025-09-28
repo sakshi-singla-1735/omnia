@@ -13,7 +13,7 @@
 # limitations under the License.
 ---
 
-rhel_base_image_name: "rhel-base"
+rhel_x86_64_base_image_name: "rhel-x86_64_base"
 
 base_image_commands:
   - "dracut --add 'dmsquash-live livenet network-manager' --install '/usr/lib/systemd/systemd-sysroot-fstab-check' --kver $(basename /lib/modules/*) -N -f --logfile /tmp/dracut.log 2>/dev/null"   # noqa: yaml[line-length]

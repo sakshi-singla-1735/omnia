@@ -44,8 +44,3 @@ nfs_client_params:
     client_share_path: /share_omnia
     client_mount_options: "nosuid,rw,sync,hard,intr"
     nfs_name: nfs_slurm
-  - server_ip: "" # Provide the IP of the NFS server
-    server_share_path: "/mnt/share/openldap" # Provide server share path of the NFS Server
-    client_share_path: /home
-    client_mount_options: "nosuid,rw,sync,hard,intr"
-    nfs_name: nfs_openldap
