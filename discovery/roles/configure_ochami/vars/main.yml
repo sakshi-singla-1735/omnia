@@ -69,6 +69,8 @@ sasl_nacanon_replace2: "SASL_NOCANON\ton\nURI\tldap://{{ hostvars['localhost']['
 sasl_nacanon_replace3: "SASL_NOCANON\ton\nTLS_CACERT\t{{ tls_cert_path }}"
 sasl_nacanon_replace4: "SASL_NOCANON\ton\nURI\tldap://{{ hostvars['localhost']['ldap_server_ip'] }}:636"
 file_mode: "0644"
+ldap_starttls_port: 389
+ldap_ssl_port: 636
 
 # Usage: ci-group-slurm_control_node_x86_64.yaml.j2
 slurm_group_name: slurm

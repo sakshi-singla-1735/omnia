@@ -75,12 +75,6 @@
         - groupadd -r {{ slurm_group_name }}
         - useradd -r -g {{ slurm_group_name }} -d {{ home_dir }} -s /sbin/nologin {{ user }}
 
-{% if hostvars['localhost']['openldap_support'] %}
-        - mkdir /ldapcerts
-        - echo "{{ cloud_init_nfs_path_openldap }}/certs                /ldapcerts       nfs defaults,_netdev 0 0" >> /etc/fstab
-        - echo "{{ cloud_init_nfs_path_openldap }}/ldapuser             /home            nfs defaults,_netdev 0 0" >> /etc/fstab
-{% endif %}        
-
         - mkdir -p /var/log/slurm /var/run/slurm /var/spool /var/lib/slurm /etc/slurm/epilog.d /etc/munge
         - echo "{{ cloud_init_nfs_path }}/$(hostname -s)/var/log/slurm  /var/log/slurm   nfs defaults,_netdev 0 0" >> /etc/fstab
         - echo "{{ cloud_init_nfs_path }}/$(hostname -s)/var/spool      /var/spool       nfs defaults,_netdev 0 0" >> /etc/fstab
@@ -89,11 +83,6 @@
         - echo "{{ cloud_init_nfs_path }}/$(hostname -s)/etc/munge      /etc/munge       nfs defaults,_netdev 0 0" >> /etc/fstab
         - chmod {{ file_mode }} /etc/fstab
         - mount -a
- 
-{% if hostvars['localhost']['openldap_support'] %}
-        - yes | cp /ldapcerts/* /etc/openldap/certs
-        - umount /ldapcerts
-{% endif %} 
 
         - yes | cp /etc/slurm/epilog.d/slurmd.service /usr/lib/systemd/system/
         - chown -R {{ user }}:{{ slurm_group_name }} /var/log/slurm
@@ -132,16 +121,27 @@
 
 {% if hostvars['localhost']['openldap_support'] %}
         - /usr/local/bin/update_ldap_conf.sh
+        - mkdir /ldapcerts
+        - echo "{{ cloud_init_nfs_path_openldap }}/certs                /ldapcerts       nfs defaults,_netdev 0 0" >> /etc/fstab
+        - echo "{{ cloud_init_nfs_path_openldap }}/ldapuser             /home            nfs defaults,_netdev 0 0" >> /etc/fstab
+        - chmod {{ file_mode }} /etc/fstab
+        - mount -a
+        - yes | cp /ldapcerts/* /etc/openldap/certs
+        - umount /ldapcerts
+
+        - firewall-cmd --permanent --add-port={{ ldap_starttls_port }}/tcp
+        - firewall-cmd --permanent --add-port={{ ldap_ssl_port }}/tcp
+        - firewall-cmd --reload
+
+        - setenforce 0
         - authselect select sssd with-mkhomedir --force
         - sudo systemctl enable --now oddjobd.service
         - sudo systemctl enable --now sssd
-        - sudo systemctl enable --now sssd
         - setsebool -P authlogin_nsswitch_use_ldap on
         - setsebool -P authlogin_yubikey on
-        - sudo systemctl stop firewalld
-        - sudo systemctl disable firewalld
         - sudo systemctl restart sssd
         - systemctl restart sshd
+
 {% endif %}
 
 
