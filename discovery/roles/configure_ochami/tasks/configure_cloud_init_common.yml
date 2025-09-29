@@ -19,6 +19,11 @@
     dest: "{{ ci_group_common_dest }}"
     mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
 
-- name: Set ci group configuration
+- name: Delete ci group configuration - common
+  ansible.builtin.command: /usr/bin/ochami cloud-init group delete -f yaml -d @{{ ci_group_common_dest }}
+  changed_when: true
+  failed_when: false
+
+- name: Set ci group configuration - common
   ansible.builtin.command: /usr/bin/ochami cloud-init group set -f yaml -d @{{ ci_group_common_dest }}
   changed_when: true
