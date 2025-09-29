@@ -38,7 +38,7 @@
 - name: Select first deployed cluster
   ansible.builtin.set_fact:
     service_cluster_info: >-
-      {{ vars[k8s_cluster]
+      {{ vars[k8s_cluster_name]
           | selectattr('deployment', 'equalto', true)
           | list
           | first }}
