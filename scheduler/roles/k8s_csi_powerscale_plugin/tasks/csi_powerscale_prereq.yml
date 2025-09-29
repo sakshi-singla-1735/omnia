@@ -25,6 +25,7 @@
       ansible.builtin.fail:
         msg: "{{ k8s_not_deployed }}"
 
+
 # Check if powerscale is already deployed
 - name: Verify powerscale is deployed on cluster
   ansible.builtin.shell: >

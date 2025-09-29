@@ -53,6 +53,15 @@
       vars:
         oim_node_name: "{{ hostvars['localhost']['oim_node_name'] }}"
 
+- name: Verify x86_64 functional_group presnt
+  hosts: localhost
+  connection: local
+  tasks:
+    - name: Fetch aarch64 functional_groups
+      ansible.builtin.include_role:
+        name: fetch_packages
+        tasks_from: check_x86_64_fg.yml
+
 - name: Fetch packages for x86_64
   hosts: localhost
   connection: local
@@ -67,11 +76,11 @@
   roles:
     - image_creation
 
-- name: Build image completion
+- name: Build x86_64 image completion
   hosts: localhost
   connection: local
   tasks:
     - name: Build Image completion
       ansible.builtin.include_role:
         name: fetch_packages
-        tasks_from: build_image_completion.yml
+        tasks_from: x86_64_build_image_completion.yml
