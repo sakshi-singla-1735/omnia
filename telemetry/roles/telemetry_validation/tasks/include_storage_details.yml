@@ -35,7 +35,7 @@
       ansible.builtin.fail:
         msg: "{{ storage_config_syntax_fail_msg }} Error: {{ include_storage_config.message }}"
 
-- name: Select first deployed cluster
+- name: Get k8s cluster details
   ansible.builtin.set_fact:
     service_cluster_info: >-
       {{ vars[k8s_cluster_name]
