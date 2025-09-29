@@ -71,6 +71,7 @@ input_file_inventory = {
     ],
     "service_k8s": [
         files["omnia_config"],
+        files["storage_config"],
         files["high_availability_config"],
         files["functional_groups_config"]
     ],
