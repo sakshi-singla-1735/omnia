@@ -454,7 +454,7 @@ def validate_functional_groups_config(
 
     # Modular validations
     errors.extend(validate_functional_group_duplicates(functional_groups))
-    errors.extend(validate_functional_groups_separation(functional_groups))s
+    errors.extend(validate_functional_groups_separation(functional_groups))
     errors.extend(validate_non_empty_clustername(functional_groups))
     errors.extend(validate_slurm_k8s_clusters(functional_groups, input_file_path))
     errors.extend(validate_slurm_node_parent(functional_groups, groups))
