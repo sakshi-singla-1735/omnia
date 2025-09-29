@@ -17,7 +17,8 @@
 This module contains validation messages in English (US) for input validation.
 These messages are used to provide user-friendly error messages during configuration validation.
 """
-
+PRIMARY_ADMIN_IP_INTERFACE_MISMATCH_MSG = "primary_oim_admin_ip does not match the actual IP configured on the specified interface"
+NETMASK_BITS_INTERFACE_MISMATCH_MSG = "netmask_bits does not match the netmask configured on the specified interface"
 MISSING_CLUSTER_NAME_MSG = "Cluster name is mandatory for all kubernetes roles."
 CLUSTER_NAME_OVERLAP_MSG = "The cluster name '{0}' cannot be shared between service and compute Kubernetes roles."
 CLUSTER_NAME_INCONSISTENT_MSG = (
