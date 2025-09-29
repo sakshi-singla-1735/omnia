@@ -286,25 +286,15 @@
         - mkdir -p /etc/kubernetes /opt/cni/bin /etc/cni/net.d /var/lib/containerd /var/lib/containerd-overlay
         - mkdir -p /var/run/containerd /etc/nginx /opt/omnia
 
-        #cloud-config
         - |
-          chattr -i /etc/resolv.conf 2>/dev/null || true
           tmpfile=$(mktemp)
-
-          # Add DNS servers from vars, only once each
           {% for ns in hostvars['localhost']['dns'] %}
-          grep -qxF "nameserver {{ ns }}" $tmpfile || echo "nameserver {{ ns }}" >> $tmpfile
+          echo "nameserver {{ ns }}" >> $tmpfile
           {% endfor %}
-
-          # Preserve other lines (like search, options, comments), skip duplicate nameservers
-          grep -v '^nameserver' /etc/resolv.conf | while read line; do
-            grep -qxF "$line" $tmpfile || echo "$line" >> $tmpfile
-          done
-
+          cat /etc/resolv.conf >> $tmpfile
           mv $tmpfile /etc/resolv.conf
-
-          # Make resolv.conf immutable
-          chattr +i /etc/resolv.conf
+  
+        - chattr +i /etc/resolv.conf
 
         # SELinux config
 
