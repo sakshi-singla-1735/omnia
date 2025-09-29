@@ -13,16 +13,16 @@
 # limitations under the License.
 ---
 
+- name: Delete ci group configuration - common
+  ansible.builtin.command: /usr/bin/ochami cloud-init group delete -f yaml -d @{{ ci_group_common_dest }}
+  changed_when: true
+  failed_when: false
+
 - name: Render ci group common template
   ansible.builtin.template:
     src: "{{ ci_group_common_template }}"
     dest: "{{ ci_group_common_dest }}"
     mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
-
-- name: Delete ci group configuration - common
-  ansible.builtin.command: /usr/bin/ochami cloud-init group delete -f yaml -d @{{ ci_group_common_dest }}
-  changed_when: true
-  failed_when: false
 
 - name: Set ci group configuration - common
   ansible.builtin.command: /usr/bin/ochami cloud-init group set -f yaml -d @{{ ci_group_common_dest }}
