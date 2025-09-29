@@ -160,6 +160,8 @@ def _validate_admin_network(network):
     primary_oim_admin_ip = admin_net.get("primary_oim_admin_ip", "")
     primary_oim_bmc_ip = admin_net.get("primary_oim_bmc_ip", "")
     dynamic_range = admin_net.get("dynamic_range", "")
+    oim_nic_name = admin_net.get("oim_nic_name", "")
+    netmask_bits = admin_net.get("netmask_bits", "")    
 
     # Validate netmask_bits
     if "netmask_bits" in admin_net:
@@ -190,6 +192,27 @@ def _validate_admin_network(network):
     # Neither should be in the dynamic_range
     errors.extend(validate_admin_bmc_ip_not_in_dynamic_range(primary_oim_admin_ip, primary_oim_bmc_ip, dynamic_range))
 
+    # New check: ensure primary_oim_admin_ip matches actual NIC IP and netmask
+    if oim_nic_name and primary_oim_admin_ip and netmask_bits:
+        nic_ip, nic_netmask_bits = validation_utils.get_interface_ip_and_netmask(oim_nic_name)
+        if nic_ip != primary_oim_admin_ip:
+            errors.append(
+                create_error_msg(
+                    "primary_oim_admin_ip",
+                    primary_oim_admin_ip,
+                    f"{en_us_validation_msg.PRIMARY_ADMIN_IP_INTERFACE_MISMATCH_MSG}: "
+                    f"The ip configured on  {oim_nic_name} is {nic_ip} but in network_spec it is {primary_oim_admin_ip}."
+                )
+            )
+        if nic_netmask_bits != netmask_bits:
+            errors.append(
+                create_error_msg(
+                    "netmask_bits",
+                    netmask_bits,
+                    f"{en_us_validation_msg.NETMASK_BITS_INTERFACE_MISMATCH_MSG}: "
+                    f"Expected {netmask_bits} on {oim_nic_name}, found {nic_netmask_bits}"
+                )
+            )
 
     return errors
 

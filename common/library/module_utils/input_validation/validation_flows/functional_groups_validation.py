@@ -324,27 +324,31 @@ def validate_slurm_k8s_clusters(functional_groups, input_file_path):
 
 # Slurm node parent validation
 
-
 def validate_slurm_node_parent(functional_groups, groups):
     """
     Validates the parent field for Slurm nodes in functional groups.
 
     Parameters:
-        functional_groups (list): A list of dictionaries,
-        where each dictionary represents a functional group.
-        groups (dict): A dictionary of groups
-        where each key is the group name and the value is the group data.
+        functional_groups (list): A list of dictionaries, where each dictionary represents a functional group.
+        groups (dict): A dictionary of groups where each key is the group name and the value is the group data.
 
     Returns:
         list: A list of error messages.
     """
     errors = []
+
+    # Check if "service_kube_node_x86_64" exists
+    service_kube_present = any(
+        fg.get("name", "") == "service_kube_node_x86_64" for fg in functional_groups
+    )
     for fg in functional_groups:
         name = fg.get("name", "")
         if "slurm_node" in name:
             for gref in fg.get("group", []):
                 parent = groups.get(gref, {}).get("parent", "")
-                if not parent:
+
+                # Only require parent if service_kube_node_x86_64 exists
+                if service_kube_present and not parent:
                     errors.append(
                         create_error_msg(
                             name,
@@ -355,8 +359,6 @@ def validate_slurm_node_parent(functional_groups, groups):
     return errors
 
 # Software mapping validation (unchanged)
-
-
 def validate_software_section_mappings(functional_groups, software_data):
     """
     Validates the software section mappings for a given list of functional groups and software data.
@@ -452,7 +454,7 @@ def validate_functional_groups_config(
 
     # Modular validations
     errors.extend(validate_functional_group_duplicates(functional_groups))
-    errors.extend(validate_functional_groups_separation(functional_groups))
+    errors.extend(validate_functional_groups_separation(functional_groups))s
     errors.extend(validate_non_empty_clustername(functional_groups))
     errors.extend(validate_slurm_k8s_clusters(functional_groups, input_file_path))
     errors.extend(validate_slurm_node_parent(functional_groups, groups))
