@@ -570,24 +570,34 @@ def check_bmc_static_range_overlap(static_range, static_range_group_mapping) -> 
 
     return grp_overlaps
 
-def get_interface_ip_and_netmask(interface):
+def get_interface_ips_and_netmasks(interface):
     """
-    Returns the IPv4 address and netmask bits assigned to an interface, or (None, None) if not found.
+    Returns all IPv4 addresses and their netmask bits for an interface.
+
+    Args:
+        interface (str): Interface name (e.g., "eno3").
+
+    Returns:
+        list of tuples: [(ip, netmask_bits), ...]
+        Empty list if no IPv4 found.
     """
+    results = []
     try:
         result = subprocess.run(
             ["ip", "-4", "addr", "show", interface],
             capture_output=True, text=True, check=True
         )
+
         for line in result.stdout.splitlines():
             line = line.strip()
             if line.startswith("inet "):
-                ip_with_mask = line.split()[1]  # e.g., "192.168.10.100/16"
+                ip_with_mask = line.split()[1] 
                 ip_interface = ipaddress.ip_interface(ip_with_mask)
-                return str(ip_interface.ip), str(ip_interface.network.prefixlen)
-        return None, None
+                results.append((str(ip_interface.ip), str(ip_interface.network.prefixlen)))
+
+        return results
     except Exception:
-        return None, None
+        return []
 
 def check_port_overlap(port_ranges) -> bool:
     """
