@@ -40,7 +40,7 @@
   ansible.builtin.set_fact:
     kernel: "{{ verify_s3_image.stdout_lines | select('search', 'vmlinuz') | list | first }}"
     initrd: "{{ verify_s3_image.stdout_lines | select('search', 'initramfs') | list | first }}"
-  when: kernel | length < 1 and initrd | length < 1
+  when: kernel | length > 1 and initrd | length > 1
 
 - name: Fail if kernel or initrd length less than 1
   ansible.builtin.fail:
