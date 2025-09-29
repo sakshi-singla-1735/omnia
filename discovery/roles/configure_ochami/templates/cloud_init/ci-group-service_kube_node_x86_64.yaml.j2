@@ -18,7 +18,6 @@
       disable_root: false
 
       write_files:
-      #cloud-config
         - path: /usr/local/bin/set-hostname-by-mac.sh
           permissions: '0755'
           content: |
@@ -405,5 +404,5 @@
         - /usr/local/bin/k8s-join.sh || true
 
         - cp /etc/kubernetes/kubelet.conf /etc/kubernetes/kubelet.conf.bak
-        - sed -i 's#server: https://[0-9\.]*:6443#server: https://{{ control_plane_ip }}:6443#' /etc/kubernetes/kubelet.conf
+        - sed -i "s#server: https://[0-9\.]*:6443#server: https://{{ control_plane_ip }}:6443#" /etc/kubernetes/kubelet.conf
         - systemctl restart kubelet

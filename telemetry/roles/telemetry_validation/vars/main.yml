@@ -35,6 +35,11 @@ warning_idrac_telemetry_support_true: |
   Make sure that Redfish is enabled and the iDRAC has a datacenter license.
   Also, ensure that the firmware version is greater than 4 for iDRAC9 or greater than 1 for iDRAC10."
 
+# Usage: include_storage_details.yml
+omnia_config_filename: "omnia_config.yml"
+omnia_config_syntax_fail_msg: "Failed. Syntax errors present in omnia_config.yml. Fix errors and re-run playbook again."
+storage_config_filename: "storage_config.yml"
+storage_config_syntax_fail_msg: "Failed. Syntax errors present in storage_config.yml. Fix errors and re-run playbook again."
 
 # Usage: validate_image_tars.yml
 # noqa: yaml[line-length]
