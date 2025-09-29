@@ -50,6 +50,16 @@
   roles:
     - discovery_validations
 
+- name: Validate discovery parameters
+  hosts: oim
+  connection: ssh
+  tasks:
+    - name: Image validation
+      ansible.builtin.include_role:
+        name: discovery_validations
+        tasks_from: validate_image.yml
+      with_items: "{{ hostvars['localhost']['functional_groups'] | map(attribute='name') | list }}"
+
 - name: Configure auth for openchami
   hosts: oim
   connection: ssh

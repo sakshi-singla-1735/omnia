@@ -36,7 +36,3 @@
 
 - name: Update hosts file
   ansible.builtin.include_tasks: update_hosts.yml
-
-- name: Validate image
-  ansible.builtin.include_tasks: validate_image.yml
-  with_items: "{{ hostvars['localhost']['functional_groups'] | map(attribute='name') | list }}"
