@@ -22,10 +22,6 @@
         omnia_run_tags: "{{ (ansible_run_tags | default([]) + ['service_k8s', 'csi_driver_powerscale']) | unique }}"
         cacheable: true
 
-- name: Invoke get_config_credentials.yml
-  ansible.builtin.import_playbook: ../utils/credential_utility/get_config_credentials.yml
-  when: not ( hostvars['127.0.0.1']['config_file_status'] | default(false) | bool )
-
 - name: Include input project directory
   ansible.builtin.import_playbook: ../utils/include_input_dir.yml
   when: not ( hostvars['127.0.0.1']['project_dir_status'] | default(false) | bool )
@@ -41,6 +37,10 @@
 
 - name: Invoke validate_config.yml to perform L1 and L2 validations for k8s
   ansible.builtin.import_playbook: ../input_validation/validate_config.yml
+
+- name: Invoke get_config_credentials.yml
+  ansible.builtin.import_playbook: ../utils/credential_utility/get_config_credentials.yml
+  when: not ( hostvars['127.0.0.1']['config_file_status'] | default(false) | bool )
 
 - name: Validate inventory
   ansible.builtin.import_playbook: ../utils/inventory_validation.yml
