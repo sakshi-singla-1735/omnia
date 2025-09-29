@@ -38,5 +38,5 @@
 
 - name: Fail if kernel or initrd length less than 1
   ansible.builtin.fail:
-    msg: "{{ image_missing_fail_msg }}"
+    msg: "{{ image_missing_fail_msg.splitlines() | join(' ') }}"
   when: kernel | length < 1 or initrd | length < 1
