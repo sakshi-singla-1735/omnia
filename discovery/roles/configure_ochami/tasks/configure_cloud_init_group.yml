@@ -20,6 +20,11 @@
   ansible.builtin.set_fact:
     functional_group_name: "{{ item }}"
 
+- name: Delete ci group configuration - {{ functional_group_name }}
+  ansible.builtin.command: /usr/bin/ochami cloud-init group delete --no-confirm -f yaml -d @{{ cloud_init_dir }}/ci-group-{{ functional_group_name }}.yaml
+  changed_when: true
+  failed_when: false
+
 - name: Load ci group template
   block:
     - name: Load ci group template - {{ functional_group_name }}

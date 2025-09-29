@@ -24,14 +24,9 @@
       ansible.builtin.fail:
         msg: "{{ ha_config_syntax_fail_msg }} Error: {{ include_ha_config.message }}"
 
-- name: Parse high_availability_config data
-  ansible.builtin.set_fact:
-    oim_ha_data: "{{ include_ha_config | default({}) | combine({item.key: item.value}) }}"
-  with_dict: "{{ oim_ha }}"
-
 - name: Set fact for enable_oim_ha
   ansible.builtin.set_fact:
-    enable_oim_ha: "{{ include_ha_config.ansible_facts.oim_ha.enable_oim_ha | default(false) }}"
+    enable_oim_ha: false
 
 - name: Set facts for inputs of high_availability_config.yml
   when: k8s_support

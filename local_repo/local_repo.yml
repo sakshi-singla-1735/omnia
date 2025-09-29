@@ -68,11 +68,6 @@
   connection: local
   gather_facts: true
   tasks:
-    - name: Read high availability vars
-      ansible.builtin.include_role:
-        name: pulp_validation
-        tasks_from: validate_high_availability.yml
-
     - name: Read network_spec vars
       ansible.builtin.include_role:
         name: pulp_validation
