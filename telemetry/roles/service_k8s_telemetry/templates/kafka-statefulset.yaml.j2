@@ -40,6 +40,7 @@ spec:
                       values:
                         - {{ kafka.app_name }}
                 topologyKey: "kubernetes.io/hostname"
+      terminationGracePeriodSeconds: 3
       tolerations:
         - key: node.kubernetes.io/not-ready
           operator: Exists
