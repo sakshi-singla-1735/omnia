@@ -21,10 +21,16 @@
       - ssh-copy-id
       - -i
       - "{{ rsa_id_file }}"
-      - -o
-      - StrictHostKeyChecking=no
+      - "-o StrictHostKeyChecking=no"
+      - "-o PubkeyAuthentication=yes"
       - "{{ hostvars[item].ansible_user | default('root') }}@{{ item }}"
   delegate_to: "{{ manager }}"
   register: sshpass
   changed_when: sshpass.rc == 0
+  failed_when: false
   no_log: true
+
+- name: Report the sshpass failure
+  ansible.builtin.fail:
+    msg: "Failed to update the ssh key on {{ item }}. Check if provided password is correct."
+  when: sshpass.rc != 0
