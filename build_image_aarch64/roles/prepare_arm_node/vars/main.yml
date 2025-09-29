@@ -37,6 +37,6 @@ nfs_not_configured_msg: >
   To build aarch64 images on an ARM node, the NFS server must be configured on the OIM.
   Please run oim_cleanup.yml and reinstall the omnia_core container with the NFS option.
 aarch64_image_fail_msg: >
-  Unable to pull the Ochami AArch64 image builder image.
+  Unable to pull the Ochami aarch64 image builder image.
   Make sure you have added the default package for aarch64 in the software_config.json file and ran local_repo.yml.
   If not, add that package and rerun local_repo.yml.
