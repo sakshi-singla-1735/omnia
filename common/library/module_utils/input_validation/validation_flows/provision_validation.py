@@ -192,7 +192,7 @@ def _validate_admin_network(network):
     # Neither should be in the dynamic_range
     errors.extend(validate_admin_bmc_ip_not_in_dynamic_range(primary_oim_admin_ip, primary_oim_bmc_ip, dynamic_range))
 
-    # New check: ensure primary_oim_admin_ip matches actual NIC IP and netmask
+    # Ensure primary_oim_admin_ip matches actual NIC IP and netmask
     if oim_nic_name and primary_oim_admin_ip and netmask_bits:
         nic_ip, nic_netmask_bits = validation_utils.get_interface_ip_and_netmask(oim_nic_name)
         if nic_ip != primary_oim_admin_ip:
