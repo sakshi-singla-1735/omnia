@@ -33,7 +33,7 @@ ochami_compute_mounts:
 
 ochami_aarch64_image:
   - --entrypoint /bin/bash
-  - localhost/ochami-arm
+  - localhost/arm-image/ochami
 ochami_base_command:
   - -c 'update-ca-trust extract && image-build --config /home/builder/config.yaml --log-level DEBUG'
 
