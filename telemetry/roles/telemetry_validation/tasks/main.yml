@@ -23,6 +23,9 @@
 - name: Include network_spec variables
   ansible.builtin.include_tasks: include_network_spec.yml
 
+- name: Include storage details
+  ansible.builtin.include_tasks: include_storage_details.yml
+
 - name: Include local_repo_access variables
   ansible.builtin.include_tasks: read_software_config.yml
 

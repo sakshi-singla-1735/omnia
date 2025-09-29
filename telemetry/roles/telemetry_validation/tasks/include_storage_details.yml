@@ -16,7 +16,7 @@
 - name: Include variable file omnia_config.yml
   block:
     - name: Include variable file omnia_config.yml
-      ansible.builtin.include_vars: "{{ input_project_dir }}/{{ config_filename }}"
+      ansible.builtin.include_vars: "{{ input_project_dir }}/{{ omnia_config_filename }}"
       register: include_omnia_config
       no_log: true
   rescue:
