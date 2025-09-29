@@ -62,7 +62,7 @@
 #         - hostvars['localhost']['groups']['kube_control_plane'] | length > 0
 
 - name: Validate service k8s cluster
-  hosts: kube_control_plane[0]
+  hosts: kube_control_plane
   gather_facts: false
   any_errors_fatal: true
   tasks:
