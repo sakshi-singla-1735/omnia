@@ -48,7 +48,7 @@ kafka_secrets:
 service_cluster_idrac_telemetry_dir_path: "/opt/omnia/telemetry/idrac_telemetry"
 dir_permissions_755: "0755"
 idrac_telemetry_github_repo: https://github.com/dell/iDRAC-Telemetry-Reference-Tools.git
-reference_tools_stable_commit: "fd5f384"
+reference_tools_stable_commit: "afc7ec4"
 idrac_telemetry_reference_git_clone_path: "{{ service_cluster_idrac_telemetry_dir_path }}/iDRAC-Telemetry-Reference-Tools"
 idrac_git_clone_error_msg: |
   Failed to clone iDRAC Telemetry GitHub repository from {{ idrac_telemetry_github_repo }}
@@ -76,7 +76,6 @@ mysqldb_name: "idrac_telemetrydb"
 idrac_telemetry_service_name: "idrac-telemetry-service"
 mysqldb_container_port1: 3306
 mysqldb_container_port2: 33060
-prometheus_pump_port: 2112
 mysql_image: "docker.io/library/mysql:9.3.0"
 pod_wait_timeout: "10m"
 kafka_skip_verify: false
