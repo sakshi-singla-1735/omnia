@@ -1,0 +1,47 @@
+# Copyright 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+---
+
+# ***********************************************************************
+# DO NOT REMOVE OR COMMENT OUT ANY LINES IN THIS FILE.
+# SIMPLY APPEND THE REQUIRED VALUES AGAINST THE PARAMETER OF YOUR CHOICE.
+# ***********************************************************************
+
+# This variable is used to enable iDRAC telemetry support
+# Accepted values:  true or false
+idrac_telemetry_support: false
+
+# These variables are used to configure Kafka for telemetry
+kafka_configurations:
+  # The amount of storage allocated for Kafka's persistent volume.
+  # Accepted values: in the form of "X[Ki|Mi|Gi|Ti|Pi|Ei]"
+  # Default: 8Gi
+  persistence_size: "8Gi"
+
+  # The number of hours to retain Kafka logs before they are deleted.
+  # Default: 168 (7 days)
+  log_retention_hours: 168
+
+  # The maximum size of Kafka logs (in bytes) before they are deleted.
+  # Default: -1 (unlimited)
+  log_retention_bytes: -1
+
+  # The maximum size of Kafka log segments (in bytes) before they are deleted.
+  # Default: 1073741824 (1 GB)
+  log_segment_bytes: 1073741824
+
+  # The number of partitions for each Kafka topic.
+  # Increasing this can improve throughput but also increases storage/overhead.
+  # Default: 1
+  topic_partitions: 1
