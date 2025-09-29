@@ -16,14 +16,14 @@
 # input files
 input_project_dir: "{{ hostvars['localhost']['input_project_dir'] }}"
 network_spec: "{{ input_project_dir }}/network_spec.yml"
-ochami_tar_path: "omnia/openchami/aarch64_ochami_tar/ochami-arm.tar"
-pulp_repo_store_path: "/opt/omnia/openchami/pulp_repo"
+ochami_aarch_64_dir: "/opt/omnia/openchami/aarch64"
+pulp_repo_store_path: "{{ ochami_aarch_64_dir }}/pulp.repo"
+aarch64_regctl_url: "https://github.com/regclient/regclient/releases/latest/download/regctl-linux-arm64"
 pulp_repo_file_path: "/etc/yum.repos.d/pulp.repo"
 pulp_webserver_cert_path: "/opt/omnia/pulp/settings/certs/pulp_webserver.crt"
 anchors_path: "/etc/pki/ca-trust/source/anchors/pulp_webserver.crt"
-regctl_tar_path: "omnia/offline_repo/cluster/aarch64/rhel/10.0/tarball/regctl-aarch64/regctl-linux-arm64.tar.gz"
+regctl_tar_path: "omnia/offline_repo/cluster/aarch64/rhel/10.0/tarball/regctl-linux-arm64/regctl-linux-arm64.tar.gz"
 regctl_bin_path: "/usr/local/bin/regctl"
-regctl_temp_dir: "/tmp/regctl_extract"
 
 # Error messages
 no_inventory_error_msg: "No inventory provided. Please specify an inventory with -i option."
@@ -36,9 +36,7 @@ repo_not_found_error_msg: "The aarch64_baseos repo section is not available in p
 nfs_not_configured_msg: >
   To build aarch64 images on an ARM node, the NFS server must be configured on the OIM.
   Please run oim_cleanup.yml and reinstall the omnia_core container with the NFS option.
-ochami_tar_fail_msg: >
-  Ochami aarch64 image file not found at the expected path.
-  Please run 'prepare_oim.yml' to generate the image tar before executing this playbook.
-regctl_missing_error_msg: >
-  regctl aarch64 tar file not found.
-  Please run local_repo.yml with default_packages for aarch64 to download regctl, and then rerun the playbook.
+aarch64_image_fail_msg: >
+  Unable to pull the Ochami aarch64 image builder image.
+  Make sure you have added the default package for aarch64 in the software_config.json file and ran local_repo.yml.
+  If not, add that package and rerun local_repo.yml.
