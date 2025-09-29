@@ -210,7 +210,7 @@ def _validate_admin_network(network):
                     "netmask_bits",
                     netmask_bits,
                     f"{en_us_validation_msg.NETMASK_BITS_INTERFACE_MISMATCH_MSG}: "
-                    f"Expected {netmask_bits} on {oim_nic_name}, found {nic_netmask_bits}"
+                    f"Expected netmask_bits:{netmask_bits} on {oim_nic_name}, configured netmask_bits: {nic_netmask_bits}"
                 )
             )
 
