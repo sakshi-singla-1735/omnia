@@ -271,6 +271,14 @@
               --discovery-token-ca-cert-hash {{ ca_cert_hash }} \
               --node-name {% raw %}{{ ds.meta_data.instance_data.local_ipv4 }}{% endraw %} \
               --cri-socket /run/containerd/containerd.sock
+            
+            if [ -f /etc/kubernetes/kubelet.conf ]; then
+              cp /etc/kubernetes/kubelet.conf /etc/kubernetes/kubelet.conf.bak
+              sed -i "s#server: https://[^:]*:6443#server: https://{{ control_plane_ip }}:6443#" /etc/kubernetes/kubelet.conf
+              systemctl restart kubelet
+            else
+              echo "WARNING: /etc/kubernetes/kubelet.conf not found. Kubelet may not be initialized yet." >> /var/log/k8s-join.log
+            fi
 
       runcmd:
         
@@ -403,6 +411,3 @@
         # Join Kubernetes cluster
         - /usr/local/bin/k8s-join.sh || true
 
-        - cp /etc/kubernetes/kubelet.conf /etc/kubernetes/kubelet.conf.bak
-        - sed -i "s#server: https://[0-9\.]*:6443#server: https://{{ control_plane_ip }}:6443#" /etc/kubernetes/kubelet.conf
-        - systemctl restart kubelet
