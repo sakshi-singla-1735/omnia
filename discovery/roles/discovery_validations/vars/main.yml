@@ -47,3 +47,9 @@ functional_groups_file_path: "{{ hostvars['localhost']['input_project_dir'] }}/f
 
 # Usage: updates_hosts.yml
 hosts_file_path: /opt/omnia/hosts
+
+# Usage: validate_image.yml 
+image_missing_fail_msg: |
+  Error: Image not found for functional group {{ functional_group_name }}.
+  Please create the image by running the corresponding build playbook (build_image_x86_64.yml for x86_64 or build_image_aarch64.yml for aarch64)
+  and re-run the discovery.yml playbook.
