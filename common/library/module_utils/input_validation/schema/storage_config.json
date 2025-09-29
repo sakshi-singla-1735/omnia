@@ -14,13 +14,28 @@
             },
             "server_ip": {
               "type": "string",
-              "pattern": "^(localhost|(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(?:\\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3})$"
+              "anyOf": [
+                {
+                  "allOf": [
+                    { "pattern": ".*[A-Za-z].*" },
+                    { "format": "idn-hostname" }
+                  ]
+                },
+                {
+                  "allOf": [
+                    { "pattern": "^[0-9.]+$" },
+                    { "format": "ipv4" }
+                  ]
+                }
+              ]
             },
             "server_share_path": {
-              "type": "string"
+              "type": "string",
+              "pattern": "^/(?:[^/]+(?:/[^/]+)*)?$"
             },
             "client_share_path": {
-              "type": "string"
+              "type": "string",
+              "pattern": "^/(?:[^/]+(?:/[^/]+)*)?$"
             },
             "client_mount_options": {
               "type": "string"
