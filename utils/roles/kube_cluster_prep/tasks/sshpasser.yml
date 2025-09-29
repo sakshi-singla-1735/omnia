@@ -30,6 +30,10 @@
   failed_when: false
   no_log: true
 
+- name: Display the sshpass command output
+  ansible.builtin.debug:
+    var: sshpass.stderr_lines
+
 - name: Report the sshpass failure
   ansible.builtin.fail:
     msg: "Failed to update the ssh key on {{ item }}. Check if provided password is correct."
