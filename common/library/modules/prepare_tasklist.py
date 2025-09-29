@@ -161,7 +161,7 @@ def main():
                     final_tasks_dict.update(trans)
         local_config, url_result = parse_repo_urls(repo_config, local_repo_config_path , version_variables, vault_key_path,sub_urls)
         if not url_result:
-            module.fail_json(f"{local_config} is not reachable or invalid, please check and provide correct URL")
+            module.fail_json(f"{local_config} is either unreachable, invalid or has incorrect SSL certificates, please verify and provide correct details")
 
         logger.info(f"Package processing completed: {final_tasks_dict}")
         module.exit_json(changed=False, software_dict=final_tasks_dict, local_config=local_config)
