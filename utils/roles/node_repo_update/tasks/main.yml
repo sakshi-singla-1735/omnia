@@ -12,17 +12,53 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
+- name: Remove from known_hosts
+  ansible.builtin.known_hosts:
+    name: "{{ hostvars[item]['ansible_fqdn'] }}"
+    state: absent
+  delegate_to: localhost
+  run_once: true
+  loop: "{{ ansible_play_hosts | default([]) }}"
+
+- name: Remove from known_hosts
+  ansible.builtin.known_hosts:
+    name: "{{ hostvars[item]['ansible_fqdn'] | split('.') | first }}"
+    state: absent
+  delegate_to: localhost
+  run_once: true
+  loop: "{{ ansible_play_hosts | default([]) }}"
+
+- name: Set hosts dict
+  ansible.builtin.set_fact:
+    hosts_dict: "{{ hosts_dict | default({}) | combine({item: hostvars[item]['ansible_default_ipv4']['address'] + ' '
+     + hostvars[item]['ansible_fqdn'] + ' ' + hostvars[item]['ansible_fqdn'] | split('.') | first}) }}"
+  delegate_to: localhost
+  run_once: true
+  loop: "{{ ansible_play_hosts | default([]) }}"
+
+- name: Add hosts file entry for cluster
+  ansible.builtin.shell: |
+    if ! grep -qxF '{{ item }}' {{ hosts_file_path }}; then
+    echo '{{ item }}' >> {{ hosts_file_path }}
+    fi
+  delegate_to: localhost
+  register: addhosts
+  changed_when: addhosts.rc == 0
+  failed_when: false
+  run_once: true
+  loop: "{{ hosts_dict.values() | default([]) }}"
+
 - name: Update hosts file for all
   block:
     - name: Update hosts file
       ansible.builtin.lineinfile:
         dest: "{{ hosts_file_dest }}"
         line: "{{ hostvars[item]['ansible_default_ipv4']['address'] }} {{ hostvars[item]['ansible_fqdn'] }}
-         {{ hostvars[item]['ansible_nodename'] | split('.') | first }}"
+         {{ hostvars[item]['ansible_fqdn'] | split('.') | first }}"
         state: present
         create: true
         mode: "{{ hosts_file_mode }}"
-      with_items: "{{ ansible_play_hosts_all }}"
+      with_items: "{{ ansible_play_hosts | default([]) }}"
   rescue:
     - name: Updating hosts file failed
       ansible.builtin.fail:
