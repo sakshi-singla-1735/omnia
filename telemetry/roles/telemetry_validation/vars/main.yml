@@ -51,16 +51,11 @@ omnia_images_tar_missing_msg: |
 
 # Usage: read_software_config.yml
 software_config_file: "{{ input_project_dir }}/software_config.json"
-# local_repo_sn_missing_msg: |
-#   [ERROR] It seems local_repo not executed with service_node entry in software_config.yml.
-#   Kindly execute local_repo.yml with `service_node` entry in softwares list in software_config.yml
-#   and then execute telemetry.yml.
 local_repo_service_missing_msg: |
   [ERROR] It seems local_repo not executed with service_k8s/service_node entry in software_config.yml.
   Kindly execute local_repo.yml with `service_k8s` entry in softwares list in software_config.json
   and then execute telemetry.yml.
 local_repo_access_path: "/opt/omnia/provision/local_repo_access.yml"
-# sn_packages_file: "{{ input_project_dir }}/config/{{ software_config.cluster_os_type }}/{{ software_config.cluster_os_version }}/service_node.json"
 k8s_packages_file: "{{ input_project_dir }}/config/x86_64/{{ software_config.cluster_os_type }}/{{ software_config.cluster_os_version }}/service_k8s.json"
 downloaded_sw_log_csv: "/opt/omnia/log/local_repo/x86_64/software.csv"
 software_config_syntax_fail_msg: "Failed. Syntax errors present in software_config.json. Fix errors and re-run playbook again."
@@ -80,9 +75,3 @@ openchami_nodes_vars_path: "{{ nodes_dir }}/nodes.yaml"
 network_spec_path: "{{ input_project_dir }}/network_spec.yml"
 fail_msg_network_spec_file: "network_spec.yml file doesn't exist."
 network_spec_syntax_fail_msg: "Failed. Syntax errors present in network_spec.yml. Fix errors and re-run playbook again."
-
-# Usage: check_service_node_internet.yml
-service_cluster_no_internet: "Service Cluster does not have internet access to deploy idrac telemetry collection on service cluster.
-      Please enable internet on service cluster and rerun telemetry.yml."
-internet_retrialls: 5
-internet_retrialls_delay: 3
