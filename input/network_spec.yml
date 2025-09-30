@@ -31,8 +31,8 @@
 Networks:
 - admin_network:
     oim_nic_name: "eno1"
-    netmask_bits: "16"
-    primary_oim_admin_ip: "10.5.255.254"
+    netmask_bits: "24"
+    primary_oim_admin_ip: "172.16.0.254"
     primary_oim_bmc_ip: "" 
-    dynamic_range: "10.5.1.1-10.5.1.200"
+    dynamic_range: "172.16.1.1-172.16.1.200"
     dns: []

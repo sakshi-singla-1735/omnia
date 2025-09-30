@@ -39,13 +39,13 @@
 # - { server_ip: 198.168.0.1, server_share_path: "/mnt/share1", client_share_path: "/mnt/mount1", client_mount_options: "nosuid,rw,sync,hard"}
 # - { server_ip: 198.168.0.2, server_share_path: "/mnt/share2", client_share_path: "/mnt/mount2", client_mount_options: "nosuid,rw,sync,hard"}
 nfs_client_params:
-  - server_ip: "" # Provide the IP of the NFS server
+  - server_ip: "172.16.0.253" # Provide the IP of the NFS server
     server_share_path: "/mnt/share/omnia" # Provide server share path of the NFS Server
     client_share_path: /share_omnia
     client_mount_options: "nosuid,rw,sync,hard,intr"
     nfs_name: nfs_slurm
-  
-  - server_ip: "" # Provide the IP of the NFS server
+
+  - server_ip: "172.16.0.252" # Provide the IP of the NFS server
     server_share_path: "/mnt/share/omnia_k8s" # Provide server share path of the NFS Server
     client_share_path: /share_omnia_k8s
     client_mount_options: "nosuid,rw,sync,hard,intr"

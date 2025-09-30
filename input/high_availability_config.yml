@@ -30,7 +30,7 @@
 service_k8s_cluster_ha:
   - cluster_name: service_cluster
     enable_k8s_ha: true
-    virtual_ip_address: ""
+    virtual_ip_address: "172.16.0.1"
     external_loadbalancer_ip: ""
     loadbalancer_port:
     active_node_service_tags: [] # List of service tags, separated by commas. e.g. ["ABC","DEF"]
