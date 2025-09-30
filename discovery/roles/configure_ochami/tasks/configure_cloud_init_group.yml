@@ -50,3 +50,4 @@
   ansible.builtin.debug:
     msg: "{{ ci_group_compute_output.stdout_lines }}"
     verbosity: 2
+  no_log: true
