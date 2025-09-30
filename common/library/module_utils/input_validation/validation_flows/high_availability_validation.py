@@ -412,55 +412,6 @@ def validate_k8s_head_node_ha(
             )
 
 
-def validate_service_node_ha(
-    errors,
-    config_type,
-    ha_data,
-    network_spec_data,
-    _roles_config_json,
-    all_service_tags,
-    ha_node_vip_list
-):
-    """
-    Validates the high availability configuration for a service node.
-
-    Parameters:
-    errors (list): A list to store error messages.
-    config_type (str): The type of high availability configuration.
-    ha_data (dict): A dictionary containing high availability data.
-    network_spec_data (dict): A dictionary containing network specification data.
-    _roles_config_json (dict): A dictionary containing roles configuration data.
-    all_service_tags (list): A list of all service tags.
-    ha_node_vip_list (list): A list of virtual IP addresses for high availability nodes.
-
-    Returns:
-    None
-    """
-    active_node_service_tag = ha_data.get("active_node_service_tag")
-    passive_nodes = ha_data.get("passive_nodes", [])
-    vip_address = ha_data.get("virtual_ip_address")
-
-    # get network_spec data
-    admin_network = network_spec_data["admin_network"]
-    admin_netmaskbits = network_spec_data["admin_netmaskbits"]
-    oim_admin_ip = network_spec_data["oim_admin_ip"]
-
-    # validate active_node_service_tag and passive_node_service_tag
-    validate_service_tag_presence(
-        errors, config_type, all_service_tags, active_node_service_tag, passive_nodes
-    )
-
-    # validate if duplicate virtual ip address is present
-    if vip_address:
-        validate_vip_address(
-            errors,
-            config_type,
-            vip_address,
-            ha_node_vip_list,
-            admin_network,
-            admin_netmaskbits,
-            oim_admin_ip
-        )
 
 def validate_slurm_head_node_ha(
     errors,
@@ -512,97 +463,8 @@ def validate_slurm_head_node_ha(
             oim_admin_ip
         )
 
-def validate_oim_ha(
-    errors,
-    config_type,
-    ha_data,
-    network_spec_data,
-    roles_config_json,
-    _all_service_tags,
-    ha_node_vip_list
-):
-    """
-    Validates the high availability configuration for a oim node.
-
-    Parameters:
-    errors (list): A list to store error messages.
-    config_type (str): The type of high availability configuration.
-    ha_data (dict): A dictionary containing high availability data.
-    network_spec_data (dict): A dictionary containing network specification data.
-    _roles_config_json (dict): A dictionary containing roles configuration data.
-    all_service_tags (list): A list of all service tags.
-    ha_node_vip_list (list): A list of virtual IP addresses for high availability nodes.
-
-    Returns:
-    None
-    """
-    admin_virtual_ip = ha_data.get("admin_virtual_ip_address", "")
-    bmc_virtual_ip = ha_data.get("bmc_virtual_ip_address", "")
-
-    admin_network = network_spec_data['admin_network']
-    admin_netmaskbits = network_spec_data['admin_netmaskbits']
-    oim_admin_ip = network_spec_data['oim_admin_ip']
-
-    bmc_network = network_spec_data['bmc_network']
-
-    if admin_virtual_ip:
-        validate_vip_address(
-            errors,
-            config_type,
-            admin_virtual_ip,
-            ha_node_vip_list,
-            admin_network,
-            admin_netmaskbits,
-            oim_admin_ip
-        )
-
-    if bmc_virtual_ip:
-        roles_groups = roles_config_json.get("Groups", [])
-        for _, group_data in roles_groups.items():
-            static_range = group_data.get("bmc_details", {}).get("static_range", "")
-            if static_range and bmc_virtual_ip:
-                bmc_vip_conflict = validation_utils.is_ip_within_range(
-                    static_range, bmc_virtual_ip
-                )
-                if bmc_vip_conflict:
-                    errors.append(create_error_msg(
-                        f"{config_type} bmc_virtual_ip_address conflict with roles_config",
-                        bmc_virtual_ip,
-                        en_us_validation_msg.BMC_VIRTUAL_IP_NOT_VALID
-                    ))
-
-        bmc_vip_conflict_dynamic = False
-        bmc_vip_conflict_dynamic_conversion = False
-        if (
-            bmc_network["dynamic_range"]
-            and bmc_network["dynamic_range"] != "N/A"
-            and bmc_virtual_ip
-        ):
-            bmc_vip_conflict_dynamic = validation_utils.is_ip_within_range(
-                bmc_network["dynamic_range"], bmc_virtual_ip
-            )
-
-        if (
-            bmc_network["dynamic_conversion_static_range"]
-            and bmc_network["dynamic_conversion_static_range"] != "N/A"
-            and bmc_virtual_ip
-        ):
-            bmc_vip_conflict_dynamic_conversion = validation_utils.is_ip_within_range(
-                bmc_network["dynamic_conversion_static_range"], bmc_virtual_ip
-            )
-
-        if bmc_vip_conflict_dynamic or bmc_vip_conflict_dynamic_conversion:
-            errors.append(create_error_msg(
-                f"{config_type} bmc_virtual_ip_address conflict with network_spec",
-                bmc_virtual_ip,
-                en_us_validation_msg.BMC_VIRTUAL_IP_NOT_VALID
-            ))
-
 # Dispatch table maps config_type to validation handler
 ha_validation = {
-    "service_node_ha": validate_service_node_ha,
-    # Add more config_type functions here as needed
-    "oim_ha": validate_oim_ha,
     "service_k8s_cluster_ha": validate_k8s_head_node_ha
 }
 
@@ -655,17 +517,6 @@ def validate_high_availability_config(
         try:
             check_mandatory_fields(mandatory_fields, ha_data, errors)
 
-            # Special handling for OIM HA
-            if config_type == "oim_ha":
-                # Validate passive nodes with node_service_tags
-                if "passive_nodes" in ha_data:
-                    for node in ha_data["passive_nodes"]:
-                        check_mandatory_fields(["node_service_tags"], node, errors)
-            # Standard passive nodes validation for other HA types
-            elif "passive_nodes" in ha_data:
-                for passive_node in ha_data["passive_nodes"]:
-                    check_mandatory_fields(["node_service_tags"], passive_node, errors)
-
             if config_type in ha_validation:
                 ha_validation[config_type](
                     errors,
@@ -699,8 +550,6 @@ def validate_high_availability_config(
             errors.append(f"Missing key in HA data: {e}")
 
     ha_configs = [
-        ("oim_ha", ["admin_virtual_ip_address", "active_node_service_tag", "passive_nodes"]),
-        ("service_node_ha", ["service_nodes"]),
         ("service_k8s_cluster_ha", ["virtual_ip_address", "active_node_service_tags"])
     ]
 
