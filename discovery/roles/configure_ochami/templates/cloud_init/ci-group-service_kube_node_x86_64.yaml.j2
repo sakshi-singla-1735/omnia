@@ -12,8 +12,12 @@
       - name: dict
         settings: [no_replace, recurse_list]
 
+      users:
+        - name: root
+          ssh_authorized_keys: "{{ read_ssh_key.stdout }}"
+      disable_root: false
+
       write_files:
-      #cloud-config
         - path: /usr/local/bin/set-hostname-by-mac.sh
           permissions: '0755'
           content: |
@@ -267,6 +271,14 @@
               --discovery-token-ca-cert-hash {{ ca_cert_hash }} \
               --node-name {% raw %}{{ ds.meta_data.instance_data.local_ipv4 }}{% endraw %} \
               --cri-socket /run/containerd/containerd.sock
+            
+            if [ -f /etc/kubernetes/kubelet.conf ]; then
+              cp /etc/kubernetes/kubelet.conf /etc/kubernetes/kubelet.conf.bak
+              sed -i "s#server: https://[^:]*:6443#server: https://{{ control_plane_ip }}:6443#" /etc/kubernetes/kubelet.conf
+              systemctl restart kubelet
+            else
+              echo "WARNING: /etc/kubernetes/kubelet.conf not found. Kubelet may not be initialized yet." >> /var/log/k8s-join.log
+            fi
 
       runcmd:
         
@@ -274,7 +286,6 @@
         - mkdir -p /etc/kubernetes /opt/cni/bin /etc/cni/net.d /var/lib/containerd /var/lib/containerd-overlay
         - mkdir -p /var/run/containerd /etc/nginx /opt/omnia
 
-        #cloud-config
         - |
           tmpfile=$(mktemp)
           {% for ns in hostvars['localhost']['dns'] %}
@@ -282,9 +293,8 @@
           {% endfor %}
           cat /etc/resolv.conf >> $tmpfile
           mv $tmpfile /etc/resolv.conf
-          
+  
         - chattr +i /etc/resolv.conf
-
 
         # SELinux config
 
@@ -390,3 +400,4 @@
 
         # Join Kubernetes cluster
         - /usr/local/bin/k8s-join.sh || true
+
