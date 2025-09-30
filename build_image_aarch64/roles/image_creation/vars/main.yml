@@ -32,7 +32,7 @@ ochami_compute_mounts:
   - -v {{ openchami_work_dir }}/images/rhel-{{ item.key }}-{{ rhel_tag }}.yaml:/home/builder/config.yaml:z
 ochami_aarch64_image:
   - --entrypoint /bin/bash
-  - arm-image/ochami
+  - localhost/arm-image/ochami
 ochami_base_command:
   - -c 'update-ca-trust extract && image-build --config /home/builder/config.yaml --log-level DEBUG'
 
