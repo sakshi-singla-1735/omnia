@@ -38,7 +38,7 @@ groups:
 
   grp2:
     location_id: SU-1.RACK-1
-    parent: "ABCDE"
+    parent: "ABCD56"
 
   grp5:
     location_id: SU-1.RACK-1

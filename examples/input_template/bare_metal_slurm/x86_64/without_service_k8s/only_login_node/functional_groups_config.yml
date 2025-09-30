@@ -38,6 +38,10 @@ groups:
 
   grp1:
     location_id: SU-1.RACK-1
+    parent: "ABCD56"
+
+  grp4:
+    location_id: SU-1.RACK-1
     parent: ""
 
 # ************************************************************************************************************************
@@ -143,10 +147,10 @@ functional_groups:
 #
 # The user is not allowed to change the name of this functional_group.
 #
-  # - name: "login_node_x86_64"
-  #   cluster_name: "slurm_cluster"
-  #   group:
-  #     - grp4
+  - name: "login_node_x86_64"
+    cluster_name: "slurm_cluster"
+    group:
+      - grp4
 
   # - name: "login_node_aarch64"
   #   cluster_name: "slurm_cluster"
