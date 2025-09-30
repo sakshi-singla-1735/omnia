@@ -44,7 +44,16 @@ def load_groups_yaml(path, module):
         module.fail_json(msg=f"Failed to load groups_config.yml: {str(e)}")
 
 def check_functional_groups_in_mapping(csv_file, config_fgs, module):
-    """Check that all functional groups in mapping file exist in functional_groups YAML."""
+    """Check that all functional groups in functional_groups.yml exist in mapping file."""
+    mapping_fgs = set(csv_file['FUNCTIONAL_GROUP_NAME'].str.strip().unique())
+    missing_fgs = config_fgs - mapping_fgs
+    if missing_fgs:
+        module.fail_json(
+            msg=f"FUNCTIONAL_GROUP_NAME(s) not found in mapping file: {', '.join(missing_fgs)}. Ensure they are defined in mapping file or comment them out if not required in functional_groups_config.yml."
+        )
+
+def check_mapping_in_functional_groups(csv_file, config_fgs, module):
+    """Check that all functional groups in mapping file exist in functional_groups.yml"""
     mapping_fgs = set(csv_file['FUNCTIONAL_GROUP_NAME'].str.strip().unique())
     missing_fgs = mapping_fgs - config_fgs
     if missing_fgs:
@@ -53,6 +62,17 @@ def check_functional_groups_in_mapping(csv_file, config_fgs, module):
         )
 
 def check_groups_in_mapping(csv_file, config_gs, module):
+    """
+    Check that all groups in mapping file exist in groups YAML.
+
+    Parameters:
+        csv_file (pandas.DataFrame): A pandas DataFrame containing the mapping file.
+        config_gs (set): A set of group names from the groups YAML.
+        module (AnsibleModule): The Ansible module instance.
+
+    Returns:
+        None
+    """
     mapping_gs = set(csv_file['GROUP_NAME'].str.strip().unique())
     missing_gs = mapping_gs - config_gs
     if missing_gs:
@@ -108,6 +128,7 @@ def validate_mapping_file(mapping_file_path, functional_groups_file, module):
         # Validate functional groups presence in YAML
         config_fgs = load_functional_groups_yaml(functional_groups_file, module)
         config_gs = load_groups_yaml(functional_groups_file, module)
+        check_mapping_in_functional_groups(csv_file, config_fgs, module)
         check_functional_groups_in_mapping(csv_file, config_fgs, module)
         check_groups_in_mapping(csv_file, config_gs, module)
 
