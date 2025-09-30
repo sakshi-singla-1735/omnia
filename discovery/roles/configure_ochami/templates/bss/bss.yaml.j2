@@ -5,6 +5,6 @@ params: 'nomodeset ro root=live:http://{{ cluster_boot_ip }}:9000/boot-images/{{
 macs:
 {% for item in nodes %}
 {% if item.group == functional_group_name %}
-  - {{ item.interfaces[0].mac_addr | lower }}
+  - {{ item.interfaces[0].mac_addr }}
 {% endif %}
 {% endfor %}
