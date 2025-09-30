@@ -33,7 +33,7 @@
       {"package": "wget", "type": "rpm", "repo_name": "aarch64_appstream"},
       {"package": "cloud-init", "type": "rpm", "repo_name": "aarch64_appstream"},
       {"package": "glibc-langpack-en", "type": "rpm", "repo_name": "aarch64_baseos"},
-      { "package": "ghcr.io/openchami/image-build", "tag": "test", "type": "image" }
+      { "package": "docker.io/dellhpcomniaaisolution/image-build-aarch64", "tag": "latest", "type": "image" }
     ]
   }
 }
