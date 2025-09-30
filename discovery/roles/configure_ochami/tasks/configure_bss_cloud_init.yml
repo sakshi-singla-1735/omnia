@@ -36,9 +36,10 @@
     mode: "{{ hostvars['localhost']['dir_permissions_755'] }}"
 
 - name: Delete ochami bss boot params
-  ansible.builtin.command: /usr/bin/ochami bss boot params delete -d '{"macs":[{{ nodes | map(attribute='interfaces.0.mac_addr') | join(',') }}]}'
+  ansible.builtin.command: /usr/bin/ochami bss boot params delete -d '{"macs":["{{ item | lower }}"]}'
   changed_when: false
   failed_when: false
+  with_items: "{{ nodes | map(attribute='interfaces.0.mac_addr') | list }}"
 
 - name: Include configure bss
   ansible.builtin.include_tasks: configure_bss_group.yml
