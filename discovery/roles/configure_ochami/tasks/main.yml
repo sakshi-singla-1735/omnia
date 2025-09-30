@@ -16,9 +16,6 @@
 - name: Configure the ochami
   environment: "{{ hostvars['oim']['ochami_env'] }}"
   block:
-    - name: Delete smd configuration
-      ansible.builtin.include_tasks: delete_smd_config.yml
-
     - name: Create groups
       ansible.builtin.include_tasks: create_groups.yml
       with_items: "{{ hostvars['localhost']['functional_groups'] | map(attribute='name') | list }}"
