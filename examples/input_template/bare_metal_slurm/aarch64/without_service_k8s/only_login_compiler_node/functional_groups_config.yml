@@ -36,15 +36,11 @@ groups:
     location_id: SU-1.RACK-1
     parent: ""
 
-  grp1:
+  grp2:
     location_id: SU-1.RACK-1
-    parent: "ABCDE"
+    parent: "ABCD56"
 
-  grp3:
-    location_id: SU-1.RACK-1
-    parent: ""
-
-  grp6:
+  grp7:
     location_id: SU-1.RACK-1
     parent: ""
 
@@ -112,15 +108,15 @@ functional_groups:
 #
 # The nodes in this functional_group can be used to run Slurm worker.
 #
-  - name: "slurm_node_x86_64"
+  # - name: "slurm_node_x86_64"
+  #  cluster_name: "slurm_cluster"
+  #  group:
+  #    - grp1
+
+  - name: "slurm_node_aarch64"
     cluster_name: "slurm_cluster"
     group:
-      - grp1
-
-  # - name: "slurm_node_aarch64"
-  #   cluster_name: "slurm_cluster"
-  #   group:
-  #     - grp2
+      - grp2
 
 #
 # Service k8s Worker functional_groups: (x86_64)
@@ -135,10 +131,10 @@ functional_groups:
 #
 # The nodes in this functional_group can be used to run Kubernetes worker on service cluster.
 #
-  - name: "service_kube_node_x86_64"
-    cluster_name: "service_cluster"
-    group:
-      - grp3
+  # - name: "service_kube_node_x86_64"
+  #  cluster_name: "service_cluster"
+  #  group:
+  #    - grp3
 
 #
 # Login Node functional_groups: (x86_64 / aarch64)
@@ -172,12 +168,12 @@ functional_groups:
 #
 # The nodes in this functional_group can be used to compile the code.
 #
-  - name: "login_compiler_node_x86_64"
-    cluster_name: "slurm_cluster"
-    group:
-      - grp6
-
-  # - name: "login_compiler_node_aarch64"
+  # - name: "login_compiler_node_x86_64"
   #   cluster_name: "slurm_cluster"
   #   group:
-  #     - grp7
+  #     - grp6
+
+  - name: "login_compiler_node_aarch64"
+    cluster_name: "slurm_cluster"
+    group:
+      - grp7

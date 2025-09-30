@@ -38,7 +38,7 @@ groups:
 
   grp1:
     location_id: SU-1.RACK-1
-    parent: "ABCDE"
+    parent: "ABCD56"
 
   grp3:
     location_id: SU-1.RACK-1
@@ -117,10 +117,10 @@ functional_groups:
     group:
       - grp1
 
-  # - name: "slurm_node_aarch64"
-  #   cluster_name: "slurm_cluster"
-  #   group:
-  #     - grp2
+  #- name: "slurm_node_aarch64"
+  #  cluster_name: "slurm_cluster"
+  #  group:
+  #    - grp2
 
 #
 # Service k8s Worker functional_groups: (x86_64)
@@ -178,6 +178,6 @@ functional_groups:
       - grp6
 
   # - name: "login_compiler_node_aarch64"
-  #   cluster_name: "slurm_cluster"
-  #   group:
-  #     - grp7
+  #  cluster_name: "slurm_cluster"
+  #  group:
+  #    - grp7

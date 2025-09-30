@@ -1,0 +1,5 @@
+FUNCTIONAL_GROUP_NAME,GROUP_NAME,SERVICE_TAG,HOSTNAME,ADMIN_MAC,ADMIN_IP,BMC_MAC,BMC_IP
+slurm_control_node_x86_64,grp0,ABCD12,node1,xx:yy:zz:aa:bb:cc,172.16.0.11,xx:yy:zz:aa:bb:dd,10.3.0.101
+slurm_node_x86_64,grp1,ABCD34,node2,aa:bb:cc:dd:ee:ff,172.16.0.12,aa:bb:cc:dd:ee:gg,10.3.0.102
+service_kube_node_x86_64,grp3,ABCD56,node3,xx:yy:zz:aa:bb:dd,172.16.0.13,xx:yy:zz:aa:bb:ff,10.3.0.103
+login_compiler_node_x86_64,grp6,ABCD78,node4,aa:bb:cc:dd:ee:gg,172.16.0.14,aa:bb:cc:dd:ee:bb,10.3.0.104
