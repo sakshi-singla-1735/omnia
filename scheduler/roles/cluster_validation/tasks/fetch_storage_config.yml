@@ -58,10 +58,10 @@
       ansible.builtin.set_fact:
         plugins_deployment: false
       when:
-        k8s_nfs_server_ip == hostvars['localhost']['admin_nic_ip'] or k8s_nfs_server_ip == ""
+        k8s_nfs_server_ip == ""
 
-    - name: Warning - plugins will not be deployed
-      ansible.builtin.debug:
+    - name: Service K8S will not be deployed
+      ansible.builtin.fail:
         msg: "{{ plugins_warning_msg }}"
       when: plugins_deployment is false
 

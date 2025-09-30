@@ -89,6 +89,6 @@ service_k8s_cluster:
     topology_manager_policy: "none"
     topology_manager_scope: "container"
     k8s_offline_install: true
-    nfs_storage_name: ""
+    nfs_storage_name: "nfs_k8s"
     csi_powerscale_driver_secret_file_path: ""
     csi_powerscale_driver_values_file_path: ""

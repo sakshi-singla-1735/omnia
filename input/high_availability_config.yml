@@ -24,7 +24,7 @@
 # - virtual_ip_address: <Mandatory if enable_k8s_ha is true> The virtual IP address for the K8s service node HA setup.
 # - external_loadbalancer_ip: <Optional This IP must differ from virtual_ip_addresss> Specify this to use an external load balancer instead of kube-vip as lb
 # - loadbalancer_port: <Mandatory if external_loadbalancer_ip is specified.> The port must not be in use and cannot be 6443
-# - active_node_service_tags: <Mandatory if enable_k8s_ha is true> List of service tags of active K8s service nodes. Separate tags with commas.
+# - active_node_service_tags: <Optional if enable_k8s_ha is true> List of service tags of active K8s service nodes. Separate tags with commas.
 # ***********************************************************************
 
 service_k8s_cluster_ha:
