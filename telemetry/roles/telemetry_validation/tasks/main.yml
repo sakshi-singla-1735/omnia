@@ -32,6 +32,3 @@
 - name: Validate iDRAC inventory
   ansible.builtin.include_tasks: validate_idrac_inventory.yml
   when: idrac_telemetry_support
-
-# - name: Custom validation for federated way of telemetry
-#   ansible.builtin.include_tasks: validate_service_node_status.yml

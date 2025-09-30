@@ -111,8 +111,8 @@ nfs_client_params_slurm_share_success_msg: "Entry found in nfs_client_params wit
 nfs_client_params_benchmarks_fail_msg: "Atleast one out of k8s_share or slurm_share should be true in input/storage_config.yml when ucx/openmpi are installed on cluster nodes." # noqa: yaml[line-length]
 nfs_client_params_benchmarks_success_msg: "Entry found in nfs_client_params with slurm_share or k8s_share as true"
 plugins_warning_msg: |
-  WARNING: Additional installation of Plugins will not be deployed because k8s nfs server_ip is "{{ k8s_nfs_server_ip }}".
-  Please configure a valid NFS server IP in storage_config.yml.
+  WARNING: service_k8s will not be deployed because k8s nfs server_ip is empty or Invalid.
+  Please configure a valid NFS server IP in storage_config.yml and rerun the playbook.
 nfs_client_params_server_share_invalid_msg: "No valid 'server_share_path' found with 'k8s_share: true'. Please provide a valid server_share_path in 'nfs_client_params' under 'storage_config.yml'" # noqa: yaml[line-length]
 
 # Usage: validate_scheduler_type.yml

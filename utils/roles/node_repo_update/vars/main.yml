@@ -19,7 +19,7 @@ hosts_file_dest: "/etc/hosts"
 hosts_file_mode: "0644"
 hosts_update_fail_msg: "Failed to update hosts file with node details.
  Remove unreachable IP addresses from slurm_node or login_node group of inventory and re-run the playbook."
-
+hosts_file_path: /opt/omnia/hosts
 repo_path: "/etc/yum.repos.d"
 versioned_softwares:
   - beegfs
