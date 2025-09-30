@@ -32,7 +32,8 @@
       {"package": "sudo", "type": "rpm", "repo_name": "aarch64_baseos"},
       {"package": "wget", "type": "rpm", "repo_name": "aarch64_appstream"},
       {"package": "cloud-init", "type": "rpm", "repo_name": "aarch64_appstream"},
-      {"package": "glibc-langpack-en", "type": "rpm", "repo_name": "aarch64_baseos"}
+      {"package": "glibc-langpack-en", "type": "rpm", "repo_name": "aarch64_baseos"},
+      { "package": "docker.io/dellhpcomniaaisolution/image-build-aarch64", "tag": "latest", "type": "image" }
     ]
   }
 }

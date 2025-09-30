@@ -1,0 +1,72 @@
+# Copyright 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+---
+
+- name: Create temporary inventory with ochami group
+  ansible.builtin.copy:
+    dest: "{{ aarch64_inventory_file }}"
+    content: |
+      [ochami]
+      {{ groups['admin_aarch64'] | join('\n') }}
+    mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
+
+- name: Create aarch64_base_image.log as a file
+  ansible.builtin.file:
+    path: "{{ openchami_aarch64_base_image_log_path }}"
+    state: touch
+    mode: "{{ dir_permissions_644 }}"
+
+- name: Load the openchami image vars
+  ansible.builtin.template:
+    src: "{{ openchami_base_image_vars_template }}"
+    dest: "{{ openchami_aarch64_base_image_vars_path }}"
+    mode: "{{ dir_permissions_644 }}"
+
+- name: Invoking Openchami playbook for rhel-base image build
+  ansible.builtin.shell: |
+    set -o pipefail
+    ansible-playbook {{ openchami_clone_path }}/dell/podman-quadlets/image.yaml \
+    -i {{ aarch64_inventory_file }} -v \
+    --extra-vars "@{{ openchami_aarch64_base_image_vars_path }}" \
+    --tags base_image -v | \
+    /usr/bin/tee {{ openchami_aarch64_base_image_log_path }}
+  async: 3600  # Set async timeout (e.g., 1 hour)
+  poll: 0  # Non-blocking (continue the playbook without waiting for completion)
+  register: base_image_build
+  changed_when: true
+
+- name: Wait for rhel-base image OpenCHAMI jobs to finish
+  block:
+    - name: Wait for rhel-base image OpenCHAMI jobs to finish
+      ansible.builtin.async_status:
+        jid: "{{ base_image_build.ansible_job_id }}"
+      register: job_result
+      until: job_result.finished
+      retries: "{{ job_retry }}"
+      delay: "{{ job_delay }}"
+  rescue:
+    - name: Fail the build if the base image build fails
+      ansible.builtin.fail:
+        msg: "{{ base_image_failure_msg }}"
+
+  always:
+    - name: Remove generated base image vars file
+      ansible.builtin.file:
+        path: "{{ openchami_aarch64_base_image_vars_path }}"
+        state: absent
+
+    - name: Set openchami SELinux context
+      ansible.builtin.command: chcon -R system_u:object_r:container_file_t:s0 "{{ oim_shared_path }}/omnia/openchami"
+      changed_when: true
+      failed_when: false

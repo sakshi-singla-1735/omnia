@@ -1,0 +1,51 @@
+# Copyright 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+---
+
+input_project_dir: "{{ hostvars['localhost']['input_project_dir'] }}"
+omnia_metadata_file: "/opt/omnia/.data/oim_metadata.yml"
+dir_permissions_644: "0644"
+dir_permissions_755: "0755"
+openchami_dir: "/opt/omnia/openchami"
+openchami_clone_path: /opt/omnia/openchami/deployment-recipes
+job_retry: "60"
+job_delay: "30"
+openchami_work_dir: "{{ oim_shared_path }}/omnia/openchami/workdir"
+ochami_mounts:
+  - --user 0 --privileged
+  - -v {{ oim_shared_path }}/omnia/pulp/settings/certs/pulp_webserver.crt:/etc/pki/ca-trust/source/anchors/pulp_webserver.crt:z
+  - -v {{ openchami_work_dir }}/images/{{ rhel_aarch64_base_image_name }}-{{ rhel_tag }}.yaml:/home/builder/config.yaml:z
+ochami_compute_mounts:
+  - --user 0 --privileged
+  - -v {{ oim_shared_path }}/omnia/pulp/settings/certs/pulp_webserver.crt:/etc/pki/ca-trust/source/anchors/pulp_webserver.crt:z
+  - -v {{ openchami_work_dir }}/images/rhel-{{ item.key }}-{{ rhel_tag }}.yaml:/home/builder/config.yaml:z
+ochami_aarch64_image:
+  - --entrypoint /bin/bash
+  - localhost/arm-image/ochami
+ochami_base_command:
+  - -c 'update-ca-trust extract && image-build --config /home/builder/config.yaml --log-level DEBUG'
+
+
+# Usage: build_base_image.yml
+openchami_log_dir: /opt/omnia/log/openchami
+openchami_aarch64_base_image_log_path: "{{ openchami_log_dir }}/aarch64_base_image.log"
+openchami_base_image_vars_template: "{{ role_path }}/templates/base_image_template.j2"
+openchami_aarch64_base_image_vars_path: "/opt/omnia/openchami/aarch64_base_image_template.yaml"
+aarch64_inventory_file: "/tmp/temp_ochami_inventory.ini"
+base_image_failure_msg: "Base aarch64 image build job failed or timed out. Check logs at path {{ openchami_aarch64_base_image_log_path }} for details."
+compute_image_failure_msg: "Compute aarch64 image build job did not completed successfully."
+
+# Usage: build_compute_image.yml
+openchami_compute_image_vars_template: "{{ role_path }}/templates/compute_images_templates.j2"
+openchami_compute_image_vars_path: "/opt/omnia/openchami/compute_images_template.yaml"
