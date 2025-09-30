@@ -13,18 +13,21 @@
 # limitations under the License.
 ---
 
-- name: Initialize credentials status
-  ansible.builtin.set_fact:
-    mandatory_credentials_status: false
-    username_status: false
-    password_status: false
+- name: Load functional_group_config.yml
+  ansible.builtin.include_vars:
+    file: "{{ input_project_dir }}/functional_groups_config.yml"
+    name: functional_group_cfg
 
-- name: Prompt to fetch Omnia credentials
-  ansible.builtin.include_tasks: "fetch_{{ type.key }}_credentials.yml"
-  loop: "{{ service.value | dict2items }}"
-  loop_control:
-    loop_var: type
-  when:
-    - service.key in software_names or service.key in ["provision", "prepare_oim","local_repo","idrac_telemetry","visualization", "build_aarch_image"]
-    - (omnia_run_tags | default([]) | difference(['all']) | length == 0)
-      or service.key in (omnia_run_tags | default([]))
+- name: Check for aarch64 functional groups
+  ansible.builtin.set_fact:
+    fg_aarch64: >-
+      {{ functional_group_cfg.functional_groups
+         | selectattr('name', 'search', '_aarch64$')
+         | list
+         | length > 0 }}
+    cacheable: true
+
+- name: Fail if aarch64 functional groups are not present
+  ansible.builtin.fail:
+    msg: "{{ functional_group_absent_msg.splitlines() | join(' ') }}"
+  when: not fg_aarch64

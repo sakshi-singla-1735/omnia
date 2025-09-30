@@ -1,0 +1,99 @@
+# Copyright 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+---
+
+- name: Create temporary inventory with ochami group
+  ansible.builtin.copy:
+    dest: "{{ aarch64_inventory_file }}"
+    content: |
+      [ochami]
+      {{ groups['admin_aarch64'] | join('\n') }}
+    mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
+
+- name: Create aarch64 compute image log files
+  ansible.builtin.file:
+    path: "{{ openchami_log_dir }}/{{ item.key }}_compute_image.log"
+    state: touch
+    mode: "{{ dir_permissions_644 }}"
+  loop: "{{ compute_images_dict | dict2items }}"
+  loop_control:
+    loop_var: item
+
+- name: Render compute images templates
+  ansible.builtin.template:
+    src: "{{ openchami_compute_image_vars_template }}"
+    dest: "{{ openchami_dir }}/{{ item.key }}_compute_images.yaml"
+    mode: "{{ dir_permissions_644 }}"
+  vars:
+    functional_group: "{{ item.value.functional_group }}"
+    packages: "{{ item.value.packages }}"
+    rhel_base_compute_image_name: "{{ item.key }}"
+  loop: "{{ compute_images_dict | dict2items }}"
+  loop_control:
+    loop_var: item
+
+- name: Invoking OpenCHAMI playbooks asynchronously for aarch64 compute image_build
+  ansible.builtin.shell: |
+    set -o pipefail
+    ansible-playbook {{ openchami_clone_path }}/dell/podman-quadlets/image.yaml \
+    -i {{ aarch64_inventory_file }} -v \
+      --extra-vars '@{{ openchami_dir }}/{{ item.key }}_compute_images.yaml' \
+      -e "minio_s3_username={{ minio_s3_username }}" \
+      -e "minio_s3_password={{ minio_s3_password }}" \
+      --tags compute_image -v | \
+      /usr/bin/tee '{{ openchami_log_dir }}/{{ item.key }}_compute_image.log'
+  async: 3600   # Set async timeout (e.g., 1 hour)
+  poll: 0   # Non-blocking (continue the playbook without waiting for completion)
+  loop: "{{ compute_images_dict | dict2items }}"
+  loop_control:
+    loop_var: item
+  register: compute_image_build_job
+  changed_when: true
+
+- name: Wait for all OpenCHAMI jobs to finish and remove generated compute images templates
+  block:
+    - name: Wait for all OpenCHAMI jobs to finish
+      ansible.builtin.async_status:
+        jid: "{{ item.ansible_job_id }}"
+      register: job_result
+      until: job_result.finished
+      retries: "{{ job_retry }}"
+      delay: "{{ job_delay }}"
+      loop: "{{ compute_image_build_job.results }}"
+      loop_control:
+        label: "{{ item.item.key }}"
+
+  rescue:
+    - name: Fail explicitly if job failed
+      ansible.builtin.fail:
+        msg: "{{ compute_image_failure_msg }}"
+
+  always:
+    - name: Remove generated compute images templates
+      ansible.builtin.file:
+        path: "{{ openchami_dir }}/{{ item.key }}_compute_images.yaml"
+        state: absent
+      loop: "{{ compute_images_dict | dict2items }}"
+      loop_control:
+        loop_var: item
+
+    - name: Remove temporary inventory file
+      ansible.builtin.file:
+        path: "{{ aarch64_inventory_file }}"
+        state: absent
+
+    - name: Set openchami SELinux context
+      ansible.builtin.command: chcon -R system_u:object_r:container_file_t:s0 "{{ oim_shared_path }}/omnia/openchami"
+      changed_when: true
+      failed_when: false

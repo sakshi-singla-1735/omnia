@@ -13,17 +13,26 @@
 # limitations under the License.
 ---
 
+
 rhel_x86_64_base_image_name: "rhel-x86_64_base"
+rhel_aarch64_base_image_name: "rhel-aarch64_base"
 
 base_image_commands:
   - "dracut --add 'dmsquash-live livenet network-manager' --install '/usr/lib/systemd/systemd-sysroot-fstab-check' --kver $(basename /lib/modules/*) -N -f --logfile /tmp/dracut.log 2>/dev/null"   # noqa: yaml[line-length]
   - "echo DRACUT LOG:; cat /tmp/dracut.log"
 
+#  x86_64 compute commands
 default_x86_64_compute_commands:
   - "echo 'Default x86_64 compute'"
 
+default_aarch64_compute_commands:
+  - "echo 'Default aarch64 compute'"
+
 login_node_x86_64_compute_commands:
   - "echo 'Login node x86_64 compute'"
+
+login_node_aarch64_compute_commands:
+  - "echo 'Login node aarch64 compute'"
 
 login_compiler_node_x86_64_compute_commands:
   - "echo 'Login Compiler node x86_64 compute'"
@@ -36,3 +45,10 @@ slurm_control_node_x86_64_compute_commands:
 
 slurm_node_x86_64_compute_commands:
   - "echo 'Slurm node x86_64 compute'"
+
+# aarch64 compute commands
+slurm_node_aarch64_compute_commands:
+  - "echo 'Slurm node aarch64 compute'"
+
+login_compiler_node_aarch64_compute_commands:
+  - "echo 'Login Compiler node aarch64 compute'"
