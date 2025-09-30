@@ -13,7 +13,8 @@
 # limitations under the License.
 ---
 
-rhel_base_image_name: "rhel-base"
+
+rhel_x86_64_base_image_name: "rhel-x86_64_base"
 rhel_aarch64_base_image_name: "rhel-aarch64_base"
 
 base_image_commands:

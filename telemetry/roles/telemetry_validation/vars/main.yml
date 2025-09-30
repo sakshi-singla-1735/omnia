@@ -35,6 +35,11 @@ warning_idrac_telemetry_support_true: |
   Make sure that Redfish is enabled and the iDRAC has a datacenter license.
   Also, ensure that the firmware version is greater than 4 for iDRAC9 or greater than 1 for iDRAC10."
 
+# Usage: include_storage_details.yml
+omnia_config_filename: "omnia_config.yml"
+omnia_config_syntax_fail_msg: "Failed. Syntax errors present in omnia_config.yml. Fix errors and re-run playbook again."
+storage_config_filename: "storage_config.yml"
+storage_config_syntax_fail_msg: "Failed. Syntax errors present in storage_config.yml. Fix errors and re-run playbook again."
 
 # Usage: validate_image_tars.yml
 # noqa: yaml[line-length]
@@ -81,10 +86,3 @@ service_cluster_no_internet: "Service Cluster does not have internet access to d
       Please enable internet on service cluster and rerun telemetry.yml."
 internet_retrialls: 5
 internet_retrialls_delay: 3
-
-# Usage: validate_telemetry_inventory.yml
-enable_federated_telemetry_fail_msg: |
-  "It is recommended to set federated_idrac_telemetry_collection to true in telemetry_config.yml, as a service k8s cluster has been provisioned."
-telemetry_empty_inventory_fail_msg: |
-  "Failed. Either inventory is not provided or inventory does not have required groups. Re-run playbook with inventory by providing -i inventory.
-  Required groups in inventory are kube_control_plane, kube_node, etcd"

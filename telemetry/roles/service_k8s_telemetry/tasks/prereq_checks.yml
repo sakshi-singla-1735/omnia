@@ -15,6 +15,26 @@
 
 - name: Pre-checks for service cluster k8s
   block:
+    - name: Run pulp status command on omnia_core container
+      ansible.builtin.command: /usr/local/bin/pulp status
+      delegate_to: localhost
+      changed_when: false
+      register: pulp_status_output
+
+    - name: Set pulp content origin value
+      ansible.builtin.set_fact:
+        pulp_content_origin: "{{ (pulp_status_output.stdout | from_json).content_settings.content_origin }}"
+
+    - name: Set fact for pulp protocol
+      ansible.builtin.set_fact:
+        pulp_server_ip: "{{ pulp_content_origin | urlsplit('hostname') }}"
+
+    - name: Set fact for pulp protocol
+      ansible.builtin.set_fact:
+        pulp_server_ip: "{{ pulp_content_origin | urlsplit('hostname') }}"
+      delegate_to: localhost
+      delegate_facts: true
+
     - name: Install prereq rpm packages on service kube control plane
       ansible.builtin.package:
         name: "{{ item }}"
@@ -34,8 +54,46 @@
         name: "{{ item }}"
         extra_args: >
           --find-links={{ hostvars['localhost']['offline_pip_module_path'] }}/{{ item }}/
+          --trusted-host={{ hostvars['localhost']['pulp_server_ip'] }}
           --no-index
       loop: "{{ hostvars['localhost']['k8s_pip_packages'] }}"
+
+    - name: Git checkout for iDRAC Telemetry Reference Tools
+      block:
+        - name: Checkout iDRAC Telemetry GitHub repo
+          ansible.builtin.git:
+            repo: "{{ idrac_telemetry_github_repo }}"
+            dest: "{{ idrac_telemetry_reference_git_clone_path }}"
+            version: "{{ reference_tools_stable_commit }}"
+            update: false
+          register: clone_idrac_telemetry
+          until: clone_idrac_telemetry is succeeded
+          retries: "{{ max_retries }}"
+          delay: "{{ delay_count }}"
+
+      rescue:
+        - name: Fail if iDRAC telemetry Git clone fails
+          ansible.builtin.fail:
+            msg: "{{ idrac_git_clone_error_msg.splitlines() | join(' ') }}"
+          when: clone_idrac_telemetry is failed
+
+    - name: Git clone for iDRAC Telemetry script
+      block:
+        - name: Checkout iDRAC Telemetry GitHub repo
+          ansible.builtin.git:
+            repo: "{{ idrac_telemetry_scripting_repo }}"
+            dest: "{{ idrac_telemetry_scripting_git_clone_path }}"
+            version: "{{ idrac_telemetry_scripting_stable_commit }}"
+            update: false
+          register: clone_idrac_script
+          until: clone_idrac_script is succeeded
+          retries: "{{ max_retries }}"
+          delay: "{{ delay_count }}"
+      rescue:
+        - name: Fail if iDRAC telemetry Git clone fails
+          ansible.builtin.fail:
+            msg: "{{ idrac_script_git_clone_error_msg.splitlines() | join(' ') }}"
+          when: clone_idrac_script is failed
 
     - name: Check if k8s is running
       block:

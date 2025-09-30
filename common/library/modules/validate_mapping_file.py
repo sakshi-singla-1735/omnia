@@ -21,23 +21,6 @@ import yaml
 from ansible.module_utils.basic import AnsibleModule
 from string import ascii_lowercase
 
-def generate_alpha_sequence(n, start='b'):
-    """Generate alphabetical strings starting from 'b': b, c, ..., z, ba, bb, ..."""
-    result = []
-    i = 0
-    start_index = ascii_lowercase.index(start)
-    while len(result) < n:
-        s = ''
-        temp = i
-        while True:
-            s = ascii_lowercase[(temp % 26 + start_index) % 26] + s
-            temp = temp // 26 - 1
-            if temp < 0:
-                break
-        result.append(s)
-        i += 1
-    return result
-
 
 def load_functional_groups_yaml(path, module):
     """Load functional group names from YAML."""
@@ -51,6 +34,14 @@ def load_functional_groups_yaml(path, module):
     except Exception as e:
         module.fail_json(msg=f"Failed to load functional_groups_config.yml: {str(e)}")
 
+def load_groups_yaml(path, module):
+    """Load group names from YAML and return as a set."""
+    try:
+        with open(path, 'r') as f:
+            data = yaml.safe_load(f)
+        return set(data.get("groups", {}).keys())
+    except Exception as e:
+        module.fail_json(msg=f"Failed to load groups_config.yml: {str(e)}")
 
 def check_functional_groups_in_mapping(csv_file, config_fgs, module):
     """Check that all functional groups in mapping file exist in functional_groups YAML."""
@@ -59,6 +50,14 @@ def check_functional_groups_in_mapping(csv_file, config_fgs, module):
     if missing_fgs:
         module.fail_json(
             msg=f"The following FUNCTIONAL_GROUP_NAME(s) are missing in functional_groups_config.yml: {', '.join(missing_fgs)}"
+        )
+
+def check_groups_in_mapping(csv_file, config_gs, module):
+    mapping_gs = set(csv_file['GROUP_NAME'].str.strip().unique())
+    missing_gs = mapping_gs - config_gs
+    if missing_gs:
+        module.fail_json(
+            msg=f"The following GROUP_NAME(s) are missing in groups_config.yml: {', '.join(missing_gs)}"
         )
 
 
@@ -108,18 +107,22 @@ def validate_mapping_file(mapping_file_path, functional_groups_file, module):
 
         # Validate functional groups presence in YAML
         config_fgs = load_functional_groups_yaml(functional_groups_file, module)
+        config_gs = load_groups_yaml(functional_groups_file, module)
         check_functional_groups_in_mapping(csv_file, config_fgs, module)
+        check_groups_in_mapping(csv_file, config_gs, module)
 
-        # The resulting XNAME values will have the format 'x1000c1s7<b><d>n<d>', where <b> is a letter and <d> is a digit
+        # The resulting XNAME values will have the format 'x1000c0s<d><b><d>n0', where <b> is a letter and <d> is a digit
         xname_values = []
-        alpha_sequence = generate_alpha_sequence(100)  # 100 groups of 10 = 1000 entries
 
         for i in range(len(csv_file)):
-            group_index = i // 10
+            # `c` will be based on i // 100 (every 100 entries we increment `c`)
+            c_index = i // 100
+            # `s` will be based on i // 10 (every 10 entries we increment `s`)
+            s_index = (i // 10) % 10
+            # `digit` cycles from 0 to 9
             digit = i % 10
-            alpha_part = alpha_sequence[group_index]
-            num_part = group_index + 1
-            xname = f'x1000c1s7{alpha_part}{num_part}n{digit}'
+            # Build the 'xname' with updated logic for `c` and `s` indices
+            xname = f'x1000c{c_index}s{s_index}b{digit}n0'
             xname_values.append(xname)
 
         csv_file['XNAME'] = xname_values

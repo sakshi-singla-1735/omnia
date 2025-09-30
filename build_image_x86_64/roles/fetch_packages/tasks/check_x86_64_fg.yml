@@ -13,17 +13,21 @@
 # limitations under the License.
 ---
 
-- name: Delete ci group configuration - common
-  ansible.builtin.command: /usr/bin/ochami cloud-init group delete --no-confirm -f yaml -d @{{ ci_group_common_dest }}
-  changed_when: true
-  failed_when: false
+- name: Load functional_group_config.yml
+  ansible.builtin.include_vars:
+    file: "{{ input_project_dir }}/functional_groups_config.yml"
+    name: functional_group_cfg
 
-- name: Render ci group common template
-  ansible.builtin.template:
-    src: "{{ ci_group_common_template }}"
-    dest: "{{ ci_group_common_dest }}"
-    mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
+- name: Check for x86_64 functional groups
+  ansible.builtin.set_fact:
+    fg_x86_64: >-
+      {{ functional_group_cfg.functional_groups
+         | selectattr('name', 'search', '_x86_64$')
+         | list
+         | length > 0 }}
+    cacheable: true
 
-- name: Set ci group configuration - common
-  ansible.builtin.command: /usr/bin/ochami cloud-init group set -f yaml -d @{{ ci_group_common_dest }}
-  changed_when: true
+- name: Fail if x86_64 functional groups are not present
+  ansible.builtin.fail:
+    msg: "{{ functional_group_absent_msg.splitlines() | join(' ') }}"
+  when: not fg_x86_64
