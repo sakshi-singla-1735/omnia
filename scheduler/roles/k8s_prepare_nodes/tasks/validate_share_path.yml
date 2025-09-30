@@ -14,17 +14,43 @@
 ---
 
 # NFS setup
+- name: Check if nameserver 10.233.0.3 exists
+  ansible.builtin.lineinfile:
+    path: /etc/resolv.conf
+    line: 'nameserver 10.233.0.3'
+    state: present
+  check_mode: true
+  register: nameserver_check
+  changed_when: false # This task should not report a change
+
+- name: Remove nameserver 10.233.0.3 from /etc/resolv.conf
+  ansible.builtin.lineinfile:
+    path: /etc/resolv.conf
+    line: 'nameserver 10.233.0.3'
+    state: absent
+    backup: true
+  when: not nameserver_check.changed
+
+- name: Add nameserver 10.233.0.3 at the end
+  ansible.builtin.lineinfile:
+    path: /etc/resolv.conf
+    line: 'nameserver 10.233.0.3'
+    insertafter: EOF
+    state: present
+    backup: true
+  when: not nameserver_check.changed
+
 - name: Install NFS client package
   ansible.builtin.package:
     name: "{{ nfs_package }}"
     state: present
 
-- name: Check NFS export availability
-  ansible.builtin.command: "showmount -e {{ nfs_server_ip }}"
-  register: nfs_exports
-  changed_when: false
+# - name: Check NFS export availability
+#  ansible.builtin.command: "showmount -e {{ nfs_server_ip }}"
+#  register: nfs_exports
+#  changed_when: false
 
-- name: Fail if expected NFS export is not available
-  ansible.builtin.fail:
-    msg: "NFS export {{ nfs_server_share_path }} not found on {{ nfs_server_ip }}"
-  when: nfs_server_share_path not in nfs_exports.stdout
+# - name: Fail if expected NFS export is not available
+#  ansible.builtin.fail:
+#    msg: "NFS export {{ nfs_server_share_path }} not found on {{ nfs_server_ip }}"
+#  when: nfs_server_share_path not in nfs_exports.stdout

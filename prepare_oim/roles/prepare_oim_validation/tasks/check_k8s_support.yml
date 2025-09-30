@@ -41,6 +41,11 @@
         k8s_support_check: false
       when: (k8s_versions | select('ne', default_k8s_version) | list | length) > 0
 
+    - name: Fail if unsupported k8s version is detected
+      ansible.builtin.fail:
+        msg: "{{ fail_msg }}"
+      when: not k8s_support_check
+
     - name: Validate k8s metadata
       when: metadata_stat.stat.exists
       block:

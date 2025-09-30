@@ -11,6 +11,7 @@
       { "package": "calicoctl-v3.29.3-amd64", "type": "tarball", "url": "https://github.com/projectcalico/calico/releases/download/v3.29.3/calicoctl-linux-amd64" },
       { "package": "calico.archive-v3.29.3", "type": "tarball", "url": "https://github.com/projectcalico/calico/archive/v3.29.3.tar.gz" },
       { "package": "docker.io/library/golang", "type": "image", "tag": "1.24" },
+      { "package": "docker.io/library/busybox", "type": "image", "tag": "1.36" },
       { "package": "docker.io/rmohr/activemq", "type": "image", "tag": "5.15.9" },
       { "package": "docker.io/library/mysql", "type": "image", "tag": "9.3.0" },
       { "package": "docker.io/bitnamilegacy/kafka", "type": "image", "tag": "3.9.0" },

@@ -44,7 +44,7 @@ file_mode: '0755'
 file_perm: '0644'
 invalid_kube_inventory_fail_msg: |
   "Failed. service_k8s software is present in software_config.json.
-  Invalid inventory format, specify kube_control_plane, kube_node and etcd group in inventory and re-run playbook"
+  Invalid inventory format, specify kube_control_plane and  etcd group in inventory and re-run playbook"
 kube_one_node_validation_fail_msg: |
   "Failed. service_k8s software is present in software_config.json.
   There should be one entry for kube_control_plane in the inventory"

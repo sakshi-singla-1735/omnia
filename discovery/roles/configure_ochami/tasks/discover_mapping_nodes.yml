@@ -51,6 +51,10 @@
         mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
       vars:
         nodes: "{{ hostvars['localhost']['read_mapping_file']['dict'] | dict2items }}"
+        group_data: "{{ (lookup('file', hostvars['localhost']['input_project_dir'] ~ '/functional_groups_config.yml') | from_yaml).groups }}"
+
+    - name: Delete smd configuration
+      ansible.builtin.include_tasks: delete_smd_config.yml
 
     - name: Discover ochami nodes
       block:

@@ -22,10 +22,6 @@
         omnia_run_tags: "{{ (ansible_run_tags | default([]) + ['service_k8s', 'csi_driver_powerscale']) | unique }}"
         cacheable: true
 
-- name: Invoke get_config_credentials.yml
-  ansible.builtin.import_playbook: ../utils/credential_utility/get_config_credentials.yml
-  when: not ( hostvars['127.0.0.1']['config_file_status'] | default(false) | bool )
-
 - name: Include input project directory
   ansible.builtin.import_playbook: ../utils/include_input_dir.yml
   when: not ( hostvars['127.0.0.1']['project_dir_status'] | default(false) | bool )
@@ -41,6 +37,10 @@
 
 - name: Invoke validate_config.yml to perform L1 and L2 validations for k8s
   ansible.builtin.import_playbook: ../input_validation/validate_config.yml
+
+- name: Invoke get_config_credentials.yml
+  ansible.builtin.import_playbook: ../utils/credential_utility/get_config_credentials.yml
+  when: not ( hostvars['127.0.0.1']['config_file_status'] | default(false) | bool )
 
 - name: Validate inventory
   ansible.builtin.import_playbook: ../utils/inventory_validation.yml
@@ -148,18 +148,35 @@
   roles:
     - common_plugins
 
- # - name: CSI powerscale image pulling
- #   hosts: kube_control_plane
- #   tasks:
- #     - name: Pull images
- #       ansible.builtin.include_role:
- #         name: k8s_csi_powerscale_plugin
- #         tasks_from: csi_powerscale_image_pull.yml
- #       when:
- #         - hostvars['127.0.0.1']['csi_driver_powerscale_precheck_pass'] | default(false) | bool
+- name: CSI powerscale image pulling
+  hosts: kube_control_plane
+  tasks:
+    - name: Pull images
+      ansible.builtin.include_role:
+        name: k8s_csi_powerscale_plugin
+        tasks_from: csi_powerscale_image_pull.yml
+      when:
+        - hostvars['127.0.0.1']['csi_driver_powerscale_precheck_pass'] | default(false) | bool
 
- # - name: Install CSI powerscale plugin on kube control nodes
- #   hosts: kube_control_plane[0]
- #   gather_facts: false
- #   roles:
- #     - k8s_csi_powerscale_plugin
+- name: Install CSI powerscale plugin on kube control nodes
+  hosts: kube_control_plane[0]
+  gather_facts: false
+  roles:
+    - k8s_csi_powerscale_plugin
+
+- name: Taint the kube control plane
+  hosts: kube_control_plane[0]
+  tasks:
+    - name: Get taints of control-plane nodes
+      ansible.builtin.command:
+        cmd: kubectl get node {{ item }} -o jsonpath='{.spec.taints}'
+      loop: "{{ groups['kube_control_plane'] }}"
+      register: node_taints
+      changed_when: false
+
+    - name: Add control-plane taint if not present
+      ansible.builtin.command:
+        cmd: kubectl taint nodes {{ item.item }} node-role.kubernetes.io/control-plane=:NoSchedule --overwrite
+      loop: "{{ node_taints.results }}"
+      when: "'node-role.kubernetes.io/control-plane' not in item.stdout"
+      changed_when: true
