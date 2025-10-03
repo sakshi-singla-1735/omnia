@@ -95,8 +95,8 @@
     owner: root
     group: root
     mode: "{{ common_mode }}"
-  when: cmpt_list or login_list
-  loop: "{{ (cmpt_list + login_list) | product(cmpt_dir) }}"
+  when: cmpt_list or login_list or compiler_login_list
+  loop: "{{ (cmpt_list + login_list + compiler_login_list) | product(cmpt_dir) }}"
 
 - name: Check if munge key exists top level
   ansible.builtin.stat:
@@ -117,6 +117,7 @@
     remote_src: true
   loop: "{{ (ctld_list | default([])) +
             (cmpt_list | default([])) +
+            (compiler_login_list | default([])) +
             (login_list | default([])) }}"
 
 - name: Slurm dict ops
@@ -171,15 +172,15 @@
   when: cmpt_list
   loop: "{{ cmpt_list | product(['logout_user.sh', 'slurmd.service']) }}"
 
-- name: Create slurmd.service in login
+- name: Create slurmd.service in login and login_compiler
   ansible.builtin.template:
     src: "{{ item.1 }}.j2"
     dest: "{{ slurm_config_path }}/{{ item.0 }}/etc/slurm/epilog.d/{{ item.1 }}"
     owner: "{{ root_user }}"
     group: "{{ root_group }}"
     mode: "{{ conf_file_mode }}"
-  when: login_list
-  loop: "{{ login_list | product(['slurmd.service']) }}"
+  when: login_list or compiler_login_list
+  loop: "{{ (login_list + compiler_login_list) | product(['slurmd.service']) }}"
 
 - name: Mount facts items to dict
   ansible.builtin.set_fact:
