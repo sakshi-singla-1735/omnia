@@ -144,7 +144,8 @@
       "profile": "https://github.com/prasoon-sinha",
       "contributions": [
         "ideas",
-        "talk"
+        "talk",
+        "mentoring"
       ]
     },
     {
@@ -183,7 +184,8 @@
       "profile": "https://github.com/Aditya-DP",
       "contributions": [
         "code",
-        "bug"
+        "bug",
+        "test"
       ]
     },
     {
@@ -193,7 +195,8 @@
       "profile": "https://github.com/Katakam-Rakesh",
       "contributions": [
         "code",
-        "bug"
+        "bug",
+        "test"
       ]
     },
     {
@@ -668,7 +671,8 @@
       "avatar_url": "https://avatars.githubusercontent.com/u/52577117?v=4",
       "profile": "https://github.com/Milisha-Gupta",
       "contributions": [
-        "code"
+        "code",
+        "test"
       ]
     },
     {
@@ -722,7 +726,8 @@
       "avatar_url": "https://avatars.githubusercontent.com/u/169249531?v=4",
       "profile": "https://github.com/Kratika-P",
       "contributions": [
-        "code"
+        "code",
+        "test"
       ]
     },
     {
@@ -740,7 +745,8 @@
       "avatar_url": "https://avatars.githubusercontent.com/u/169263232?v=4",
       "profile": "https://github.com/VrindaMarwah",
       "contributions": [
-        "code"
+        "code",
+        "test"
       ]
     },
     {
@@ -758,8 +764,10 @@
       "avatar_url": "https://avatars.githubusercontent.com/u/169248535?v=4",
       "profile": "https://github.com/balajikumaran-c-s",
       "contributions": [
+        "code",
         "test",
-        "bug"
+        "bug",
+        "code"
       ]
     },
     {
@@ -828,7 +836,8 @@
       "avatar_url": "https://avatars.githubusercontent.com/u/153504816?v=4",
       "profile": "https://github.com/VenkateswaraVatam",
       "contributions": [
-        "projectManagement"
+        "projectManagement",
+        "talk"
       ]
     },
     {
@@ -875,7 +884,8 @@
       "avatar_url": "https://avatars.githubusercontent.com/pranavkumar74980",
       "profile": "https://github.com/pranavkumar74980",
       "contributions": [
-        "code"
+        "code",
+        "test"
       ]
     },
     {
@@ -885,6 +895,148 @@
       "profile": "https://github.com/aditi-sharma27",
       "contributions": [
         "code"
+      ]
+    },
+    {
+      "login": "Rohith-Ravut",
+      "name": "Rohith-Ravut",
+      "avatar_url": "https://avatars.githubusercontent.com/u/196186062?v=4",
+      "profile": "https://github.com/Rohith-Ravut",
+      "contributions": [
+        "test",
+        "bug",
+        "code"
+      ]
+    },
+    {
+      "login": "RvishankarOMnia",
+      "name": "RvishankarOMnia",
+      "avatar_url": "https://avatars.githubusercontent.com/u/186007052?v=4",
+      "profile": "https://github.com/RvishankarOMnia",
+      "contributions": [
+        "ideas",
+        "talk",
+        "mentoring"
+      ]
+    },
+    {
+      "login": "jagadeeshnv",
+      "name": "Jagadeesh N V",
+      "avatar_url": "https://avatars.githubusercontent.com/u/39791839?v=4",
+      "profile": "https://github.com/jagadeeshnv",
+      "contributions": [
+         "code"
+      ]
+    },
+    {
+      "login": "sourabh-sahu1",
+      "name": "sourabh-sahu1",
+      "avatar_url": "https://avatars.githubusercontent.com/u/196315600?v=4",
+      "profile": "https://github.com/sourabh-sahu1",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "ghandoura",
+      "name": "Adam Ghandoura",
+      "avatar_url": "https://avatars.githubusercontent.com/u/87424850?v=4",
+      "profile": "https://github.com/ghandoura",
+      "contributions": [
+        "test",
+        "code"
+      ]
+    },
+    {
+      "login": "Coleman-Trader",
+      "name": "Coleman-Trader",
+      "avatar_url": "https://avatars.githubusercontent.com/u/196217244?v=4",
+      "profile": "https://github.com/Coleman-Trader",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "youngjae-hur7",
+      "name": "youngjae-hur7",
+      "avatar_url": "https://avatars.githubusercontent.com/u/196205015?v=4",
+      "profile": "https://github.com/youngjae-hur7",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "Grace-Chang2",
+      "name": "Grace-Chang2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/196347461?v=4",
+      "profile": "https://github.com/Grace-Chang2",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "Cypher-Miller",
+      "name": "Cypher-Miller",
+      "avatar_url": "https://avatars.githubusercontent.com/u/123703182?v=4",
+      "profile": "https://github.com/Cypher-Miller",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "vvittal100",
+      "name": "vvittal100",
+      "avatar_url": "https://avatars.githubusercontent.com/u/202238575?v=4",
+      "profile": "https://github.com/vvittal100",
+      "contributions": [
+        "projectManagement",
+        "talk"
+      ]
+    },
+    {
+      "login": "kksenthilkumar",
+      "name": "kksenthilkumar",
+      "avatar_url": "https://avatars.githubusercontent.com/u/202253529?v=4",
+      "profile": "https://github.com/kksenthilkumar",
+      "contributions": [
+        "test"
+      ]
+    },
+    {
+      "login": "pullan1",
+      "name": "pullan1",
+      "avatar_url": "https://avatars.githubusercontent.com/u/173048662?v=4",
+      "profile": "https://github.com/pullan1",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "harshal2799",
+      "name": "harshal2799",
+      "avatar_url": "https://avatars.githubusercontent.com/u/202241497?v=4",
+      "profile": "https://github.com/harshal2799",
+      "contributions": [
+        "test"
+      ]
+    },
+    {
+      "login": "Sindhu-Ranganath",
+      "name": "Sindhu-Ranganath",
+      "avatar_url": "https://avatars.githubusercontent.com/u/208789597?v=4",
+      "profile": "https://github.com/Sindhu-Ranganath",
+      "contributions": [
+        "test"
+      ]
+    },
+    {
+      "login": "Manasa-Hemmanur",
+      "name": "Manasa H",
+      "avatar_url": "https://avatars.githubusercontent.com/u/205002578?v=4",
+      "profile": "https://github.com/Manasa-Hemmanur",
+      "contributions": [
+        "code",
+        "test"
       ]
     }
   ],
