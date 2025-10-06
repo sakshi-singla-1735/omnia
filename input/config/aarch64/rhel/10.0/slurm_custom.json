@@ -29,7 +29,8 @@
     },
     "login_compiler_node":{
         "cluster": [
-            {"package": "slurm", "type": "rpm", "repo_name": "aarch64_slurm_custom"}
+            {"package": "slurm", "type": "rpm", "repo_name": "aarch64_slurm_custom"},
+            {"package": "slurm-slurmd", "type": "rpm", "repo_name": "aarch64_slurm_custom"}
         ]
     }
 }
