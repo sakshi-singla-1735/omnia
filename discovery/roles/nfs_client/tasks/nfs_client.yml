@@ -39,14 +39,7 @@
 
 - name: Mount facts items to dict
   ansible.builtin.set_fact:
-    mounted_dict: "{{ ansible_mounts | items2dict(key_name='mount', value_name='device') }}"
-    mount_needed: false
     nfs_src: "{{ nfs_server_ip }}:{{ item.server_share_path }}"
-
-- name: Check if mount
-  ansible.builtin.set_fact:
-    mount_needed: true
-  # when: (client_mount_path not in mounted_dict) or (mounted_dict[client_mount_path] != nfs_src)
 
 - name: Create the directory for mounting NFS client with server_share_path as client_share_path
   ansible.builtin.file:
@@ -56,19 +49,7 @@
   register: dir_check
   ignore_errors: true
 
-# - name: Check dir creation
-#   ansible.builtin.set_fact:
-#     mount_needed: true
-#   when: dir_check.failed
-
-# - name: Handle stale file handle by forcing unmount
-#   ansible.builtin.command: "umount -l {{ client_mount_path }}"
-#   when: dir_check.failed
-#   register: unmount_result
-#   changed_when: unmount_result.rc == 0
-
 - name: Mount NFS share
-  # when: mount_needed
   block:
     - name: Try mounting NFS share with fstab entry
       ansible.posix.mount:

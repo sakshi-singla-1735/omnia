@@ -139,12 +139,6 @@
   when: cmpt_list
   loop: "{{ cmpt_list }}"
 
-- debug:
-    var: ctld_list | product(conf_paths.keys())
-- debug:
-    var: ctld_list | product(conf_files | difference(conf_paths.keys() | default([])) )
-- pause:
-
 - name: Copy conf file if provided
   ansible.builtin.copy:
     src: "{{ conf_paths.get(item.1) }}"
