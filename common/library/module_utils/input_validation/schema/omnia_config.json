@@ -26,6 +26,33 @@
             "type": "string", 
             "minLength": 1,
             "description": "Name of the nfs storage in storage_config.yml" 
+          },
+          "config_paths": {
+            "type": "object",
+            "additionalProperties": false,
+            "description": "All the slurm configs, which will be used in the cluster.",
+            "properties": {
+              "slurm": {
+                "type": "string",
+                "description": "slurm config",
+                "pattern": "^/([a-zA-Z0-9_./-][a-zA-Z0-9_./-]*|/)$"
+              },
+              "slurmdbd": {
+                "type": "string",
+                "description": "slurmdbd config",
+                "pattern": "^/([a-zA-Z0-9_./-][a-zA-Z0-9_./-]*|/)$"
+              },
+              "gres": {
+                "type": "string",
+                "description": "gres config",
+                "pattern": "^/([a-zA-Z0-9_./-][a-zA-Z0-9_./-]*|/)$"
+              },
+              "cgroup": {
+                "type": "string",
+                "description": "cgroup config",
+                "pattern": "^/([a-zA-Z0-9_./-][a-zA-Z0-9_./-]*|/)$"
+              }
+            }
           }
         },
         "required": [

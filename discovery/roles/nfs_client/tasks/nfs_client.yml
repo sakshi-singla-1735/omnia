@@ -46,7 +46,7 @@
 - name: Check if mount
   ansible.builtin.set_fact:
     mount_needed: true
-  when: (client_mount_path not in mounted_dict) or (mounted_dict[client_mount_path] != nfs_src)
+  # when: (client_mount_path not in mounted_dict) or (mounted_dict[client_mount_path] != nfs_src)
 
 - name: Create the directory for mounting NFS client with server_share_path as client_share_path
   ansible.builtin.file:
@@ -56,22 +56,39 @@
   register: dir_check
   ignore_errors: true
 
-- name: Check dir creation
-  ansible.builtin.set_fact:
-    mount_needed: true
-  when: dir_check.failed
+# - name: Check dir creation
+#   ansible.builtin.set_fact:
+#     mount_needed: true
+#   when: dir_check.failed
 
-- name: Handle stale file handle by forcing unmount
-  ansible.builtin.command: "umount -l {{ client_mount_path }}"
-  when: dir_check.failed
-  register: unmount_result
-  changed_when: unmount_result.rc == 0
+# - name: Handle stale file handle by forcing unmount
+#   ansible.builtin.command: "umount -l {{ client_mount_path }}"
+#   when: dir_check.failed
+#   register: unmount_result
+#   changed_when: unmount_result.rc == 0
 
-- name: Retry mounting NFS share after unmount
-  ansible.posix.mount:
-    src: "{{ nfs_src }}"
-    path: "{{ client_mount_path }}"
-    opts: "{{ item.client_mount_options | default(default_client_mount_options) }}"
-    state: mounted
-    fstype: nfs
-  when: mount_needed
+- name: Mount NFS share
+  # when: mount_needed
+  block:
+    - name: Try mounting NFS share with fstab entry
+      ansible.posix.mount:
+        src: "{{ nfs_src }}"
+        path: "{{ client_mount_path }}"
+        opts: "{{ item.client_mount_options | default(default_client_mount_options) }}"
+        state: mounted
+        fstype: nfs
+
+    - name: Mount all fstab # TODO: only required
+      ansible.builtin.command: "mount -a"
+      register: mount_result
+      changed_when: mount_result.rc == 0
+  
+  rescue:
+    - name: Remove from fstab
+      ansible.posix.mount:
+        path: "{{ client_mount_path }}"
+        state: absent_from_fstab
+
+    - name: Fail if mount failed
+      ansible.builtin.fail:
+        msg: "Failed to mount NFS share for slurm. {{ ansible_failed_result.stderr }}"
