@@ -35,7 +35,7 @@
     restart_slurm_services: "{{ slurm_cluster[0].restart_slurm_services }}"
     conf_paths: "{{ slurm_cluster[0].config_paths | default({}) | dict2items | rejectattr('value', 'falsy') | list | items2dict }}"
     slurm_config_path: "{{ share_path }}/{{ slurm_dir_name }}"
-- pause:
+
 - name: Set facts for openldap
   ansible.builtin.set_fact:
     openldap_config_path: "{{ share_path }}/{{ openldap_dir_name }}"

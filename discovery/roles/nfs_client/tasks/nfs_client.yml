@@ -72,4 +72,4 @@
 
     - name: Fail if mount failed
       ansible.builtin.fail:
-        msg: "Failed to mount NFS share for slurm. {{ ansible_failed_result.stderr }}"
+        msg: "Failed to mount NFS share for slurm"
