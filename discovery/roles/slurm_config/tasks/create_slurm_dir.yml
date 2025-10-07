@@ -157,7 +157,7 @@
     mode: "{{ conf_file_mode }}"
   when: ctld_list
   loop: "{{ ctld_list | product(conf_files | difference(conf_paths.keys() | default([]))) }}"
-- pause:
+
 - name: Create mariadb cnf
   ansible.builtin.template:
     src: "mariadb-server.cnf.j2"
