@@ -32,7 +32,7 @@
             if [ "$default_count" -le 1 ]; then
                 echo "Only one or no default route found. No action needed."
             else
-                private_nic=$(ip route | grep "^default via 10.11.0.1" | awk '{print $5}')
+                private_nic=$(ip route | grep "^default via {{ hostvars['localhost']['admin_nic_ip'] }}" | awk '{print $5}')
                 # Get all default routes
                 ip route | grep '^default' | while read -r line; do
                     nmcli con del "Wired Connection"
