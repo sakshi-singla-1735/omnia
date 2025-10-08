@@ -86,7 +86,7 @@
         mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
       vars:
         nodes: "{{ hostvars['localhost']['read_mapping_file']['dict'] | dict2items }}"
-  
+
     - name: Configure the hostname
       ansible.builtin.command: /usr/bin/ochami cloud-init node set -f yaml -d @"{{ openchami_hostname_vars_path }}"
       changed_when: true
