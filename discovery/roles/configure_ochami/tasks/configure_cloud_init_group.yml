@@ -45,10 +45,8 @@
   ansible.builtin.command: /usr/bin/ochami cloud-init group get config {{ functional_group_name }}
   changed_when: false
   register: ci_group_compute_output
-  no_log: true
 
 - name: Verify ci group output - {{ functional_group_name }}
   ansible.builtin.debug:
     msg: "{{ ci_group_compute_output.stdout_lines }}"
     verbosity: 2
-  no_log: true
