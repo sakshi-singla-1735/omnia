@@ -35,7 +35,7 @@
 
                     # Add the default route to the connection
                     if [ -n "$nic" ]; then
-                        echo "Adding default route via $gateway to connection $nic on device $nic"
+                        echo "Adding nmcli device $nic"
                         nmcli con add type ethernet ifname "$nic" con-name "$nic" ipv4.method auto
                         if [ "$nic" = "$private_nic" ]; then
                           nmcli con modify "$nic" ipv4.never-default yes
