@@ -85,7 +85,7 @@
   when: existing_cluster_id.resources | length == 0
   no_log: true
 
-- name: create Kafka server configuration ConfigMap
+- name: Create Kafka server configuration ConfigMap
   kubernetes.core.k8s:
     state: present
     definition: "{{ lookup('template', 'kafka-config-map.yml.j2') | from_yaml }}"
