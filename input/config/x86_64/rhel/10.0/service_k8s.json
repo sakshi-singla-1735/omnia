@@ -14,7 +14,7 @@
       { "package": "docker.io/library/busybox", "type": "image", "tag": "1.36" },
       { "package": "docker.io/rmohr/activemq", "type": "image", "tag": "5.15.9" },
       { "package": "docker.io/library/mysql", "type": "image", "tag": "9.3.0" },
-      { "package": "docker.io/bitnamilegacy/kafka", "type": "image", "tag": "3.9.0" },
+      { "package": "docker.io/apache/kafka", "type": "image", "tag": "4.1.0" },
       { "package": "cryptography==45.0.7", "type": "pip_module" },
       { "package": "omsdk==1.2.518", "type": "pip_module" },
       { "package": "cffi==1.17.1", "type": "pip_module" },
