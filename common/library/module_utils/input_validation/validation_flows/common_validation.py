@@ -1005,6 +1005,7 @@ def validate_omnia_config(
     if (("slurm" in sw_list or "slurm_custom" in sw_list) and "slurm" in tag_names):     
         slurm_nfs = [clst.get('nfs_storage_name') for clst in data.get('slurm_cluster')]
         nfs_names = [st.get('nfs_name') for st in st_config.get('nfs_client_params')]
+
         diff_set = set(slurm_nfs).difference(set(nfs_names))
         if diff_set:
             errors.append(
