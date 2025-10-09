@@ -59,7 +59,7 @@
     - name: Discover ochami nodes
       block:
         - name: Discover ochami nodes
-          ansible.builtin.command: /usr/bin/ochami discover static -f yaml -d @"{{ nodes_dir }}/nodes.yaml" --overwrite
+          ansible.builtin.command: /usr/bin/ochami discover static -f yaml -d @"{{ openchami_nodes_vars_path }}" --overwrite
           changed_when: true
           register: openchami_discover
       rescue:
@@ -78,3 +78,15 @@
       ansible.builtin.debug:
         msg: "{{ openchami_smd_status.stdout_lines }}"
         verbosity: 2
+
+    - name: Load the openchami hostname.yaml
+      ansible.builtin.template:
+        src: "{{ openchami_hostname_template }}"
+        dest: "{{ openchami_hostname_vars_path }}"
+        mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
+      vars:
+        nodes: "{{ hostvars['localhost']['read_mapping_file']['dict'] | dict2items }}"
+
+    - name: Configure the hostname
+      ansible.builtin.command: /usr/bin/ochami cloud-init node set -f yaml -d @"{{ openchami_hostname_vars_path }}"
+      changed_when: true
