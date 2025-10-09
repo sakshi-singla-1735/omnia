@@ -51,18 +51,19 @@
 
 - name: Mount NFS share
   block:
-    - name: Try mounting NFS share with fstab entry
+    - name: Try mounting NFS share with fstab entry # This task not failing if NFS server unreachable
       ansible.posix.mount:
         src: "{{ nfs_src }}"
         path: "{{ client_mount_path }}"
         opts: "{{ item.client_mount_options | default(default_client_mount_options) }}"
-        state: mounted
+        state: mounted # This is needed to add entry to fstab
         fstype: nfs
 
-    - name: Mount all fstab # TODO: only required
+    - name: Mount all fstab # TODO: only required mounts
       ansible.builtin.command: "mount -a" # noqa: command-instead-of-module
       register: mount_result
       changed_when: mount_result.rc == 0
+      failed_when: mount_result.rc != 0
 
   rescue:
     - name: Remove from fstab
@@ -72,4 +73,4 @@
 
     - name: Fail if mount failed
       ansible.builtin.fail:
-        msg: "Failed to mount NFS share for slurm"
+        msg: "{{ slurm_nfs_fail_msg }}"
