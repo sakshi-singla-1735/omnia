@@ -46,6 +46,12 @@
     share_prefix: "{{ slurm_config_path }}"
   when: conf_in_nfs
 
+- name: Clear the share directory
+  ansible.builtin.file:
+    path: "{{ slurm_config_path }}"
+    state: absent
+  when: clear_slurm_files
+
 - name: Create the slurm directory in share
   ansible.builtin.file:
     path: "{{ slurm_config_path }}"
