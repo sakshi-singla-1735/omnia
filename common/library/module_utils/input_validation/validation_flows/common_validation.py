@@ -19,9 +19,7 @@ import json
 import os
 import yaml
 import ipaddress
-import subprocess
 from collections import Counter
-from ast import literal_eval
 import ansible.module_utils.input_validation.common_utils.data_fetch as fetch
 from ansible.module_utils.input_validation.validation_flows import csi_driver_validation
 import ansible.module_utils.input_validation.common_utils.data_validation as validate
@@ -1013,17 +1011,6 @@ def validate_omnia_config(
                     "slurm NFS not provided",
                     f"NFS name {', '.join(diff_set)} required for slurm is not defined in {storage_config}"
                     ))
-        config_paths_list = [clst.get('config_paths', {}) for clst in data.get('slurm_cluster')]
-        for cfg_path_dict in config_paths_list:
-            # check if given file exists
-            for k,v in cfg_path_dict.items():
-                if not os.path.exists(v):
-                    errors.append(
-                        create_error_msg(
-                            input_file_path,
-                            "slurm config_paths",
-                            f"config_path for {k} - {v} does not exist"
-                            ))
     return errors
 
 def check_is_service_cluster_functional_groups_defined(
