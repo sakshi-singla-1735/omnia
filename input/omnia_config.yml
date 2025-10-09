@@ -19,6 +19,9 @@
 # ***********************************************************************
 
 # -----------------------------SLURM------------------------------------------------
+# slurm_cluster
+# List of slurm clusters
+# cluster_name is required field
 
 # installation_type
 # This variable accepts whether slurm installation is supported in configless mode
@@ -31,12 +34,16 @@
 # It accepts true and false values
 # Default value is true
 
+# nfs_storage_name
+# Storage name corresponding to the NFS share to be used by slurm cluster 
+# This should match with exactly with a entry in storage_config.yml
+
 slurm_cluster:
   - cluster_name: slurm_cluster
     installation_type: "configless"
     restart_slurm_services: true
     nfs_storage_name: nfs_slurm
-
+  
 # ----------------------------K8S------------------------------------------------------
 #For both service nodes k8s cluster and compute nodes k8s cluster below parameters are required,(List)
 # - cluster_name is required field
@@ -77,7 +84,6 @@ slurm_cluster:
 # File path for the values.yml file which will contain the Powerscale driver configuration parameters.
 # csi_powerscale_driver_values_file_path: User need to download values.yaml file and fill required data in values.yaml file. Provided the path of the values.yaml file here.
 # mention configurable values
-
 
 service_k8s_cluster:
   - cluster_name: service_cluster

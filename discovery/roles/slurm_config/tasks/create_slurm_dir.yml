@@ -33,6 +33,7 @@
     cluster_name: "{{ slurm_cluster[0].cluster_name }}"
     slurm_installation_type: "{{ slurm_cluster[0].installation_type }}"
     restart_slurm_services: "{{ slurm_cluster[0].restart_slurm_services }}"
+    conf_paths: "{{ slurm_cluster[0].config_paths | default({}) | dict2items | rejectattr('value', 'falsy') | list | items2dict }}"
     slurm_config_path: "{{ share_path }}/{{ slurm_dir_name }}"
 
 - name: Set facts for openldap
@@ -138,6 +139,15 @@
   when: cmpt_list
   loop: "{{ cmpt_list }}"
 
+- name: Copy conf file if provided
+  ansible.builtin.copy:
+    src: "{{ conf_paths.get(item.1) }}"
+    dest: "{{ slurm_config_path }}/{{ item.0 }}/etc/slurm/{{ item.1 }}.conf"
+    mode: "{{ conf_file_mode }}"
+    remote_src: true
+  when: ctld_list
+  loop: "{{ ctld_list | product(conf_paths.keys() | default([])) }}"
+
 - name: Create slurm.conf for ctld only
   ansible.builtin.template:
     src: "{{ item.1 }}.conf.j2"
@@ -146,7 +156,7 @@
     group: "{{ root_group }}"
     mode: "{{ conf_file_mode }}"
   when: ctld_list
-  loop: "{{ ctld_list | product(conf_files) }}"
+  loop: "{{ ctld_list | product(conf_files | difference(conf_paths.keys() | default([]))) }}"
 
 - name: Create mariadb cnf
   ansible.builtin.template:
