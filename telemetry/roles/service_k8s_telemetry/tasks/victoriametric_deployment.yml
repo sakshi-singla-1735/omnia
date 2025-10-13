@@ -32,11 +32,11 @@
         type: NodePort
         selector:
           app: "{{ victoria.app_name }}"
-      ports:
-      - port: 8428
-        targetPort: 8428
-        protocol: TCP
-        nodePort: 30995
+        ports:
+        - port: 8428
+          targetPort: 8428
+          protocol: TCP
+          nodePort: 30995
 
 - name: Deploy Victoriametric StatefulSet
   kubernetes.core.k8s:
