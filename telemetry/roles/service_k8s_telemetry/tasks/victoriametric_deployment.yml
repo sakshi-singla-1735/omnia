@@ -13,6 +13,10 @@
 #  limitations under the License.
 ---
 
+- name: Get service_cluster kube-control-plane node count
+  ansible.builtin.set_fact:
+    cp_node_count: "{{ groups['kube_control_plane'] | length }}"
+
 - name: Create VictoriaMetric LoadBalancer service
   kubernetes.core.k8s:
     state: present
@@ -25,12 +29,14 @@
         labels:
           app: "{{ victoria.app_name }}"
       spec:
-        type: LoadBalancer
+        type: NodePort
         selector:
           app: "{{ victoria.app_name }}"
-        ports:
-          - port: 8428
-            targetPort: 8428
+      ports:
+      - port: 8428
+        targetPort: 8428
+        protocol: TCP
+        nodePort: 30995
 
 - name: Deploy Victoriametric StatefulSet
   kubernetes.core.k8s:
