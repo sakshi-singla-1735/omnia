@@ -158,8 +158,8 @@ spec:
           args: ["go run cmd/kafkapump/kafkapump.go"]
 
 {% elif hostvars['localhost']['idrac_telemetry_collection_type'] == "victoria" %}
-        - name: victoriapump
-          image: idrac-telemetry-reference-tools/victoriapump:latest
+        - name: victoria-pump
+          image: {{ go_image }}
           imagePullPolicy: IfNotPresent
           volumeMounts:
             - mountPath: /go/src/github.com/telemetry-reference-tools
@@ -179,6 +179,7 @@ spec:
               name: victoriapump
           command: ["/bin/sh", "-c"]
           args: ["go run cmd/victoriapump/victoriapump.go"]
+{% endif %}
 
   volumeClaimTemplates:
     - metadata:
