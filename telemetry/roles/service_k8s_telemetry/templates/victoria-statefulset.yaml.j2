@@ -18,7 +18,7 @@ metadata:
   name: victoria-metric
   namespace: telemetry
 spec:
-  replicas: 1
+  replicas: {{ ( idrac_telemetry_replicas | int ) }}
   selector:
     matchLabels:
       app: "{{ victoria.app_name }}"
