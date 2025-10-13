@@ -18,7 +18,7 @@ metadata:
   name: kafka
   namespace: {{ telemetry_namespace }}
 spec:
-  serviceName: {{ kafka.headless_service_name }}
+  serviceName: {{ kafka.service_name }}
   replicas: {{ cp_node_count | int }}
   selector:
     matchLabels:
