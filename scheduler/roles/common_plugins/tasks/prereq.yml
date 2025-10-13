@@ -48,3 +48,6 @@
     - name: Helm not installed
       ansible.builtin.fail:
         msg: "{{ helm_install_fail_msg }}"
+
+- name: Include Kubernetes encryption setup playbook
+  ansible.builtin.include_tasks: encrypt_secrets.yml
