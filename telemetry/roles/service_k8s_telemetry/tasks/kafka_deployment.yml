@@ -24,7 +24,7 @@
       apiVersion: v1
       kind: Service
       metadata:
-        name: "{{ kafka.headless_service_name }}"
+        name: "{{ kafka.service_name }}"
         namespace: "{{ telemetry_namespace }}"
         labels:
           app: "{{ kafka.app_name }}"

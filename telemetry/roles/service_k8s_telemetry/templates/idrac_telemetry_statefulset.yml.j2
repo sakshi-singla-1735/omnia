@@ -124,6 +124,7 @@ spec:
           command: ["/bin/sh", "-c"]
           args: ["./scripts/example/idrac-telemetry-receiver.sh"]
 
+{% if hostvars['localhost']['idrac_telemetry_collection_type'] == "kafka" %}
         - name: kafka-pump
           image: {{ go_image }}
           imagePullPolicy: IfNotPresent
@@ -140,7 +141,7 @@ spec:
             - name: MESSAGEBUS_PORT
               value: "{{ messagebus_http_port }}"
             - name: KAFKA_BROKER
-              value: "{{ kafka_broker }}"
+              value: "{{ collector_address }}"
             - name: KAFKA_TOPIC
               value: "{{ kafka.telemetry_topic_name }}"
             - name: KAFKA_SKIP_VERIFY
@@ -155,6 +156,29 @@ spec:
               value: "kafka.keystore.key"
           command: ["/bin/sh", "-c"]
           args: ["go run cmd/kafkapump/kafkapump.go"]
+
+{% elif hostvars['localhost']['idrac_telemetry_collection_type'] == "victoria" %}
+        - name: victoriapump
+          image: idrac-telemetry-reference-tools/victoriapump:latest
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - mountPath: /go/src/github.com/telemetry-reference-tools
+              name: telemetry-reference-tools
+          workingDir: /go/src/github.com/telemetry-reference-tools
+          env:
+            - name: MESSAGEBUS_HOST
+              value: 127.0.0.1
+            - name: MESSAGEBUS_PORT
+              value: "{{ messagebus_http_port }}"
+            - name: MESSAGEBUS_TYPE
+              value: stomp
+            - name: VM_PUSH_URL
+              value: "{{ collector_address }}/api/v1/import/prometheus"
+          ports:
+            - containerPort: 2112
+              name: victoriapump
+          command: ["/bin/sh", "-c"]
+          args: ["go run cmd/victoriapump/victoriapump.go"]
 
   volumeClaimTemplates:
     - metadata:
