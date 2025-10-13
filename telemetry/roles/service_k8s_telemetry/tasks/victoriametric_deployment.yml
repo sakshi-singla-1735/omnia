@@ -32,7 +32,6 @@
           - port: 8428
             targetPort: 8428
 
-
 - name: Deploy Victoriametric StatefulSet
   kubernetes.core.k8s:
     state: present
