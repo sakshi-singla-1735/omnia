@@ -32,8 +32,9 @@ NodeName={{ cmpt }}{% for k in node_params[cmpt] %} {{ k }}={{ node_params[cmpt]
 {% else %}
 NodeName=localhost State=UNKNOWN
 {% endfor %}
-{% for login in (login_list | default([])) %}
-NodeName={{ login }}
+{% set all_login_nodes = (login_list | default([])) + (compiler_login_list | default([])) %}
+{% for login_node in all_login_nodes %}
+NodeName={{ login_node }}
 {% endfor %}
 
 # PARTITION INFO
