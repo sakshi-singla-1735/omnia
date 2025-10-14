@@ -20,6 +20,7 @@ conf_files:
   - slurm
   - slurmdbd
   - cgroup
+  - gres
 ctld_dir:
   - /etc/slurm
   - /etc/my.cnf.d
@@ -38,7 +39,10 @@ cmpt_dir:
 
 login_dir:
   - /etc/munge
-
+gpu_slurm_conf:
+  GresTypes: gpu
+  SelectType: select/cons_tres
+  SelectTypeParameters: CR_Core_Memory
 innodb_buffer_pool_size: 1G
 innodb_lock_wait_timeout: 120
 # TODO tmp
