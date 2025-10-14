@@ -29,14 +29,12 @@
         labels:
           app: "{{ victoria.app_name }}"
       spec:
-        type: NodePort
+        type: LoadBalancer
         selector:
           app: "{{ victoria.app_name }}"
         ports:
-        - port: 8428
-          targetPort: 8428
-          protocol: TCP
-          nodePort: 30995
+          - port: 8428
+            targetPort: 8428
 
 - name: Deploy Victoriametric StatefulSet
   kubernetes.core.k8s:

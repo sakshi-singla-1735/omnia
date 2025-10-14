@@ -107,7 +107,7 @@ victoria:
   container_name: "victoriametrics"
   service_name: "victoria-svc"
   container_port1: 8428
-  image: "victoriametrics/victoria-metrics:v1.64.0"
+  image: "victoriametrics/victoria-metrics:v1.121.0"
 
 # Usage: telemetry_metadata.yml
 telemetry_metadata_path: "/opt/omnia/telemetry/.telemetry_metadata.yml"

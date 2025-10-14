@@ -33,10 +33,11 @@ spec:
           hostPath:
             path: {{ idrac_telemetry_reference_git_clone_path }}
             type: Directory
+{% if hostvars['localhost']['idrac_telemetry_collection_type'] == "kafka" %}
         - name: kafka-tls-certs
           secret:
             secretName: "{{ kafka_secrets.name }}"
- 
+{% endif %}
       hostAliases:
         - ip: "127.0.0.1"
           hostnames:
