@@ -21,6 +21,7 @@ conf_files:
   - slurmdbd
   - cgroup
   - gres
+copy_from_oim: true
 ctld_dir:
   - /etc/slurm
   - /etc/my.cnf.d

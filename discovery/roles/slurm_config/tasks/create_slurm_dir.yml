@@ -118,7 +118,7 @@
     src: "{{ conf_paths.get(item.1) }}"
     dest: "{{ slurm_config_path }}/{{ item.0 }}/etc/slurm/{{ item.1 }}.conf"
     mode: "{{ conf_file_mode }}"
-    remote_src: true
+    remote_src: "{{ copy_from_oim }}"
   when: ctld_list
   loop: "{{ ctld_list | product(conf_paths.keys() | default([])) }}"
 
