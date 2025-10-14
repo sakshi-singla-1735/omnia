@@ -173,8 +173,8 @@ spec:
               value: "{{ messagebus_http_port }}"
             - name: MESSAGEBUS_TYPE
               value: stomp
-            - name: VM_PUSH_URL
-              value: "{{ collector_address }}/api/v1/import/prometheus"
+            - name: VICTORIA_METRICS_URL
+              value: "http://{{ collector_address }}/api/v1/import/prometheus"
           ports:
             - containerPort: 2112
               name: victoriapump
