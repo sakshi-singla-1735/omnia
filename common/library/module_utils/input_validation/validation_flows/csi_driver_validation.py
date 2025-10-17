@@ -17,6 +17,7 @@ Validates csi  driver configuration files for Omnia.
 """
 import os
 import yaml
+from pathlib import Path
 from ansible.module_utils.input_validation.common_utils import validation_utils
 from ansible.module_utils.input_validation.common_utils import config
 
@@ -209,10 +210,10 @@ def process_encrypted_file(secret_file_path,vault_secret_file_path,errors):
     decrypted_file = decrypt_file(secret_file_path, vault_secret_file_path)
     if decrypted_file:
         try:
-            with open(secret_file_path, "r", encoding="utf-8") as f:
-                data = yaml.safe_load(f)
-                encrypt_file(secret_file_path, vault_secret_file_path)
-                return data
+            content = Path(secret_file_path).read_text(encoding="utf-8")
+            data = yaml.safe_load(content)
+            encrypt_file(secret_file_path, vault_secret_file_path)
+            return data
         except FileNotFoundError:
             errors.append(create_error_msg("File not found",
                             secret_file_path, "Please check the associated file exists"))

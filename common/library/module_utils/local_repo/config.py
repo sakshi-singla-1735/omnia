@@ -86,6 +86,7 @@ TAR_POLL_VAL = 3
 FILE_POLL_VAL = 1
 ISO_POLL_VAL = 15
 FILE_URI = "/pulp/api/v3/content/file/files/"
+PULP_SSL_CA_CERT = "/etc/pki/ca-trust/source/anchors/pulp_webserver.crt"
 # ----------------------------
 # Used by download_image.py
 # ----------------------------
