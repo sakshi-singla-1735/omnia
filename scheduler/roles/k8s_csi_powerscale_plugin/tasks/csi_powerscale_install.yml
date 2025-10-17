@@ -65,8 +65,8 @@
   changed_when: sc_command_result.changed
   when: isilon_non_running_pods.stdout_lines | length == 0
 
-- name: Remove ps_storage_class.yml file
-  ansible.builtin.file:
-    path: "{{ csi_powerscale_path }}/ps_storage_class.yml"
-    state: absent
-    force: true
+#- name: Remove ps_storage_class.yml file
+ # ansible.builtin.file:
+  #  path: "{{ csi_powerscale_path }}/ps_storage_class.yml"
+   # state: absent
+    #force: true
