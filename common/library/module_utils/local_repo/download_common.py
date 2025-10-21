@@ -105,7 +105,7 @@ def download_file_distribution(distribution_name, dl_directory, relative_path, l
  
         # Download securely using requests (instead of wget)
         try:
-            response = requests.get(full_url, verify=False, timeout=60)
+            response = requests.get(full_url, verify=PULP_SSL_CA_CERT, timeout=60)
             response.raise_for_status()
             with open(local_path, "wb") as f:
                 f.write(response.content)
