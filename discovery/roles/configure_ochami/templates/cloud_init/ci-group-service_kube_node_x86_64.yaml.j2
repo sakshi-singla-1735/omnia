@@ -288,7 +288,7 @@
             fi
 
       runcmd:
-        
+        - /usr/local/bin/set-ssh.sh
         - mkdir -p /root/k8s-images /etc/containerd /usr/local/bin /etc/systemd/system
         - mkdir -p /etc/kubernetes /opt/cni/bin /etc/cni/net.d /var/lib/containerd /var/lib/containerd-overlay
         - mkdir -p /var/run/containerd /etc/nginx /opt/omnia

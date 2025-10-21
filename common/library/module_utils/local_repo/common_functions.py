@@ -14,11 +14,13 @@
 
 import os
 import subprocess
-import yaml
-import toml
 import stat
 import string
 import secrets
+import base64
+from pathlib import Path
+import yaml
+import toml
 
 def load_yaml_file(path):
     """
@@ -145,22 +147,29 @@ def process_file(file_path, vault_key, mode):
 def load_pulp_config(path):
     """
     Load Pulp CLI configuration from a TOML file.
-
+ 
     Args:
         path (str): Path to the Pulp CLI config file.
-
+ 
     Returns:
         dict: A dictionary containing the following keys:
             - username (str): Pulp username
-            - password (str): Pulp password.
-            - base_url (str): Base URL for Pulp API".
+            - password (str): Pulp password (Base64 encoded).
+            - base_url (str): Base URL for Pulp API.
     """
-    with open(path, "r", encoding = "utf-8") as f:
-        config = toml.load(f)
+    # Securely read file using pathlib
+    content = Path(path).read_text(encoding="utf-8")
+    config = toml.loads(content)
+
     cli_config = config.get("cli", {})
+
+    password_plain = cli_config.get("password", "")
+    # Encode password using Base64
+    password_encoded = base64.b64encode(password_plain.encode()).decode()
+
     return {
         "username": cli_config.get("username", ""),
-        "password": cli_config.get("password", ""),
+        "password": password_encoded,
         "base_url": cli_config.get("base_url", "")
     }
 
@@ -207,7 +216,7 @@ def get_arch_from_sw_config(software_name, sw_config_data, functional_groups_con
         if software.get("name") == software_name:
             arch = software.get("arch")
 
-            # Depricated 
+            # Depricated
             # if arch is None:
             #     # if arch is not defined for given software, fallback to functional_groups_config.yml
             #     return get_arch_from_functional_groups_config(software_name, functional_groups_config_data)
@@ -245,4 +254,3 @@ def get_arch_from_functional_groups_config(software_name, functional_groups_conf
             raise ValueError(error_msg)
 
     return {software_name: archs}
-
