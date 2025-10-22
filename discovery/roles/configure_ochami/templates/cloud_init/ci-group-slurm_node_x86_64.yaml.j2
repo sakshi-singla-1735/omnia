@@ -69,33 +69,6 @@
             {{ ip_name_map[key] }} {{ key }}
 {% endfor %}
 
-        - path: /usr/local/bin/wait_for_ip.sh
-          permissions: '{{ file_mode_755 }}'
-          content: |
-            #!/bin/bash
-            LOGFILE="/var/log/wait_for_ip.log"
-            IP=$1
-            if [ -z "$IP" ]; then
-              echo "IP address is not provided, No wait required" | tee -a "$LOGFILE"
-              exit 0
-            fi
-            TIMEOUT=5
-            MAX_RETRIES=10
-            COUNT=0
-            echo "Waiting for $IP to become reachable..." | tee -a "$LOGFILE"
-            while true; do
-              if ping -c1 -W1 "$IP" &>/dev/null; then
-                  echo "$IP is up — proceeding." | tee -a "$LOGFILE"
-                  exit 0
-              fi
-              ((COUNT++))
-              if [ "$COUNT" -ge "$MAX_RETRIES" ]; then
-                echo "IP $IP not reachable after $MAX_RETRIES attempts, giving up." | tee -a "$LOGFILE"
-                exit 1
-              fi
-              echo "IP $IP not reachable yet (attempt $COUNT). Retrying in $TIMEOUT seconds..." | tee -a "$LOGFILE"
-              sleep "$TIMEOUT"
-              done
       runcmd:
         - /usr/local/bin/set-hostname-by-mac.sh
         - mkdir -p /var/log
