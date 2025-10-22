@@ -38,7 +38,8 @@ from ansible.module_utils.local_repo.config import (
     ISO_POLL_VAL,
     TAR_POLL_VAL,
     FILE_POLL_VAL,
-    FILE_URI
+    FILE_URI,
+    PULP_SSL_CA_CERT
 )
 
 file_lock = Lock()
@@ -208,9 +209,10 @@ def handle_file_upload(repository_name, relative_path, file_url, poll_interval, 
     # Load config for authentication and base_url
     config = load_pulp_config(CLI_FILE_PATH)
     base_url = config["base_url"]
+    passcode = base64.b64decode(config["password"].encode()).decode()
 
     # Initialize RestClient
-    client = RestClient(base_url, config["username"], config["password"])
+    client = RestClient(base_url, config["username"], passcode)
 
     data = {
         "file_url": file_url,
@@ -230,7 +232,7 @@ def handle_file_upload(repository_name, relative_path, file_url, poll_interval, 
         return "Failed"
 
     # Wait for task completion
-    task_result = wait_for_task(task_href, base_url, config["username"], config["password"],
+    task_result = wait_for_task(task_href, base_url, config["username"], passcode,
                                logger, timeout=POST_TIMEOUT, interval=poll_interval)
     if task_result:
         return "Success"

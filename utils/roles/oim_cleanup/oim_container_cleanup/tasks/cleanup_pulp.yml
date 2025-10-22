@@ -76,7 +76,7 @@
   ansible.builtin.file:
     path: "{{ track_file_path }}"
     state: absent
-  when: hostvars['localhost']['pulp_protocol_https']
+  when: pulp_protocol_https
 
 - name: Check if target file exists
   ansible.builtin.stat:

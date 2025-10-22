@@ -18,6 +18,12 @@
   ansible.builtin.set_fact:
     hostname_enabled: false # Will be set to 'true' if user provides hostname in high_availability_config.yml
 
+- name: Set pulp_protocol_https globally
+  ansible.builtin.set_fact:
+    pulp_protocol_https: "{{ pulp_protocol_https }}"
+  delegate_to: localhost
+  run_once: true
+
 - name: Configure Pulp Server with Admin IP or VIP
   ansible.builtin.set_fact:
     pulp_server_ip: "{{ hostvars['localhost']['admin_nic_ip'] }}"
@@ -34,8 +40,8 @@
 
 - name: Invoke Pulp Container Deployment Tasks for HTTP
   ansible.builtin.include_tasks: deploy_pulp_container_http.yml
-  when: not hostvars['localhost']['pulp_protocol_https']
+  when: not pulp_protocol_https
 
 - name: Invoke Pulp Container Deployment Tasks for HTTPS
   ansible.builtin.include_tasks: deploy_pulp_container_https.yml
-  when: hostvars['localhost']['pulp_protocol_https']
+  when: pulp_protocol_https
