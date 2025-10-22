@@ -16,10 +16,6 @@
 # DO NOT REMOVE OR COMMENT OUT ANY LINES IN THIS FILE.
 # SIMPLY APPEND THE REQUIRED VALUES AGAINST THE PARAMETER OF YOUR CHOICE.
 # ***********************************************************************
-# By default, set to false to enable secure (HTTP) connection to the Pulp server.
-# Update to true if required to connect to the Pulp server using HTTPS.
-pulp_protocol_https: true
-
 # Optional
 # User-defined repository URLs for x86_64 architecture containing cluster packages.
 # Ensure sufficient disk space is available.

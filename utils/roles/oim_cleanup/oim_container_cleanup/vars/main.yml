@@ -25,6 +25,7 @@ max_retries: 5
 omnia_target: "/etc/systemd/system/omnia.target"
 
 # Usage: cleanup_pulp.yml
+pulp_protocol_https: true
 pulp_container_name: "pulp"
 pulp_cleanup_directory:
   - "{{ omnia_nfs_share }}/pulp/pulp_ha/cli.toml"
