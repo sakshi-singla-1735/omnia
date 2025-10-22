@@ -1013,17 +1013,18 @@ def validate_omnia_config(
                     "slurm NFS not provided",
                     f"NFS name {', '.join(diff_set)} required for slurm is not defined in {storage_config}"
                     ))
-        config_paths_list = [clst.get('config_paths', {}) for clst in data.get('slurm_cluster')]
-        for cfg_path_dict in config_paths_list:
+        # config_paths_list = [clst.get('config_paths', {}) for clst in data.get('slurm_cluster')]
+        # for cfg_path_dict in config_paths_list:
             # check if given file exists
-            for k,v in cfg_path_dict.items():
-                if not os.path.exists(v):
-                    errors.append(
-                        create_error_msg(
-                            input_file_path,
-                            "slurm config_paths",
-                            f"config_path for {k} - {v} does not exist"
-                            ))
+            # THIS checks on omnia_core - file can be on OIM
+            # for k,v in cfg_path_dict.items():
+            #     if not os.path.exists(v):
+            #         errors.append(
+            #             create_error_msg(
+            #                 input_file_path,
+            #                 "slurm config_paths",
+            #                 f"config_path for {k} - {v} does not exist"
+            #                 ))
     return errors
 
 def check_is_service_cluster_functional_groups_defined(
