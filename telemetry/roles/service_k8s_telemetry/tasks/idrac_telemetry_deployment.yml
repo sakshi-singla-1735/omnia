@@ -34,27 +34,27 @@
         | length
       }}
 
-- name: Wait for Kafka pod to come to ready state
+- name: Wait for collector pod to come to ready state
   block:
-    - name: Wait for Kafka pod to come to ready state
+    - name: Wait for collector pod to come to ready state
       ansible.builtin.command: >
         kubectl wait --for=condition=ready
         --timeout=300s
         -n {{ telemetry_namespace }}
-        pod -l app={{ kafka.app_name }}
+        pod -l app={{ vars[collector].app_name }}
       changed_when: false
   rescue:
-    - name: Failed - Kafka pod is not running
+    - name: Failed - {{ collector }} pod is not running
       ansible.builtin.fail:
-        msg: "{{ kafka_failed_msg }}"
+        msg: "{{ collector_failed_msg }}"
 
-- name: Set Kafka headless service hostname
+- name: Set {{ collector }} headless service hostname
   ansible.builtin.set_fact:
-    kafka_service_host: "{{ kafka.headless_service_name }}.{{ telemetry_namespace }}.svc.cluster.local"
+    collector_hostname: "{{ vars[collector].service_name }}.{{ telemetry_namespace }}.svc.cluster.local"
 
-- name: Set Kafka broker address (IP:PORT)
+- name: Set {{ collector }} address (IP:PORT)
   ansible.builtin.set_fact:
-    kafka_broker: "{{ kafka_service_host }}:{{ kafka.container_port1 }}"
+    collector_address: "{{ collector_hostname }}:{{ vars[collector].container_port1 }}"
 
 - name: Render and apply idrac-telemetry StatefulSet
   kubernetes.core.k8s:
