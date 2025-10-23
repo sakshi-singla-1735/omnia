@@ -9,7 +9,7 @@
   ansible.builtin.command: uuidgen
   register: cluster_id
   changed_when: false
-  when: existing_cluster_id.resources | length == 0
+  # when: existing_cluster_id.resources | length == 0
   no_log: true
 
 - name: Populate telemetry deployment configs
