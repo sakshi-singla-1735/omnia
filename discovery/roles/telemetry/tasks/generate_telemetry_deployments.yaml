@@ -1,7 +1,7 @@
 ---
 - name: Create telemetry deployment directory
   file:
-    path: "{{ service_cluster_idrac_telemetry_dir_path }}/telemetry/deployments"
+    path: "{{ hostvars['localhost']['k8s_server_share_path'] }}/telemetry/deployments"
     state: directory
     mode: '0755'
 
@@ -15,7 +15,7 @@
 - name: Populate telemetry deployment configs
   template:
     src: "{{ item.src }}"
-    dest: "{{ service_cluster_idrac_telemetry_dir_path }}/telemetry/{{ item.dest }}"
+    dest: "{{ hostvars['localhost']['k8s_server_share_path'] }}/telemetry/deployments/{{ item.dest }}"
     mode: '0644'
   loop:
     - { src: 'telemetry/common/gen_certs_script.sh.j2', dest: 'gen_certs_script.sh' }
