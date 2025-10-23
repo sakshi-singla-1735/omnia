@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: "{{ kafka.service_name }}"
+  namespace: "{{ telemetry_namespace }}"
+  labels:
+    app: "{{ kafka.app_name }}"
+spec:
+  clusterIP: None
+  selector:
+    app: "{{ kafka.app_name }}"
+  ports:
+    - name: kafka
+      port: 9092
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: "{{ kafka.lb_service_name }}"
+  namespace: "{{ telemetry_namespace }}"
+  labels:
+    app: "{{ kafka.app_name }}"
+spec:
+  type: LoadBalancer
+  selector:
+    app: "{{ kafka.app_name }}"
+  ports:
+    - name: kafka
+      port: 9092
