@@ -50,7 +50,8 @@ spec:
           hostPath:
             path: {{ idrac_telemetry_reference_git_clone_path }}
             type: Directory
-{% if hostvars['localhost']['idrac_telemetry_collection_type'] == "kafka" %}
+{% set types = hostvars['localhost']['idrac_telemetry_collection_type'].split(',') %}
+{% if 'kafka' in types %}
         - name: kafka-tls-certs
           secret:
             secretName: "{{ kafka_secrets.name }}"
@@ -142,7 +143,7 @@ spec:
           command: ["/bin/sh", "-c"]
           args: ["./scripts/example/idrac-telemetry-receiver.sh"]
 
-{% if hostvars['localhost']['idrac_telemetry_collection_type'] == "kafka" %}
+{% if 'kafka' in types %}
         - name: kafka-pump
           image: {{ go_image }}
           imagePullPolicy: IfNotPresent
@@ -175,7 +176,7 @@ spec:
           command: ["/bin/sh", "-c"]
           args: ["go run cmd/kafkapump/kafkapump.go"]
 
-{% elif hostvars['localhost']['idrac_telemetry_collection_type'] == "victoria" %}
+{% if 'victoria' in types %}
         - name: victoria-pump
           image: {{ go_image }}
           imagePullPolicy: IfNotPresent

@@ -50,3 +50,4 @@
 - name: Set share_path from service_k8s_cluster client_share_path
   ansible.builtin.set_fact:
     k8s_client_share_path: "{{ k8s_nfs_storage_details.client_share_path }}"
+    k8s_server_share_path: "{{ k8s_nfs_storage_details.server_share_path }}"
