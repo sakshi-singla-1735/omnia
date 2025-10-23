@@ -34,7 +34,7 @@ metadata:
   name: victoria-metric
   namespace: telemetry
 spec:
-  replicas: {{ cp_node_count | int }}
+  replicas: 1
   selector:
     matchLabels:
       app: "{{ victoria.app_name }}"

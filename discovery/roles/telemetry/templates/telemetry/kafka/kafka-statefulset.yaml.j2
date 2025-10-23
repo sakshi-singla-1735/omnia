@@ -131,7 +131,7 @@ metadata:
   namespace: {{ telemetry_namespace }}
 spec:
   serviceName: {{ kafka.service_name }}
-  replicas: {{ cp_node_count | int }}
+  replicas: 1
   selector:
     matchLabels:
       app: {{ kafka.app_name }}

@@ -159,7 +159,7 @@ spec:
             - name: MESSAGEBUS_PORT
               value: "{{ messagebus_http_port }}"
             - name: KAFKA_BROKER
-              value: "{{ collector_address }}"
+              value: "kafka-headless.telemetry.svc.cluster.local:9092"
             - name: KAFKA_TOPIC
               value: "{{ kafka.telemetry_topic_name }}"
             - name: KAFKA_SKIP_VERIFY
