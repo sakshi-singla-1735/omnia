@@ -53,8 +53,9 @@ class RestClient:
         if parsed_url.scheme == 'https':
             context = ssl._create_unverified_context()
             return http.client.HTTPSConnection(parsed_url.hostname, parsed_url.port, context=context, timeout=60)
-        elif parsed_url.scheme == 'http':
-            return http.client.HTTPConnection(parsed_url.hostname, parsed_url.port, timeout=60)
+        # http support is disabled
+        # elif parsed_url.scheme == 'http':
+        #     return http.client.HTTPConnection(parsed_url.hostname, parsed_url.port, timeout=60)
         return None
 
     def post(self, uri, data):
