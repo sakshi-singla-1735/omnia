@@ -175,6 +175,7 @@ spec:
               value: "kafka.keystore.key"
           command: ["/bin/sh", "-c"]
           args: ["go run cmd/kafkapump/kafkapump.go"]
+{% endif %}
 
 {% if 'victoria' in types %}
         - name: victoria-pump
