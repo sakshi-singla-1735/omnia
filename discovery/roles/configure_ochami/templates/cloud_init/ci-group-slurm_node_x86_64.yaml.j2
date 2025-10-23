@@ -69,30 +69,43 @@
             {{ ip_name_map[key] }} {{ key }}
 {% endfor %}
 
+        - path: /usr/local/bin/wait_for_ip.sh
+          permissions: '{{ file_mode_755 }}'
+          content: |
+            #!/bin/bash
+            LOGFILE="/var/log/wait_for_ip.log"
+            IP="$1"
+            TIMEOUT={{ ip_timeout }}
+            MAX_RETRIES={{ ip_wait_loop }}
+            COUNT=0
+            echo "Waiting for $IP to become reachable..." | tee -a "$LOGFILE"
+            if [[ $# -eq 0 || -z "${1:-}" ]]; then
+              echo "Usage: $0 <TARGET_IP>" | tee -a "$LOGFILE"
+              echo "No argument provided. continuing" | tee -a "$LOGFILE"
+              exit 0
+            fi
+            while true; do
+              if ping -c1 -W1 "$IP" &>/dev/null; then
+                  echo "$IP is up — proceeding." | tee -a "$LOGFILE"
+                  exit 0
+              fi
+              ((COUNT++))
+              if [ "$COUNT" -ge "$MAX_RETRIES" ]; then
+                echo "IP $IP not reachable after $MAX_RETRIES attempts, giving up." | tee -a "$LOGFILE"
+                exit 1
+              fi
+              echo "IP $IP not reachable yet (attempt $COUNT). Retrying in $TIMEOUT seconds..." | tee -a "$LOGFILE"
+              sleep "$TIMEOUT"
+              done
       runcmd:
         - /usr/local/bin/set-hostname-by-mac.sh
         - mkdir -p /var/log
+        - /usr/local/bin/wait_for_ip.sh {{ ctld_list[0] }}
         - |
-          #!/bin/bash
-          LOGFILE="/var/log/wait_for_ip.log"
-          IP={{ ctld_list[0] }}
-          TIMEOUT=10
-          MAX_RETRIES=60
-          COUNT=0
-          echo "Waiting for $IP to become reachable..." | tee -a "$LOGFILE"
-          while true; do
-            if ping -c1 -W1 "$IP" &>/dev/null; then
-                echo "$IP is up — proceeding." | tee -a "$LOGFILE"
-                break
-            fi
-            ((COUNT++))
-            if [ "$COUNT" -ge "$MAX_RETRIES" ]; then
-              echo "IP $IP not reachable after $MAX_RETRIES attempts, giving up." | tee -a "$LOGFILE"
-              exit 1
-            fi
-            echo "IP $IP not reachable yet (attempt $COUNT). Retrying in $TIMEOUT seconds..." | tee -a "$LOGFILE"
-            sleep "$TIMEOUT"
-            done
+          if [ $? -ne 0 ]; then
+            echo "IP reachability of slurm control node failed, stopping further execution."
+            exit 0 # Exit the cloud-init runcmd section, preventing further commands
+          fi
         - useradd -mG wheel -p '$6$VHdSKZNm$O3iFYmRiaFQCemQJjhfrpqqV7DdHBi5YpY6Aq06JSQpABPw.3d8PQ8bNY9NuZSmDv7IL/TsrhRJ6btkgKaonT.' testuser
         - groupadd -r {{ slurm_group_name }}
         - useradd -r -g {{ slurm_group_name }} -d {{ home_dir }} -s /sbin/nologin {{ user }}
@@ -118,7 +131,6 @@
         - mkdir -p /var/spool/slurmd
         - chmod {{ file_mode_755 }} /var/spool/slurmd
         - chown -R {{ user }}:{{ slurm_group_name }} /var/spool/slurmd
-
 
         - sed -i '/^password\s\+include\s\+password-auth/i account    required    pam_slurm_adopt.so action_no_jobs=deny' /etc/pam.d/sshd
 
