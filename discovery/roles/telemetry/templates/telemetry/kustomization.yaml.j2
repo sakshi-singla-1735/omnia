@@ -2,7 +2,7 @@ resources:
   - telemetry_secret_creation.yaml
   - idrac_telemetry_statefulset.yaml
 {% if hostvars['localhost']['idrac_telemetry_collection_type'] == "victoria" %}
-  - kafka-statefulset.yaml
-{% if hostvars['localhost']['idrac_telemetry_collection_type'] == "kafka" %}
   - victoria-statefulset.yaml
+{% elif hostvars['localhost']['idrac_telemetry_collection_type'] == "kafka" %}
+  - kafka-statefulset.yaml
 {% endif %}
