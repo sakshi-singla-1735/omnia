@@ -59,6 +59,7 @@ data:
     log.retention.bytes={{ hostvars['localhost']['kafka_configurations']['log_retention_bytes'] }}
     log.retention.check.interval.ms=300000
 ---
+# Kafka KRaft Cluster ID Secret
 apiVersion: v1
 kind: Secret
 metadata:
@@ -113,16 +114,6 @@ data:
   kafka.keystore.key: "{{ lookup('file', kafka_secrets.cert_key) | b64encode }}"
   kafka.truststore.pem: "{{ lookup('file', kafka_secrets.cacert_file) | b64encode }}"
   kafka.keystore.combined.pem: "{{ lookup('file', kafka_secrets.combined_pem) | b64encode }}"
----
-# Kafka KRaft Cluster ID Secret
-apiVersion: v1
-kind: Secret
-metadata:
-  name: "{{ kafka.cluster_id }}"
-  namespace: "{{ telemetry_namespace }}"
-type: Opaque
-stringData:
-  cluster-id: "{{ cluster_id }}"
 ---
 apiVersion: apps/v1
 kind: StatefulSet
