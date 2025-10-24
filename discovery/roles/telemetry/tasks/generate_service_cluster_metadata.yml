@@ -26,7 +26,7 @@
 
     - name: Fetch service_cluster info
       get_service_cluster_info:
-        nodes_info: "{{ nodes }}"
+        nodes_info: "{{ node_parsed_yaml.nodes }}"
         functional_groups_file_path: "{{ functional_groups_config_path }}"
         bmc_group_data: "{{ bmc_dict_list | default([]) }}"
       register: service_cluster_info_output
@@ -50,3 +50,6 @@
         content: "{{ {'service_cluster_metadata': service_cluster_metadata} | to_nice_yaml }}"
         mode: "{{ metadata_perm }}"
         force: true
+      delegate_to: localhost
+      connection: local
+      no_log: true
