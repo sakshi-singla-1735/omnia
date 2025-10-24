@@ -16,7 +16,7 @@
 # Usage: generate_service_cluster_metadata.yml
 functional_groups_config_path: "{{ hostvars['localhost']['input_project_dir'] }}/functional_groups_config.yml"
 functional_groups_config_syntax_fail_msg: "Failed. Syntax errors present in functional_groups_config.yml. Fix errors and re-run playbook again."
-service_cluster_metadata_path: "{{ oim_shared_path }}/.data/service_cluster_metadata.yml"
+service_cluster_metadata_path: "{{ hostvars['localhost']['oim_shared_path'] }}/omnia/.data/service_cluster_metadata.yml"
 metadata_perm: "0644"
 
 # Usage: secrets_creation.yml
@@ -110,8 +110,8 @@ telemetry_templates:
   - telemetry/victoria/victoria-statefulset.yaml.j2
 
 # Usage: validate_idrac_inventory.yml
-bmc_group_data_filename: "{{ oim_shared_path }}/telemetry/bmc_group_data.csv"
+bmc_group_data_filename: "{{ hostvars['localhost']['oim_shared_path'] }}/omnia/telemetry/bmc_group_data.csv"
 bmc_group_data_headers: "BMC_IP,GROUP_NAME,PARENT"
-openchami_work_dir: "/opt/omnia/openchami/workdir"
+openchami_work_dir: "{{ hostvars['localhost']['oim_shared_path'] }}/omnia/openchami/workdir"
 nodes_dir: "{{ openchami_work_dir }}/nodes"
 openchami_nodes_vars_path: "{{ nodes_dir }}/nodes.yaml"
