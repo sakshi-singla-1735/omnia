@@ -19,7 +19,8 @@
 
 - name: Include OCHAMI node list
   ansible.builtin.include_vars: "{{ openchami_nodes_vars_path }}"
-  remote_src: true
+  delegate_to: localhost
+  connection: local
 
 - name: Validate BMC group data file
   validate_bmc_group_data:

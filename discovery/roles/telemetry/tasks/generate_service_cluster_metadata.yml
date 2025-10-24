@@ -19,7 +19,8 @@
   block:
     - name: Include service_cluster metadata if already exists
       ansible.builtin.include_vars: "{{ service_cluster_metadata_path }}"
-      remote_src: true
+      delegate_to: localhost
+      connection: local
       no_log: true
       failed_when: false
 
