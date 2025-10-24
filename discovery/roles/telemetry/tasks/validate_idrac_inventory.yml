@@ -17,14 +17,18 @@
   ansible.builtin.set_fact:
     bmc_group_data: "{{ lookup('file', bmc_group_data_filename).splitlines() }}"
 
-- name: Include OCHAMI node list
-  ansible.builtin.include_vars: "{{ openchami_nodes_vars_path }}"
-  delegate_to: localhost
-  connection: local
+- name: Include nodes vars
+  ansible.builtin.slurp:
+    src: "{{ openchami_nodes_vars_path }}"
+  register: nodes_vars
+
+- name: Decode and parse nodes_vars YAML
+  ansible.builtin.set_fact:
+    node_parsed_yaml: "{{ nodes_vars.content | b64decode | from_yaml }}"
 
 - name: Validate BMC group data file
   validate_bmc_group_data:
-    nodes_bmc_ips: "{{ nodes | map(attribute='bmc_ip') | list }}"
+    nodes_bmc_ips: "{{ node_parsed_yaml.nodes | map(attribute='bmc_ip') | list }}"
     bmc_group_data_headers: "{{ bmc_group_data_headers }}"
     bmc_group_data: "{{ bmc_group_data }}"
     bmc_group_data_file: "{{ bmc_group_data_filename }}"
