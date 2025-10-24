@@ -51,3 +51,5 @@
   ansible.builtin.set_fact:
     k8s_client_share_path: "{{ k8s_nfs_storage_details.client_share_path }}"
     k8s_server_share_path: "{{ k8s_nfs_storage_details.server_share_path }}"
+    k8s_server_ip: "{{ k8s_nfs_storage_details.server_ip }}"
+    k8s_mount_options: "{{ k8s_nfs_storage_details.client_mount_options }}"

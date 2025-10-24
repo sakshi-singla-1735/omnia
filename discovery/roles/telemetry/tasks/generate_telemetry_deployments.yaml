@@ -1,19 +1,66 @@
+# Copyright 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 ---
+
+- name: Count entries with FUNCTIONAL_GROUP_NAME containing 'service_kube_node'
+  set_fact:
+    kube_node_count: >-
+      {{
+        hostvars['localhost']['read_mapping_file']['dict']
+        | dict2items
+        | selectattr('value.FUNCTIONAL_GROUP_NAME', 'search', 'service_kube_node')
+        | list
+        | length
+      }}
+
+- name: Mount NFS share (force NFSv3)
+  ansible.posix.mount:
+    src: "{{ k8s_server_ip }}:{{ k8s_server_share_path }}"
+    path: "{{ k8s_client_share_path }}"
+    fstype: nfs
+    opts: "{{ k8s_mount_options }},vers=3"
+    state: mounted
+
 - name: Create telemetry deployment directory
   file:
-    path: "{{ hostvars['localhost']['k8s_server_share_path'] }}/telemetry/deployments"
+    path: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/deployments"
     state: directory
     mode: '0755'
 
 - name: Configure TLS certificate and secrets for kafka
   when: "'kafka' in hostvars['localhost']['idrac_telemetry_collection_type'].split(',')"
   block:
+    - name: Check if telemetry secrets config file exists
+      stat:
+        path: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/deployments/telemetry_secret_creation.yaml"
+      register: telemetry_config_file
+
+    - name: Check if Kafka Cluster ID is present in the file
+      set_fact:
+        cluster_id_present: >-
+          {% if telemetry_config_file.stat.exists %}
+            {{ 'cluster-id' in lookup('file', telemetry_config_file.stat.path, errors='ignore') }}
+          {% else %}
+            false
+          {% endif %}
+
     - name: Generate cluster ID
       ansible.builtin.command: uuidgen
       register: cluster_id
       changed_when: false
-      # when: existing_cluster_id.resources | length == 0
       no_log: true
+      when: not cluster_id_present
 
     - name: Create telemetry certificate directory
       ansible.builtin.file:
@@ -102,15 +149,17 @@
 - name: Populate telemetry deployment configs
   template:
     src: "{{ item.src }}"
-    dest: "{{ hostvars['localhost']['k8s_server_share_path'] }}/telemetry/deployments/{{ item.dest }}"
+    dest: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/deployments/{{ item.dest }}"
     mode: '0644'
   loop:
     - { src: 'telemetry/common/gen_certs_script.sh.j2', dest: 'gen_certs_script.sh' }
-    - { src: 'telemetry/common/telemetry_secret_creation.yaml.j2', dest: 'telemetry_secret_creation.yaml' }
+    - { src: 'telemetry/common/telemetry_secret_creation.yaml.j2', dest: 'telemetry_secret_creation.yaml', skip_when: cluster_id_present }
     - { src: 'telemetry/kustomization.yaml.j2', dest: 'kustomization.yaml' }
     - { src: 'telemetry/idrac_telemetry/idrac_telemetry_statefulset.yaml.j2', dest: 'idrac_telemetry_statefulset.yaml' }
     - { src: 'telemetry/kafka/kafka-san.cnf.j2', dest: 'kafka-san.cnf', type: 'kafka' }
     - { src: 'telemetry/kafka/kafka-statefulset.yaml.j2', dest: 'kafka-statefulset.yaml', type: 'kafka' }
     - { src: 'telemetry/victoria/victoria-statefulset.yaml.j2', dest: 'victoria-statefulset.yaml', type: 'victoria' }
-  when: item.type is not defined or item.type in hostvars['localhost']['idrac_telemetry_collection_type'].split(',')
+  when:
+    - item.type is not defined or item.type in hostvars['localhost']['idrac_telemetry_collection_type'].split(',')
+    - item.skip_when is not defined or not item.skip_when
   tags: telemetry_deployment
