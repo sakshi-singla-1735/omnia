@@ -16,7 +16,7 @@
 # Usage: generate_service_cluster_metadata.yml
 functional_groups_config_path: "{{ hostvars['localhost']['input_project_dir'] }}/functional_groups_config.yml"
 functional_groups_config_syntax_fail_msg: "Failed. Syntax errors present in functional_groups_config.yml. Fix errors and re-run playbook again."
-service_cluster_metadata_path: "/opt/omnia/.data/service_cluster_metadata.yml"
+service_cluster_metadata_path: "{{ oim_shared_path }}/.data/service_cluster_metadata.yml"
 metadata_perm: "0644"
 
 # Usage: secrets_creation.yml
@@ -45,18 +45,18 @@ kafka_secrets:
 # Usage: idrac_telemetry_deployment.yml
 service_cluster_idrac_telemetry_dir_path: "{{ hostvars['localhost']['k8s_client_share_path'] }}/idrac_telemetry"
 dir_permissions_755: "0755"
-idrac_telemetry_github_repo: https://github.com/AbdulRijwan/iDRAC-Telemetry-Reference-Tools.git
-reference_tools_stable_commit: "d3c2c5f"
-idrac_telemetry_reference_git_clone_path: "{{ service_cluster_idrac_telemetry_dir_path }}/iDRAC-Telemetry-Reference-Tools"
-idrac_git_clone_error_msg: |
-  Failed to clone iDRAC Telemetry GitHub repository from {{ idrac_telemetry_github_repo }}
-  to {{ idrac_telemetry_reference_git_clone_path }} directory in NFS share.
-idrac_telemetry_scripting_repo: "https://github.com/dell/iDRAC-Telemetry-Scripting.git"
-idrac_telemetry_scripting_stable_commit: "f6999f5"
-idrac_telemetry_scripting_git_clone_path: "{{ service_cluster_idrac_telemetry_dir_path }}/iDRAC-Telemetry-Scripting"
-idrac_script_git_clone_error_msg: |
-  Failed to clone iDRAC Telemetry GitHub repository from {{ idrac_telemetry_scripting_repo }}
-  to {{ idrac_telemetry_scripting_git_clone_path }} directory in NFS share.
+# idrac_telemetry_github_repo: https://github.com/AbdulRijwan/iDRAC-Telemetry-Reference-Tools.git
+# reference_tools_stable_commit: "d3c2c5f"
+# idrac_telemetry_reference_git_clone_path: "{{ service_cluster_idrac_telemetry_dir_path }}/iDRAC-Telemetry-Reference-Tools"
+# idrac_git_clone_error_msg: |
+#   Failed to clone iDRAC Telemetry GitHub repository from {{ idrac_telemetry_github_repo }}
+#   to {{ idrac_telemetry_reference_git_clone_path }} directory in NFS share.
+# idrac_telemetry_scripting_repo: "https://github.com/dell/iDRAC-Telemetry-Scripting.git"
+# idrac_telemetry_scripting_stable_commit: "f6999f5"
+# idrac_telemetry_scripting_git_clone_path: "{{ service_cluster_idrac_telemetry_dir_path }}/iDRAC-Telemetry-Scripting"
+# idrac_script_git_clone_error_msg: |
+#   Failed to clone iDRAC Telemetry GitHub repository from {{ idrac_telemetry_scripting_repo }}
+#   to {{ idrac_telemetry_scripting_git_clone_path }} directory in NFS share.
 max_retries: 10
 delay_count: 5
 telemetry_namespace: "telemetry"
@@ -77,8 +77,6 @@ mysqldb_container_port2: 33060
 mysql_image: "docker.io/library/mysql:9.3.0"
 pod_wait_timeout: "10m"
 kafka_skip_verify: false
-collector_failed_msg: "{{ collector }} pod did not come to ready state within {{ pod_wait_timeout }}  timeout."
-idrac_telemetry_failed_msg: "idrac-telemetry pod did not come to ready state within {{ pod_wait_timeout }} timeout."
 
 # Usage: kafka_deployment.yml
 kafka:
