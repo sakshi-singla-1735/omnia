@@ -76,7 +76,6 @@ metadata:
   name: "{{ kafka.service_name }}"
   namespace: "{{ telemetry_namespace }}"
   labels:
-  +
     app: "{{ kafka.app_name }}"
 spec:
   clusterIP: None
