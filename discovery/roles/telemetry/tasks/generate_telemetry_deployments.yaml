@@ -5,16 +5,16 @@
     state: directory
     mode: '0755'
 
-- name: Generate cluster ID
-  ansible.builtin.command: uuidgen
-  register: cluster_id
-  changed_when: false
-  # when: existing_cluster_id.resources | length == 0
-  no_log: true
-
 - name: Configure TLS certificate and secrets for kafka
-  when: hostvars['localhost']['idrac_telemetry_collection_type'] == 'kafka'
+  when: "'kafka' in hostvars['localhost']['idrac_telemetry_collection_type'].split(',')"
   block:
+    - name: Generate cluster ID
+      ansible.builtin.command: uuidgen
+      register: cluster_id
+      changed_when: false
+      # when: existing_cluster_id.resources | length == 0
+      no_log: true
+
     - name: Create telemetry certificate directory
       ansible.builtin.file:
         path: "{{ telemetry_cert_path }}"
@@ -105,11 +105,11 @@
     dest: "{{ hostvars['localhost']['k8s_server_share_path'] }}/telemetry/deployments/{{ item.dest }}"
     mode: '0644'
   loop:
-    - { src: 'telemetry/common/gen_certs_script.sh.j2', dest: 'gen_certs_script.sh' }
-    - { src: 'telemetry/common/telemetry_secret_creation.yaml.j2', dest: 'telemetry_secret_creation.yaml' }
-    - { src: 'telemetry/kustomization.yaml.j2', dest: 'kustomization.yaml' }
-    - { src: 'telemetry/idrac_telemetry/idrac_telemetry_statefulset.yaml.j2', dest: 'idrac_telemetry_statefulset.yaml' }
-    - { src: 'telemetry/kafka/kafka-san.cnf.j2', dest: 'kafka-san.cnf' }
-    - { src: 'telemetry/kafka/kafka-statefulset.yaml.j2', dest: 'kafka-statefulset.yaml' }
-    - { src: 'telemetry/victoria/victoria-statefulset.yaml.j2', dest: 'victoria-statefulset.yaml' }
-  tags: telemetry_deployment
+    - { src: 'telemetry/common/gen_certs_script.sh.j2', dest: 'gen_certs_script.sh', condition: true }
+    - { src: 'telemetry/common/telemetry_secret_creation.yaml.j2', dest: 'telemetry_secret_creation.yaml', condition: true }
+    - { src: 'telemetry/kustomization.yaml.j2', dest: 'kustomization.yaml', condition: true }
+    - { src: 'telemetry/idrac_telemetry/idrac_telemetry_statefulset.yaml.j2', dest: 'idrac_telemetry_statefulset.yaml', condition: true }
+    - { src: 'telemetry/kafka/kafka-san.cnf.j2', dest: 'kafka-san.cnf', condition: "'kafka' in hostvars['localhost']['idrac_telemetry_collection_type'].split(',')" }
+    - { src: 'telemetry/kafka/kafka-statefulset.yaml.j2', dest: 'kafka-statefulset.yaml', condition: "'kafka' in hostvars['localhost']['idrac_telemetry_collection_type'].split(',')" }
+    - { src: 'telemetry/victoria/victoria-statefulset.yaml.j2', dest: 'victoria-statefulset.yaml', condition: "'victoria' in hostvars['localhost']['idrac_telemetry_collection_type'].split(',')" }
+  when: item.condition | bool
