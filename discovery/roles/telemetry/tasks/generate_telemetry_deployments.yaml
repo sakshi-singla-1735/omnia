@@ -26,10 +26,10 @@
 
 - name: Mount NFS share (force NFSv3)
   ansible.posix.mount:
-    src: "{{ k8s_server_ip }}:{{ k8s_server_share_path }}"
-    path: "{{ k8s_client_share_path }}"
+    src: "{{ hostvars['localhost']['k8s_server_ip'] }}:{{ hostvars['localhost']['k8s_server_share_path'] }}"
+    path: "{{ hostvars['localhost']['k8s_client_share_path']  }}"
     fstype: nfs
-    opts: "{{ k8s_mount_options }},vers=3"
+    opts: "{{ hostvars['localhost']['k8s_mount_options'] }},vers=3"
     state: mounted
 
 - name: Create telemetry deployment directory
@@ -46,14 +46,17 @@
         path: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/deployments/telemetry_secret_creation.yaml"
       register: telemetry_config_file
 
+    - name: Read telemetry secrets config file
+      slurp:
+        src: "{{ telemetry_config_file.stat.path }}"
+      register: telemetry_config_raw
+      when: telemetry_config_file.stat.exists
+      no_log: true
+
     - name: Check if Kafka Cluster ID is present in the file
       set_fact:
         cluster_id_present: >-
-          {% if telemetry_config_file.stat.exists %}
-            {{ 'cluster-id' in lookup('file', telemetry_config_file.stat.path, errors='ignore') }}
-          {% else %}
-            false
-          {% endif %}
+          {{ 'cluster-id' in (telemetry_config_raw.content | b64decode | default('')) }}
 
     - name: Generate cluster ID
       ansible.builtin.command: uuidgen
@@ -83,6 +86,7 @@
         cmd: "openssl genrsa -out {{ kafka_secrets.ca_key_file }} 4096"
       args:
         creates: "{{ kafka_secrets.ca_key_file }}"
+      no_log: true
       delegate_to: localhost
       connection: local
 
@@ -98,6 +102,7 @@
         creates: "{{ kafka_secrets.cacert_file }}"
       delegate_to: localhost
       connection: local
+      no_log: true
 
     - name: Generate Kafka private key
       ansible.builtin.command:
@@ -106,6 +111,7 @@
         creates: "{{ kafka_secrets.cert_key }}"
       delegate_to: localhost
       connection: local
+      no_log: true
 
     - name: Generate Kafka CSR
       ansible.builtin.command:
@@ -117,6 +123,7 @@
         creates: "{{ telemetry_cert_path }}/kafka.csr"
       delegate_to: localhost
       connection: local
+      no_log: true
 
     - name: Sign Kafka certificate with internal CA
       ansible.builtin.command:
