@@ -22,5 +22,20 @@
         service_cluster_metadata: "{{ hostvars['localhost']['service_cluster_metadata'] }}"
         collector: "{{ hostvars['localhost']['idrac_telemetry_collection_type'] }}"
 
+    - name: Set idrac-telemetry replica count
+      ansible.builtin.set_fact:
+        idrac_telemetry_replicas: >-
+          {{
+            service_cluster_metadata
+            | dict2items
+            | selectattr('value.parent_status', 'defined')
+            | selectattr('value.parent_status', 'equalto', true)
+            | selectattr('value.child_groups', 'defined')
+            | selectattr('value.role', 'defined')
+            | selectattr('value.role', 'search', 'service_kube_node')
+            | list
+            | length
+          }}
+
     - name: Update service cluster metadata
       ansible.builtin.include_tasks: update_metadata_file.yml
