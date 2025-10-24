@@ -18,8 +18,9 @@
     bmc_group_data: "{{ lookup('file', bmc_group_data_filename).splitlines() }}"
 
 - name: Include OCHAMI node list
-  ansible.builtin.include_vars: "{{ openchami_nodes_vars_path }}"
-  remote_src: true
+  ansible.builtin.include_vars:
+    file: "{{ openchami_nodes_vars_path }}"
+    remote_src: true
 
 - name: Validate BMC group data file
   validate_bmc_group_data:
