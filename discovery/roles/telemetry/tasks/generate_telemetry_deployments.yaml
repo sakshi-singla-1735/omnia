@@ -25,7 +25,7 @@
 
     - name: Create SAN config for Kafka cert
       ansible.builtin.template:
-        src: kafka-san.cnf.j2
+        src: telemetry/kafka/kafka-san.cnf.j2
         dest: "{{ telemetry_cert_path }}/kafka-san.cnf"
         mode: "{{ kafka_secrets.san_permissions }}"
       delegate_to: localhost
@@ -105,11 +105,12 @@
     dest: "{{ hostvars['localhost']['k8s_server_share_path'] }}/telemetry/deployments/{{ item.dest }}"
     mode: '0644'
   loop:
-    - { src: 'telemetry/common/gen_certs_script.sh.j2', dest: 'gen_certs_script.sh', condition: true }
-    - { src: 'telemetry/common/telemetry_secret_creation.yaml.j2', dest: 'telemetry_secret_creation.yaml', condition: true }
-    - { src: 'telemetry/kustomization.yaml.j2', dest: 'kustomization.yaml', condition: true }
-    - { src: 'telemetry/idrac_telemetry/idrac_telemetry_statefulset.yaml.j2', dest: 'idrac_telemetry_statefulset.yaml', condition: true }
-    - { src: 'telemetry/kafka/kafka-san.cnf.j2', dest: 'kafka-san.cnf', condition: "'kafka' in hostvars['localhost']['idrac_telemetry_collection_type'].split(',')" }
-    - { src: 'telemetry/kafka/kafka-statefulset.yaml.j2', dest: 'kafka-statefulset.yaml', condition: "'kafka' in hostvars['localhost']['idrac_telemetry_collection_type'].split(',')" }
-    - { src: 'telemetry/victoria/victoria-statefulset.yaml.j2', dest: 'victoria-statefulset.yaml', condition: "'victoria' in hostvars['localhost']['idrac_telemetry_collection_type'].split(',')" }
-  when: item.condition | bool
+    - { src: 'telemetry/common/gen_certs_script.sh.j2', dest: 'gen_certs_script.sh' }
+    - { src: 'telemetry/common/telemetry_secret_creation.yaml.j2', dest: 'telemetry_secret_creation.yaml' }
+    - { src: 'telemetry/kustomization.yaml.j2', dest: 'kustomization.yaml' }
+    - { src: 'telemetry/idrac_telemetry/idrac_telemetry_statefulset.yaml.j2', dest: 'idrac_telemetry_statefulset.yaml' }
+    - { src: 'telemetry/kafka/kafka-san.cnf.j2', dest: 'kafka-san.cnf', type: 'kafka' }
+    - { src: 'telemetry/kafka/kafka-statefulset.yaml.j2', dest: 'kafka-statefulset.yaml', type: 'kafka' }
+    - { src: 'telemetry/victoria/victoria-statefulset.yaml.j2', dest: 'victoria-statefulset.yaml', type: 'victoria' }
+  when: item.type is not defined or item.type in hostvars['localhost']['idrac_telemetry_collection_type'].split(',')
+  tags: telemetry_deployment
