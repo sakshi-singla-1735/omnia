@@ -35,17 +35,20 @@
         | length
       }}
 
-- name: Scale up idrac-telemetry StatefulSet by 1
-  kubernetes.core.k8s:
+- name: Scale idrac-telemetry StatefulSet using JSON patch
+  kubernetes.core.k8s_json_patch:
     api_version: apps/v1
     kind: StatefulSet
+    name: idrac-telemetry
     namespace: telemetry
-    merge_type: strategic-merge
-    definition:
-      metadata:
-        name: idrac-telemetry
-      spec:
-        replicas: "{{ (idrac_telemetry_replicas | int) + 1 }}"
+    patch: |
+      [
+        {
+          "op": "replace",
+          "path": "/spec/replicas",
+          "value": {{ (idrac_telemetry_replicas | int) + 1  }}
+        }
+      ]
 
 - name: Generating iDRAC telemetry pods names
   ansible.builtin.set_fact:
