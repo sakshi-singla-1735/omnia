@@ -36,7 +36,7 @@ metadata:
   namespace: {{ telemetry_namespace }}
 spec:
   serviceName: {{ idrac_telemetry_service_name }}
-  replicas: {{ ( kube_node_count  | int ) + 1 }}
+  replicas: 1
   selector:
     matchLabels:
       app: {{ idrac_telemetry_k8s_name }}

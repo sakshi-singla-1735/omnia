@@ -13,6 +13,37 @@
 #  limitations under the License.
 ---
 
+- name: Include service_cluster metadata if already exists
+  ansible.builtin.include_vars: "{{ service_cluster_metadata_path }}"
+  delegate_to: localhost
+  connection: local
+  no_log: true
+  failed_when: false
+
+- name: Set idrac-telemetry replica count
+  ansible.builtin.set_fact:
+    idrac_telemetry_replicas: >-
+      {{
+        service_cluster_metadata
+        | dict2items
+        | selectattr('value.parent_status', 'defined')
+        | selectattr('value.parent_status', 'equalto', true)
+        | selectattr('value.child_groups', 'defined')
+        | selectattr('value.role', 'defined')
+        | selectattr('value.role', 'search', 'service_kube_node')
+        | list
+        | length
+      }}
+
+- name: Scale up idrac-telemetry StatefulSet by 1
+  kubernetes.core.k8s:
+    api_version: apps/v1
+    kind: StatefulSet
+    name: idrac-telemetry
+    namespace: telemetry
+    replicas: "{{ (idrac_telemetry_replicas | int) + 1 }}"
+    state: present
+
 - name: Generating iDRAC telemetry pods names
   ansible.builtin.set_fact:
     idrac_telemetry_pods: >-
