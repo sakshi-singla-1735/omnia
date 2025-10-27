@@ -25,4 +25,3 @@
 
     - name: Generate service clsuter metadata
       ansible.builtin.include_tasks: generate_service_cluster_metadata.yml
-

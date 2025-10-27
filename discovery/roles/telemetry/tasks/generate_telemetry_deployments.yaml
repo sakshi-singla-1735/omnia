@@ -14,7 +14,7 @@
 ---
 
 - name: Count entries with FUNCTIONAL_GROUP_NAME containing 'service_kube_node'
-  set_fact:
+  ansible.builtin.set_fact:
     kube_node_count: >-
       {{
         hostvars['localhost']['read_mapping_file']['dict']
@@ -27,13 +27,13 @@
 - name: Mount NFS share (force NFSv3)
   ansible.posix.mount:
     src: "{{ hostvars['localhost']['k8s_server_ip'] }}:{{ hostvars['localhost']['k8s_server_share_path'] }}"
-    path: "{{ hostvars['localhost']['k8s_client_share_path']  }}"
+    path: "{{ hostvars['localhost']['k8s_client_share_path'] }}"
     fstype: nfs
     opts: "{{ hostvars['localhost']['k8s_mount_options'] }},vers=3"
     state: mounted
 
 - name: Create telemetry deployment directory
-  file:
+  ansible.builtin.file:
     path: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/deployments"
     state: directory
     mode: '0755'
@@ -42,19 +42,19 @@
   when: "'kafka' in hostvars['localhost']['idrac_telemetry_collection_type'].split(',')"
   block:
     - name: Check if telemetry secrets config file exists
-      stat:
+      ansible.builtin.stat:
         path: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/deployments/telemetry_secret_creation.yaml"
       register: telemetry_config_file
 
     - name: Read telemetry secrets config file
-      slurp:
+      ansible.builtin.slurp:
         src: "{{ telemetry_config_file.stat.path }}"
       register: telemetry_config_raw
       when: telemetry_config_file.stat.exists
       no_log: true
 
     - name: Check if Kafka Cluster ID is present in the file
-      set_fact:
+      ansible.builtin.set_fact:
         cluster_id_present: >-
           {{ 'cluster-id' in (telemetry_config_raw.content | b64decode | default('')) }}
 
@@ -154,7 +154,7 @@
       connection: local
 
 - name: Populate telemetry deployment configs
-  template:
+  ansible.builtin.template:
     src: "{{ item.src }}"
     dest: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/deployments/{{ item.dest }}"
     mode: '0644'
