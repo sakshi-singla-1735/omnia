@@ -79,8 +79,8 @@
         tasks_from: discover_mapping_nodes.yml
   roles:
     - k8s_prereq
-    - telemetry
     - nfs_client
     - slurm_config
     - openldap
+    - telemetry
     - configure_ochami

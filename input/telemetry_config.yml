@@ -22,8 +22,11 @@
 # Accepted values:  true or false
 idrac_telemetry_support: false
 
-# This variable used to decide the iDRAC telemetry collection.
-# Supported values are victoria or kafka.
+# This variable is used to decide the iDRAC telemetry collection type.
+# Supported values:
+#   - "victoria"
+#   - "kafka"
+#   - "victoria,kafka" (to enable both)
 # Default: "victoria"
 idrac_telemetry_collection_type: "victoria"
 
