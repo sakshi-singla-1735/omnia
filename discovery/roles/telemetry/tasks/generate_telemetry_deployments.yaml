@@ -160,7 +160,7 @@
     mode: '0644'
   loop:
     - { src: 'telemetry/common/gen_certs_script.sh.j2', dest: 'gen_certs_script.sh' }
-    - { src: 'telemetry/common/telemetry_secret_creation.yaml.j2', dest: 'telemetry_secret_creation.yaml', skip_when: cluster_id_present }
+    - { src: 'telemetry/common/telemetry_secret_creation.yaml.j2', dest: 'telemetry_secret_creation.yaml', skip_when: "{{ cluster_id_present }}" }
     - { src: 'telemetry/kustomization.yaml.j2', dest: 'kustomization.yaml' }
     - { src: 'telemetry/idrac_telemetry/idrac_telemetry_statefulset.yaml.j2', dest: 'idrac_telemetry_statefulset.yaml' }
     - { src: 'telemetry/kafka/kafka-san.cnf.j2', dest: 'kafka-san.cnf', type: 'kafka' }
