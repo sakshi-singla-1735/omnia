@@ -45,8 +45,8 @@ kafka_secrets:
 # Usage: idrac_telemetry_deployment.yml
 service_cluster_idrac_telemetry_dir_path: "{{ hostvars['localhost']['k8s_client_share_path'] }}/idrac_telemetry"
 dir_permissions_755: "0755"
-idrac_telemetry_github_repo: https://github.com/AbdulRijwan/iDRAC-Telemetry-Reference-Tools.git
-reference_tools_stable_commit: "d3c2c5f"
+idrac_telemetry_github_repo: https://github.com/dell/iDRAC-Telemetry-Reference-Tools.git
+reference_tools_stable_commit: "62fad19"
 idrac_telemetry_reference_git_clone_path: "{{ service_cluster_idrac_telemetry_dir_path }}/iDRAC-Telemetry-Reference-Tools"
 # idrac_git_clone_error_msg: |
 #   Failed to clone iDRAC Telemetry GitHub repository from {{ idrac_telemetry_github_repo }}
