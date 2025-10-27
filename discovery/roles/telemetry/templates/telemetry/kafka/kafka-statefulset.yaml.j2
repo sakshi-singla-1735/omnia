@@ -98,7 +98,7 @@ metadata:
   namespace: {{ telemetry_namespace }}
 spec:
   serviceName: {{ kafka.service_name }}
-  replicas: {{ ( kube_node_count  | int ) + 1 }}
+  replicas: 3
   selector:
     matchLabels:
       app: {{ kafka.app_name }}
