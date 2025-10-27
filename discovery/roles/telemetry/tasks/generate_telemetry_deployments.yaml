@@ -160,13 +160,30 @@
     dest: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/deployments/{{ item.dest }}"
     mode: '0644'
   loop:
-    - { src: 'telemetry/common/gen_certs_script.sh.j2', dest: 'gen_certs_script.sh' }
-    - { src: 'telemetry/common/telemetry_secret_creation.yaml.j2', dest: 'telemetry_secret_creation.yaml', skip_when: "{{ cluster_id_present | default(false) }}" }
-    - { src: 'telemetry/kustomization.yaml.j2', dest: 'kustomization.yaml' }
-    - { src: 'telemetry/idrac_telemetry/idrac_telemetry_statefulset.yaml.j2', dest: 'idrac_telemetry_statefulset.yaml' }
-    - { src: 'telemetry/kafka/kafka-san.cnf.j2', dest: 'kafka-san.cnf', type: 'kafka' }
-    - { src: 'telemetry/kafka/kafka-statefulset.yaml.j2', dest: 'kafka-statefulset.yaml', type: 'kafka' }
-    - { src: 'telemetry/victoria/victoria-statefulset.yaml.j2', dest: 'victoria-statefulset.yaml', type: 'victoria' }
+    - src: 'telemetry/common/gen_certs_script.sh.j2'
+      dest: 'gen_certs_script.sh'
+
+    - src: 'telemetry/common/telemetry_secret_creation.yaml.j2'
+      dest: 'telemetry_secret_creation.yaml'
+      skip_when: "{{ cluster_id_present | default(false) }}"
+
+    - src: 'telemetry/kustomization.yaml.j2'
+      dest: 'kustomization.yaml'
+
+    - src: 'telemetry/idrac_telemetry/idrac_telemetry_statefulset.yaml.j2'
+      dest: 'idrac_telemetry_statefulset.yaml'
+
+    - src: 'telemetry/kafka/kafka-san.cnf.j2'
+      dest: 'kafka-san.cnf'
+      type: 'kafka'
+
+    - src: 'telemetry/kafka/kafka-statefulset.yaml.j2'
+      dest: 'kafka-statefulset.yaml'
+      type: 'kafka'
+
+    - src: 'telemetry/victoria/victoria-statefulset.yaml.j2'
+      dest: 'victoria-statefulset.yaml'
+      type: 'victoria'
   when:
     - item.type is not defined or item.type in hostvars['localhost']['idrac_telemetry_collection_type'].split(',')
     - item.skip_when is not defined or not item.skip_when | bool

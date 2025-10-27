@@ -46,7 +46,7 @@
         {
           "op": "replace",
           "path": "/spec/replicas",
-          "value": {{ (idrac_telemetry_replicas | int) + 1  }}
+          "value": {{ (idrac_telemetry_replicas | int) + 1 }}
         }
       ]
 
