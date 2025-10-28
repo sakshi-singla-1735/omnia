@@ -94,7 +94,7 @@ kafka:
 victoria:
   app_name: "victoriametrics"
   container_name: "victoriametrics"
-  service_name: "victoria-svc"
+  service_name: "victoria-loadbalancer"
   container_port1: 8428
   image: "victoriametrics/victoria-metrics:v1.121.0"
 
