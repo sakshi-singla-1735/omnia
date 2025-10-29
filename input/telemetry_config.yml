@@ -20,7 +20,22 @@
 
 # This variable is used to enable iDRAC telemetry support
 # Accepted values:  true or false
-idrac_telemetry_support: false
+idrac_telemetry_support: true
+
+# This variable is used to decide the iDRAC telemetry collection type.
+# Supported values:
+#   - "victoria"
+#   - "kafka"
+#   - "victoria,kafka" (to enable both)
+# Default: "victoria,kafka"
+idrac_telemetry_collection_type: "victoria,kafka"
+
+# These variables are used to configure victoria for telemetry
+victoria_configurations:
+  # The amount of storage allocated for victoria's persistent volume.
+  # Accepted values: in the form of "X[Ki|Mi|Gi|Ti|Pi|Ei]"
+  # Default: 8Gi
+  persistence_size: "8Gi"
 
 # These variables are used to configure Kafka for telemetry
 kafka_configurations:

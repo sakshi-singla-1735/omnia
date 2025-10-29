@@ -17,18 +17,5 @@
   when:
     - hostvars['localhost']['idrac_telemetry_support']
   block:
-    - name: Set service_cluster metadata
-      ansible.builtin.set_fact:
-        service_cluster_metadata: "{{ hostvars['localhost']['service_cluster_metadata'] }}"
-
-    - name: Configure k8s secrets
-      ansible.builtin.include_tasks: secrets_creation.yml
-
-    - name: Deployment of kafka pod
-      ansible.builtin.include_tasks: kafka_deployment.yml
-
-    - name: Deployment of idrac-telemetry pod
-      ansible.builtin.include_tasks: idrac_telemetry_deployment.yml
-
     - name: Update service cluster metadata
       ansible.builtin.include_tasks: update_metadata_file.yml
