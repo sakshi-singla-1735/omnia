@@ -54,7 +54,7 @@ def validate_user_registry(user_registry):
                     f"or both omitted in entry for (host: {host})"
                 )
             try:
-                url = f"https://{host}/api/v2.0/users/current"
+                url = f"http://{host}/api/v2.0/users/current"
                 response = requests.get(
                     url,
                     auth=HTTPBasicAuth(item['username'], item['password']),
@@ -85,7 +85,7 @@ def check_reachability(user_registry, timeout):
     reachable, unreachable = [], []
     for item in user_registry:
         try:
-            resp = requests.get(f"https://{item['host']}", timeout=timeout, verify=False)
+            resp = requests.get(f"http://{item['host']}", timeout=timeout, verify=False)
             if resp.status_code == 200:
                 reachable.append(item['host'])
             else:

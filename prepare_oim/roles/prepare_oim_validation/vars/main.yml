@@ -91,6 +91,7 @@ nfs_not_configured: "When enabling OIM HA or K8s Service Cluster an NFS external
 ha_nfs_error_msg: |
   ERROR: Internal NFS is not supported with HA OIM or Service HA.
   Please configure External NFS for HA capabilities.
+
 # Usage: check_service_role.yml
 functional_groups_config_path: "{{ input_project_dir }}/functional_groups_config.yml"
 functional_groups_config_syntax_fail_msg: "Failed. Syntax errors present in functional_groups_config.yml. Fix errors and re-run playbook again."
@@ -99,8 +100,3 @@ functional_groups_config_syntax_fail_msg: "Failed. Syntax errors present in func
 telemetry_config_file: "telemetry_config.yml"
 fail_msg_telemetry_config_file: "telemetry_config.yml file doesn't exist in the input folder."
 telemetry_config_syntax_fail_msg: "Failed. Syntax errors present in telemetry_config.yml. Fix errors and re-run playbook again. Common syntax Errors:"
-
-# Usage: check_service_role.yml
-service_cluster_nfs_error_msg: |
-  ERROR: Internal NFS is not supported for K8s Service Cluster, external NFS server must be configured.
-  Please run the oim_cleanup.yml in utils and re-run the omnia_startup.sh script using the NFS(external) option.
