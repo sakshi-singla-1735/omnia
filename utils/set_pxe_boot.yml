@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
-
 - name: Set_fact for fetch omnia config credentials
   hosts: localhost
   connection: local
@@ -27,19 +26,20 @@
 - name: Invoke get_config_credentials.yml
   ansible.builtin.import_playbook: credential_utility/get_config_credentials.yml
 
-- name: Validate inventory
-  hosts: localhost
-  connection: local
-  gather_facts: false
-  tasks:
-    - name: Validate inventory
-      ansible.builtin.include_role:
-        name: idrac
-        tasks_from: validate_inventory.yml
-
-- name: Deploy OS via idrac
+# This will set the boot mode to pxe
+# WARNING: This play will RESTART the host
+# Note: Restart will not happen if the server is powered off, only pxe mode will be set.
+- name: Reboot Host via PXE
   hosts: bmc
   connection: local
   gather_facts: false
+  pre_tasks:
+    - name: Validate bmc group
+      ansible.builtin.assert:
+        that: groups['bmc'] | length | int >= 1
+        fail_msg: "Failed. bmc group in inventory must have atleast one bmc ip."
   roles:
-    - idrac
+    - role: idrac_pxe_boot
+      # vars:
+      #   restart_host: false # By default restart will be true, set to false not to restart
+      #   force_restart: true # By default graceful_restart will happen, set to true to force restart

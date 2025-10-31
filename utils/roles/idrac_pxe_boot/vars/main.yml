@@ -1,0 +1,32 @@
+# Copyright 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+---
+# Change to false for not restarting host. only settign pxe_boot will happen
+restart_host: true
+
+# Change to true for forceful reboot. by default graceful will happen
+force_restart: false
+
+# Set boot source override mode. Valid values are once, continuous, or disabled
+boot_source_override_enabled: once
+
+# Set boot source override target. Valid values are pxe,uefi_http,sd_card,uefi_target,utilities,bios_setup,hdd,cd,floppy,none
+boot_source_override_target: pxe
+
+# Usage: main.yml
+lc_check_fail_msg: "Failed. LC is not ready. Retry again after LC is ready"
+provision_os_msg: "OS provisioning is initiated. Wait for installation to complete for all servers."
+pxe_provisioning_fail_msg: "OS provisioning using PXE failed. This could be due to outdated NIC firmware. Re-run discovery.yml after fixing the issue"
+bmc_validation_fail_msg: "Failed. bmc group in inventory must have atleast one bmc ip."
+unreachable_idrac_msg: "iDRAC is unreachable. pxe boot might be set. Please check the host reboot status manually"
