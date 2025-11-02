@@ -336,7 +336,8 @@ def parse_repo_urls(repo_config, local_repo_config_path,
             # Skip unreachable URLs unless they're oneapi/snoopy/nvidia
             if not any(skip_str in rendered_url for skip_str in ["oneapi", "snoopy", "nvidia"]):
                 if not is_remote_url_reachable(rendered_url):
-                   return rendered_url, False
+                   pass
+                #    return rendered_url, False
 
             # Handle gpgkey rendering (if present)
             rendered_gpgkey = "null"
