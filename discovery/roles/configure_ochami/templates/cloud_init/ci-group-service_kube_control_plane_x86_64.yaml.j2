@@ -123,6 +123,95 @@
             location = "gcr.io"
             [[registry.mirror]]
             location = "{{ pulp_mirror }}"
+        - path: /tmp/kube-vip.yaml
+          owner: root:root
+          permissions: '0644'
+          content: |
+            apiVersion: v1
+            kind: Pod
+            metadata:
+              creationTimestamp: null
+              name: kube-vip
+              namespace: kube-system
+              uid: kube-vip-pod
+            spec:
+              containers:
+                - args:
+                    - manager
+                  env:
+                    - name: vip_arp
+                      value: "true"
+                    - name: port
+                      value: "6443"
+                    - name: vip_nodename
+                      valueFrom:
+                        fieldRef:
+                          fieldPath: spec.nodeName
+                    - name: vip_interface
+                      value: vip_interface
+                    - name: vip_cidr
+                      value: "32"
+                    - name: dns_mode
+                      value: first
+                    - name: cp_enable
+                      value: "true"
+                    - name: cp_namespace
+                      value: kube-system
+                    - name: svc_enable
+                      value: "true"
+                    - name: svc_leasename
+                      value: plndr-svcs-lock
+                    - name: vip_leaderelection
+                      value: "true"
+                    - name: vip_leasename
+                      value: plndr-cp-lock
+                    - name: vip_leaseduration
+                      value: "5"
+                    - name: vip_renewdeadline
+                      value: "3"
+                    - name: vip_retryperiod
+                      value: "1"
+                    - name: vip_address
+                      value: {{ kube_vip }}
+                    - name: prometheus_server
+                      value: :2112
+                  image: ghcr.io/kube-vip/kube-vip:v0.8.9
+                  imagePullPolicy: IfNotPresent
+                  name: kube-vip
+                  resources: {}
+                  securityContext:
+                    capabilities:
+                      add:
+                        - NET_ADMIN
+                        - NET_RAW
+                  volumeMounts:
+                    - mountPath: /etc/kubernetes/admin.conf
+                      name: kubeconfig
+              hostAliases:
+                - hostnames:
+                    - kubernetes
+                  ip: 127.0.0.1
+              hostNetwork: true
+              dnsPolicy: ClusterFirstWithHostNet
+              volumes:
+                - hostPath:
+                    path: /etc/kubernetes/admin.conf
+                  name: kubeconfig
+            status: {}
+
+        - path: /usr/local/bin/install-helm.sh
+          permissions: '0755'
+          content: |
+            #!/bin/bash
+            set -e
+            HELM_VERSION="v3.19.0"
+            ARCH="amd64"
+            cp {{ k8s_client_mount_path }}/helm/linux-${ARCH}/helm /usr/local/bin/helm
+            chmod +x /usr/local/bin/helm
+
+            # Optional: Set up bash completion
+            /usr/local/bin/helm completion bash > /etc/bash_completion.d/helm.sh
+            chmod 0755 /etc/bash_completion.d/helm.sh
 
       runcmd:
         - /usr/local/bin/set-ssh.sh
@@ -147,11 +236,12 @@
         - systemctl daemon-reload
         - systemctl restart crio
         - kubeadm config images pull
+        # Join Kubernetes cluster
         - |
             K8S_CLIENT_MOUNT_PATH="{{ k8s_client_mount_path }}"
             NODE_NAME="{% raw %}{{ ds.meta_data.instance_data.local_ipv4 }}{% endraw %}"
             KUBE_VIP="{{ kube_vip }}"
-            JOIN_CMD_FILE="${K8S_CLIENT_MOUNT_PATH}/worker-join-command.sh"
+            JOIN_CMD_FILE="${K8S_CLIENT_MOUNT_PATH}/control-plane-join-command.sh"
             echo "Waiting for join command file: $JOIN_CMD_FILE"
             while [ ! -f "$JOIN_CMD_FILE" ]; do
               echo "File not found: $JOIN_CMD_FILE. Retrying in 10 seconds..."
@@ -167,3 +257,17 @@
             JOIN_CMD="$(cat "$JOIN_CMD_FILE") --node-name ${NODE_NAME}"
             echo "Executing: $JOIN_CMD"
             eval $JOIN_CMD
+            mkdir -p /root/.kube
+            cp -f /etc/kubernetes/admin.conf /root/.kube/config
+            chown root:root /root/.kube/config
+        - crictl pull ghcr.io/kube-vip/kube-vip:v0.8.9
+        - crictl pull docker.io/calico/cni:v3.30.3
+        - crictl pull docker.io/calico/kube-controllers:v3.30.3
+        - crictl pull docker.io/calico/node:v3.30.3
+        - |
+            NODE_IP="{% raw %}{{ ds.meta_data.instance_data.local_ipv4 }}{% endraw %}"
+            VIP_IFACE=$(ip -o addr show | awk -v ip="$NODE_IP" '$4 ~ ip {print $2}')
+            sed -i "s/value: vip_interface/value: ${VIP_IFACE}/" /tmp/kube-vip.yaml
+            cp /tmp/kube-vip.yaml /etc/kubernetes/manifests/kube-vip.yaml
+        
+        - /usr/local/bin/install-helm.sh
