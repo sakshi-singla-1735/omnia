@@ -44,6 +44,7 @@
               "persistence_size",
               "log_retention_hours",
               "log_retention_bytes",
+              "log_segment_bytes",
               "topic_partitions"
             ],
             "additionalProperties": false
