@@ -181,12 +181,12 @@
       dest: 'kafka.kafka.yaml'
       type: 'kafka'
     
-    - src: 'telemetry/kafka/kafka.topic-nersc.yaml.j2'
-      dest: 'kafka.topic-nersc.yaml'
+    - src: 'telemetry/kafka/kafka.topic.nersc-ldms.yaml.j2'
+      dest: 'kafka.topic.nersc-ldms.yaml'
       type: 'kafka'
     
-    - src: 'telemetry/kafka/kafka.bridge.yaml.j2'
-      dest: 'kafka.bridge.yaml'
+    - src: 'telemetry/kafka/kafka.kafka_bridge.yaml.j2'
+      dest: 'kafka.kafka_bridge.yaml'
       type: 'kafka'
 
     - src: 'telemetry/victoria/victoria-statefulset.yaml.j2'
