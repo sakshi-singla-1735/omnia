@@ -19,7 +19,7 @@ restart_host: true
 force_restart: false
 
 # Set boot source override mode. Valid values are once, continuous, or disabled
-boot_source_override_enabled: once
+boot_source_override_enabled: continuous
 
 # Set boot source override target. Valid values are pxe,uefi_http,sd_card,uefi_target,utilities,bios_setup,hdd,cd,floppy,none
 boot_source_override_target: pxe
