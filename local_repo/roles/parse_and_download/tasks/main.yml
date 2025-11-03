@@ -128,8 +128,6 @@
   when:
     - final_status == 'SUCCESS'
 
-
-
 - name: Show updated keys
   ansible.builtin.debug:
     var: policy_result.diff

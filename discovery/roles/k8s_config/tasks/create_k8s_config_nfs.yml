@@ -53,7 +53,7 @@
     pulp_mirror: "{{ hostvars['localhost']['admin_nic_ip'] }}:2225"
 
 - name: Create required share directories
-  file:
+  ansible.builtin.file:
     path: "{{ k8s_client_mount_path }}/{{ item }}"
     state: directory
     mode: '0755'
@@ -116,7 +116,7 @@
     dest: "{{ k8s_client_mount_path }}/multus/{{ multus_package }}.yml"
     mode: "{{ file_mode }}"
 
-#helm
+# helm
 - name: Download helm tarball
   ansible.builtin.get_url:
     url: "{{ helm_tarball_url }}"
@@ -129,7 +129,7 @@
     dest: "{{ k8s_client_mount_path }}/helm/"
     remote_src: true
 
-#nfs client provisioner
+# nfs client provisioner
 - name: Download nfs-client-provisioner tarball
   ansible.builtin.get_url:
     url: "{{ nfs_client_provisioner_tarball_url }}"
@@ -149,7 +149,6 @@
     dest: "{{ k8s_client_mount_path }}/whereabouts"
     mode: "{{ file_mode }}"
     remote_src: true
-    
 
 - name: Copy pulp webserver certificate to client_share_path
   ansible.builtin.copy:
