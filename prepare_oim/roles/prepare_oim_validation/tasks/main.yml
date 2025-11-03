@@ -25,6 +25,9 @@
 - name: Include local_repo_config vars
   ansible.builtin.include_tasks: include_local_repo_config.yml
 
+- name: Check k8s support
+  ansible.builtin.include_tasks: check_k8s_support.yml
+
 - name: Check service_node role is present in functional_groups_config.yml
   ansible.builtin.include_tasks: check_service_role.yml
 
