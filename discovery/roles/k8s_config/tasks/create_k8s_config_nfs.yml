@@ -52,6 +52,10 @@
   ansible.builtin.set_fact:
     pulp_mirror: "{{ hostvars['localhost']['admin_nic_ip'] }}:2225"
 
+- name: Set fact for dns
+  ansible.builtin.set_fact:
+    dns: "{{ hostvars['localhost']['dns'] }}"
+
 - name: Create required share directories
   ansible.builtin.file:
     path: "{{ k8s_client_mount_path }}/{{ item }}"
