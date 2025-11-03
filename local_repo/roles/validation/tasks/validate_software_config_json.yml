@@ -85,3 +85,10 @@
   when: item.version is defined
   loop_control:
     loop_var: item
+
+- name: Fail if service_k8s_version is not supported
+  ansible.builtin.fail:
+    msg: "{{ fail_msg }}"
+  when:
+    - service_k8s_support
+    - service_k8s_version != default_k8s_version
