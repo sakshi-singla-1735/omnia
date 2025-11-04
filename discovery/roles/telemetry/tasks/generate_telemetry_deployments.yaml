@@ -196,3 +196,23 @@
     - item.type is not defined or item.type in hostvars['localhost']['idrac_telemetry_collection_type'].split(',')
     - item.skip_when is not defined or not item.skip_when | bool
   tags: telemetry_deployment
+
+- name: Copy ldms files dir to telemetry nfs share
+  ansible.builtin.copy:
+    src: files/nersc-ldms-aggr
+    dest: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/ldms"
+    mode: '0755'
+  tags: telemetry_deployment
+
+- name: Run make command inside ldms directory
+  command: make
+  args:
+    chdir: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/ldms"
+  tags: telemetry_deployment
+
+- name: Copy values.yaml to ldms directory
+  ansible.builtin.copy:
+    src: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/ldms/values.yaml"
+    dest: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/ldms"
+    mode: '0644'
+  tags: telemetry_deployment
