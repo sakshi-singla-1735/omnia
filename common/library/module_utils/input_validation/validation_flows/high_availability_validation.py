@@ -41,7 +41,8 @@ def get_roles_config_json(input_file_path, logger, module, omnia_base_dir, proje
     Returns:
         dict: The roles configuration as json.
     """
-    roles_config_file_path = create_file_path(input_file_path, file_names["functional_groups_config"])
+    roles_config_file_path = create_file_path(input_file_path,
+                                              file_names["functional_groups_config"])
     roles_config_json = validation_utils.load_yaml_as_json(
         roles_config_file_path, omnia_base_dir, project_name, logger, module
     )
@@ -307,7 +308,6 @@ def validate_vip_address(
         - None: The function does not return any value, it only appends
             error messages to the errors list.
     """
-
     # validate if the same virtual_ip_address is already use
     if vip_address in service_node_vip:
         errors.append(
@@ -318,15 +318,12 @@ def validate_vip_address(
             )
         )
     else:
-        # virtual_ip_address is mutually exclusive with admin static and dynamic ranges
-        vip_within_static_range = validation_utils.is_ip_within_range(
-            admin_network["static_range"], vip_address
-        )
+        # virtual_ip_address is mutually exclusive with admin dynamic ranges
         vip_within_dynamic_range = validation_utils.is_ip_within_range(
             admin_network["dynamic_range"], vip_address
         )
 
-        if vip_within_static_range or vip_within_dynamic_range:
+        if vip_within_dynamic_range:
             errors.append(
                 create_error_msg(
                     f"{config_type} virtual_ip_address",
@@ -350,7 +347,6 @@ def validate_k8s_head_node_ha(
     config_type,
     ha_data,
     network_spec_data,
-    roles_config_json,
     all_service_tags,
     ha_node_vip_list
 ):
@@ -375,10 +371,9 @@ def validate_k8s_head_node_ha(
         None: Errors are collected in the provided `errors` list.
     """
     admin_network = network_spec_data["admin_network"]
-    admin_static_range = admin_network.get("static_range", "N/A")
     admin_dynamic_range = admin_network.get("dynamic_range", "N/A")
+    admin_netmaskbits = network_spec_data.get("admin_netmaskbits")
     oim_admin_ip = network_spec_data["oim_admin_ip"]
-
     if not isinstance(ha_data, list):
         ha_data = [ha_data]
     for hdata in ha_data:
@@ -388,7 +383,7 @@ def validate_k8s_head_node_ha(
         # validate active_node_service_tag and passive_node_service_tag
         all_service_tags_set = set(all_service_tags)
         active_node_service_tags_set = set(active_node_service_tags)
-
+        vip_address = hdata.get("virtual_ip_address")
         # Find the intersection
         common_tags = all_service_tags_set & active_node_service_tags_set
 
@@ -402,8 +397,19 @@ def validate_k8s_head_node_ha(
                 )
             )
 
+        if vip_address:
+            validate_vip_address(
+                errors,
+                config_type,
+                vip_address,
+                ha_node_vip_list,
+                admin_network,
+                admin_netmaskbits,
+                oim_admin_ip
+            )
+
         if external_loadbalancer_ip:
-            ip_ranges = [admin_static_range, admin_dynamic_range, external_loadbalancer_ip]
+            ip_ranges = [admin_dynamic_range, external_loadbalancer_ip]
             does_overlap, _ = validation_utils.check_overlap(ip_ranges)
 
         if does_overlap:
@@ -523,7 +529,6 @@ def validate_high_availability_config(
                     config_type,
                     ha_data,
                     network_spec_info,
-                    roles_config_json,
                     all_service_tags,
                     ha_node_vip_list,
                 )
@@ -550,14 +555,14 @@ def validate_high_availability_config(
             errors.append(f"Missing key in HA data: {e}")
 
     ha_configs = [
-        ("service_k8s_cluster_ha", ["virtual_ip_address", "active_node_service_tags"])
+        ("service_k8s_cluster_ha", ["virtual_ip_address", "active_node_service_tags"],
+        "enable_k8s_ha")
     ]
 
-    for config_name, mandatory_fields in ha_configs:
+    for config_name, mandatory_fields, enable_key in ha_configs:
         ha_data = data.get(config_name)
         if ha_data:
             ha_data = ha_data[0] if isinstance(ha_data, list) else ha_data
-            enable_key = f'enable_{config_name.split("_", maxsplit=1)[0]}_ha'
             if ha_data.get(enable_key):
                 if config_name == "oim_ha":
                     ha_role = "oim_ha_node"  # expected role to be defined in roles_config
