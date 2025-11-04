@@ -160,7 +160,7 @@ spec:
             - name: MESSAGEBUS_PORT
               value: "{{ messagebus_http_port }}"
             - name: KAFKA_BROKER
-              value: "cluster-kafka-bootstrap.telemetry.svc.cluster.local:9092"
+              value: "kafka-kafka-bootstrap.telemetry.svc.cluster.local:9092"
             - name: KAFKA_TOPIC
               value: "{{ kafka.telemetry_topic_name }}"
             - name: KAFKA_SKIP_VERIFY
