@@ -38,11 +38,6 @@ localrepo_completion_msg1: |
   To build the node images, execute the appropriate playbook based on the target architecture:
   - For **x86_64** nodes, run:  `build_image_x86_64/build_image_x86_64.yml`
 
-localrepo_completion_msg2: |
-  The playbook local_repo.yml has completed successfully.
-  To build the node images, execute the appropriate playbook based on the target architecture as next step:
-  - For **x86_64** nodes, run:  `build_image_x86_64/build_image_x86_64.yml`
-
 local_repo_py_module_vars:
   default_vars: &sw_defaults
     timeout: 2000  # Timeout in seconds for each thread
