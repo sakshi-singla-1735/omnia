@@ -52,7 +52,7 @@ groups:
     location_id: SU-1.RACK-1
     parent: ""
 
-  grp6:
+  grp8:
     location_id: SU-1.RACK-1
     parent: ""
   
