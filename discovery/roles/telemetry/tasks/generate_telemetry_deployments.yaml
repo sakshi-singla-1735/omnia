@@ -205,14 +205,14 @@
   tags: telemetry_deployment
 
 - name: Run make command inside ldms directory
-  command: make
+  ansible.builtin.shell: make
   args:
     chdir: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/ldms"
   tags: telemetry_deployment
 
 - name: Copy values.yaml to ldms directory
   ansible.builtin.copy:
-    src: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/ldms/values.yaml"
+    src: "templates/ldms/values.yaml.j2"
     dest: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/ldms"
     mode: '0644'
   tags: telemetry_deployment
