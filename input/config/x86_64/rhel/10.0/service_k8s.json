@@ -16,7 +16,17 @@
       {"package": "kubeadm", "type": "rpm", "repo_name": "kubernetes"},
       {"package": "kubelet", "type": "rpm", "repo_name": "kubernetes"},
       {"package": "container-selinux", "type": "rpm", "repo_name": "x86_64_appstream"},
-      {"package": "cri-o", "type": "rpm", "repo_name": "cri-o"}
+      {"package": "cri-o", "type": "rpm", "repo_name": "cri-o"},
+      { "package": "docker.io/library/golang", "type": "image", "tag": "1.24" },
+      { "package": "docker.io/library/busybox", "type": "image", "tag": "1.36" },
+      { "package": "docker.io/rmohr/activemq", "type": "image", "tag": "5.15.9" },
+      { "package": "docker.io/library/mysql", "type": "image", "tag": "9.3.0" },
+      { "package": "docker.io/bitnamilegacy/kafka", "type": "image", "tag": "3.9.0" },
+      { "package": "cryptography==45.0.7", "type": "pip_module" },
+      { "package": "omsdk==1.2.518", "type": "pip_module" },
+      { "package": "cffi==1.17.1", "type": "pip_module" },
+      { "package": "firewalld", "type": "rpm", "repo_name": "x86_64_baseos" },
+      { "package": "python3-firewall", "type": "rpm", "repo_name": "x86_64_baseos" }
     ]
   },
   "service_kube_control_plane": {
@@ -33,7 +43,12 @@
       { "package": "docker.io/calico/kube-controllers", "tag": "v3.30.3", "type": "image" },
       { "package": "docker.io/calico/node", "tag": "v3.30.3", "type": "image" },
       { "package": "quay.io/metallb/speaker", "tag": "v0.15.2", "type": "image" },
-      {"package": "kubectl", "type": "rpm", "repo_name": "kubernetes"}
+      {"package": "kubectl", "type": "rpm", "repo_name": "kubernetes"},
+      { "package": "prettytable==3.14.0", "type": "pip_module" },
+      { "package": "python3.12", "type": "rpm", "repo_name": "x86_64_appstream" },
+      { "package": "git", "type": "rpm", "repo_name": "x86_64_appstream"},
+      { "package": "kubernetes==33.1.0", "type": "pip_module" },
+      { "package": "PyMySQL==1.1.2", "type": "pip_module" }
 
     ]
   },
@@ -69,10 +84,13 @@
       { "package": "helm-v3.19.0-amd64", "type": "tarball", "url": "https://get.helm.sh/helm-v3.19.0-linux-amd64.tar.gz" },
 	    { "package": "nfs-subdir-external-provisioner-4.0.18", "type": "tarball", "url": "https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner/releases/download/nfs-subdir-external-provisioner-4.0.18/nfs-subdir-external-provisioner-4.0.18.tgz" },
       { "package": "whereabouts", "url": "https://github.com/k8snetworkplumbingwg/whereabouts.git", "type": "git", "version": "v0.9.2" },
-      {"package": "kubectl", "type": "rpm", "repo_name": "kubernetes"}
+      {"package": "kubectl", "type": "rpm", "repo_name": "kubernetes"},
+      { "package": "prettytable==3.14.0", "type": "pip_module" },
+      { "package": "python3.12", "type": "rpm", "repo_name": "x86_64_appstream" },
+      { "package": "git", "type": "rpm", "repo_name": "x86_64_appstream"},
+      { "package": "kubernetes==33.1.0", "type": "pip_module" },
+      { "package": "PyMySQL==1.1.2", "type": "pip_module" }
       
-
-
     ]
   },
 
