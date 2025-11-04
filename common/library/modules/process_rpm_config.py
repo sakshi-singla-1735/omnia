@@ -445,12 +445,12 @@ def create_yum_repo_file(distributions, log):
             repo_name = distribution["name"]
             base_url = distribution["base_url"]
             repo_entry = f"""
-    [{repo_name}]
-    name={repo_name} repo
-    baseurl={base_url}
-    enabled=1
-    gpgcheck=0
-    """
+[{repo_name}]
+name={repo_name} repo
+baseurl={base_url}
+enabled=1
+gpgcheck=0
+"""
             repo_content += repo_entry.strip() + "\n\n"
 
         # Write all repositories at once
