@@ -130,7 +130,42 @@
         - sudo sed -i '/ swap / s/^/#/' /etc/fstab
         - sudo setenforce 0 || true
         - sudo sed -i 's/^SELINUX=enforcing/SELINUX=permissive/' /etc/selinux/config
-        - systemctl stop firewalld
+
+         # Enable and start firewalld
+        - systemctl enable firewalld
+        - systemctl start firewalld
+
+        # Open required ports for kube node
+        - firewall-cmd --permanent --add-port=22/tcp
+        - firewall-cmd --permanent --add-port=10250/tcp
+        - firewall-cmd --permanent --add-port=30000-32767/tcp
+        - firewall-cmd --permanent --add-port=179/tcp
+        - firewall-cmd --permanent --add-port=4789/udp
+        - firewall-cmd --permanent --add-port=5473/tcp
+        - firewall-cmd --permanent --add-port=51820/udp
+        - firewall-cmd --permanent --add-port=51821/udp
+        - firewall-cmd --permanent --add-port=9100/tcp
+        - firewall-cmd --permanent --add-port=7472/tcp
+        - firewall-cmd --permanent --add-port=7472/udp
+        - firewall-cmd --permanent --add-port=7946/tcp
+        - firewall-cmd --permanent --add-port=7946/udp
+        - firewall-cmd --permanent --add-port=9090/tcp
+        - firewall-cmd --permanent --add-port=8080/tcp
+
+        # Enable services
+        - firewall-cmd --permanent --add-service=http
+        - firewall-cmd --permanent --add-service=https
+
+        # Add Kubernetes pod/service CIDRs (replace with your actual values)
+        - firewall-cmd --permanent --zone=trusted --add-source={{ k8s_service_addresses }}
+        - firewall-cmd --permanent --zone=trusted --add-source={{ k8s_pod_network_cidr }}
+
+        # Set default zone to trusted
+        - firewall-cmd --set-default-zone=trusted
+
+        # Reload rules
+        - firewall-cmd --reload
+
         - sudo modprobe br_netfilter || true
         - sudo modprobe overlay || true
         - sudo modprobe nf_conntrack || true
