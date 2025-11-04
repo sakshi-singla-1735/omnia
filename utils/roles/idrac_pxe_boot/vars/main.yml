@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
-# Change to false for not restarting host. only settign pxe_boot will happen
+# Change to false for not restarting host. only setting pxe_boot will happen
 restart_host: true
 
 # Change to true for forceful reboot. by default graceful will happen
@@ -25,8 +25,8 @@ boot_source_override_enabled: continuous
 boot_source_override_target: pxe
 
 # Usage: main.yml
-lc_check_fail_msg: "Failed. LC is not ready. Retry again after LC is ready"
+lc_check_fail_msg: "Failed. iDRAC is not ready. Retry again after iDRAC is ready"
 provision_os_msg: "OS provisioning is initiated. Wait for installation to complete for all servers."
-pxe_provisioning_fail_msg: "OS provisioning using PXE failed. This could be due to outdated NIC firmware. Re-run discovery.yml after fixing the issue"
+pxe_provisioning_fail_msg: "OS booting using PXE failed. This could be due to outdated NIC firmware. Re-run set_pxe_boot.yml after fixing the issue"
 bmc_validation_fail_msg: "Failed. bmc group in inventory must have atleast one bmc ip."
 unreachable_idrac_msg: "iDRAC is unreachable. pxe boot might be set. Please check the host reboot status manually"

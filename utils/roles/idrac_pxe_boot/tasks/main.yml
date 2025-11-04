@@ -29,7 +29,7 @@
   ansible.builtin.set_fact:
     reboot_type: "{{ 'none' if not restart_host else ('force_restart' if force_restart else 'graceful_restart') }}"
 
-- name: Boot idrac pxe
+- name: Set boot from pxe
   dellemc.openmanage.idrac_boot:
     idrac_ip: "{{ inventory_hostname }}"
     idrac_user: "{{ bmc_username | default(hostvars['localhost']['bmc_username']) }}"

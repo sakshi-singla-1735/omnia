@@ -12,6 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
+# -------------------------------------------------------------------------
+# PXE PREREQUISITES
+# -------------------------------------------------------------------------
+# 1. Dell iDRAC BMCs must be reachable from the Ansible controller
+# 2. PXE (Pre‑boot eXecution Environment) support – the NIC’s
+#    firmware must implement the PXE option and must be enabled.
+# 2. The `dellemc.openmanage` Ansible collection must be installed:
+#       ansible-galaxy collection install dellemc.openmanage
+# 3. iDRAC firmware version must support the “Boot Source Override”
+#    API (most modern iDRAC9/10 firmware do).
+# 4. The TFTP/NFS/HTTP server that provides the PXE
+#    boot image must be reachable by the target nodes once the iDRAC
+#    is set to PXE mode.
+# -------------------------------------------------------------------------
 - name: Set_fact for fetch omnia config credentials
   hosts: localhost
   connection: local
@@ -26,8 +40,8 @@
 - name: Invoke get_config_credentials.yml
   ansible.builtin.import_playbook: credential_utility/get_config_credentials.yml
 
+# This configures Dell iDRAC BMCs to boot a host from PXE (network) and optionally reboots the server.
 # This will set the boot mode to pxe
-# WARNING: This play will RESTART the host
 # Note: Restart will not happen if the server is powered off, only pxe mode will be set.
 - name: Reboot Host via PXE
   hosts: bmc
