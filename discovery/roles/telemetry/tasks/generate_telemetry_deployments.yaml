@@ -206,7 +206,7 @@
 
 - name: Generate hostmap for ldms
   ansible.builtin.template:
-    src: 'ldms/host_map.r7525.json.j2'
+    src: 'telemetry/ldms/host_map.r7525.json.j2'
     dest: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/ldms/nersc-ldms-aggr"
     mode: '0644'
   tags: telemetry_deployment
@@ -219,7 +219,7 @@
 
 - name: Copy values.yaml to ldms directory
   ansible.builtin.template:
-    src: "ldms/values.yaml.j2"
+    src: "telemetry/ldms/values.yaml.j2"
     dest: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/ldms/nersc-ldms-aggr"
     mode: '0644'
   tags: telemetry_deployment
