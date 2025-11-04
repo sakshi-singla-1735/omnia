@@ -363,10 +363,34 @@
         
         - |
           export KUBECONFIG=/etc/kubernetes/admin.conf
-          echo "Display nodes and pods status after deploying K8S"
+          echo "Waiting for one Ready control plane node ..."
+          # Loop until we have at least one control plane node with status Ready
+          while true; do
+            control_plane_ready=$(kubectl get nodes -l node-role.kubernetes.io/control-plane="" --no-headers 2>/dev/null | awk '$2=="Ready"' | wc -l)
+            if [ "$control_plane_ready" -ge 1 ]; then
+              echo "Found $control_plane_ready Ready control plane node(s)!"
+              break
+            else
+              echo "No Ready control plane node yet, waiting 5s ..."
+              sleep 5
+            fi
+          done
+
+          # Wait for all pods in all namespaces to be ready (status=Running or Completed)
+          echo "Waiting for all pods to be Ready (Running/Completed)..."
+          while true; do
+            not_ready=$(kubectl get pods --all-namespaces --no-headers 2>/dev/null | awk '{ print $4 }' | grep -vE '^(Running|Completed)$' | wc -l)
+            if [ "${not_ready}" -eq 0 ]; then
+              echo "All pods are Running or Completed."
+              break
+            else
+              echo "$not_ready pods not yet ready, waiting 5s ..."
+              sleep 5
+            fi
+          done
+
           echo "Listing all Kubernetes nodes:"
           kubectl get nodes -o wide
-
           echo "Listing all Kubernetes pods in all namespaces:"
           kubectl get pods --all-namespaces -o wide
 
@@ -390,13 +414,15 @@
             fi
           done
 
-          # Proceed with next steps
+          echo "Installing plugins"
           echo "Installing nfs-client-provisioner"
           /usr/local/bin/helm install nfs-client {{ k8s_client_mount_path }}/nfs-client-provisioner/{{ nfs_subdir_external_provisioner_pkg }}.tar.gz \
             --namespace default --create-namespace \
             --set nfs.server={{ k8s_nfs_server_ip }} \
             --set nfs.path={{ k8s_server_share_path }} \
             --set storageClass.defaultClass=true
+          echo "Waiting for nfs-subdir-external-provisioner pods to be ready..."
+          kubectl wait --for=condition=Ready pod -l app=nfs-subdir-external-provisioner -n default --timeout=300s
 
           echo "Installing Metallb"
           kubectl create -f metallb/{{ metallb_package }}.yml
@@ -406,12 +432,18 @@
           kubectl create -f metallb/ipaddress_pool.yaml
           echo "Deploy Layer2 Configuration"
           kubectl create -f metallb/l2advertisement.yaml
+
           echo "Deploy Multus"
           kubectl apply -f multus/{{ multus_package }}.yml
+          echo "Waiting for multus pods to be ready..."
+          kubectl wait --for=condition=Ready pod -l app=multus -n kube-system --timeout=300s
+
           echo "Deploy Wherabouts"
           kubectl apply -f whereabouts/whereabouts/doc/crds/daemonset-install.yaml
           kubectl apply -f whereabouts/whereabouts/doc/crds/whereabouts.cni.cncf.io_ippools.yaml
           kubectl apply -f whereabouts/whereabouts/doc/crds/whereabouts.cni.cncf.io_overlappingrangeipreservations.yaml
+          echo "Waiting for whereabouts pods to be ready..."
+          kubectl wait --for=condition=Ready pod -l app=whereabouts -n kube-system --timeout=300s
 
         - |
           export KUBECONFIG=/etc/kubernetes/admin.conf

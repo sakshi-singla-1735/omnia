@@ -167,3 +167,12 @@
             JOIN_CMD="$(cat "$JOIN_CMD_FILE") --node-name ${NODE_NAME}"
             echo "Executing: $JOIN_CMD"
             eval $JOIN_CMD
+
+        - |
+            if [ -f /etc/kubernetes/kubelet.conf ]; then
+              cp /etc/kubernetes/kubelet.conf /etc/kubernetes/kubelet.conf.bak
+              sed -i "s#server: https://[^:]*:6443#server: https://{{ kube_vip }}:6443#" /etc/kubernetes/kubelet.conf
+              systemctl restart kubelet
+            else
+              echo "WARNING: /etc/kubernetes/kubelet.conf not found. Kubelet may not be initialized yet."
+            fi

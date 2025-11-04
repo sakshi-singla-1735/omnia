@@ -333,8 +333,8 @@ def parse_repo_urls(repo_config, local_repo_config_path,
                 continue
             seen_urls.add(rendered_url)
 
-            # # Skip reachability check for URLs containing k8s, cri-o
-            if not any(skip_str in rendered_url for skip_str in ["k8s", "cri-o"]):
+            # # Skip reachability check for URLs containing k8s, cri-o, oneapi, snoopy, nvidia
+            if not any(skip_str in rendered_url for skip_str in ["k8s", "cri-o", "oneapi", "snoopy", "nvidia"]):
                 if not is_remote_url_reachable(rendered_url):
                    return rendered_url, False
 
