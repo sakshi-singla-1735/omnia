@@ -38,7 +38,10 @@
       { "package": "registry.k8s.io/sig-storage/nfs-subdir-external-provisioner", "tag": "v4.0.2", "type": "image" },
       { "package": "registry.k8s.io/kube-state-metrics/kube-state-metrics", "tag": "v2.16.0", "type": "image" },
 	    { "package": "registry.k8s.io/kube-proxy", "tag": "v1.31.4", "type": "image" },
-      { "package": "registry.k8s.io/ingress-nginx/kube-webhook-certgen", "tag": "v1.6.0", "type": "image" }
+      { "package": "registry.k8s.io/ingress-nginx/kube-webhook-certgen", "tag": "v1.6.0", "type": "image" },
+      { "package": "quay.io/strimzi/operator", "tag": "0.48.0", "type": "image" },
+      { "package": "quay.io/strimzi/kafka", "tag": "0.48.0-kafka-4.1.0", "type": "image" },
+      
     ]
   },
   "service_kube_control_plane": {
