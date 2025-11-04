@@ -7,6 +7,6 @@ resources:
 {% endif %}
 {% if 'kafka' in types %}
   - kafka.kafka.yaml.j2
-  - kafka.topic-nersc.yaml.j2
-  - kafka.bridge.yaml.j2
+  - kafka.kafka_bridge.yaml.j2
+  - kafka.topic_ldms.yaml.j2
 {% endif %}

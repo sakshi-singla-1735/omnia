@@ -181,8 +181,8 @@
       dest: 'kafka.kafka.yaml'
       type: 'kafka'
     
-    - src: 'telemetry/kafka/kafka.topic.nersc-ldms.yaml.j2'
-      dest: 'kafka.topic.nersc-ldms.yaml'
+    - src: 'telemetry/kafka/kafka.topic_ldms.yaml.j2'
+      dest: 'kafka.topic_ldms.yaml'
       type: 'kafka'
     
     - src: 'telemetry/kafka/kafka.kafka_bridge.yaml.j2'
