@@ -4,7 +4,7 @@ metadata:
   name: controller
   namespace: telemetry
   labels:
-    strimzi.io/cluster: cluster
+    strimzi.io/cluster: kafka
 spec:
   replicas: 3
   roles:
@@ -14,7 +14,7 @@ spec:
     volumes:
       - id: 0
         type: persistent-claim
-        size: "{{ hostvars['localhost']['kafka_configurations']['persistence_size'] }}"
+        size: "{{ (hostvars['localhost']['kafka_configurations']['persistence_size'] | int) / 6 }}"
         class: {{ storage_class_name }}
         kraftMetadata: shared
         deleteClaim: false
@@ -26,7 +26,7 @@ metadata:
   name: broker
   namespace: telemetry
   labels:
-    strimzi.io/cluster: cluster
+    strimzi.io/cluster: kafka
 spec:
   replicas: 3
   roles:
@@ -36,7 +36,7 @@ spec:
     volumes:
       - id: 0
         type: persistent-claim
-        size: "{{ hostvars['localhost']['kafka_configurations']['persistence_size'] }}"
+        size: "{{ (hostvars['localhost']['kafka_configurations']['persistence_size'] | int) / 6 }}"
         class: {{ storage_class_name }}
         kraftMetadata: shared
         deleteClaim: false
@@ -45,7 +45,7 @@ spec:
 apiVersion: kafka.strimzi.io/v1beta2
 kind: Kafka
 metadata:
-  name: cluster
+  name: kafka
   namespace: telemetry
   annotations:
     strimzi.io/node-pools: enabled
