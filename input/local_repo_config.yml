@@ -101,14 +101,6 @@ omnia_repo_url_rhel_x86_64:
   - { url: "https://dl.fedoraproject.org/pub/epel/10/Everything/x86_64/", gpgkey: "https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-10", name: "epel"}
   - { url: "https://pkgs.k8s.io/core:/stable:/v1.34/rpm/", gpgkey: "https://pkgs.k8s.io/core:/stable:/v1.34/rpm/repodata/repomd.xml.key", name: "kubernetes"}
   - { url: "https://download.opensuse.org/repositories/isv:/cri-o:/stable:/v1.34/rpm/", gpgkey: "https://download.opensuse.org/repositories/isv:/cri-o:/stable:/v1.34/rpm/repodata/repomd.xml.key'", name: "cri-o"}
-
-# Mandatory
-# This variable defines all the repo urls from where rpms will be downloaded for omnia features when cluster_os_type is rhel and arch aarch64 
-# Making incorrect changes to this variable can cause omnia failure. Please edit cautiously.
-# 'url' defines the baseurl for the repository
-# 'gpgkey' defines gpgkey for the repository
-# If 'gpgkey' is kept empty then gpgcheck=0 for that repository
-# 'name' A unique identifier for the registry.
 omnia_repo_url_rhel_aarch64:
   - { url: "https://download.docker.com/linux/centos/10/aarch64/stable/", gpgkey: "https://download.docker.com/linux/centos/gpg", name: "docker-ce"}
   - { url: "https://dl.fedoraproject.org/pub/epel/10/Everything/aarch64/", gpgkey: "https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-10", name: "epel"}
