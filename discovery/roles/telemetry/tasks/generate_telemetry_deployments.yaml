@@ -204,15 +204,22 @@
     mode: '0755'
   tags: telemetry_deployment
 
+- name: Generate hostmap for ldms
+  ansible.builtin.template:
+    src: 'ldms/host_map.r7525.json.j2'
+    dest: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/ldms/nersc-ldms-aggr"
+    mode: '0644'
+  tags: telemetry_deployment
+
 - name: Run make command inside ldms directory
-  ansible.builtin.shell: make
+  ansible.builtin.shell: make clean all && make
   args:
-    chdir: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/ldms"
+    chdir: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/ldms/nersc-ldms-aggr"
   tags: telemetry_deployment
 
 - name: Copy values.yaml to ldms directory
-  ansible.builtin.copy:
-    src: "templates/ldms/values.yaml.j2"
-    dest: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/ldms"
+  ansible.builtin.template:
+    src: "ldms/values.yaml.j2"
+    dest: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/ldms/nersc-ldms-aggr"
     mode: '0644'
   tags: telemetry_deployment
