@@ -321,6 +321,18 @@
         - sysctl --system
         - mkdir -p /tmp/crio-storage {{ k8s_client_mount_path }}
         - mount -a
+        - |
+          tmpfile=$(mktemp)
+          grep '^search' /etc/resolv.conf > "$tmpfile"
+          {% for ns in dns %}
+          echo "nameserver {{ ns }}" >> "$tmpfile"
+          {% endfor %}
+          grep -v '^search' /etc/resolv.conf | grep -v '^$' >> "$tmpfile"
+          cat "$tmpfile" > /etc/resolv.conf
+        - |
+              if command -v chattr >/dev/null 2>&1; then
+                chattr +i /etc/resolv.conf || true
+          fi
         - systemctl start crio.service
         - systemctl enable crio.service
         - sudo systemctl enable --now kubelet
@@ -493,3 +505,143 @@
 
           echo "Listing all Kubernetes pods in all namespaces:"
           kubectl get pods --all-namespaces -o wide
+
+        - |
+          CSI_DRIVER_SUPPORT="{{ csi_driver_powerscale_support }}"
+          echo "===== Checking if PowerScale CSI driver support is enabled ====="
+          if [ "$CSI_DRIVER_SUPPORT" != "true" ]; then
+            echo "PowerScale CSI driver support is disabled. Skipping deployment."
+          else
+            echo "PowerScale CSI driver support is enabled. Proceeding with deployment."
+            echo "===== Checking if PowerScale driver is deployed ====="
+
+            if kubectl get pods -n powerscale --no-headers 2>/dev/null | grep -q '^isilon-'; then
+              echo "PowerScale driver is already deployed on the cluster."
+            else
+              echo "PowerScale driver not found — proceeding to deploy PowerScale driver..."
+              echo "===== Checking Helm installation ====="
+
+              if ! command -v helm >/dev/null 2>&1; then
+                echo "Helm is not installed. Installing Helm..."
+                echo "Installing helm"
+                /usr/local/bin/install-helm.sh
+                if ! command -v helm >/dev/null 2>&1; then
+                  echo "ERROR: Helm installation failed. Skipping PowerScale deployment."
+                  return 0 2>/dev/null || true
+                fi
+              fi
+
+              echo "Helm is already installed on this node."
+              helm version --short || true
+
+              echo "===== Copying CSI PowerScale driver from NFS-mounted path ====="
+              mkdir -p /opt/omnia
+              if cp -rp /root/k8s_artifacts/csi-driver-powerscale /opt/omnia/; then
+                echo "Copied CSI PowerScale driver to /opt/omnia successfully."
+              else
+                echo "ERROR: Failed to copy PowerScale driver. Skipping this deployment."
+                return 0 2>/dev/null || true
+              fi
+
+              echo "===== Extracting PowerScale host from secret.yaml ====="
+              SECRET_FILE="/opt/omnia/csi-driver-powerscale/secret.yaml"
+              if [[ -f "$SECRET_FILE" ]]; then
+                echo "Found secret file at $SECRET_FILE"
+                powerscale_endpoint=$(grep 'endpoint:' "$SECRET_FILE" | awk '{print $2}' | tr -d '"')
+                powerscale_host=$(echo "$powerscale_endpoint" | sed -E 's#https?://##' | sed -E 's#/.*##')
+                echo "Extracted PowerScale Host: $powerscale_host"
+
+                echo "===== Checking connectivity to PowerScale host ====="
+                if ping -c 1 "$powerscale_host" >/dev/null 2>&1; then
+                  echo "PowerScale Host ($powerscale_host) is reachable."
+                else
+                  echo "ERROR: PowerScale Host ($powerscale_host) is NOT reachable."
+                  echo "Skipping PowerScale deployment and continuing with other components..."
+                  return 0 2>/dev/null || true
+                fi
+              else
+                echo "ERROR: secret.yaml not found at $SECRET_FILE. Cannot extract PowerScale endpoint."
+                echo "Skipping PowerScale deployment and continuing with other components..."
+                return 0 2>/dev/null || true
+              fi
+
+              echo "===== Ensuring 'isilon' namespace exists ====="
+              kubectl create namespace isilon --dry-run=client -o yaml | kubectl apply -f - || {
+                echo "ERROR: Failed to create or verify 'isilon' namespace. Skipping PowerScale deployment."
+                return 0 2>/dev/null || true
+              }
+
+              echo "===== Creating new isilon-creds secret ====="
+              if [ -f "/opt/omnia/csi-driver-powerscale/secret.yaml" ]; then
+                kubectl delete secret isilon-creds -n isilon >/dev/null 2>&1 || true
+                kubectl create secret generic isilon-creds -n isilon --from-file=config="/opt/omnia/csi-driver-powerscale/secret.yaml"
+                echo "isilon-creds secret created successfully."
+              else
+                echo "ERROR: Secret file not found. Skipping PowerScale deployment."
+                return 0 2>/dev/null || true
+              fi
+
+              echo "===== Applying empty certificate secret ====="
+              if [ -f "/opt/omnia/csi-driver-powerscale/empty-certs-0.yaml" ]; then
+                kubectl apply -f /opt/omnia/csi-driver-powerscale/empty-certs-0.yaml || {
+                  echo "Failed to apply empty certs secret. Skipping PowerScale deployment."
+                  return 0 2>/dev/null || true
+                }
+              fi
+
+              echo "===== Deploying External Snapshotter CRDs ====="
+              if [ -d "/opt/omnia/csi-driver-powerscale/csi-powerscale/external-snapshotter/client/config/crd" ]; then
+                kubectl apply -f /opt/omnia/csi-driver-powerscale/csi-powerscale/external-snapshotter/client/config/crd/ || {
+                  echo "CRD deployment failed. Skipping PowerScale deployment."
+                  return 0 2>/dev/null || true
+                }
+              fi
+
+              echo "===== Deploying Snapshot Controller ====="
+              if [ -d "/opt/omnia/csi-driver-powerscale/csi-powerscale/external-snapshotter/deploy/kubernetes/snapshot-controller" ]; then
+                kubectl apply -f /opt/omnia/csi-driver-powerscale/csi-powerscale/external-snapshotter/deploy/kubernetes/snapshot-controller/ -n isilon
+                echo "Snapshot Controller deployed in 'isilon' namespace."
+              else
+                echo "Snapshot Controller directory not found. Skipping this step."
+              fi
+
+              echo "===== Running CSI PowerScale installation script ====="
+              INSTALL_SCRIPT="/opt/omnia/csi-driver-powerscale/csi-powerscale/dell-csi-helm-installer/csi-install.sh"
+              if [ -x "$INSTALL_SCRIPT" ]; then
+                cd "$(dirname "$INSTALL_SCRIPT")" || return 0
+                ./csi-install.sh --namespace isilon --values /opt/omnia/csi-driver-powerscale/values.yaml &
+                CSI_PID=$!
+                echo "Waiting for CSI install script (PID $CSI_PID) to complete..."
+                wait $CSI_PID
+              else
+                echo "CSI install script not found. Skipping PowerScale deployment."
+                return 0 2>/dev/null || true
+              fi
+
+              echo "===== Waiting for CSI pods ====="
+              MAX_ATTEMPTS=30
+              WAIT_TIME=10
+              for ((i=1; i<=MAX_ATTEMPTS; i++)); do
+                if kubectl get pods -n isilon --no-headers 2>/dev/null | grep -q '^isilon-'; then
+                  echo "CSI pods detected."
+                  break
+                fi
+                echo "Attempt $i/$MAX_ATTEMPTS: Waiting for CSI pods..."
+                sleep $WAIT_TIME
+              done
+
+              NON_RUNNING=$(kubectl get pods -n isilon --no-headers 2>/dev/null | grep '^isilon-' | grep -v "Running" | wc -l)
+              if [ "$NON_RUNNING" -eq 0 ]; then
+                echo "CSI PowerScale driver installed successfully."
+                if [ -f "/opt/omnia/csi-driver-powerscale/ps_storage_class.yml" ]; then
+                  kubectl apply -f /opt/omnia/csi-driver-powerscale/ps_storage_class.yml
+                  echo "PowerScale StorageClass applied successfully."
+                fi
+              else
+                echo "ERROR: CSI PowerScale driver pods are not in 'Running' state."
+                echo "Skipping StorageClass creation and continuing with other components..."
+                return 0 2>/dev/null || true
+              fi
+            fi
+          fi
+
