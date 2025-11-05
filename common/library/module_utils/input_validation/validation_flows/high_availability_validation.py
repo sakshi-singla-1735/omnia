@@ -336,7 +336,7 @@ def validate_vip_address(
                 create_error_msg(
                     f"{config_type} vip in pod external",
                     vip_address,
-                    en_us_validation_msg.VIRTUAL_IP_NOT_VALID,
+                    en_us_validation_msg.VIRTUAL_IP_NOT_POD_EXT,
                 )
             )
 
