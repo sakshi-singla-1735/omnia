@@ -26,6 +26,6 @@
   ansible.builtin.set_fact:
     ldms_support: "{{ software_config.softwares | selectattr('name', 'in', 'ldms') | list | length > 0 }}"
 
-- name: include update_ldms_sampler.yml
+- name: Include update_ldms_sampler.yml
   ansible.builtin.include_tasks: update_ldms_sampler.yml
   when: ldms_support
