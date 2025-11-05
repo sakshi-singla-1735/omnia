@@ -177,8 +177,16 @@
       dest: 'kafka-san.cnf'
       type: 'kafka'
 
-    - src: 'telemetry/kafka/kafka-statefulset.yaml.j2'
-      dest: 'kafka-statefulset.yaml'
+    - src: 'telemetry/kafka/kafka.kafka.yaml.j2'
+      dest: 'kafka.kafka.yaml'
+      type: 'kafka'
+    
+    - src: 'telemetry/kafka/kafka.topic_ldms.yaml.j2'
+      dest: 'kafka.topic_ldms.yaml'
+      type: 'kafka'
+    
+    - src: 'telemetry/kafka/kafka.kafka_bridge.yaml.j2'
+      dest: 'kafka.kafka_bridge.yaml'
       type: 'kafka'
 
     - src: 'telemetry/victoria/victoria-statefulset.yaml.j2'
