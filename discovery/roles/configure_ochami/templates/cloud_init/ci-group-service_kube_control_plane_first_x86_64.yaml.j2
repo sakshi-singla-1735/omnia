@@ -338,6 +338,40 @@
         - cp -f /etc/kubernetes/admin.conf $HOME/.kube/config
         - chown $(id -u):$(id -g) $HOME/.kube/config
         - kubectl create -f {{ k8s_client_mount_path }}/calico//{{ calico_package }}.yml
+
+        - |
+          export KUBECONFIG=/etc/kubernetes/admin.conf
+          echo "Waiting for one Ready control plane node ..."
+          # Loop until we have at least one control plane node with status Ready
+          while true; do
+            control_plane_ready=$(kubectl get nodes -l node-role.kubernetes.io/control-plane="" --no-headers 2>/dev/null | awk '$2=="Ready"' | wc -l)
+            if [ "$control_plane_ready" -ge 1 ]; then
+              echo "Found $control_plane_ready Ready control plane node(s)!"
+              break
+            else
+              echo "No Ready control plane node yet, waiting 5s ..."
+              sleep 5
+            fi
+          done
+
+          # Wait for all pods in all namespaces to be ready (status=Running or Completed)
+          echo "Waiting for all pods to be Ready (Running/Completed)..."
+          while true; do
+            not_ready=$(kubectl get pods --all-namespaces --no-headers 2>/dev/null | awk '{ print $4 }' | grep -vE '^(Running|Completed)$' | wc -l)
+            if [ "${not_ready}" -eq 0 ]; then
+              echo "All pods are Running or Completed."
+              break
+            else
+              echo "$not_ready pods not yet ready, waiting 5s ..."
+              sleep 5
+            fi
+          done
+
+          echo "Listing all Kubernetes nodes:"
+          kubectl get nodes -o wide
+          echo "Listing all Kubernetes pods in all namespaces:"
+          kubectl get pods --all-namespaces -o wide
+
         - |
           kube_vip="{{ kube_vip }}"
           kubectl get configmap kubeadm-config -n kube-system -o yaml > /tmp/kubeadm-config.yaml
@@ -399,39 +433,6 @@
           WORKER_JOIN_CMD=$(kubeadm token create --ttl 0 --print-join-command)
           echo "$WORKER_JOIN_CMD" > "${K8S_CLIENT_MOUNT_PATH}/worker-join-command.sh"
           echo "Saved worker join command to:       ${K8S_CLIENT_MOUNT_PATH}/worker-join-command.sh"
-        
-        - |
-          export KUBECONFIG=/etc/kubernetes/admin.conf
-          echo "Waiting for one Ready control plane node ..."
-          # Loop until we have at least one control plane node with status Ready
-          while true; do
-            control_plane_ready=$(kubectl get nodes -l node-role.kubernetes.io/control-plane="" --no-headers 2>/dev/null | awk '$2=="Ready"' | wc -l)
-            if [ "$control_plane_ready" -ge 1 ]; then
-              echo "Found $control_plane_ready Ready control plane node(s)!"
-              break
-            else
-              echo "No Ready control plane node yet, waiting 5s ..."
-              sleep 5
-            fi
-          done
-
-          # Wait for all pods in all namespaces to be ready (status=Running or Completed)
-          echo "Waiting for all pods to be Ready (Running/Completed)..."
-          while true; do
-            not_ready=$(kubectl get pods --all-namespaces --no-headers 2>/dev/null | awk '{ print $4 }' | grep -vE '^(Running|Completed)$' | wc -l)
-            if [ "${not_ready}" -eq 0 ]; then
-              echo "All pods are Running or Completed."
-              break
-            else
-              echo "$not_ready pods not yet ready, waiting 5s ..."
-              sleep 5
-            fi
-          done
-
-          echo "Listing all Kubernetes nodes:"
-          kubectl get nodes -o wide
-          echo "Listing all Kubernetes pods in all namespaces:"
-          kubectl get pods --all-namespaces -o wide
 
         - echo "Installing helm"
         - /usr/local/bin/install-helm.sh
