@@ -15,3 +15,4 @@
 
 telemetry_config_file: "{{ hostvars['localhost']['input_project_dir'] }}/telemetry_config.yml"
 common_mode: "0755"
+
