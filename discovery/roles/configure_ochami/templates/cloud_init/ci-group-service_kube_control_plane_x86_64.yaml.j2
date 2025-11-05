@@ -123,6 +123,95 @@
             location = "gcr.io"
             [[registry.mirror]]
             location = "{{ pulp_mirror }}"
+        - path: /tmp/kube-vip.yaml
+          owner: root:root
+          permissions: '0644'
+          content: |
+            apiVersion: v1
+            kind: Pod
+            metadata:
+              creationTimestamp: null
+              name: kube-vip
+              namespace: kube-system
+              uid: kube-vip-pod
+            spec:
+              containers:
+                - args:
+                    - manager
+                  env:
+                    - name: vip_arp
+                      value: "true"
+                    - name: port
+                      value: "6443"
+                    - name: vip_nodename
+                      valueFrom:
+                        fieldRef:
+                          fieldPath: spec.nodeName
+                    - name: vip_interface
+                      value: vip_interface
+                    - name: vip_cidr
+                      value: "32"
+                    - name: dns_mode
+                      value: first
+                    - name: cp_enable
+                      value: "true"
+                    - name: cp_namespace
+                      value: kube-system
+                    - name: svc_enable
+                      value: "true"
+                    - name: svc_leasename
+                      value: plndr-svcs-lock
+                    - name: vip_leaderelection
+                      value: "true"
+                    - name: vip_leasename
+                      value: plndr-cp-lock
+                    - name: vip_leaseduration
+                      value: "5"
+                    - name: vip_renewdeadline
+                      value: "3"
+                    - name: vip_retryperiod
+                      value: "1"
+                    - name: vip_address
+                      value: {{ kube_vip }}
+                    - name: prometheus_server
+                      value: :2112
+                  image: ghcr.io/kube-vip/kube-vip:v0.8.9
+                  imagePullPolicy: IfNotPresent
+                  name: kube-vip
+                  resources: {}
+                  securityContext:
+                    capabilities:
+                      add:
+                        - NET_ADMIN
+                        - NET_RAW
+                  volumeMounts:
+                    - mountPath: /etc/kubernetes/admin.conf
+                      name: kubeconfig
+              hostAliases:
+                - hostnames:
+                    - kubernetes
+                  ip: 127.0.0.1
+              hostNetwork: true
+              dnsPolicy: ClusterFirstWithHostNet
+              volumes:
+                - hostPath:
+                    path: /etc/kubernetes/admin.conf
+                  name: kubeconfig
+            status: {}
+
+        - path: /usr/local/bin/install-helm.sh
+          permissions: '0755'
+          content: |
+            #!/bin/bash
+            set -e
+            HELM_VERSION="v3.19.0"
+            ARCH="amd64"
+            cp {{ k8s_client_mount_path }}/helm/linux-${ARCH}/helm /usr/local/bin/helm
+            chmod +x /usr/local/bin/helm
+
+            # Optional: Set up bash completion
+            /usr/local/bin/helm completion bash > /etc/bash_completion.d/helm.sh
+            chmod 0755 /etc/bash_completion.d/helm.sh
 
       runcmd:
         - /usr/local/bin/set-ssh.sh
@@ -131,13 +220,21 @@
         - sudo setenforce 0 || true
         - sudo sed -i 's/^SELINUX=enforcing/SELINUX=permissive/' /etc/selinux/config
 
-         # Enable and start firewalld
+        # Enable and start firewalld
         - systemctl enable firewalld
         - systemctl start firewalld
 
-        # Open required ports for kube node
+        # Open essential ports
         - firewall-cmd --permanent --add-port=22/tcp
+        - firewall-cmd --permanent --add-port=6443/tcp
+        - firewall-cmd --permanent --add-port=2379-2380/tcp
         - firewall-cmd --permanent --add-port=10250/tcp
+        - firewall-cmd --permanent --add-port=10251/tcp
+        - firewall-cmd --permanent --add-port=10252/tcp
+        - firewall-cmd --permanent --add-port=10257/tcp
+        - firewall-cmd --permanent --add-port=10259/tcp
+
+        # CNI-related ports if running workloads on control plane (NodePort, CNI, etc.)
         - firewall-cmd --permanent --add-port=30000-32767/tcp
         - firewall-cmd --permanent --add-port=179/tcp
         - firewall-cmd --permanent --add-port=4789/udp
@@ -151,19 +248,19 @@
         - firewall-cmd --permanent --add-port=7946/udp
         - firewall-cmd --permanent --add-port=9090/tcp
         - firewall-cmd --permanent --add-port=8080/tcp
-
+        
         # Enable services
         - firewall-cmd --permanent --add-service=http
         - firewall-cmd --permanent --add-service=https
 
-        # Add Kubernetes pod/service CIDRs (replace with your actual values)
+        # Add pod/service networks
         - firewall-cmd --permanent --zone=trusted --add-source={{ k8s_service_addresses }}
         - firewall-cmd --permanent --zone=trusted --add-source={{ k8s_pod_network_cidr }}
-
+        
         # Set default zone to trusted
         - firewall-cmd --set-default-zone=trusted
-
-        # Reload rules
+        
+        # Reload the firewall rules
         - firewall-cmd --reload
 
         - sudo modprobe br_netfilter || true
@@ -182,11 +279,12 @@
         - systemctl daemon-reload
         - systemctl restart crio
         - kubeadm config images pull
+        # Join Kubernetes cluster
         - |
             K8S_CLIENT_MOUNT_PATH="{{ k8s_client_mount_path }}"
             NODE_NAME="{% raw %}{{ ds.meta_data.instance_data.local_ipv4 }}{% endraw %}"
             KUBE_VIP="{{ kube_vip }}"
-            JOIN_CMD_FILE="${K8S_CLIENT_MOUNT_PATH}/worker-join-command.sh"
+            JOIN_CMD_FILE="${K8S_CLIENT_MOUNT_PATH}/control-plane-join-command.sh"
             echo "Waiting for join command file: $JOIN_CMD_FILE"
             while [ ! -f "$JOIN_CMD_FILE" ]; do
               echo "File not found: $JOIN_CMD_FILE. Retrying in 10 seconds..."
@@ -202,6 +300,16 @@
             JOIN_CMD="$(cat "$JOIN_CMD_FILE") --node-name ${NODE_NAME}"
             echo "Executing: $JOIN_CMD"
             eval $JOIN_CMD
+            mkdir -p /root/.kube
+            cp -f /etc/kubernetes/admin.conf /root/.kube/config
+            chown root:root /root/.kube/config
+        - |
+            NODE_IP="{% raw %}{{ ds.meta_data.instance_data.local_ipv4 }}{% endraw %}"
+            VIP_IFACE=$(ip -o addr show | awk -v ip="$NODE_IP" '$4 ~ ip {print $2}')
+            sed -i "s/value: vip_interface/value: ${VIP_IFACE}/" /tmp/kube-vip.yaml
+            cp /tmp/kube-vip.yaml /etc/kubernetes/manifests/kube-vip.yaml
+        
+        - /usr/local/bin/install-helm.sh
 
         - |
             if [ -f /etc/kubernetes/kubelet.conf ]; then
