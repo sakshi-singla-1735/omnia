@@ -20,5 +20,4 @@
     ansible_port: "{{ oim_host_port }}"
     groups: "{{ oim_host_group }}"
   when:
-    - oim_group | default(false) | bool or
-      omnia_kubespray_validation | default(false) | bool
+    - oim_group | default(false) | bool
