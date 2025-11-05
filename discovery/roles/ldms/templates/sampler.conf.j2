@@ -1,0 +1,10 @@
+# Auto-generated LDMS sampler configuration
+{% for sampler in telemetry_config.ldms_sampler_configurations %}
+
+load name={{ sampler.plugin_name }}
+config name={{ sampler.plugin_name }} producer=${HOSTNAME} instance=${HOSTNAME}/{{ sampler.plugin_name }}{% if sampler.config_parameters is defined %}{% for k, v in sampler.config_parameters.items() %} {{ k }}{% if v is not none %}={{ v }}{% endif %}{% endfor %}{% endif %}
+
+start name={{ sampler.plugin_name }}{% if sampler.activation_parameters is defined %}{% for k, v in sampler.activation_parameters.items() %} {{ k }}{% if v is not none %}={{ v }}{% endif %}{% endfor %}{% endif %}
+
+{% endfor %}
+

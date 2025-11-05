@@ -5,9 +5,130 @@
   "properties": {
     "idrac_telemetry_support": {
       "type": "boolean"
+    },
+    "kafka_configurations": {
+      "type": "object",
+      "properties": {
+        "persistence_size": {
+          "type": "string",
+          "pattern": "^[0-9]+(Ki|Mi|Gi|Ti|Pi|Ei)$"
+        },
+        "log_retention_hours": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "log_retention_bytes": {
+          "type": "integer"
+        },
+        "log_segment_bytes": {
+          "type": "integer"
+        },
+        "topic_partitions": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "persistence_size",
+        "log_retention_hours",
+        "log_retention_bytes",
+        "log_segment_bytes",
+        "topic_partitions"
+      ],
+      "additionalProperties": false
+    },
+
+    "ldms_sampler_configurations": {
+      "type": "array",
+      "description": "LDMS-specific sampler configurations",
+      "items": {
+        "type": "object",
+        "properties": {
+          "plugin_name": {
+            "type": "string",
+            "description": "Name of the LDMS sampler plugin"
+          },
+          "config_parameters": {
+            "type": "object",
+            "description": "Plugin-specific configuration parameters",
+            "patternProperties": {
+              ".*": { "type": "string" }
+            },
+            "additionalProperties": true
+          },
+          "activation_parameters": {
+            "type": "object",
+            "description": "Parameters controlling activation such as interval and offset",
+            "properties": {
+              "interval": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "Sampling interval in microseconds"
+              },
+              "offset": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Sampling offset in microseconds"
+              }
+            },
+            "required": ["interval"],
+            "additionalProperties": false
+          }
+        },
+        "required": ["plugin_name", "activation_parameters"],
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "plugin_name": { "const": "slurm_sampler" }
+              }
+            },
+            "then": {
+              "required": ["config_parameters"],
+              "properties": {
+                "config_parameters": {
+                  "type": "object",
+                  "properties": {
+                    "component_id": { "type": "integer", "minimum": 1 },
+                    "stream": { "type": "string" },
+                    "job_count": { "type": "integer", "minimum": 1 },
+                    "task_count": { "type": "integer", "minimum": 1 }
+                  },
+                  "required": ["component_id", "stream", "job_count", "task_count"],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "plugin_name": { "const": "procnetdev" }
+              }
+            },
+            "then": {
+              "properties": {
+                "config_parameters": {
+                  "type": "object",
+                  "properties": {
+                    "ifaces": {
+                      "type": "string",
+                      "pattern": "^[a-zA-Z0-9_,]+$",
+                      "description": "Optional comma-separated list of network interfaces"
+                    }
+                  },
+                  "additionalProperties": true
+                }
+              }
+            }
+          }
+        ]
+      }
     }
   },
+
   "required": ["idrac_telemetry_support"],
+
   "allOf": [
     {
       "if": {
@@ -52,5 +173,8 @@
         }
       }
     }
-  ]
+  ],
+
+  "additionalProperties": false
 }
+

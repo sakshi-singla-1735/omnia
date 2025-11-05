@@ -20,15 +20,12 @@
 
 # This variable is used to enable iDRAC telemetry support
 # Accepted values:  true or false
-idrac_telemetry_support: true
+idrac_telemetry_support: false
 
-# This variable is used to decide the iDRAC telemetry collection type.
-# Supported values:
-#   - "victoria"
-#   - "kafka"
-#   - "victoria,kafka" (to enable both)
-# Default: "victoria,kafka"
-idrac_telemetry_collection_type: "victoria,kafka"
+# This variable used to decide the iDRAC telemetry collection.
+# Supported values are victoria or kafka.
+# Default: "victoria"
+idrac_telemetry_collection_type: "victoria"
 
 # These variables are used to configure victoria for telemetry
 victoria_configurations:
@@ -60,3 +57,43 @@ kafka_configurations:
   # Increasing this can improve throughput but also increases storage/overhead.
   # Default: 1
   topic_partitions: 1
+
+# LDMS-specific configurations and samplers
+ldms_sampler_configurations:
+  - plugin_name: meminfo
+    config_parameters: {}
+    # interval=10 indicates data collection every 10 seconds
+    activation_parameters: {interval=1000000}
+
+  - plugin_name: procstat2
+    config_parameters: {}
+    # interval=10 indicates data collection every 10 seconds
+    activation_parameters: {interval=1000000}
+
+  - plugin_name: vmstat
+    config_parameters: {}
+    # interval=10 indicates data collection every 10 seconds
+    activation_parameters: {interval=1000000}
+
+  - plugin_name: loadavg
+    config_parameters: {}
+    # interval=10 indicates data collection every 10 seconds
+    activation_parameters: {interval=1000000}
+
+  - plugin_name: slurm_sampler
+    # component_id=2 (compute nodes), stream=slurm, job_count=8, task_count=8
+    # component_id=2 indicates compute nodes
+    # stream=slurm indicates the data stream type
+    # job_count=8 and task_count=8 specify the number of jobs and tasks to monitor
+    config_parameters: { component_id=2, stream=slurm, job_count=8, task_count=8}
+    activation_parameters: {interval=1000000, offset=0}
+
+  - plugin_name: procnetdev2
+    # ifaces=eth0,eth1
+    # interval=10 indicates data collection every 10 seconds  
+    # ifaces=eth0,eth1 specifies the network interfaces to monitor
+    # if not specified, all interfaces will be monitored
+    config_parameters: {}
+    # interval=10 indicates data collection every 10 seconds
+    # offset=0 specifies the time offset for data collection
+    activation_parameters: {interval=1000000, offset=0}
