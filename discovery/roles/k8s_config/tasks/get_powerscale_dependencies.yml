@@ -1,4 +1,4 @@
-# Copyright 2025 Dell Inc. or its subsidiaries. 
+# Copyright 2025 Dell Inc. or its subsidiaries.
 # All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,8 +20,8 @@
   block:
     - name: Base64 encode username and password
       ansible.builtin.set_fact:
-        csi_username_b64: "{{ hostvars['localhost']['csi_username']  | b64encode }}"
-        csi_password_b64: "{{ hostvars['localhost']['csi_password']  | b64encode }}"
+        csi_username_b64: "{{ hostvars['localhost']['csi_username'] | b64encode }}"
+        csi_password_b64: "{{ hostvars['localhost']['csi_password'] | b64encode }}"
       no_log: true
 
     - name: Check if csi_powerscale_secret_vault exists
@@ -51,7 +51,7 @@
       changed_when: false
       register: config_content
       delegate_to: localhost
-    
+
     - name: Encrypt secret file
       ansible.builtin.command: >-
         ansible-vault encrypt {{ csi_powerscale_driver_secret_file_path }}
@@ -59,7 +59,7 @@
       when: "'$ANSIBLE_VAULT;' not in config_content.stdout"
       changed_when: false
       delegate_to: localhost
-    
+
     - name: Check if secret file is encrypted
       ansible.builtin.command: cat "{{ csi_powerscale_driver_secret_file_path }}"
       changed_when: false
@@ -73,7 +73,7 @@
       when: "'$ANSIBLE_VAULT;' in config_content.stdout"
       delegate_to: localhost
       changed_when: false
-    
+
     - name: Update username in secret.yaml with encoded value
       ansible.builtin.replace:
         path: "{{ csi_powerscale_driver_secret_file_path }}"
@@ -98,7 +98,7 @@
       when:
         - csi_powerscale_driver_secret_file_path is defined
       delegate_to: localhost
-    
+
     - name: Load values.yaml file
       ansible.builtin.include_vars:
         file: "{{ csi_powerscale_driver_values_file_path }}"
@@ -153,7 +153,7 @@
         mode: "0644"
       when:
         - csi_powerscale_driver_values_file_path is defined
-    
+
     - name: Copy empty certificate yaml file
       ansible.builtin.copy:
         dest: "{{ k8s_client_mount_path }}/csi-driver-powerscale/empty_isilon-certs.yaml"
@@ -176,4 +176,3 @@
     - name: Handle dependency failure
       ansible.builtin.fail:
         msg: "{{ fail_msg_download }}"
-
