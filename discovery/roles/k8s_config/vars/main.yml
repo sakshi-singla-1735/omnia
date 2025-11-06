@@ -37,6 +37,8 @@ empty_certificate_template_path: "{{ role_path }}/files/empty_certificate_templa
 permission_644: "0644"
 owner_value: "root"
 group_value: "root"
+csi_powerscale_secret_vaultname: ".csi_powerscale_secret_vault"
+vault_key_permission: "0644"
 
 # Usage ps_storage_class.j2
 ps_isipath: "{{ csi_powerscale_values_file['isiPath'] }}"

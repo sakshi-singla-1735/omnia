@@ -330,9 +330,10 @@
           grep -v '^search' /etc/resolv.conf | grep -v '^$' >> "$tmpfile"
           cat "$tmpfile" > /etc/resolv.conf
         - |
-              if command -v chattr >/dev/null 2>&1; then
-                chattr +i /etc/resolv.conf || true
+          if command -v chattr >/dev/null 2>&1; then
+            chattr +i /etc/resolv.conf || true
           fi
+
         - systemctl start crio.service
         - systemctl enable crio.service
         - sudo systemctl enable --now kubelet
@@ -350,7 +351,7 @@
         - cp -f /etc/kubernetes/admin.conf $HOME/.kube/config
         - chown $(id -u):$(id -g) $HOME/.kube/config
         - kubectl create -f {{ k8s_client_mount_path }}/calico//{{ calico_package }}.yml
-
+        - kubectl taint nodes {% raw %}{{ ds.meta_data.instance_data.local_ipv4 }}{% endraw %}  node-role.kubernetes.io/control-plane:NoSchedule-
         - |
           export KUBECONFIG=/etc/kubernetes/admin.conf
           echo "Waiting for one Ready control plane node ..."
@@ -383,6 +384,52 @@
           kubectl get nodes -o wide
           echo "Listing all Kubernetes pods in all namespaces:"
           kubectl get pods --all-namespaces -o wide
+        
+        - |
+          # --- Begin Kubernetes Secret Encryption setup ---
+          echo "[INFO] Configuring Kubernetes secret encryption"
+
+          ENCRYPTION_CONFIG_PATH="/etc/kubernetes/encryption-config.yaml"
+          NUM_KEYS=2
+
+          # Generate random 32-byte Base64 keys (silently)
+          KEYS=()
+          for i in $(seq 1 $NUM_KEYS); do
+            KEYS+=("$(head -c 32 /dev/urandom | base64)")
+          done
+
+          # Build EncryptionConfiguration YAML
+          {
+            echo "apiVersion: apiserver.config.k8s.io/v1"
+            echo "kind: EncryptionConfiguration"
+            echo "resources:"
+            echo "  - resources:"
+            echo "      - secrets"
+            echo "    providers:"
+            echo "      - aescbc:"
+            echo "          keys:"
+            i=1
+            for key in "${KEYS[@]}"; do
+              echo "            - name: key${i}"
+              echo "              secret: ${key}"
+              i=$((i + 1))
+            done
+            echo "      - identity: {}"
+          } > "${ENCRYPTION_CONFIG_PATH}"
+
+          chmod 600 "${ENCRYPTION_CONFIG_PATH}"
+          chown root:root "${ENCRYPTION_CONFIG_PATH}"
+
+          # Ensure kube-apiserver manifest references encryption config
+          if ! grep -q -- "--encryption-provider-config=${ENCRYPTION_CONFIG_PATH}" /etc/kubernetes/manifests/kube-apiserver.yaml; then
+            sed -i '/--tls-private-key-file=\/etc\/kubernetes\/ssl\/apiserver.key/a \  - --encryption-provider-config=/etc/kubernetes/encryption-config.yaml' /etc/kubernetes/manifests/kube-apiserver.yaml
+          fi
+
+          # Restart kubelet to reload the apiserver manifest
+          systemctl restart kubelet
+
+          echo "[INFO] Kubernetes secret encryption configuration applied"
+          # --- End Kubernetes Secret Encryption setup ---
 
         - |
           kube_vip="{{ kube_vip }}"
@@ -454,17 +501,17 @@
           cd {{ k8s_client_mount_path }}
           export KUBECONFIG=/etc/kubernetes/admin.conf
 
-          echo "Waiting for at least one READY Kubernetes worker node ..."
-          while true; do
+          #echo "Waiting for at least one READY Kubernetes worker node ..."
+          #while true; do
             # List nodes, exclude master/control-plane, look for Ready
-            if kubectl get nodes --no-headers | grep -Ev 'control-plane|master' | grep ' Ready '; then
-              echo "Worker node(s) present and Ready."
-              break
-            else
-              echo "No Ready worker node detected yet. Retrying in 10 seconds..."
-              sleep 10
-            fi
-          done
+           # if kubectl get nodes --no-headers | grep -Ev 'control-plane|master' | grep ' Ready '; then
+            #  echo "Worker node(s) present and Ready."
+             # break
+            #else
+             # echo "No Ready worker node detected yet. Retrying in 10 seconds..."
+             # sleep 10
+            #fi
+          #done
 
           echo "Installing plugins"
           echo "Installing nfs-client-provisioner"
@@ -507,15 +554,47 @@
           kubectl get pods --all-namespaces -o wide
 
         - |
-          CSI_DRIVER_SUPPORT="{{ csi_driver_powerscale_support }}"
+          CSI_DRIVER_SUPPORT="{{ csi_driver_powerscale_support | lower }}"
           echo "===== Checking if PowerScale CSI driver support is enabled ====="
+
           if [ "$CSI_DRIVER_SUPPORT" != "true" ]; then
             echo "PowerScale CSI driver support is disabled. Skipping deployment."
+            true
           else
             echo "PowerScale CSI driver support is enabled. Proceeding with deployment."
-            echo "===== Checking if PowerScale driver is deployed ====="
+            echo "===== Copying CSI PowerScale driver from NFS-mounted path ====="
+            mkdir -p /opt/omnia
+            if cp -rp {{ k8s_client_mount_path }}/csi-driver-powerscale /opt/omnia/; then
+              echo "Copied CSI PowerScale driver to /opt/omnia successfully."
+            else
+              echo "ERROR: Failed to copy PowerScale driver. Skipping this deployment."
+              true
+            fi
+            SECRET_FILE="/opt/omnia/csi-driver-powerscale/secret.yaml"
+            echo "Checking if creds are provided by user"
 
-            if kubectl get pods -n powerscale --no-headers 2>/dev/null | grep -q '^isilon-'; then
+            if [[ -f "$SECRET_FILE" ]]; then
+              echo "Found secret file at $SECRET_FILE"
+              # Decode username and password from base64, ignoring comments and indentation
+              csi_username=$(grep -v '^[[:space:]]*#' "$SECRET_FILE" | grep 'username:' | head -1 | awk -F':' '{gsub(/^[[:space:]]+|[[:space:]]+$/, "", $2); print $2}' | base64 --decode 2>/dev/null)
+              csi_password=$(grep -v '^[[:space:]]*#' "$SECRET_FILE" | grep 'password:' | head -1 | awk -F':' '{gsub(/^[[:space:]]+|[[:space:]]+$/, "", $2); print $2}' | base64 --decode 2>/dev/null)
+
+              if [ -z "${csi_username}" ] || [ -z "${csi_password}" ]; then
+                 echo "ERROR: CSI Credentials not defined in secret.yaml. Cannot patch secret."
+                 echo "Skipping PowerScale deployment and continuing..."
+                 true
+              fi
+
+              export csi_username
+              export csi_password
+            else
+              echo "ERROR: secret.yaml not found at $SECRET_FILE. Cannot extract CSI credentials."
+              echo "Skipping PowerScale deployment and continuing..."
+              true
+            fi
+
+            echo "===== Checking if PowerScale driver is deployed ====="
+            if kubectl get pods -n isilon --no-headers 2>/dev/null | grep -q '^isilon-'; then
               echo "PowerScale driver is already deployed on the cluster."
             else
               echo "PowerScale driver not found — proceeding to deploy PowerScale driver..."
@@ -523,32 +602,23 @@
 
               if ! command -v helm >/dev/null 2>&1; then
                 echo "Helm is not installed. Installing Helm..."
-                echo "Installing helm"
                 /usr/local/bin/install-helm.sh
                 if ! command -v helm >/dev/null 2>&1; then
                   echo "ERROR: Helm installation failed. Skipping PowerScale deployment."
-                  return 0 2>/dev/null || true
+                  echo "Continuing with other components..."
+                  true
                 fi
               fi
 
               echo "Helm is already installed on this node."
               helm version --short || true
 
-              echo "===== Copying CSI PowerScale driver from NFS-mounted path ====="
-              mkdir -p /opt/omnia
-              if cp -rp /root/k8s_artifacts/csi-driver-powerscale /opt/omnia/; then
-                echo "Copied CSI PowerScale driver to /opt/omnia successfully."
-              else
-                echo "ERROR: Failed to copy PowerScale driver. Skipping this deployment."
-                return 0 2>/dev/null || true
-              fi
 
               echo "===== Extracting PowerScale host from secret.yaml ====="
-              SECRET_FILE="/opt/omnia/csi-driver-powerscale/secret.yaml"
               if [[ -f "$SECRET_FILE" ]]; then
-                echo "Found secret file at $SECRET_FILE"
-                powerscale_endpoint=$(grep 'endpoint:' "$SECRET_FILE" | awk '{print $2}' | tr -d '"')
+                powerscale_endpoint=$(grep 'endpoint:' "$SECRET_FILE" | head -1 | sed -E 's/.*endpoint:[[:space:]]*"?(https?:\/\/[^"]*)"?/\1/')
                 powerscale_host=$(echo "$powerscale_endpoint" | sed -E 's#https?://##' | sed -E 's#/.*##')
+
                 echo "Extracted PowerScale Host: $powerscale_host"
 
                 echo "===== Checking connectivity to PowerScale host ====="
@@ -556,92 +626,150 @@
                   echo "PowerScale Host ($powerscale_host) is reachable."
                 else
                   echo "ERROR: PowerScale Host ($powerscale_host) is NOT reachable."
-                  echo "Skipping PowerScale deployment and continuing with other components..."
-                  return 0 2>/dev/null || true
+                  echo "Skipping PowerScale deployment and continuing..."
+                  true
                 fi
               else
-                echo "ERROR: secret.yaml not found at $SECRET_FILE. Cannot extract PowerScale endpoint."
-                echo "Skipping PowerScale deployment and continuing with other components..."
-                return 0 2>/dev/null || true
+                echo "ERROR: secret.yaml not found. Cannot extract PowerScale endpoint."
+                echo "Skipping PowerScale deployment and continuing..."
+                true
               fi
 
               echo "===== Ensuring 'isilon' namespace exists ====="
               kubectl create namespace isilon --dry-run=client -o yaml | kubectl apply -f - || {
-                echo "ERROR: Failed to create or verify 'isilon' namespace. Skipping PowerScale deployment."
-                return 0 2>/dev/null || true
+                echo "ERROR: Failed to create or verify 'isilon' namespace."
+                echo "Skipping PowerScale deployment and continuing..."
+                true
               }
 
-              echo "===== Creating new isilon-creds secret ====="
-              if [ -f "/opt/omnia/csi-driver-powerscale/secret.yaml" ]; then
+              echo "===== Creating and patching isilon-creds secret ====="
+              if [ -f "$SECRET_FILE" ]; then
                 kubectl delete secret isilon-creds -n isilon >/dev/null 2>&1 || true
-                kubectl create secret generic isilon-creds -n isilon --from-file=config="/opt/omnia/csi-driver-powerscale/secret.yaml"
-                echo "isilon-creds secret created successfully."
+                kubectl create secret generic isilon-creds -n isilon \
+                  --from-file=config="$SECRET_FILE" >/dev/null 2>&1 || {
+                  echo "ERROR: Failed to create base isilon-creds secret."
+                  echo "Continuing with other components..."
+                  true
+                }
+
+                # Decode current secret config
+                kubectl get secret isilon-creds -n isilon -o jsonpath='{.data.config}' | base64 -d > /tmp/decoded_config.yaml 2>/dev/null
+
+                # Update username/password (ignore commented lines)
+                awk -v user="$csi_username" -v pass="$csi_password" '
+                  /^[[:space:]]*#/ {print; next}
+                  /^ *username:/ {sub(/:.*/, ": " user)}
+                  /^ *password:/ {sub(/:.*/, ": " pass)}
+                  {print}
+                ' /tmp/decoded_config.yaml > /tmp/updated_config.yaml
+
+                # Encode and patch secret
+                encoded_config=$(base64 -w 0 /tmp/updated_config.yaml)
+                kubectl patch secret isilon-creds -n isilon \
+                  --type merge \
+                  -p "{\"data\":{\"config\":\"${encoded_config}\"}}" >/dev/null 2>&1 || {
+                  echo "ERROR: Failed to patch isilon-creds secret."
+                  echo "Continuing with other components..."
+                  true
+                }
+
+                rm -f /tmp/decoded_config.yaml /tmp/updated_config.yaml
+                echo "isilon-creds secret created and patched successfully."
               else
                 echo "ERROR: Secret file not found. Skipping PowerScale deployment."
-                return 0 2>/dev/null || true
+                true
               fi
 
               echo "===== Applying empty certificate secret ====="
-              if [ -f "/opt/omnia/csi-driver-powerscale/empty-certs-0.yaml" ]; then
-                kubectl apply -f /opt/omnia/csi-driver-powerscale/empty-certs-0.yaml || {
-                  echo "Failed to apply empty certs secret. Skipping PowerScale deployment."
-                  return 0 2>/dev/null || true
+              if [ -f "/opt/omnia/csi-driver-powerscale/empty_isilon-certs.yaml" ]; then
+                kubectl apply -f /opt/omnia/csi-driver-powerscale/empty_isilon-certs.yaml || {
+                  echo "Failed to apply empty certs secret. Continuing..."
+                  true
                 }
               fi
 
               echo "===== Deploying External Snapshotter CRDs ====="
               if [ -d "/opt/omnia/csi-driver-powerscale/csi-powerscale/external-snapshotter/client/config/crd" ]; then
-                kubectl apply -f /opt/omnia/csi-driver-powerscale/csi-powerscale/external-snapshotter/client/config/crd/ || {
-                  echo "CRD deployment failed. Skipping PowerScale deployment."
-                  return 0 2>/dev/null || true
+                kubectl apply -f /opt/omnia/csi-driver-powerscale/csi-powerscale/external-snapshotter/client/config/crd/ >/dev/null 2>&1 || {
+                  echo "CRD deployment failed (expected). Continuing..."
+                  true
                 }
               fi
 
               echo "===== Deploying Snapshot Controller ====="
               if [ -d "/opt/omnia/csi-driver-powerscale/csi-powerscale/external-snapshotter/deploy/kubernetes/snapshot-controller" ]; then
-                kubectl apply -f /opt/omnia/csi-driver-powerscale/csi-powerscale/external-snapshotter/deploy/kubernetes/snapshot-controller/ -n isilon
-                echo "Snapshot Controller deployed in 'isilon' namespace."
-              else
-                echo "Snapshot Controller directory not found. Skipping this step."
+                kubectl apply -f /opt/omnia/csi-driver-powerscale/csi-powerscale/external-snapshotter/deploy/kubernetes/snapshot-controller/ >/dev/null 2>&1 || {
+                  echo "Snapshot Controller deployment failed (expected). Continuing..."
+                  true
+                }
+
+                echo "Updating Snapshot Controller image to v8.3.0..."
+                kubectl set image deployment/snapshot-controller snapshot-controller=registry.k8s.io/sig-storage/snapshot-controller:v8.3.0 -n kube-system >/dev/null 2>&1 || true
+
+                echo "Waiting for Snapshot Controller rollout to finish (timeout: 5 minutes)..."
+                kubectl rollout status deployment/snapshot-controller -n kube-system --timeout=300s >/dev/null 2>&1 || {
+                  echo "Snapshot Controller rollout did not complete in time. Continuing..."
+                  true
+                }
+                sleep 10
+                echo "Waiting for Snapshot Controller pods to reach Running state..."
+                MAX_ATTEMPTS=60    # 60 × 10s = 10 minutes total
+                WAIT_TIME=5
+                for ((i=1; i<=MAX_ATTEMPTS; i++)); do
+                  not_ready=$(kubectl get pods -n kube-system --no-headers 2>/dev/null | grep snapshot-controller | awk '{ print $3 }' | grep -vE '^(Running|Completed)$' | wc -l)
+                  if [ "$not_ready" -eq 0 ]; then
+                    echo "Snapshot Controller pods are Running or Completed."
+                    break
+                  else
+                    echo "[$i/$MAX_ATTEMPTS] $not_ready Snapshot Controller pods not ready, waiting ${WAIT_TIME}s..."
+                    sleep $WAIT_TIME
+                  fi
+                done
+
+                echo "Snapshot Controller deployment completed (or timed out safely)."
               fi
 
               echo "===== Running CSI PowerScale installation script ====="
               INSTALL_SCRIPT="/opt/omnia/csi-driver-powerscale/csi-powerscale/dell-csi-helm-installer/csi-install.sh"
               if [ -x "$INSTALL_SCRIPT" ]; then
-                cd "$(dirname "$INSTALL_SCRIPT")" || return 0
+                cd "$(dirname "$INSTALL_SCRIPT")" || true
                 ./csi-install.sh --namespace isilon --values /opt/omnia/csi-driver-powerscale/values.yaml &
                 CSI_PID=$!
                 echo "Waiting for CSI install script (PID $CSI_PID) to complete..."
                 wait $CSI_PID
               else
                 echo "CSI install script not found. Skipping PowerScale deployment."
-                return 0 2>/dev/null || true
+                true
               fi
 
               echo "===== Waiting for CSI pods ====="
               MAX_ATTEMPTS=30
               WAIT_TIME=10
+              CSI_READY=0
               for ((i=1; i<=MAX_ATTEMPTS; i++)); do
                 if kubectl get pods -n isilon --no-headers 2>/dev/null | grep -q '^isilon-'; then
-                  echo "CSI pods detected."
-                  break
+                  NON_RUNNING=$(kubectl get pods -n isilon --no-headers 2>/dev/null | grep '^isilon-' | grep -v "Running" | wc -l)
+                  if [ "$NON_RUNNING" -eq 0 ]; then
+                    echo "All CSI pods are running."
+                    CSI_READY=1
+                    break
+                  fi
                 fi
-                echo "Attempt $i/$MAX_ATTEMPTS: Waiting for CSI pods..."
+                echo "Attempt $i/$MAX_ATTEMPTS: Waiting for CSI pods to be Running..."
                 sleep $WAIT_TIME
               done
 
-              NON_RUNNING=$(kubectl get pods -n isilon --no-headers 2>/dev/null | grep '^isilon-' | grep -v "Running" | wc -l)
-              if [ "$NON_RUNNING" -eq 0 ]; then
+              if [ "$CSI_READY" -eq 1 ]; then
                 echo "CSI PowerScale driver installed successfully."
                 if [ -f "/opt/omnia/csi-driver-powerscale/ps_storage_class.yml" ]; then
                   kubectl apply -f /opt/omnia/csi-driver-powerscale/ps_storage_class.yml
                   echo "PowerScale StorageClass applied successfully."
                 fi
               else
-                echo "ERROR: CSI PowerScale driver pods are not in 'Running' state."
-                echo "Skipping StorageClass creation and continuing with other components..."
-                return 0 2>/dev/null || true
+                echo "ERROR: CSI PowerScale driver pods are not in 'Running' state after waiting."
+                echo "StorageClass will NOT be created since pods are not ready."
+                true
               fi
+
             fi
           fi
-

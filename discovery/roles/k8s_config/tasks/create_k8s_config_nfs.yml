@@ -52,10 +52,10 @@
   ansible.builtin.set_fact:
     pulp_mirror: "{{ hostvars['localhost']['admin_nic_ip'] }}:2225"
 
-- name: Set fact for dns
+- name: Set fact for dns and csi driver support
   ansible.builtin.set_fact:
     dns: "{{ hostvars['localhost']['dns'] }}"
-    csi_driver_powerscale_support: "{{ hostvars['localhost']['csi_driver_powerscale_support'] }}"
+    csi_driver_powerscale_support: "{{ hostvars['localhost']['csi_driver_powerscale_support'] | string | lower }}"
 
 - name: Create required share directories
   ansible.builtin.file:
