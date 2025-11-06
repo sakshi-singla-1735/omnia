@@ -16,11 +16,11 @@
 # PXE PREREQUISITES
 # -------------------------------------------------------------------------
 # 1. Dell iDRAC BMCs must be reachable from the Ansible controller
-# 2. PXE (Pre‑boot eXecution Environment) support – the NIC’s
+# 2. PXE (Pre‑boot eXecution Environment) support – the NIC's
 #    firmware must implement the PXE option and must be enabled.
 # 3. The `dellemc.openmanage` Ansible collection must be installed:
 #       ansible-galaxy collection install dellemc.openmanage
-# 4. iDRAC firmware version must support the “Boot Source Override”
+# 4. iDRAC firmware version must support the 'Boot Source Override'
 #    API (most modern iDRAC9/10 firmware do).
 # 5. The TFTP/NFS/HTTP server that provides the PXE
 #    boot image must be reachable by the target nodes once the iDRAC
