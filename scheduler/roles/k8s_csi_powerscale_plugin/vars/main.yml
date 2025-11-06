@@ -59,4 +59,3 @@ warning_msg_already_deployed: "Powerscale will not be deployed. Existing powersc
 # Usage: template ps_storage_class.j2
 ps_isipath: "{{ hostvars['localhost']['csi_powerscale_values_file']['isiPath'] }}"
 ps_access_zone: "{{ hostvars['localhost']['csi_powerscale_values_file']['isiAccessZone'] }}"
-ps_azserviceip: "{{ clusters.isilonClusters[0].endpoint | regex_replace('https?://', '') | regex_replace('/.*', '') }}"
