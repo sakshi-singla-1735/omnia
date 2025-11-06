@@ -351,7 +351,6 @@
         - cp -f /etc/kubernetes/admin.conf $HOME/.kube/config
         - chown $(id -u):$(id -g) $HOME/.kube/config
         - kubectl create -f {{ k8s_client_mount_path }}/calico//{{ calico_package }}.yml
-        - kubectl taint nodes {% raw %}{{ ds.meta_data.instance_data.local_ipv4 }}{% endraw %}  node-role.kubernetes.io/control-plane:NoSchedule-
         - |
           export KUBECONFIG=/etc/kubernetes/admin.conf
           echo "Waiting for one Ready control plane node ..."
@@ -501,17 +500,17 @@
           cd {{ k8s_client_mount_path }}
           export KUBECONFIG=/etc/kubernetes/admin.conf
 
-          #echo "Waiting for at least one READY Kubernetes worker node ..."
-          #while true; do
+          echo "Waiting for at least one READY Kubernetes worker node ..."
+          while true; do
             # List nodes, exclude master/control-plane, look for Ready
-           # if kubectl get nodes --no-headers | grep -Ev 'control-plane|master' | grep ' Ready '; then
-            #  echo "Worker node(s) present and Ready."
-             # break
-            #else
-             # echo "No Ready worker node detected yet. Retrying in 10 seconds..."
-             # sleep 10
-            #fi
-          #done
+            if kubectl get nodes --no-headers | grep -Ev 'control-plane|master' | grep ' Ready '; then
+               echo "Worker node(s) present and Ready."
+               break
+            else
+               echo "No Ready worker node detected yet. Retrying in 10 seconds..."
+               sleep 10
+            fi
+          done
 
           echo "Installing plugins"
           echo "Installing nfs-client-provisioner"
