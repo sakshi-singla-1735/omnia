@@ -119,4 +119,3 @@ openchami_nodes_vars_path: "{{ nodes_dir }}/nodes.yaml"
 # Usage: update_ldms_sampler.yml
 telemetry_config_file: "{{ hostvars['localhost']['input_project_dir'] }}/telemetry_config.yml"
 common_mode: "0755"
-
