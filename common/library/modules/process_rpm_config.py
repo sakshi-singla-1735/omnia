@@ -13,7 +13,7 @@
 #  limitations under the License.
 
 #!/usr/bin/python
-
+# pylint: disable=import-error,no-name-in-module
 import json
 import subprocess
 import multiprocessing
@@ -137,7 +137,7 @@ def show_rpm_repository(repo_name,log):
         log.info("Checking existence of RPM repository: '%s'", repo_name)
         command = pulp_rpm_commands["show_repository"] % repo_name
         log.info("Executing command to show repository: %s", command)
-        
+
         return execute_command(command,log)
 
     except Exception as e:
@@ -246,7 +246,7 @@ def sync_rpm_repository(repo,log):
         if version != "null":
             repo_name = f"{repo_name}_{version}"
 
-        log.info("Checking if repository '%s' already has packages and URL", repo_name)    
+        log.info("Checking if repository '%s' already has packages and URL", repo_name)
         if check_packages_and_get_url(repo_name,log):
             return True, repo_name
         # else:
@@ -299,7 +299,7 @@ def create_publication(repo,log):
         log.info("Processing repository: '%s'", repo_name)
         command = pulp_rpm_commands["publish_repository"] % repo_name
         log.info("Executing publication command: %s", command)
-        
+
         result = execute_command(command, log)
 
         # Initialize
@@ -445,12 +445,12 @@ def create_yum_repo_file(distributions, log):
             repo_name = distribution["name"]
             base_url = distribution["base_url"]
             repo_entry = f"""
-    [{repo_name}]
-    name={repo_name} repo
-    baseurl={base_url}
-    enabled=1
-    gpgcheck=0
-    """
+[{repo_name}]
+name={repo_name} repo
+baseurl={base_url}
+enabled=1
+gpgcheck=0
+"""
             repo_content += repo_entry.strip() + "\n\n"
 
         # Write all repositories at once

@@ -359,8 +359,8 @@ def parse_repo_urls(repo_config, local_repo_config_path,
                 continue
             seen_urls.add(rendered_url)
 
-            # Skip unreachable URLs unless they're oneapi/snoopy/nvidia
-            if not any(skip_str in rendered_url for skip_str in ["oneapi", "snoopy", "nvidia"]):
+            # # Skip reachability check for URLs containing k8s, cri-o, oneapi, snoopy, nvidia
+            if not any(skip_str in rendered_url for skip_str in ["k8s", "cri-o", "oneapi", "snoopy", "nvidia"]):
                 if not is_remote_url_reachable(rendered_url):
                     logger.error(f"OMNIA repo URL unreachable: {rendered_url}")
                     return rendered_url, False
