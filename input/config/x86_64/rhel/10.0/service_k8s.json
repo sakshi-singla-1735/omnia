@@ -28,7 +28,8 @@
       { "package": "python3-firewall", "type": "rpm", "repo_name": "x86_64_baseos" },
       { "package": "quay.io/strimzi/operator", "tag": "0.48.0", "type": "image" },
       { "package": "quay.io/strimzi/kafka", "tag": "0.48.0-kafka-4.1.0", "type": "image" },
-      { "package": "strimzi-kafka-operator-helm-3-chart-0.48.0.tgz", "type": "tarball", "url": "https://github.com/strimzi/strimzi-kafka-operator/releases/download/0.48.0/strimzi-kafka-operator-helm-3-chart-0.48.0.tgz" }    ]
+      { "package": "strimzi-kafka-operator-helm-3-chart-0.48.0.tgz", "type": "tarball", "url": "https://github.com/strimzi/strimzi-kafka-operator/releases/download/0.48.0/strimzi-kafka-operator-helm-3-chart-0.48.0.tgz" }
+    ]
   },
   "service_kube_control_plane": {
     "cluster": [
