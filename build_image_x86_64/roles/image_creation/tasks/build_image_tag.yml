@@ -13,21 +13,16 @@
 # limitations under the License.
 ---
 
-- name: Pull specific OpenChami image by SHA
+- name: Pull specific OpenChami image by version tag
   ansible.builtin.command:
-    cmd: "podman pull {{ openchami_image_sha }}"
+    cmd: "podman pull ghcr.io/openchami/image-build:{{ openchami_image_version }}"
   register: pull_result
   changed_when: "'Image is up to date' not in pull_result.stdout"
 
-- name: Tagging ochami image with stable name
+- name: Tagging OpenChami image with stable name
   ansible.builtin.command:
-    cmd: "podman tag {{ openchami_image_sha }} ghcr.io/openchami/image-build:stable"
+    cmd: "podman tag ghcr.io/openchami/image-build:{{ openchami_image_version }} ghcr.io/openchami/image-build:stable"
   args:
     creates: "/var/lib/containers/storage/overlay-images/{{ openchami_image_sha }}"
   register: tag_result
   changed_when: "'Tagged' in tag_result.stdout"
-
-- name: Debug image tagged
-  ansible.builtin.debug:
-    var: tag_result
-    verbosity: 2

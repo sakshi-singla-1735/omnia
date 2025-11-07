@@ -13,6 +13,7 @@
 # limitations under the License.
 ---
 
+openchami_image_version: "v0.1.2"
 input_project_dir: "{{ hostvars['localhost']['input_project_dir'] }}"
 omnia_metadata_file: "/opt/omnia/.data/oim_metadata.yml"
 dir_permissions_644: "0644"
