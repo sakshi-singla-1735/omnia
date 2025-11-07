@@ -65,39 +65,40 @@ kafka_configurations:
 # LDMS-specific configurations and samplers
 ldms_sampler_configurations:
   - plugin_name: meminfo
-    config_parameters: {}
-    # interval=10 indicates data collection every 10 seconds
-    activation_parameters: {interval=1000000}
+    config_parameters: ""
+    # interval=1000000 indicates data collection every 10 seconds
+    activation_parameters: "interval=1000000"
 
   - plugin_name: procstat2
-    config_parameters: {}
-    # interval=10 indicates data collection every 10 seconds
-    activation_parameters: {interval=1000000}
+    config_parameters: ""
+    # interval=1000000 indicates data collection every 10 seconds
+    activation_parameters: "interval=1000000"
 
   - plugin_name: vmstat
-    config_parameters: {}
-    # interval=10 indicates data collection every 10 seconds
-    activation_parameters: {interval=1000000}
+    config_parameters: ""
+    # interval=1000000 indicates data collection every 10 seconds
+    activation_parameters: "interval=1000000"
 
   - plugin_name: loadavg
-    config_parameters: {}
-    # interval=10 indicates data collection every 10 seconds
-    activation_parameters: {interval=1000000}
+    config_parameters: ""
+    # interval=1000000 indicates data collection every 10 seconds
+    activation_parameters: "interval=1000000"
 
   - plugin_name: slurm_sampler
-    # component_id=2 (compute nodes), stream=slurm, job_count=8, task_count=8
-    # component_id=2 indicates compute nodes
+    # component_id=2, stream=slurm, job_count=8, task_count=8
+    # component_id=2, if not specified default value is 0
     # stream=slurm indicates the data stream type
-    # job_count=8 and task_count=8 specify the number of jobs and tasks to monitor
-    config_parameters: { component_id=2, stream=slurm, job_count=8, task_count=8}
-    activation_parameters: {interval=1000000, offset=0}
+    # job_count=8 if not specified, the default value is 8
+    # task_count=8 specify the number of jobs and tasks to monitor 
+    config_parameters: "component_id=2 stream=slurm job_count=8, task_count=8"
+    activation_parameters: "interval=1000000, offset=0"
 
   - plugin_name: procnetdev2
     # ifaces=eth0,eth1
     # interval=10 indicates data collection every 10 seconds  
     # ifaces=eth0,eth1 specifies the network interfaces to monitor
     # if not specified, all interfaces will be monitored
-    config_parameters: {}
-    # interval=10 indicates data collection every 10 seconds
+    config_parameters: ""
+    # interval=1000000 indicates data collection every 10 seconds
     # offset=0 specifies the time offset for data collection
-    activation_parameters: {interval=1000000, offset=0}
+    activation_parameters: "interval=1000000, offset=0"

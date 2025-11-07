@@ -12,20 +12,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
-
-- name: Initialise ldms support variables
-  ansible.builtin.set_fact:
-    ldms_support: false
-
-- name: Load software_config.json as software_config
+- name: Include telemetry configuration file
   ansible.builtin.include_vars:
-    file: "{{ software_config_file }}"
-    name: software_config
+    file: "{{ telemetry_config_file }}"
+    name: telemetry_config
 
-- name: Check if ldms support is true
-  ansible.builtin.set_fact:
-    ldms_support: "{{ software_config.softwares | selectattr('name', 'in', 'ldms') | list | length > 0 }}"
+- name: Create LDMS directory in NFS share path
+  ansible.builtin.file:
+    path: "{{ share_path }}/ldms/samplers"
+    state: directory
+    owner: root
+    group: root
+    mode: "{{ common_mode }}"
 
-- name: Include update_ldms_sampler.yml
-  ansible.builtin.include_tasks: update_ldms_sampler.yml
-  when: ldms_support
+- name: Copy LDMS sampler configuration files to NFS share
+  ansible.builtin.template:
+    src: "telemetry/ldms/sampler.conf.j2"
+    dest: "{{ share_path }}/ldms/samplers/sampler.conf"
+    owner: root
+    group: root
+    mode: "{{ hostvars['localhost']['file_permissions_644'] }}"

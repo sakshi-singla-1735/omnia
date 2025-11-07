@@ -69,6 +69,14 @@
             {{ lookup('template', 'templates/openldap/update_ldap_conf.sh.j2') | indent(12) }}
 {% endif %}
 
+{% if hostvars['localhost']['ldms_support'] %}
+        - path: /root/ldms_conf.sh
+          owner: root:root
+          permissions: '0755'
+          content: |
+            {{ lookup('template', 'templates/ldms/ldms_conf.sh.j2') | indent(12) }}
+{% endif %}
+
         - path: /etc/hosts
           append: true
           content: |
@@ -158,7 +166,7 @@
         - mount -a
 {% endif %}
 
-{% if ldms_support %}
+{% if hostvars['localhost']['ldms_support'] %}
         - echo " Starting LDMS setup " | tee -a /var/log/ldms-cloudinit.log
 
         # Add NFS entry and mount
@@ -168,24 +176,5 @@
 
         - cp -rf {{ client_mount_path }}/ldms/samplers/sampler.conf /opt/ovis-ldms/etc/ldms/
 
-        # --- Export LDMS environment variables ---
-        - echo "source the environment variables" | tee -a /var/log/ldms-cloudinit.log
-        - source /opt/ovis-ldms/etc/profile.d/set-ovis-variables.sh || true
-
-        # --- Verify environment file existence ---
-        - echo "env the environment variables" | tee -a /var/log/ldms-cloudinit.log
-        - test -f /opt/ovis-ldms/etc/ldms/ldmsd.sampler.env
-
-        - echo "Configure and enable LDMS services" | tee -a /var/log/ldms-cloudinit.log
-        # --- Configure and enable LDMS service ---
-        - sudo cp /opt/ovis-ldms/etc/systemd/system/ldmsd.sampler.service /etc/systemd/system/
-        - sudo systemctl daemon-reload
-        - sudo systemctl enable ldmsd.sampler.service
-        - sudo systemctl start ldmsd.sampler.service
-        - sudo systemctl status ldmsd.sampler.service --no-pager
-
-        # --- Verify LDMS connection and metrics ---
-        - echo "verify the connection and get the merics from LDMS services" | tee -a /var/log/ldms-cloudinit.log 
-        - /opt/ovis-ldms/sbin/ldms_ls -a ovis -A conf=/opt/ovis-ldms/etc/ldms/ldmsauth.conf -p 10001 -h localhost
-        - /opt/ovis-ldms/sbin/ldms_ls -l -a ovis -A conf=/opt/ovis-ldms/etc/ldms/ldmsauth.conf -p 10001 -h localhost > /tmp/metrics
+        - /root/ldms_conf.sh
 {% endif %}

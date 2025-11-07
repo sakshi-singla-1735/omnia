@@ -74,3 +74,11 @@
 - name: Check if openmpi support is true
   ansible.builtin.set_fact:
     openmpi_support: "{{ software_config.softwares | selectattr('name', 'equalto', 'openmpi') | list | length > 0 }}"
+
+- name: Initialise ldms support variables
+  ansible.builtin.set_fact:
+    ldms_support: false
+
+- name: Check if ldms support is true
+  ansible.builtin.set_fact:
+    ldms_support: "{{ software_config.softwares | selectattr('name', 'in', 'ldms') | list | length > 0 }}"
