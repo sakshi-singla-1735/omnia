@@ -450,7 +450,7 @@ class LdmsdManager:
         cfg.append("prdcr_subscribe stream=nersc regex=.*")
         cfg.append("prdcr_start_regex regex=.*")
         cfg.append(f"updtr_prdcr_add name={ldmsd_conf['alias']} regex=.*")
-        cfg.append(f"updtr_match_add name={ldmsd_conf['alias']} match=schema regex=(procnetdev|procstat|vmstat|meminfo|lustre_llite|lustre2_client|loadavg|dcgm|dvs|proc_group|procdiskstats|slingshot_metrics|slingshot_info)")
+        cfg.append(f"updtr_match_add name={ldmsd_conf['alias']} match=schema regex=(procnetdev|procstat|vmstat|meminfo|lustre_llite|lustre2_client|loadavg|dcgm|dvs|proc_group|procdiskstats|slingshot_metrics|slingshot_info|slurm)")
         cfg.append(f"updtr_start name={ldmsd_conf['alias']}")
         with open(out_file, 'w') as fh:
             fh.write('\n'.join(cfg))
