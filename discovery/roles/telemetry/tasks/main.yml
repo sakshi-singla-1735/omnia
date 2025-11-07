@@ -21,10 +21,10 @@
       ansible.builtin.include_tasks: validate_idrac_inventory.yml
 
     - name: Service cluster prerequisite 
-      ansible.builtin.include_tasks: telemetry_prereq.yaml
+      ansible.builtin.include_tasks: telemetry_prereq.yml
 
     - name: Generate telemetry deployments
-      ansible.builtin.include_tasks: generate_telemetry_deployments.yaml
+      ansible.builtin.include_tasks: generate_telemetry_deployments.yml
 
     - name: Generate service clsuter metadata
       ansible.builtin.include_tasks: generate_service_cluster_metadata.yml
