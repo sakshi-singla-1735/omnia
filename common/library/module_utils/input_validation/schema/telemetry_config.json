@@ -40,7 +40,7 @@
 
     "ldms_sampler_configurations": {
       "type": "array",
-      "description": "LDMS-specific sampler configurations",
+      "description": "LDMS-specific sampler configurations (string-based)",
       "items": {
         "type": "object",
         "properties": {
@@ -49,30 +49,13 @@
             "description": "Name of the LDMS sampler plugin"
           },
           "config_parameters": {
-            "type": "object",
-            "description": "Plugin-specific configuration parameters",
-            "patternProperties": {
-              ".*": { "type": "string" }
-            },
-            "additionalProperties": true
+            "type": "string",
+            "description": "Plugin-specific configuration parameters represented as a single string (e.g., 'component_id=2 stream=slurm job_count=8 task_count=8')"
           },
           "activation_parameters": {
-            "type": "object",
-            "description": "Parameters controlling activation such as interval and offset",
-            "properties": {
-              "interval": {
-                "type": "integer",
-                "minimum": 1,
-                "description": "Sampling interval in microseconds"
-              },
-              "offset": {
-                "type": "integer",
-                "minimum": 0,
-                "description": "Sampling offset in microseconds"
-              }
-            },
-            "required": ["interval"],
-            "additionalProperties": false
+            "type": "string",
+            "description": "Activation parameters as a string (e.g., 'interval=1000000 offset=0')",
+            "pattern": "^(?=.*\\binterval=[1-9][0-9]*\\b)(?:.*\\boffset=[0-9]+\\b)?$"
           }
         },
         "required": ["plugin_name", "activation_parameters"],
@@ -87,15 +70,9 @@
               "required": ["config_parameters"],
               "properties": {
                 "config_parameters": {
-                  "type": "object",
-                  "properties": {
-                    "component_id": { "type": "integer", "minimum": 1 },
-                    "stream": { "type": "string" },
-                    "job_count": { "type": "integer", "minimum": 1 },
-                    "task_count": { "type": "integer", "minimum": 1 }
-                  },
-                  "required": ["component_id", "stream", "job_count", "task_count"],
-                  "additionalProperties": false
+                  "type": "string",
+                  "pattern": "^(?=.*\\bcomponent_id=\\b)(?=.*\\bstream=\\b)(?=.*\\bjob_count=\\b)(?=.*\\btask_count=\\b).*$",
+                  "description": "Must include component_id, stream, job_count, and task_count in the string"
                 }
               }
             }
@@ -103,21 +80,17 @@
           {
             "if": {
               "properties": {
-                "plugin_name": { "const": "procnetdev" }
+                "plugin_name": {
+                  "pattern": "^procnetdev[0-9]*$"
+                }
               }
             },
             "then": {
               "properties": {
                 "config_parameters": {
-                  "type": "object",
-                  "properties": {
-                    "ifaces": {
-                      "type": "string",
-                      "pattern": "^[a-zA-Z0-9_,]+$",
-                      "description": "Optional comma-separated list of network interfaces"
-                    }
-                  },
-                  "additionalProperties": true
+                  "type": "string",
+                  "pattern": "^(|.*\\bifaces=[a-zA-Z0-9_,]+\\b.*)$",
+                  "description": "Optional comma-separated list of network interfaces (e.g., 'ifaces=eth0,eth1')"
                 }
               }
             }
@@ -177,4 +150,3 @@
 
   "additionalProperties": false
 }
-

@@ -14,7 +14,7 @@
 ---
 - name: Include telemetry configuration file
   ansible.builtin.include_vars:
-    file: "{{ telemetry_config_file }}"
+    file: "{{ telemetry_config_file_path }}"
     name: telemetry_config
 
 - name: Create LDMS directory in NFS share path

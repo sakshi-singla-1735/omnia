@@ -90,10 +90,10 @@ ldms_sampler_configurations:
     # stream=slurm indicates the data stream type
     # job_count=8 if not specified, the default value is 8
     # task_count=8 specify the number of jobs and tasks to monitor 
-    config_parameters: "component_id=2 stream=slurm job_count=8, task_count=8"
+    config_parameters: "component_id=2 stream=slurm job_count=8 task_count=8"
     # interval=1000000 indicates data collection every 10 seconds
     # offset=0 specifies the time offset for data collection
-    activation_parameters: "interval=1000000, offset=0"
+    activation_parameters: "interval=1000000 offset=0"
 
   - plugin_name: procnetdev2
     # ifaces=eth0,eth1
@@ -102,4 +102,4 @@ ldms_sampler_configurations:
     config_parameters: ""
     # interval=1000000 indicates data collection every 10 seconds
     # offset=0 specifies the time offset for data collection
-    activation_parameters: "interval=1000000, offset=0"
+    activation_parameters: "interval=1000000 offset=0"
