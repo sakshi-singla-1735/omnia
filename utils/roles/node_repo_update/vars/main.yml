@@ -25,7 +25,7 @@ versioned_softwares:
   - beegfs
   - amdgpu
   - rocm
-
+pulp_protocol_https: true
 pulp_ssl_ca_cert: "/etc/pki/ca-trust/source/anchors/pulp_webserver.crt"
 local_repo_keys_x86_64:
   - user_repo_url_x86_64

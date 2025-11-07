@@ -26,11 +26,3 @@
 - name: Register NFS Check
   ansible.builtin.set_fact:
     nfs_used: "{{ omnia_share_option == 'NFS' }}"
-
-- name: Fail if service k8s cluster role is defined but external NFS is not configured
-  when: >
-    (functional_groups_config_data.ansible_facts.functional_groups | selectattr('name', 'equalto', 'service_kube_node_x86_64') | list | length > 0) and
-    (not nfs_used or (nfs_type | default('') != 'external'))
-  ansible.builtin.fail:
-    msg: >-
-      {{ nfs_not_configured if not nfs_used else service_cluster_nfs_error_msg }}

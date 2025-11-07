@@ -1,4 +1,4 @@
-{% if hostvars['localhost']['pulp_protocol_https'] %}
+{% if pulp_protocol_https %}
 CONTENT_ORIGIN='https://{{ pulp_server_ip }}:{{ pulp_container_port_https }}'
 {% else %}
 CONTENT_ORIGIN='http://{{ pulp_server_ip }}:{{ pulp_container_port_http }}'

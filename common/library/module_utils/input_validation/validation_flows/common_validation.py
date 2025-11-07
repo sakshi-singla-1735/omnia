@@ -169,7 +169,7 @@ def validate_software_config(
         errors.extend(additional_software_errors)
 
     # create the subgroups and softwares dictionary with version details
-    subgroup_dict, _ = get_subgroup_dict(data)
+    subgroup_dict, _ = get_subgroup_dict(data,logger)
     # check if the corresponding json files for softwares and subgroups exists in config folder
     validation_results = []
     failures = []
@@ -1005,6 +1005,7 @@ def validate_omnia_config(
     if (("slurm" in sw_list or "slurm_custom" in sw_list) and "slurm" in tag_names):     
         slurm_nfs = [clst.get('nfs_storage_name') for clst in data.get('slurm_cluster')]
         nfs_names = [st.get('nfs_name') for st in st_config.get('nfs_client_params')]
+
         diff_set = set(slurm_nfs).difference(set(nfs_names))
         if diff_set:
             errors.append(
@@ -1013,18 +1014,6 @@ def validate_omnia_config(
                     "slurm NFS not provided",
                     f"NFS name {', '.join(diff_set)} required for slurm is not defined in {storage_config}"
                     ))
-        # config_paths_list = [clst.get('config_paths', {}) for clst in data.get('slurm_cluster')]
-        # for cfg_path_dict in config_paths_list:
-            # check if given file exists
-            # THIS checks on omnia_core - file can be on OIM
-            # for k,v in cfg_path_dict.items():
-            #     if not os.path.exists(v):
-            #         errors.append(
-            #             create_error_msg(
-            #                 input_file_path,
-            #                 "slurm config_paths",
-            #                 f"config_path for {k} - {v} does not exist"
-            #                 ))
     return errors
 
 def check_is_service_cluster_functional_groups_defined(

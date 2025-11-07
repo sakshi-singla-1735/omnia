@@ -59,7 +59,7 @@
         state: mounted # This is needed to add entry to fstab
         fstype: nfs
 
-    - name: Mount all fstab # TODO: only required
+    - name: Mount all fstab # TODO: only required mounts
       ansible.builtin.command: "mount -a" # noqa: command-instead-of-module
       register: mount_result
       changed_when: mount_result.rc == 0

@@ -23,6 +23,9 @@ import tarfile
 import shutil
 import time
 import json
+import requests
+import base64
+from urllib.parse import urlparse
 from multiprocessing import Lock
 from jinja2 import Template
 from ansible.module_utils.local_repo.parse_and_download import write_status_to_file,execute_command
@@ -35,60 +38,95 @@ from ansible.module_utils.local_repo.config import (
     ISO_POLL_VAL,
     TAR_POLL_VAL,
     FILE_POLL_VAL,
-    FILE_URI
+    FILE_URI,
+    PULP_SSL_CA_CERT
 )
 
 file_lock = Lock()
 
 def download_file_distribution(distribution_name, dl_directory, relative_path, logger):
     """
-    Download a file from a Pulp file distribution.
-
-    Runs `pulp file distribution show` to get the base_url, constructs the full URL 
-    with the given relative_path, creates the local directory if needed, and downloads 
-    the file using wget (ignores HTTPS cert errors). Skips download if file exists.
-
+    Download a file from a Pulp file distribution securely.
+ 
+    Runs `pulp file distribution show` to get the base_url, constructs the full URL
+    with the given relative_path, creates the local directory if needed, and downloads
+    the file using the requests library (ignores HTTPS cert errors if needed).
+    Skips download if file exists.
+ 
     Args:
         distribution_name (str): Name of the Pulp distribution.
         dl_directory (str): Local directory to save the file.
         relative_path (str): Filename to append to base_url.
         logger (logging.Logger): Logger for logging info and errors.
-
+ 
     Returns:
         str: "Success" if download succeeded or file exists, else "Failed".
     """
+ 
+    def is_safe_url(url: str) -> bool:
+        """Validate that the URL is HTTP(S) and well-formed."""
+        parsed = urlparse(url)
+        return parsed.scheme in ("http", "https") and bool(parsed.netloc)
+ 
+    def sanitize_path(path: str) -> str:
+        """Prevent path traversal attacks."""
+        safe_path = os.path.normpath(path)
+        if ".." in safe_path:
+            raise ValueError("Invalid path traversal detected")
+        return safe_path
+ 
     try:
-        # Run the pulp command and capture output
+        # Run the pulp command and capture output safely
         cmd = ["pulp", "file", "distribution", "show", "--name", distribution_name]
         result = subprocess.run(cmd, check=True, capture_output=True, text=True)
+ 
         # Parse JSON output
         data = json.loads(result.stdout)
-        base_url = data.get("base_url")
+        base_url = data.get("base_url") 
         if not base_url:
             logger.error(f"base_url not found in pulp distribution info for {distribution_name}")
             return "Failed"
-        # Construct full URL
-        full_url = full_url = base_url.rstrip('/') + '/' + relative_path
-        # Construct local file path
-        local_path = os.path.join(dl_directory, relative_path)
-        # Skip download if file exists
+ 
+        # Construct and validate full URL
+        full_url = base_url.rstrip('/') + '/' + relative_path
+        if not is_safe_url(full_url):
+            logger.error(f"Unsafe or invalid URL: {full_url}")
+            return "Failed"
+ 
+        # Construct local file path and sanitize it
+        local_path = sanitize_path(os.path.join(dl_directory, relative_path))
+ 
+        # Create directory if not present
+        os.makedirs(os.path.dirname(local_path), exist_ok=True)
+ 
+        # Skip download if file already exists
         if os.path.exists(local_path):
             logger.info(f"{distribution_name}: File already exists at {local_path}")
             return "Success"
-        # Prepare wget command
-        wget_cmd = ["wget", "-q", "-O", local_path]
-
-        if full_url.startswith("https://"):
-            wget_cmd.append("--no-check-certificate")
-        wget_cmd.append(full_url)
-        subprocess.run(wget_cmd, check=True)
-        logger.info(f"Download completed for {local_path}")
-        return "Success"
+ 
+        # Download securely using requests (instead of wget)
+        try:
+            response = requests.get(full_url, verify=PULP_SSL_CA_CERT, timeout=60)
+            response.raise_for_status()
+            with open(local_path, "wb") as f:
+                f.write(response.content)
+            logger.info(f"Download completed for {local_path}")
+            return "Success"
+        except requests.RequestException as e:
+            logger.error(f"Download failed for {full_url}: {e}")
+            return "Failed"
+ 
     except subprocess.CalledProcessError as e:
         logger.error(f"Command execution failed: {e}")
         return "Failed"
     except json.JSONDecodeError as e:
         logger.error(f"JSON parsing failed: {e}")
+        return "Failed"
+    except ValueError as e:
+        logger.error(f"Validation error: {e}")
+        return "Failed"
+    except Exception as e:
+        logger.error(f"Unexpected error: {e}")
         return "Failed"
 
 def wait_for_task(task_href, base_url, username, password, logger, timeout=3600, interval=3):
@@ -171,16 +209,18 @@ def handle_file_upload(repository_name, relative_path, file_url, poll_interval, 
     # Load config for authentication and base_url
     config = load_pulp_config(CLI_FILE_PATH)
     base_url = config["base_url"]
+    passcode = base64.b64decode(config["password"].encode()).decode()
 
     # Initialize RestClient
-    client = RestClient(base_url, config["username"], config["password"])
+    logger.info("Initializing RestClient for POST request...")
+    client = RestClient(base_url, config["username"], passcode)
 
     data = {
         "file_url": file_url,
         "relative_path": relative_path,
         "repository": pulp_href
     }
-
+    logger.info(f"Sending POST request to upload file from '{file_url}' to repository '{repository_name}'...")
     response = client.post(FILE_URI, data)
 
     if not response:
@@ -193,12 +233,15 @@ def handle_file_upload(repository_name, relative_path, file_url, poll_interval, 
         return "Failed"
 
     # Wait for task completion
-    task_result = wait_for_task(task_href, base_url, config["username"], config["password"],
+    logger.info(f"Waiting for task {task_href} to complete...")
+    task_result = wait_for_task(task_href, base_url, config["username"], passcode,
                                logger, timeout=POST_TIMEOUT, interval=poll_interval)
     if task_result:
+        logger.info(f"File successfully uploaded to repository '{repository_name}'.")
         return "Success"
-
-    return "Failed"
+    else:
+        logger.error(f"Task {task_href} failed or timed out. File upload to repository '{repository_name}' failed.")
+        return "Failed"
 
 def handle_post_request(repository_name, relative_path, base_path, file_url, poll_interval,logger):
     """
