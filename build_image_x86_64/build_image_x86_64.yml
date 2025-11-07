@@ -69,16 +69,16 @@
   roles:
     - fetch_packages
 
-- name: Tagging ochami image
+- name: Tagging Openchami image
   hosts: oim
   connection: ssh
   tasks:
-    - name: Tag ochami image
+    - name: Tag Openchami image
       ansible.builtin.include_role:
         name: image_creation
         tasks_from: build_image_tag.yml
 
-- name: Openchmi build image for x86_64
+- name: Openchami build image for x86_64
   hosts: localhost
   connection: local
   gather_facts: false
