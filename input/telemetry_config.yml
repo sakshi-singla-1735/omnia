@@ -66,22 +66,22 @@ kafka_configurations:
 ldms_sampler_configurations:
   - plugin_name: meminfo
     config_parameters: ""
-    # interval=1000000 indicates data collection every 10 seconds
+    # interval=1000000 indicates data collection every 1 seconds
     activation_parameters: "interval=1000000"
 
   - plugin_name: procstat2
     config_parameters: ""
-    # interval=1000000 indicates data collection every 10 seconds
+    # interval=1000000 indicates data collection every 1 seconds
     activation_parameters: "interval=1000000"
 
   - plugin_name: vmstat
     config_parameters: ""
-    # interval=1000000 indicates data collection every 10 seconds
+    # interval=1000000 indicates data collection every 1 seconds
     activation_parameters: "interval=1000000"
 
   - plugin_name: loadavg
     config_parameters: ""
-    # interval=1000000 indicates data collection every 10 seconds
+    # interval=1000000 indicates data collection every 1 seconds
     activation_parameters: "interval=1000000"
 
   - plugin_name: slurm_sampler
@@ -91,14 +91,15 @@ ldms_sampler_configurations:
     # job_count=8 if not specified, the default value is 8
     # task_count=8 specify the number of jobs and tasks to monitor 
     config_parameters: "component_id=2 stream=slurm job_count=8, task_count=8"
+    # interval=1000000 indicates data collection every 10 seconds
+    # offset=0 specifies the time offset for data collection
     activation_parameters: "interval=1000000, offset=0"
 
   - plugin_name: procnetdev2
     # ifaces=eth0,eth1
-    # interval=10 indicates data collection every 10 seconds  
     # ifaces=eth0,eth1 specifies the network interfaces to monitor
     # if not specified, all interfaces will be monitored
-    config_parameters: ""
+    config_parameters: "ifaces=eth0,eth1"
     # interval=1000000 indicates data collection every 10 seconds
     # offset=0 specifies the time offset for data collection
     activation_parameters: "interval=1000000, offset=0"

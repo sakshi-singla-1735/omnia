@@ -216,9 +216,9 @@ def run_module():
         "slurm_node_x86_64": ["slurm_custom.json", "nfs.json", "openldap.json","ldms.json"],
         "login_node_x86_64": ["slurm_custom.json", "nfs.json", "openldap.json","ldms.json"],
         "login_compiler_node_x86_64": ["slurm_custom.json", "nfs.json", "openldap.json", "ucx.json", "openmpi.json","ldms.json"],
-        "slurm_node_aarch64": ["slurm_custom.json", "nfs.json", "openldap.json"],
-        "login_node_aarch64": ["slurm_custom.json", "nfs.json", "openldap.json"],
-        "login_compiler_node_aarch64": ["slurm_custom.json", "nfs.json", "openldap.json"]
+        "slurm_node_aarch64": ["slurm_custom.json", "nfs.json", "openldap.json","ldms.json"],
+        "login_node_aarch64": ["slurm_custom.json", "nfs.json", "openldap.json","ldms.json"],
+        "login_compiler_node_aarch64": ["slurm_custom.json", "nfs.json", "openldap.json","ldms.json"]
     }
 
     compute_images_dict = {}
