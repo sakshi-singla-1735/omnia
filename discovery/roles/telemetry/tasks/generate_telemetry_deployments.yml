@@ -19,8 +19,8 @@
     dest: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/deployments/{{ item.dest }}"
     mode: '0644'
   loop:
-    - src: 'telemetry/common/telemetry_namespace_creation.yml.j2'
-      dest: 'telemetry_namespace_creation.yml'
+    - src: 'telemetry/common/telemetry_namespace_creation.yaml.j2'
+      dest: 'telemetry_namespace_creation.yaml'
 
     - src: 'telemetry/common/gen_certs_script.sh.j2'
       dest: 'gen_certs_script.sh'
