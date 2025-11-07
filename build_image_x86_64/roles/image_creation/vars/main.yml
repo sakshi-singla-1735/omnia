@@ -33,7 +33,7 @@ ochami_compute_mounts:
 
 ochami_x86_64_image:
   - --entrypoint /bin/bash
-  - ghcr.io/openchami/image-build:latest
+  - ghcr.io/openchami/image-build:stable
 ochami_base_command:
   - -c 'update-ca-trust extract && image-build --config /home/builder/config.yaml --log-level DEBUG'
 
