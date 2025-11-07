@@ -6,5 +6,7 @@ resources:
   - victoria-statefulset.yaml
 {% endif %}
 {% if 'kafka' in types %}
-  - kafka-statefulset.yaml
+  - kafka.kafka.yaml.j2
+  - kafka.kafka_bridge.yaml.j2
+  - kafka.topic_ldms.yaml.j2
 {% endif %}
