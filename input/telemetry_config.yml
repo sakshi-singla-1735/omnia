@@ -99,7 +99,7 @@ ldms_sampler_configurations:
     # ifaces=eth0,eth1
     # ifaces=eth0,eth1 specifies the network interfaces to monitor
     # if not specified, all interfaces will be monitored
-    config_parameters: "ifaces=eth0,eth1"
+    config_parameters: ""
     # interval=1000000 indicates data collection every 10 seconds
     # offset=0 specifies the time offset for data collection
     activation_parameters: "interval=1000000, offset=0"
