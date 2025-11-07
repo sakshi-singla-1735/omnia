@@ -196,3 +196,47 @@
     - item.type is not defined or item.type in hostvars['localhost']['idrac_telemetry_collection_type'].split(',')
     - item.skip_when is not defined or not item.skip_when | bool
   tags: telemetry_deployment
+
+- name: Verify values.yaml exists
+  ansible.builtin.stat:
+    path: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/ldms/nersc-ldms-aggr/values.yaml"
+  register: values_file_exists
+
+- name: Copy ldms files dir to telemetry nfs share
+  ansible.builtin.copy:
+    src: files/nersc-ldms-aggr
+    dest: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/ldms"
+    mode: '0755'
+  when: not values_file_exists.stat.exists
+
+- name: Generate hostmap for ldms
+  ansible.builtin.template:
+    src: 'telemetry/ldms/host_map.r7525.json.j2'
+    dest: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/ldms/nersc-ldms-aggr/host_map.r7525.json"
+    mode: '0644'
+  vars:
+    nodes: "{{ hostvars['localhost']['read_mapping_file']['dict'] | dict2items }}"
+
+- name: Run make command inside ldms directory
+  ansible.builtin.shell: make clean all && make
+  args:
+    chdir: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/ldms/nersc-ldms-aggr"
+
+- name: Copy values.yaml to ldms directory
+  ansible.builtin.template:
+    src: "telemetry/ldms/values.yaml.j2"
+    dest: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/ldms/nersc-ldms-aggr/values.yaml"
+    mode: '0644'
+
+- name: Copy munge key from slurm config to ldms dir
+  ansible.builtin.copy:
+    src: "{{ slurm_config_path }}/munge.key"
+    dest: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/ldms/munge.key"
+    mode: '0400'
+    remote_src: true
+
+- name: Load ldmsauth.conf to ldms dir
+  ansible.builtin.template:
+    src: "telemetry/ldms/ldmsauth.conf.j2"
+    dest: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/ldms/ldmsauth.conf"
+    mode: '0600'
