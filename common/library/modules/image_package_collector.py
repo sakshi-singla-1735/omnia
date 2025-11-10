@@ -231,13 +231,13 @@ def run_module():
         "service_kube_node_x86_64": ["service_k8s.json", "nfs.json"],
         "service_kube_control_plane_first_x86_64": ["service_k8s.json", "nfs.json"],
         "service_kube_control_plane_x86_64": ["service_k8s.json", "nfs.json"],
-        "slurm_control_node_x86_64": ["slurm_custom.json", "nfs.json", "openldap.json"],
-        "slurm_node_x86_64": ["slurm_custom.json", "nfs.json", "openldap.json"],
-        "login_node_x86_64": ["slurm_custom.json", "nfs.json", "openldap.json"],
-        "login_compiler_node_x86_64": ["slurm_custom.json", "nfs.json", "openldap.json", "ucx.json", "openmpi.json"],
-        "slurm_node_aarch64": ["slurm_custom.json", "nfs.json", "openldap.json"],
-        "login_node_aarch64": ["slurm_custom.json", "nfs.json", "openldap.json"],
-        "login_compiler_node_aarch64": ["slurm_custom.json", "nfs.json", "openldap.json"]
+        "slurm_control_node_x86_64": ["slurm_custom.json", "nfs.json", "openldap.json","ldms.json"],
+        "slurm_node_x86_64": ["slurm_custom.json", "nfs.json", "openldap.json","ldms.json"],
+        "login_node_x86_64": ["slurm_custom.json", "nfs.json", "openldap.json","ldms.json"],
+        "login_compiler_node_x86_64": ["slurm_custom.json", "nfs.json", "openldap.json", "ucx.json", "openmpi.json","ldms.json"],
+        "slurm_node_aarch64": ["slurm_custom.json", "nfs.json", "openldap.json","ldms.json"],
+        "login_node_aarch64": ["slurm_custom.json", "nfs.json", "openldap.json","ldms.json"],
+        "login_compiler_node_aarch64": ["slurm_custom.json", "nfs.json", "openldap.json","ldms.json"]
     }
 
     compute_images_dict = {}
