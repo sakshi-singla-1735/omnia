@@ -48,15 +48,15 @@ dir_permissions_755: "0755"
 idrac_telemetry_github_repo: https://github.com/dell/iDRAC-Telemetry-Reference-Tools.git
 reference_tools_stable_commit: "62fad19"
 idrac_telemetry_reference_git_clone_path: "{{ service_cluster_idrac_telemetry_dir_path }}/iDRAC-Telemetry-Reference-Tools"
-# idrac_git_clone_error_msg: |
-#   Failed to clone iDRAC Telemetry GitHub repository from {{ idrac_telemetry_github_repo }}
-#   to {{ idrac_telemetry_reference_git_clone_path }} directory in NFS share.
-# idrac_telemetry_scripting_repo: "https://github.com/dell/iDRAC-Telemetry-Scripting.git"
-# idrac_telemetry_scripting_stable_commit: "f6999f5"
-# idrac_telemetry_scripting_git_clone_path: "{{ service_cluster_idrac_telemetry_dir_path }}/iDRAC-Telemetry-Scripting"
-# idrac_script_git_clone_error_msg: |
-#   Failed to clone iDRAC Telemetry GitHub repository from {{ idrac_telemetry_scripting_repo }}
-#   to {{ idrac_telemetry_scripting_git_clone_path }} directory in NFS share.
+idrac_git_clone_error_msg: |
+  Failed to clone iDRAC Telemetry GitHub repository from {{ idrac_telemetry_github_repo }}
+  to {{ idrac_telemetry_reference_git_clone_path }} directory in NFS share.
+idrac_telemetry_scripting_repo: "https://github.com/dell/iDRAC-Telemetry-Scripting.git"
+idrac_telemetry_scripting_stable_commit: "f6999f5"
+idrac_telemetry_scripting_git_clone_path: "{{ service_cluster_idrac_telemetry_dir_path }}/iDRAC-Telemetry-Scripting"
+idrac_script_git_clone_error_msg: |
+  Failed to clone iDRAC Telemetry GitHub repository from {{ idrac_telemetry_scripting_repo }}
+  to {{ idrac_telemetry_scripting_git_clone_path }} directory in NFS share.
 max_retries: 10
 delay_count: 5
 telemetry_namespace: "telemetry"
