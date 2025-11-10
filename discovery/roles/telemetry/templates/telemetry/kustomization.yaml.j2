@@ -6,9 +6,9 @@ resources:
   - victoria-statefulset.yaml
 {% endif %}
 {% if kafka_support %}
-  - kafka.kafka.yaml.j2
-  - kafka.kafka_bridge.yaml.j2
+  - kafka.kafka.yaml
+  - kafka.kafka_bridge.yaml
 {% endif %}
 {% if hostvars['localhost']['ldms_support'] %}
-- kafka.topic_ldms.yaml.j2
+  - kafka.topic_ldms.yaml
 {% endif %}
