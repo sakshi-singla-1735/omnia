@@ -1,0 +1,11 @@
+[
+{% for item in nodes %}
+    {
+        "hostname": "{{ item.value.HOSTNAME }}",
+        "hostaddr": "{{ item.value.ADMIN_IP }}",
+        "ip_address": "{{ item.value.ADMIN_IP }}",
+        "subrole": "Compute"
+    }{% if not loop.last %},{% endif %}
+{% endfor %}
+
+]
