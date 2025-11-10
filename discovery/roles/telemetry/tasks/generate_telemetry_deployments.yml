@@ -66,7 +66,7 @@
 
     - name: Extract and set facts for tarball URLs for strmzi kafka
       ansible.builtin.set_fact:    
-        strimzi_kafka_pkg: "{{ k8s_packages_json['service_kube_control_plane_first']['cluster'] | selectattr('type', 'equalto', 'tarball') | selectattr('package', 'search', 'strimzi-kafka-operator') | map(attribute='package') | join }}" # noqa: yaml[line-length]
+        strimzi_kafka_pkg: "{{ k8s_packages_json['service_k8s']['cluster'] | selectattr('type', 'equalto', 'tarball') | selectattr('package', 'search', 'strimzi-kafka-operator') | map(attribute='package') | join }}" # noqa: yaml[line-length]
 
     - name: Download strmzi kafka tarball
       ansible.builtin.get_url:
