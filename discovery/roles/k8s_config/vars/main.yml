@@ -26,3 +26,14 @@ file_mode: "0644"
 ha_config_file: "{{ input_project_dir }}/high_availability_config.yml"
 pulp_webserver_cert_path: "/opt/omnia/pulp/settings/certs/pulp_webserver.crt"
 anchors_path: "/etc/pki/ca-trust/source/anchors/pulp_webserver.crt"
+nfs_export_help_msg: |
+  Failed to create required subdirectories at '{{ k8s_client_mount_path }}'.
+  Please check that the NFS server ({{ k8s_nfs_server_ip }}) is exporting the directory with correct permissions.
+  Example /etc/exports line on your NFS server:
+
+    {{ k8s_server_share_path }} *(rw,sync,no_root_squash,no_subtree_check)
+
+  After updating /etc/exports
+  1) Run 'exportfs -ra' on the NFS server and verify permissions/mounts
+  2) Execute 'systemctl restart nfs-server'
+  3) Rerun the playbook.
