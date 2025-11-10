@@ -13,6 +13,16 @@
 #  limitations under the License.
 ---
 
+- name: Populate telemetry deployment configs
+  ansible.builtin.template:
+    src: "{{ item.src }}"
+    dest: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/deployments/{{ item.dest }}"
+    mode: '0644'
+  loop:
+    - src: 'telemetry/kafka/kafka.topic_ldms.yaml.j2'
+      dest: 'kafka.topic_ldms.yaml'
+      type: 'kafka'
+
 - name: Verify values.yaml exists
   ansible.builtin.stat:
     path: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/ldms/nersc-ldms-aggr/values.yaml"
@@ -56,3 +66,7 @@
     src: "telemetry/ldms/ldmsauth.conf.j2"
     dest: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/ldms/ldmsauth.conf"
     mode: '0600'
+
+- name: Replace all port 6001
+  ansible.builtin.shell: find {{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/ldms  -type f -exec sed -i 's/6001/10001/g' {} +
+  changed_when: false

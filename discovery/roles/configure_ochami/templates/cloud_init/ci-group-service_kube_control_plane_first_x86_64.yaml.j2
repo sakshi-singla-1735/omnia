@@ -264,6 +264,14 @@
               ipAddressPools:
               - first-pool
 
+{% if hostvars['localhost']['idrac_telemetry_support'] or hostvars['localhost']['ldms_support'] %}
+        - path: /root/telemetry.sh
+          owner: root:root
+          permissions: '0755'
+          content: |
+            {{ lookup('template', 'templates/telemetry/telemetry.sh.j2') | indent(12) }}
+{% endif %}
+
       runcmd:
         - /usr/local/bin/set-ssh.sh
         - sudo swapoff -a
@@ -493,8 +501,8 @@
 
           echo "Listing all Kubernetes pods in all namespaces:"
           kubectl get pods --all-namespaces -o wide
-        
-        - |
-          echo "Applying Telemetry Kubernetes deployments"
-          kubectl apply -k {{ k8s_client_mount_path }}/telemetry/deployments/.
 
+{% if hostvars['localhost']['idrac_telemetry_support'] or hostvars['localhost']['ldms_support'] %}
+        -  echo "Applying Telemetry Kubernetes deployments"
+        - /root/telemetry.sh
+{% endif %}
