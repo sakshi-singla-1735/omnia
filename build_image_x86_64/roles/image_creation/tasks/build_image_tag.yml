@@ -13,7 +13,7 @@
 #  limitations under the License.
 ---
 
-- name: Pull specific OpenChami image by version tag
+- name: Pull specific OpenCHAMI image by version tag
   ansible.builtin.command:
     cmd: "podman pull {{ openchami_image_sha }}"
   register: pull_result
@@ -24,7 +24,7 @@
     msg: "{{ pull_result.stdout }}"
   when: pull_result.rc != 0
 
-- name: Tagging OpenChami image with stable name
+- name: Tagging OpenCHAMI image with stable name
   ansible.builtin.command:
     cmd: "{{ ochami_stable_image_tag }}"
   args:
