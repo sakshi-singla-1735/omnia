@@ -473,17 +473,17 @@
           echo "Deploy Layer2 Configuration"
           kubectl create -f metallb/l2advertisement.yaml
 
-          echo "Deploy Multus"
-          kubectl apply -f multus/{{ multus_package }}.yml
-          echo "Waiting for multus pods to be ready..."
-          kubectl wait --for=condition=Ready pod -l app=multus -n kube-system --timeout=300s
+          # echo "Deploy Multus"
+          # kubectl apply -f multus/{{ multus_package }}.yml
+          # echo "Waiting for multus pods to be ready..."
+          # kubectl wait --for=condition=Ready pod -l app=multus -n kube-system --timeout=300s
 
-          echo "Deploy Wherabouts"
-          kubectl apply -f whereabouts/whereabouts/doc/crds/daemonset-install.yaml
-          kubectl apply -f whereabouts/whereabouts/doc/crds/whereabouts.cni.cncf.io_ippools.yaml
-          kubectl apply -f whereabouts/whereabouts/doc/crds/whereabouts.cni.cncf.io_overlappingrangeipreservations.yaml
-          echo "Waiting for whereabouts pods to be ready..."
-          kubectl wait --for=condition=Ready pod -l app=whereabouts -n kube-system --timeout=300s
+          # echo "Deploy Wherabouts"
+          # kubectl apply -f whereabouts/whereabouts/doc/crds/daemonset-install.yaml
+          # kubectl apply -f whereabouts/whereabouts/doc/crds/whereabouts.cni.cncf.io_ippools.yaml
+          # kubectl apply -f whereabouts/whereabouts/doc/crds/whereabouts.cni.cncf.io_overlappingrangeipreservations.yaml
+          # echo "Waiting for whereabouts pods to be ready..."
+          # kubectl wait --for=condition=Ready pod -l app=whereabouts -n kube-system --timeout=300s
 
         - |
           export KUBECONFIG=/etc/kubernetes/admin.conf
