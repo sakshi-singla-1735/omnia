@@ -23,6 +23,7 @@
         | list
         | length
       }}
+
 - name: Mount NFS share (force NFSv3)
   ansible.posix.mount:
     src: "{{ hostvars['localhost']['k8s_server_ip'] }}:{{ hostvars['localhost']['k8s_server_share_path'] }}"
@@ -152,7 +153,6 @@
       no_log: true
       delegate_to: localhost
       connection: local
-
 
 - name: Populate telemetry deployment configs
   ansible.builtin.template:
