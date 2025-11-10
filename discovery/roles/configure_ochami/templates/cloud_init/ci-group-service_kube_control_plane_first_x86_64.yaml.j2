@@ -352,7 +352,27 @@
         - mkdir -p $HOME/.kube
         - cp -f /etc/kubernetes/admin.conf $HOME/.kube/config
         - chown $(id -u):$(id -g) $HOME/.kube/config
-        - kubectl create -f {{ k8s_client_mount_path }}/calico//{{ calico_package }}.yml
+        - |
+          echo "Updating strictARP to true in kube-proxy configmap"
+          kubectl get configmap kube-proxy -n kube-system -o yaml | \
+          sed -e "s/strictARP: false/strictARP: true/" | \
+          kubectl apply -f - -n kube-system
+        - cp {{ k8s_client_mount_path }}/calico/{{ calico_package }}.yml {{ k8s_client_mount_path }}/calico/updated-{{ calico_package }}.yml
+
+        - |
+          CALICO_YAML="{{ k8s_client_mount_path }}/calico/updated-{{ calico_package }}.yml"   # <-- adjust this path
+          ADMIN_NIC_CIDR="{{ admin_nic_cidr }}"          # <-- set your correct CIDR here
+
+          # Only add if not already present
+          if ! grep -q 'name: IP_AUTODETECTION_METHOD' "$CALICO_YAML"; then
+            sed -i '/value: "autodetect"/a\            - name: IP_AUTODETECTION_METHOD\n              value: "cidr='"$ADMIN_NIC_CIDR"'"' "$CALICO_YAML"
+            echo "IP_AUTODETECTION_METHOD set to $ADMIN_NIC_CIDR in $CALICO_YAML"
+          else
+            echo "IP_AUTODETECTION_METHOD already present in $CALICO_YAML"
+          fi
+          
+          # To apply the Calico manifest
+          kubectl apply -f "$CALICO_YAML"
 
         - |
           export KUBECONFIG=/etc/kubernetes/admin.conf
@@ -386,12 +406,6 @@
           kubectl get nodes -o wide
           echo "Listing all Kubernetes pods in all namespaces:"
           kubectl get pods --all-namespaces -o wide
-
-        - |
-          echo "Updating strictARP to true in kube-proxy configmap"
-          kubectl get configmap kube-proxy -n kube-system -o yaml | \
-          sed -e "s/strictARP: false/strictARP: true/" | \
-          kubectl apply -f - -n kube-system
 
         - |
           kube_vip="{{ kube_vip }}"
