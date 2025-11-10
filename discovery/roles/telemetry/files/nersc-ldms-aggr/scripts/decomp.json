@@ -567,6 +567,37 @@
             ]
          }
       ]
+    },
+    "slurm_decomp" : {
+      "type" : "static",
+      "rows" : [
+        {
+          "schema" : "slurm",
+          "cols" : [
+            { "src" : "timestamp", "dst" : "timestamp", "type" : "ts" },
+            { "src" : "producer", "dst":"hostname", "type":"char_array", "array_len":128 },
+            { "src" : "instance", "dst":"instance", "type":"char_array", "array_len":128 },
+            { "src" : "component_id", "dst" : "component_id", "type" : "u64" },
+            { "src" : "job_id", "dst" : "job_id", "type" : "u64" },
+            { "src" : "app_id", "dst" : "app_id", "type" : "u64" },
+            { "src" : "job_name", "dst" : "job_name", "type" : "char_array", "array_len":256 },
+            { "src" : "job_user", "dst" : "job_user", "type" : "char_array", "array_len":64 },
+            { "src" : "job_start", "dst" : "job_start", "type" : "u64" },
+            { "src" : "job_end", "dst" : "job_end", "type" : "u64" },
+            { "src" : "node_count", "dst" : "node_count", "type" : "u32" },
+            { "src" : "task_count", "dst" : "task_count", "type" : "u32" },
+            { "src" : "task_pid", "dst" : "task_pid", "type" : "u32" },
+            { "src" : "task_rank", "dst" : "task_rank", "type" : "u32" },
+            { "src" : "task_exit_status", "dst" : "task_exit_status", "type" : "u32" },
+            { "src" : "job_state", "dst" : "job_state", "type" : "u32" },
+            { "src" : "job_size", "dst" : "job_size", "type" : "u64" },
+            { "src" : "job_uid", "dst" : "job_uid", "type" : "u32" },
+            { "src" : "job_gid", "dst" : "job_gid", "type" : "u32" }
+          ],
+          "indices" : [
+          ]
+        }
+      ]
     }
   },
   "digest" : {
@@ -578,6 +609,7 @@
     "78935B2B0B932E5FDFD20CF29B561B842978B4A5E75663A3AEB02FD5E3F7712E" : "procstat2_decomp",
     "FB038D1C7A059BD675F0C06447F8644AD064583026174B998B904729D23F9487" : "slingshot_info_decomp",
     "181972BDD114E997CC71AD6979056DA3C172B640F130DB143649E1355C4F5599" : "slingshot_metrics_decomp",
+    "57A4674DC1E772291C45D703D128AD13011E4DD769B1A756FEA107431072DE8A" : "slurm_decomp",
     "5C522490869A7CF1850782B5E6C1D33D5D40121FFA2BAE13CF10E2008542367C" : "vmstat_decomp"
   }
 }
