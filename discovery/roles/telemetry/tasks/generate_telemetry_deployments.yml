@@ -71,5 +71,5 @@
     - name: Download strmzi kafka tarball
       ansible.builtin.get_url:
         url: "{{ strmzi_kafka_tarball_url }}"
-        dest: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/ldms/{{ strimzi_kafka_pkg }}.tar.gz"
+        dest: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/{{ strimzi_kafka_pkg }}.tar.gz"
         mode: '0644'
