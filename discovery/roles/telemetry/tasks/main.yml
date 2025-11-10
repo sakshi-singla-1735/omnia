@@ -20,7 +20,7 @@
     - name: Validate idrac telemetry config
       ansible.builtin.include_tasks: validate_idrac_inventory.yml
 
-    - name: Service cluster prerequisite 
+    - name: Service cluster prerequisite
       ansible.builtin.include_tasks: telemetry_prereq.yml
 
     - name: Generate telemetry deployments
