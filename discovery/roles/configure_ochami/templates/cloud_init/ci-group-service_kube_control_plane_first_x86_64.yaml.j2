@@ -55,6 +55,17 @@
                 done
             fi
 
+        - path: /etc/chrony.conf
+          permissions: '0644'
+          content: |
+            server {{ cluster_boot_ip }} iburst
+
+            driftfile /var/lib/chrony/drift
+            rtcsync
+            makestep 1.0 3
+            logdir /var/log/chrony
+            cmdport 0
+
         - path: /etc/modules-load.d/k8s.conf
           content: |
             br_netfilter
@@ -266,6 +277,10 @@
 
       runcmd:
         - /usr/local/bin/set-ssh.sh
+        - "systemctl enable chronyd"
+        - "systemctl restart chronyd"
+        - "chronyc sources"
+        - "chronyc -a makestep"
         - sudo swapoff -a
         - sudo sed -i '/ swap / s/^/#/' /etc/fstab
         - sudo setenforce 0 || true
@@ -371,6 +386,12 @@
           kubectl get nodes -o wide
           echo "Listing all Kubernetes pods in all namespaces:"
           kubectl get pods --all-namespaces -o wide
+
+        - |
+          echo "Updating strictARP to true in kube-proxy configmap"
+          kubectl get configmap kube-proxy -n kube-system -o yaml | \
+          sed -e "s/strictARP: false/strictARP: true/" | \
+          kubectl apply -f - -n kube-system
 
         - |
           kube_vip="{{ kube_vip }}"
