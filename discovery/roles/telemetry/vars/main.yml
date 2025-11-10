@@ -117,7 +117,6 @@ vmagent:
   image: "victoriametrics/vmagent:v1.128.0"
   scrape_config_path: "/etc/vmagent/prometheus.yml"
   remote_write_url: "http://victoria-loadbalancer.telemetry.svc.cluster.local:8428/api/v1/write"
-  replicas: 1
 
 # Usage: generate_telemetry_deployments.yaml
 storage_class_name: "nfs-client"
