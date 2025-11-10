@@ -9,6 +9,6 @@ resources:
   - kafka.kafka.yaml.j2
   - kafka.kafka_bridge.yaml.j2
 {% endif %}
-{% hostvars['localhost']['ldms_support'] %}
+{% if hostvars['localhost']['ldms_support'] %}
 - kafka.topic_ldms.yaml.j2
 {% endif %}
