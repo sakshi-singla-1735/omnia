@@ -110,7 +110,7 @@ telemetry_templates:
   - telemetry/kafka/kafka.topic_ldms.yaml.j2
   - telemetry/kafka/kafka.kafka_bridge.yaml.j2
   - telemetry/victoria/victoria-statefulset.yaml.j2
-strmzi_kafka_tarball_url:  "{{ offline_tarball_path }}/{{ nfs_subdir_external_provisioner_pkg }}/{{ nfs_subdir_external_provisioner_pkg }}.tar.gz"
+strmzi_kafka_tarball_url:  "{{ offline_tarball_path }}/{{ strimzi_kafka_pkg }}/{{ strimzi_kafka_pkg }}.tar.gz"
 
 # Usage: validate_idrac_inventory.yml
 bmc_group_data_filename: "/opt/omnia/telemetry/bmc_group_data.csv"
