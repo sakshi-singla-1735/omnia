@@ -1,5 +1,5 @@
 kubectl apply -f {{ k8s_client_mount_path }}/telemetry/deployments/telemetry_namespace_creation.yaml
 {% if kafka_support %}
-helm -n telemetry install strimzi-cluster-operator {{ k8s_client_mount_path }}/telemetry/ldms/{{ strimzi_kafka_pkg }}.tgz
+helm -n telemetry install strimzi-cluster-operator {{ k8s_client_mount_path }}/telemetry/ldms/{{ strimzi_kafka_pkg }}.tar.gz
 {% endif %}
 kubectl apply -k {{ k8s_client_mount_path }}/telemetry/deployments/.
