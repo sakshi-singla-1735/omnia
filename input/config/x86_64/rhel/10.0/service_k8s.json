@@ -26,6 +26,8 @@
       { "package": "omsdk==1.2.518", "type": "pip_module" },
       { "package": "cffi==1.17.1", "type": "pip_module" },
       { "package": "firewalld", "type": "rpm", "repo_name": "x86_64_baseos" },
+      { "package": "docker.io/victoriametrics/victoria-metrics", "type": "image", "tag": "v1.128.0" },
+      { "package": "docker.io/victoriametrics/vmagent", "type": "image", "tag": "v1.128.0" },
       { "package": "python3-firewall", "type": "rpm", "repo_name": "x86_64_baseos" }
     ]
   },
@@ -54,6 +56,7 @@
   },
   "service_kube_control_plane_first": {
     "cluster": [
+      { "package": "docker.io/victoriametrics/victoria-metrics", "type": "image", "tag": "v1.128.0" },
       { "package": "ghcr.io/kube-vip/kube-vip", "tag": "v0.8.9", "type": "image" },
       { "package": "registry.k8s.io/kube-apiserver", "tag": "v1.34.1", "type": "image" },
       { "package": "registry.k8s.io/kube-controller-manager", "tag": "v1.34.1", "type": "image" },
