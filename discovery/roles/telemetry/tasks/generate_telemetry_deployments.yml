@@ -44,8 +44,8 @@
   tags: telemetry_deployment
 
 - name: Kafka configurations
-  block:
   when: kafka_support
+  block:
     - name: Populate telemetry deployment configs for kafka
       ansible.builtin.template:
         src: "{{ item.src }}"
@@ -64,12 +64,12 @@
           dest: 'kafka.kafka_bridge.yaml'
           type: 'kafka'
 
-        - name: Extract and set facts for tarball URLs for strmzi kafka
-          ansible.builtin.set_fact:    
-            strimzi_kafka_pkg: "{{ k8s_packages_json['service_kube_control_plane_first']['cluster'] | selectattr('type', 'equalto', 'tarball') | selectattr('package', 'search', 'strimzi-kafka-operator') | map(attribute='package') | join }}" # noqa: yaml[line-length]
+    - name: Extract and set facts for tarball URLs for strmzi kafka
+      ansible.builtin.set_fact:    
+        strimzi_kafka_pkg: "{{ k8s_packages_json['service_kube_control_plane_first']['cluster'] | selectattr('type', 'equalto', 'tarball') | selectattr('package', 'search', 'strimzi-kafka-operator') | map(attribute='package') | join }}" # noqa: yaml[line-length]
 
-        - name: Download nfs-client-provisioner tarball
-          ansible.builtin.get_url:
-            url: "{{ nfs_client_provisioner_tarball_url }}"
-            dest: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/ldms/{{ strimzi_kafka_pkg }}.tar.gz"
-            mode: '0644'
+    - name: Download nfs-client-provisioner tarball
+      ansible.builtin.get_url:
+        url: "{{ nfs_client_provisioner_tarball_url }}"
+        dest: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/ldms/{{ strimzi_kafka_pkg }}.tar.gz"
+        mode: '0644'
