@@ -19,6 +19,9 @@ functional_groups_config_syntax_fail_msg: "Failed. Syntax errors present in func
 service_cluster_metadata_path: "/opt/omnia/.data/service_cluster_metadata.yml"
 metadata_perm: "0644"
 
+# Usage: read_software_config.yml
+k8s_packages_file: "{{ input_project_dir }}/config/x86_64/{{ software_config.cluster_os_type }}/{{ software_config.cluster_os_version }}/service_k8s.json"
+
 # Usage: secrets_creation.yml
 mysqldb_secrets_name: mysqldb-credentials
 telemetry_cert_path: "/opt/omnia/telemetry/certs"
