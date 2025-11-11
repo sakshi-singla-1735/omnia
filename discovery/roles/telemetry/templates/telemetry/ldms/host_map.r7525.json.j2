@@ -1,0 +1,13 @@
+[
+{% for item in nodes %}
+{% if not item.value.FUNCTIONAL_GROUP_NAME is match('^service_kube') %}
+    {
+        "hostname": "{{ item.value.HOSTNAME }}.{{ hostvars['localhost']['domain_name'] }}",
+        "hostaddr": "{{ item.value.ADMIN_IP }}",
+        "ip_address": "{{ item.value.ADMIN_IP }}",
+        "subrole": "Compute"
+    }{% if not loop.last %},{% endif %}
+{% endif %}
+{% endfor %}
+
+]

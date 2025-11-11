@@ -328,3 +328,17 @@
             else
               echo "WARNING: /etc/kubernetes/kubelet.conf not found. Kubelet may not be initialized yet."
             fi
+
+        - |
+          echo "Installing Necessary Python pip packages"
+          python3 -m ensurepip
+
+          PACKAGES=({% for pkg in k8s_pip_packages %}"{{ pkg }}"{% if not loop.last %} {% endif %}{% endfor %})
+
+          for pkg in "${PACKAGES[@]}"; do
+              echo "Installing $pkg from offline repo..."
+              pip3 install "$pkg" \
+                  --find-links="{{ offline_pip_module_path }}/${pkg}/" \
+                  --trusted-host "{{ pulp_server_ip }}" \
+                  --no-index
+          done

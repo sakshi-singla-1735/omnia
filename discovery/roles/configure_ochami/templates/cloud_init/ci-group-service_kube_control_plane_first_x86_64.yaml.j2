@@ -275,6 +275,14 @@
               ipAddressPools:
               - first-pool
 
+{% if hostvars['localhost']['idrac_telemetry_support'] or hostvars['localhost']['ldms_support'] %}
+        - path: /root/telemetry.sh
+          owner: root:root
+          permissions: '0755'
+          content: |
+            {{ lookup('template', 'templates/telemetry/telemetry.sh.j2') | indent(12) }}
+{% endif %}
+
       runcmd:
         - /usr/local/bin/set-ssh.sh
         - "systemctl enable chronyd"
@@ -530,6 +538,20 @@
           kubectl get pods --all-namespaces -o wide
         
         - |
-          echo "Applying Telemetry Kubernetes deployments"
-          kubectl apply -k {{ k8s_client_mount_path }}/telemetry/deployments/.
+          echo "Installing Necessary Python pip packages"
+          python3 -m ensurepip
 
+          PACKAGES=({% for pkg in k8s_pip_packages %}"{{ pkg }}"{% if not loop.last %} {% endif %}{% endfor %})
+
+          for pkg in "${PACKAGES[@]}"; do
+              echo "Installing $pkg from offline repo..."
+              pip3 install "$pkg" \
+                  --find-links="{{ offline_pip_module_path }}/${pkg}/" \
+                  --trusted-host "{{ pulp_server_ip }}" \
+                  --no-index
+          done
+
+{% if hostvars['localhost']['idrac_telemetry_support'] or hostvars['localhost']['ldms_support'] %}
+        -  echo "Applying Telemetry Kubernetes deployments"
+        - /root/telemetry.sh
+{% endif %}
