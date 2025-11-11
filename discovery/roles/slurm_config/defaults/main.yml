@@ -159,6 +159,7 @@ __slurm_conf_keys:
   - SchedulerType
   - ScronParameters
   - SelectType
+  - SelectTypeParameters
   - SlurmUser
   - SlurmctldAddr
   - SlurmctldDebug

@@ -76,8 +76,98 @@
             {{ ip_name_map[key] }} {{ key }}
 {% endfor %}
 
+
+        - path: /root/install_nvidia_driver.sh
+          permissions: '0755'
+          content: |
+            #!/bin/bash
+            LOGFILE="/var/log/nvidia_install.log"
+            exec > >(tee -a "$LOGFILE") 2>&1
+
+            echo "===== Starting NVIDIA GPU detection and driver installation ====="
+
+            # Function for consistent logging
+            log() {
+                echo "[INFO] $1"
+            }
+
+            # Function for error messages
+            error() {
+                echo "[ERROR] $1"
+            }
+
+            # Check for NVIDIA GPU presence
+            log "Checking for NVIDIA GPU..."
+            if ! lspci | grep -i nvidia &>/dev/null; then
+                log "No NVIDIA GPU detected. Exiting."
+                exit 0
+            fi
+
+            log "NVIDIA GPU detected. Proceeding with setup."
+
+            # Check if NVIDIA driver is already installed
+            if [ -x /usr/bin/nvidia-smi ]; then
+                log "NVIDIA driver already installed. Skipping installation."
+                DRIVER_INSTALLED=true
+            else
+                DRIVER_INSTALLED=false
+            fi
+
+            # Check if CUDA toolkit is already installed
+            if [ -x /usr/local/cuda/bin/nvcc ] || [ -x /etc/slurm/epilog.d/cuda/cuda-libs/bin/nvcc ]; then
+                CUDA_VERSION=$(nvcc --version 2>/dev/null | grep "release" | awk '{print $6}' | sed 's/,//')
+                log "CUDA toolkit already installed (version: ${CUDA_VERSION:-unknown}). Skipping installation."
+                TOOLKIT_INSTALLED=true
+            else
+                TOOLKIT_INSTALLED=false
+            fi
+
+            # If both are already installed, skip everything
+            if [ "$DRIVER_INSTALLED" = true ] && [ "$TOOLKIT_INSTALLED" = true ]; then
+                log "NVIDIA driver and CUDA toolkit are already installed. Nothing to do."
+                log "===== NVIDIA GPU setup completed ====="
+                exit 0
+            fi
+
+            # Mount NFS share for runfile
+            log "Mounting NFS runfile directory..."
+            mkdir -p /gpu-runfile
+            mount -t nfs {{ cloud_init_nfs_path }}/$(hostname -s)/etc/slurm/epilog.d/runfile /gpu-runfile
+
+            if [ $? -ne 0 ]; then
+                error "Failed to mount NFS share. Exiting."
+                exit 1
+            fi
+
+            # Install driver only if not already installed
+            if [ "$DRIVER_INSTALLED" = false ]; then
+                log "Installing NVIDIA driver..."
+                bash /gpu-runfile/cuda_13.0.2_580.95.05_linux.run --silent --driver --no-opengl-libs --kernel-source-path=/lib/modules/$(uname -r)/build
+                if [ $? -eq 0 ] && [ -x /usr/bin/nvidia-smi ]; then
+                    log "NVIDIA driver installed successfully."
+                else
+                    error "NVIDIA driver installation failed."
+                fi
+            fi
+
+            # Install CUDA toolkit only if not already installed
+            if [ "$TOOLKIT_INSTALLED" = false ]; then
+                log "Installing CUDA toolkit..."
+                bash /gpu-runfile/cuda_13.0.2_580.95.05_linux.run --silent --toolkit --toolkitpath=/etc/slurm/epilog.d/cuda/cuda-libs --override
+                export PATH=/etc/slurm/epilog.d/cuda/cuda-libs/bin:/usr/local/cuda/bin:$PATH
+
+
+                if command -v nvcc &>/dev/null; then
+                    log "CUDA toolkit installation verified."
+                else
+                    error "CUDA toolkit not detected after installation."
+                fi
+            fi
+
+
       runcmd:
         - /usr/local/bin/set-ssh.sh
+        - /root/install_nvidia_driver.sh
         - useradd -mG wheel -p '$6$VHdSKZNm$O3iFYmRiaFQCemQJjhfrpqqV7DdHBi5YpY6Aq06JSQpABPw.3d8PQ8bNY9NuZSmDv7IL/TsrhRJ6btkgKaonT.' testuser
         - groupadd -r {{ slurm_group_name }}
         - useradd -r -g {{ slurm_group_name }} -d {{ home_dir }} -s /sbin/nologin {{ user }}

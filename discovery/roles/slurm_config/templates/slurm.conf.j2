@@ -23,6 +23,9 @@ AccountingStoragePort={{ slurm_dbd_port }}
 AccountingStorageType=accounting_storage/slurmdbd
 {% endif %}
 
+#Slurm GPU
+SlurmdParameters=l3cache_as_socket
+
 # COMPUTE NODES
 NodeName=DEFAULT State=UNKNOWN
 # TODO: Default case no compute nodes to be handled
