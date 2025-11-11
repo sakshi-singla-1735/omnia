@@ -15,3 +15,4 @@
 
 provision_config_file: "provision_config.yml"
 omnia_functional_groups_file_path: "/opt/omnia/.data/functional_groups_config.yml"
+

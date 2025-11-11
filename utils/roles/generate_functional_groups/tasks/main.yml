@@ -23,7 +23,7 @@
     mapping_file_path: "{{ pxe_mapping_file_path }}"
     functional_groups_file_path: "{{ omnia_functional_groups_file_path }}"
 
-- name: Check the {{ omnia_functional_groups_file_path }} file is created
+- name: Check the functional_groups_config.yml file is created in /opt/omnia/.data
   ansible.builtin.stat:
     path: "{{ omnia_functional_groups_file_path }}"
   register: functional_groups_file
