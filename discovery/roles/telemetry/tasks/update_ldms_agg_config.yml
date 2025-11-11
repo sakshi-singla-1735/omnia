@@ -39,7 +39,7 @@
   ansible.builtin.template:
     src: 'telemetry/ldms/host_map.r7525.json.j2'
     dest: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/ldms/nersc-ldms-aggr/host_map.r7525.json"
-    mode: '0644'
+    mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
   vars:
     nodes: "{{ hostvars['localhost']['read_mapping_file']['dict'] | dict2items }}"
 
@@ -53,20 +53,20 @@
   ansible.builtin.template:
     src: "telemetry/ldms/values.yaml.j2"
     dest: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/ldms/nersc-ldms-aggr/values.yaml"
-    mode: '0644'
+    mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
 
 - name: Copy munge key from slurm config to ldms dir
   ansible.builtin.copy:
     src: "{{ slurm_config_path }}/munge.key"
     dest: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/ldms/munge.key"
-    mode: '0400'
+    mode: "{{ hostvars['localhost']['file_permissions_400'] }}"
     remote_src: true
 
 - name: Load ldmsauth.conf to ldms dir
   ansible.builtin.template:
     src: "telemetry/ldms/ldmsauth.conf.j2"
     dest: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/ldms/ldmsauth.conf"
-    mode: '0600'
+    mode: "{{ hostvars['localhost']['file_permissions_600'] }}"
 
 - name: Replace all port 6001
   ansible.builtin.shell: find {{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/ldms  -type f -exec sed -i 's/6001/10001/g' {} +

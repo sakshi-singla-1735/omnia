@@ -17,7 +17,7 @@
   ansible.builtin.template:
     src: "{{ item.src }}"
     dest: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/deployments/{{ item.dest }}"
-    mode: '0644'
+    mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
   loop:
     - src: 'telemetry/common/telemetry_namespace_creation.yaml.j2'
       dest: 'telemetry_namespace_creation.yaml'
@@ -63,7 +63,7 @@
       ansible.builtin.template:
         src: "{{ item.src }}"
         dest: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/deployments/{{ item.dest }}"
-        mode: '0644'
+        mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
       loop:
         - src: 'telemetry/kafka/kafka-san.cnf.j2'
           dest: 'kafka-san.cnf'
@@ -85,4 +85,4 @@
       ansible.builtin.get_url:
         url: "{{ strmzi_kafka_tarball_url }}"
         dest: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/{{ strimzi_kafka_pkg }}.tar.gz"
-        mode: '0644'
+        mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
