@@ -17,8 +17,8 @@
 """Standard functions for discovery and other modules."""
 
 import os
-import yaml
 import json
+import yaml
 from jinja2 import Template
 
 
