@@ -1,5 +1,4 @@
 resources:
-  - telemetry_namespace_creation.yaml
   - telemetry_secret_creation.yaml
   - idrac_telemetry_statefulset.yaml
 {% set types = hostvars['localhost']['idrac_telemetry_collection_type'].split(',') %}
@@ -9,6 +8,10 @@ resources:
   - victoria-agent-deployment.yaml
   - victoria-statefulset.yaml
 {% endif %}
-{% if 'kafka' in types %}
-  - kafka-statefulset.yaml
+{% if kafka_support %}
+  - kafka.kafka.yaml
+  - kafka.kafka_bridge.yaml
+{% endif %}
+{% if hostvars['localhost']['ldms_support'] %}
+  - kafka.topic_ldms.yaml
 {% endif %}
