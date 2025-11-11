@@ -51,7 +51,7 @@
 
 - name: Mount NFS share
   block:
-    - name: Try mounting NFS share with fstab entry # This task not failing if NFS server unreachable
+    - name: Mount NFS share with fstab entry # This task not failing if NFS server unreachable
       ansible.posix.mount:
         src: "{{ nfs_src }}"
         path: "{{ client_mount_path }}"

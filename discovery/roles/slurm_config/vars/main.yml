@@ -20,6 +20,8 @@ conf_files:
   - slurm
   - slurmdbd
   - cgroup
+  - gres
+copy_from_oim: true
 ctld_dir:
   - /etc/slurm
   - /etc/my.cnf.d
@@ -38,14 +40,17 @@ cmpt_dir:
 
 login_dir:
   - /etc/munge
-
+gpu_slurm_conf:
+  GresTypes: gpu
+  SelectType: select/cons_tres
+  SelectTypeParameters: CR_Core_Memory
 innodb_buffer_pool_size: 1G
 innodb_lock_wait_timeout: 120
 # TODO tmp
 nodes_yaml: "{{ hostvars['localhost']['oim_shared_path'] }}/omnia/openchami/workdir/nodes/nodes.yaml"
 bmc_username: "{{ hostvars['localhost']['bmc_username'] }}"
 bmc_password: "{{ hostvars['localhost']['bmc_password'] }}"
-
+clear_slurm_files: true
 conf_in_nfs: true
 input_project_dir: "{{ hostvars['localhost']['input_project_dir'] }}"
 cluster_name: cluster # TODO: direct load vars omnia_config.yml

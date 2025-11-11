@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
-
 openchami_image_sha: "ghcr.io/openchami/image-build@sha256:52dd9d546951ce4f2f6f9febd08a228cfcb5b9e8e204ca4f5ee232f6be65d3a4"
 input_project_dir: "{{ hostvars['localhost']['input_project_dir'] }}"
 omnia_metadata_file: "/opt/omnia/.data/oim_metadata.yml"
