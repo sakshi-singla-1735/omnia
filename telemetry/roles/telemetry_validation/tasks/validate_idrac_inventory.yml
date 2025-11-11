@@ -13,15 +13,6 @@
 # limitations under the License.
 ---
 
-- name: Validate kube_control_plane BMC IP with a strict regex
-  ansible.builtin.assert:
-    that:
-      - hostvars[item].bmc_ip is match('^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$')
-    fail_msg: >-
-      {{ service_kube_control_plane_invalid_ip_fail_msg }}
-      {{ item }}:{{ hostvars[item].bmc_ip }}
-  loop: "{{ groups['kube_control_plane'] }}"
-
 - name: Validate BMC group data file exists
   ansible.builtin.stat:
     path: "{{ bmc_group_data_filename }}"
