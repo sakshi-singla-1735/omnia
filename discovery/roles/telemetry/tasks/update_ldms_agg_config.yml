@@ -17,7 +17,7 @@
   ansible.builtin.template:
     src: "{{ item.src }}"
     dest: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/deployments/{{ item.dest }}"
-    mode: '0644'
+    mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
   loop:
     - src: 'telemetry/kafka/kafka.topic_ldms.yaml.j2'
       dest: 'kafka.topic_ldms.yaml'
