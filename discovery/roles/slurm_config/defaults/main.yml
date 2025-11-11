@@ -215,6 +215,7 @@ __slurm_conf_keys:
   - X11Parameters
 mpi: {}
 cgroup: {}
+gres: {}
 __cgroup_default_config:
   # CgroupAutomount: true
   CgroupPlugin: autodetect
@@ -254,3 +255,5 @@ __slurm_dbd_default_config:
   SlurmUser: "{{ slurm_user }}"
   StorageType: accounting_storage/mysql
   StorageLoc: slurm_acct_db
+__gres_default_config:
+  AutoDetect: nvml
