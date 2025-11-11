@@ -55,6 +55,17 @@
                 done
             fi
 
+        - path: /etc/chrony.conf
+          permissions: '0644'
+          content: |
+            server {{ cluster_boot_ip }} iburst
+
+            driftfile /var/lib/chrony/drift
+            rtcsync
+            makestep 1.0 3
+            logdir /var/log/chrony
+            cmdport 0
+
         - path: /etc/modules-load.d/k8s.conf
           content: |
             br_netfilter
@@ -266,6 +277,10 @@
 
       runcmd:
         - /usr/local/bin/set-ssh.sh
+        - "systemctl enable chronyd"
+        - "systemctl restart chronyd"
+        - "chronyc sources"
+        - "chronyc -a makestep"
         - sudo swapoff -a
         - sudo sed -i '/ swap / s/^/#/' /etc/fstab
         - sudo setenforce 0 || true
@@ -337,7 +352,27 @@
         - mkdir -p $HOME/.kube
         - cp -f /etc/kubernetes/admin.conf $HOME/.kube/config
         - chown $(id -u):$(id -g) $HOME/.kube/config
-        - kubectl create -f {{ k8s_client_mount_path }}/calico//{{ calico_package }}.yml
+        - |
+          echo "Updating strictARP to true in kube-proxy configmap"
+          kubectl get configmap kube-proxy -n kube-system -o yaml | \
+          sed -e "s/strictARP: false/strictARP: true/" | \
+          kubectl apply -f - -n kube-system
+        - cp {{ k8s_client_mount_path }}/calico/{{ calico_package }}.yml {{ k8s_client_mount_path }}/calico/updated-{{ calico_package }}.yml
+
+        - |
+          CALICO_YAML="{{ k8s_client_mount_path }}/calico/updated-{{ calico_package }}.yml"
+          ADMIN_NIC_CIDR="{{ admin_nic_cidr }}"
+
+          # Only add if not already present
+          if ! grep -q 'name: IP_AUTODETECTION_METHOD' "$CALICO_YAML"; then
+            sed -i '/value: "autodetect"/a\            - name: IP_AUTODETECTION_METHOD\n              value: "cidr='"$ADMIN_NIC_CIDR"'"' "$CALICO_YAML"
+            echo "IP_AUTODETECTION_METHOD set to $ADMIN_NIC_CIDR in $CALICO_YAML"
+          else
+            echo "IP_AUTODETECTION_METHOD already present in $CALICO_YAML"
+          fi
+          
+          # To apply the Calico manifest
+          kubectl apply -f "$CALICO_YAML"
 
         - |
           export KUBECONFIG=/etc/kubernetes/admin.conf

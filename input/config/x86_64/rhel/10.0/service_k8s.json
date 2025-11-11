@@ -18,6 +18,7 @@
       {"package": "container-selinux", "type": "rpm", "repo_name": "x86_64_appstream"},
       {"package": "cri-o", "type": "rpm", "repo_name": "cri-o"},
       { "package": "docker.io/victoriametrics/victoria-metrics", "type": "image", "tag": "v1.128.0" },
+	  { "package": "docker.io/victoriametrics/vmagent", "type": "image", "tag": "v1.128.0" },
       { "package": "docker.io/library/golang", "type": "image", "tag": "1.24" },
       { "package": "docker.io/library/busybox", "type": "image", "tag": "1.36" },
       { "package": "docker.io/rmohr/activemq", "type": "image", "tag": "5.15.9" },
@@ -103,3 +104,4 @@
     ]
   }
 }
+

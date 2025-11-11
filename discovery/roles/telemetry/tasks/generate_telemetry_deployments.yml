@@ -46,6 +46,19 @@
     - src: 'telemetry/victoria/victoria-statefulset.yaml.j2'
       dest: 'victoria-statefulset.yaml'
       type: 'victoria'
+
+    - src: 'telemetry/victoria/victoria-vmagent-rbac.yaml.j2'
+      dest: 'victoria-vmagent-rbac.yaml'
+      type: 'victoria'
+
+    - src: 'telemetry/victoria/vmagent-scrape-config.yaml.j2'
+      dest: 'vmagent-scrape-config.yaml'
+      type: 'victoria'
+
+    - src: 'telemetry/victoria/victoria-agent-deployment.yaml.j2'
+      dest: 'victoria-agent-deployment.yaml'
+      type: 'victoria'
+
   when:
     - item.type is not defined or item.type in hostvars['localhost']['idrac_telemetry_collection_type'].split(',')
     - item.skip_when is not defined or not item.skip_when | bool

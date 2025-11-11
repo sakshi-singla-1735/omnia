@@ -48,8 +48,8 @@ kafka_secrets:
 # Usage: idrac_telemetry_deployment.yml
 service_cluster_idrac_telemetry_dir_path: "{{ hostvars['localhost']['k8s_client_share_path'] }}/idrac_telemetry"
 dir_permissions_755: "0755"
-idrac_telemetry_github_repo: https://github.com/dell/iDRAC-Telemetry-Reference-Tools.git
-reference_tools_stable_commit: "62fad19"
+idrac_telemetry_github_repo: https://github.com/Milisha-Gupta/iDRAC-Telemetry-Reference-Tools.git
+reference_tools_stable_commit: "fa6c49d"
 idrac_telemetry_reference_git_clone_path: "{{ service_cluster_idrac_telemetry_dir_path }}/iDRAC-Telemetry-Reference-Tools"
 idrac_git_clone_error_msg: |
   Failed to clone iDRAC Telemetry GitHub repository from {{ idrac_telemetry_github_repo }}
@@ -100,6 +100,26 @@ victoria:
   service_name: "victoria-loadbalancer"
   container_port1: 8428
   image: "victoriametrics/victoria-metrics:v1.128.0"
+
+# Usage: vmagent-scrape-config.yaml
+
+vmagent:
+  configmap_name: "vmagent-scrape-config"
+  global:
+    scrape_interval: "10s"
+  job_name: "idrac-telemetry"
+  kubernetes_sd_namespace: "{{ telemetry_namespace }}"
+  target_pod_label: "{{ idrac_telemetry_k8s_name }}"
+  metrics_container_name: "victoria-pump"
+  metrics_port: 2112
+  service_account_name: "vmagent"
+  role_name: "vmagent-sd"
+  rolebinding_name: "vmagent-sd-binding"
+  app_name: "vmagent"
+  container_name: "vmagent"
+  image: "victoriametrics/vmagent:v1.128.0"
+  scrape_config_path: "/etc/vmagent/prometheus.yml"
+  remote_write_url: "http://victoria-loadbalancer.telemetry.svc.cluster.local:8428/api/v1/write"
 
 # Usage: generate_telemetry_deployments.yaml
 storage_class_name: "nfs-client"
