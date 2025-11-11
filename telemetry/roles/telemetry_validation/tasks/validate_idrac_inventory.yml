@@ -63,6 +63,30 @@
   loop: "{{ groups['kube_control_plane'] }}"
   when: "hostvars[item]['bmc_ip'] not in bmc_group_data"
 
+- name: Get list of BMC IPs of kube_control_plane from inventory
+  ansible.builtin.set_fact:
+    inventory_bmc_ips: "{{ groups['kube_control_plane'] | map('extract', hostvars, 'bmc_ip') | list }}"
+
+- name: Read BMC group data file
+  ansible.builtin.slurp:
+    src: "{{ bmc_group_data_filename }}"
+  register: bmc_file_content
+
+- name: Parse BMC group data lines
+  ansible.builtin.set_fact:
+    bmc_file_ips: "{{ (bmc_file_content['content'] | b64decode).splitlines() | map('regex_replace', ',.*', '') | list }}"
+  when: bmc_file_content is defined
+
+- name: Find missing BMC IPs
+  ansible.builtin.set_fact:
+    missing_bmc_ips: "{{ inventory_bmc_ips | difference(bmc_file_ips) }}"
+
+- name: Show warning for missing BMC IPs (if any)
+  ansible.builtin.pause:
+    seconds: "{{ pause_time_15 }}"
+    prompt: "{{ warning_bmc_group_data_file_not_updated_msg }}"
+  when: missing_bmc_ips | length > 0
+
 - name: Validate BMC group data file
   validate_bmc_group_data:
     nodes_bmc_ips: "{{ nodes | map(attribute='bmc_ip') | list }}"
