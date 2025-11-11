@@ -536,6 +536,20 @@
 
           echo "Listing all Kubernetes pods in all namespaces:"
           kubectl get pods --all-namespaces -o wide
+        
+        - |
+          echo "Installing Necessary Python pip packages"
+          python3 -m ensurepip
+
+          PACKAGES=({% for pkg in k8s_pip_packages %}"{{ pkg }}"{% if not loop.last %} {% endif %}{% endfor %})
+
+          for pkg in "${PACKAGES[@]}"; do
+              echo "Installing $pkg from offline repo..."
+              pip3 install "$pkg" \
+                  --find-links="{{ offline_pip_module_path }}/${pkg}/" \
+                  --trusted-host "{{ pulp_server_ip }}" \
+                  --no-index
+          done
 
 {% if hostvars['localhost']['idrac_telemetry_support'] or hostvars['localhost']['ldms_support'] %}
         -  echo "Applying Telemetry Kubernetes deployments"
