@@ -23,6 +23,9 @@
     - name: Service cluster prerequisite
       ansible.builtin.include_tasks: telemetry_prereq.yml
 
+    - name: Read telemetry packages from software config
+      ansible.builtin.include_tasks: read_software_config.yml
+
     - name: Generate telemetry deployments
       ansible.builtin.include_tasks: generate_telemetry_deployments.yml
 
