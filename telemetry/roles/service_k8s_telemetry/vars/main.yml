@@ -84,7 +84,7 @@ collector_failed_msg: "{{ collector }} pod did not come to ready state within {{
 idrac_telemetry_failed_msg: "idrac-telemetry pod did not come to ready state within {{ pod_wait_timeout }} timeout."
 
 # Usage: generate_service_cluster_metadata.yml
-functional_groups_config_path: "{{ hostvars['localhost']['input_project_dir'] }}/functional_groups_config.yml"
+functional_groups_config_path: "/opt/omnia/.data/functional_groups_config.yml"
 functional_groups_config_syntax_fail_msg: "Failed. Syntax errors present in functional_groups_config.yml. Fix errors and re-run playbook again."
 service_cluster_metadata_path: "/opt/omnia/.data/service_cluster_metadata.yml"
 metadata_perm: "0644"
