@@ -15,7 +15,7 @@
 
 - name: Initialize kafka_support
   ansible.builtin.set_fact:
-    kafka_support: false 
+    kafka_support: false
 
 - name: Count entries with FUNCTIONAL_GROUP_NAME containing 'service_kube_node'
   ansible.builtin.set_fact:

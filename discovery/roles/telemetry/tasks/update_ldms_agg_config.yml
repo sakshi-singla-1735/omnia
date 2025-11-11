@@ -45,6 +45,7 @@
 
 - name: Run make command inside ldms directory
   ansible.builtin.shell: make clean all && make
+  changed_when: true
   args:
     chdir: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/ldms/nersc-ldms-aggr"
 
