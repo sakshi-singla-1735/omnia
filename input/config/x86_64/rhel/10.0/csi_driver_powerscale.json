@@ -47,7 +47,7 @@
       {
         "package": "registry.k8s.io/sig-storage/csi-node-driver-registrar",
         "tag": "v2.14.0",
-        "type": "ima4e"
+        "type": "image"
       },
       {
         "package": "registry.k8s.io/sig-storage/csi-external-health-monitor-controller",
