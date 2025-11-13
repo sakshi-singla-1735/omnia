@@ -18,10 +18,14 @@
   ansible.builtin.include_vars:
     file: "{{ input_project_dir }}/{{ provision_config_file }}"
 
+- name: Set fact for functional groups file path
+  ansible.builtin.set_fact:
+    functional_groups_config_path: "{{ omnia_functional_groups_file_path }}"
+
 - name: Generate functional groups from mapping.csv
   generate_functional_groups:
     mapping_file_path: "{{ pxe_mapping_file_path }}"
-    functional_groups_file_path: "{{ omnia_functional_groups_file_path }}"
+    functional_groups_file_path: "{{ functional_groups_config_path }}"
 
 - name: Check the functional_groups_config.yml file is created in /opt/omnia/.data
   ansible.builtin.stat:

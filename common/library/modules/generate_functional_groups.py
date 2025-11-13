@@ -71,6 +71,7 @@ def parse_csv(filename, module):
     """Parse the CSV and extract groups + functional groups."""
     groups = {}
     functional_groups = {}
+    kube_control_seen = False  # Track first kube control plane entry
 
     try:
         with open(filename, newline="") as f:
@@ -79,6 +80,12 @@ def parse_csv(filename, module):
                 func_group = row["FUNCTIONAL_GROUP_NAME"].strip()
                 group_name = row["GROUP_NAME"].strip()
                 parent = row.get("PARENT_SERVICE_TAG", "").strip() or ""
+
+                # --- Enhancement: rename the first kube control plane entry ---
+                if func_group == "service_kube_control_plane_x86_64" and not kube_control_seen:
+                    func_group = "service_kube_control_plane_first_x86_64"
+                    kube_control_seen = True
+                # -------------------------------------------------------------
 
                 if group_name not in groups:
                     groups[group_name] = {"parent": parent}
@@ -190,5 +197,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-

@@ -84,3 +84,6 @@ mysql_group: mysql
 file_mode_400: "0400"
 file_mode_755: "0755"
 file_mode_600: "0600"
+
+# Usage: discover_mapping_nodes.yml
+functional_groups_config_path: "/opt/omnia/.data/functional_groups_config.yml"
