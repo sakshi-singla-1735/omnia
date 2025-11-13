@@ -16,7 +16,7 @@ ctld_list: []
 cmpt_list: []
 login_list: []
 dbd_list: []
-conf_files:
+conf_files: # Must match this MASTER list
   - slurm
   - slurmdbd
   - cgroup
@@ -99,3 +99,4 @@ openldap_dir_name: "openldap/"
 software_config_file: "{{ input_project_dir }}/software_config.json"
 omnia_run_tags: "{{ hostvars['localhost']['omnia_run_tags'] }}"
 auth_tls_certs_path: "/opt/omnia/auth/tls_certs/ldapserver.crt"
+slurm_installation_type: configless
