@@ -13,29 +13,6 @@
 # limitations under the License.
 ---
 
-- name: Validate service cluster kube_control_plane group exists
-  ansible.builtin.assert:
-    that:
-      - "'kube_control_plane' in groups"
-    fail_msg: "{{ service_kube_control_plane_group_fail_msg }}"
-
-- name: Validate BMC IP is defined for kube_control_plane nodes
-  ansible.builtin.assert:
-    that:
-      - "hostvars[item]['bmc_ip'] is defined"
-      - "hostvars[item]['bmc_ip'] != ''"
-    fail_msg: "{{ service_kube_control_plane_details_fail_msg }}"
-  loop: "{{ groups['kube_control_plane'] }}"
-
-- name: Validate kube_control_plane BMC IP with a strict regex
-  ansible.builtin.assert:
-    that:
-      - hostvars[item].bmc_ip is match('^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$')
-    fail_msg: >-
-      {{ service_kube_control_plane_invalid_ip_fail_msg }}
-      {{ item }}:{{ hostvars[item].bmc_ip }}
-  loop: "{{ groups['kube_control_plane'] }}"
-
 - name: Validate BMC group data file exists
   ansible.builtin.stat:
     path: "{{ bmc_group_data_filename }}"
@@ -52,40 +29,6 @@
 
 - name: Include OCHAMI node list
   ansible.builtin.include_vars: "{{ openchami_nodes_vars_path }}"
-
-- name: Update BMC group data file with kube_control_plane BMC IPs
-  ansible.builtin.lineinfile:
-    path: "{{ bmc_group_data_filename }}"
-    line: "{{ hostvars[item]['bmc_ip'] }},,"
-    create: false
-    insertafter: EOF
-    state: present
-  loop: "{{ groups['kube_control_plane'] }}"
-  when: "hostvars[item]['bmc_ip'] not in bmc_group_data"
-
-- name: Get list of BMC IPs of kube_control_plane from inventory
-  ansible.builtin.set_fact:
-    inventory_bmc_ips: "{{ groups['kube_control_plane'] | map('extract', hostvars, 'bmc_ip') | list }}"
-
-- name: Read BMC group data file
-  ansible.builtin.slurp:
-    src: "{{ bmc_group_data_filename }}"
-  register: bmc_file_content
-
-- name: Parse BMC group data lines
-  ansible.builtin.set_fact:
-    bmc_file_ips: "{{ (bmc_file_content['content'] | b64decode).splitlines() | map('regex_replace', ',.*', '') | list }}"
-  when: bmc_file_content is defined
-
-- name: Find missing BMC IPs
-  ansible.builtin.set_fact:
-    missing_bmc_ips: "{{ inventory_bmc_ips | difference(bmc_file_ips) }}"
-
-- name: Show warning for missing BMC IPs (if any)
-  ansible.builtin.pause:
-    seconds: "{{ pause_time_15 }}"
-    prompt: "{{ warning_bmc_group_data_file_not_updated_msg }}"
-  when: missing_bmc_ips | length > 0
 
 - name: Validate BMC group data file
   validate_bmc_group_data:

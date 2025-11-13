@@ -61,9 +61,10 @@
   ansible.builtin.set_fact:
     pulp_mirror: "{{ hostvars['localhost']['admin_nic_ip'] }}:2225"
 
-- name: Set fact for dns
+- name: Set fact for dns and csi driver support
   ansible.builtin.set_fact:
     dns: "{{ hostvars['localhost']['dns'] }}"
+    csi_driver_powerscale_support: "{{ hostvars['localhost']['csi_driver_powerscale_support'] | string | lower }}"
 
 - name: Create required share directories on NFS
   block:
@@ -81,6 +82,7 @@
         - nfs-client-provisioner
         - helm
         - whereabouts
+        - "{{ 'csi-driver-powerscale' if hostvars['localhost']['csi_driver_powerscale_support'] | bool else omit }}"
   rescue:
     - name: Fail with NFS export advice
       ansible.builtin.fail:
@@ -175,3 +177,7 @@
     dest: "{{ k8s_client_mount_path }}"
     mode: "{{ file_mode }}"
   become: true
+
+- name: Include PowerScale CSI dependency tasks
+  ansible.builtin.include_tasks: get_powerscale_dependencies.yml
+  when: hostvars['localhost']['csi_driver_powerscale_support'] | bool
