@@ -66,6 +66,8 @@
   ansible.builtin.set_fact:
     k8s_cluster_issue_msg: >-
       Cluster issues detected: Please login to kube control plane and check for more details.
+      After resolving the issue, make sure to rerun the playbook.
+      For more information, see the Troubleshooting section in the Omnia documentation.
       {% if k8s_status.not_ready_nodes | length > 0 %}
       - NotReady nodes: {{ k8s_status.not_ready_nodes }}
       {% endif %}
