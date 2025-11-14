@@ -1,8 +1,3 @@
-# Port configurations for Helm templates
-agg_port: {{ telemetry_config.ldms_agg_port }}
-store_port: {{ telemetry_config.ldms_store_port }}
-sampler_port: {{ telemetry_config.ldms_sampler_port }}
-
 agg:
   resources:
     limits:
@@ -40,6 +35,7 @@ statefulSet:
   - name: r7525
     replicas: 1
 store:
+  port: {{ telemetry_config.ldms_store_port }}
   resources:
     limits:
       cpu: 1

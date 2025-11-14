@@ -243,9 +243,10 @@ def update_manifest(manifest, aggs, store_stateful_replicas, replicas_exporter, 
                 x['namespace'] = namespace
                 x['values']['namespace'] = namespace
             
-            # Set port configurations for Helm templates
-            x['values']['agg_port'] = agg_port
-            x['values']['store_port'] = store_port
+            # Set store port configuration under store section
+            if 'store' not in x['values']:
+                x['values']['store'] = {}
+            x['values']['store']['port'] = store_port
 
             x['values']['authVolOption'] = []
             x['values']['authVolMountOption'] = []
