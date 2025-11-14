@@ -244,6 +244,7 @@ cgroup:
   - MaxSwapPercent
   - MemorySwappiness
   - MinRAMSpace
+  - SignalChildrenProcesses
 gres: {}
 __default_config:
   cgroup:
