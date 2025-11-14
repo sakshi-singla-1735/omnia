@@ -32,7 +32,7 @@
   ansible.builtin.set_fact:
     cluster_name: "{{ slurm_cluster[0].cluster_name }}"
     restart_slurm_services: "{{ slurm_cluster[0].restart_slurm_services }}"
-    configs_input: "{{ slurm_cluster[0].config_paths | default({}) | dict2items | rejectattr('value', 'falsy') | list | items2dict }}"
+    configs_input: "{{ slurm_cluster[0].config_sources | default({}) | dict2items | rejectattr('value', 'falsy') | list | items2dict }}"
     slurm_config_path: "{{ share_path }}/{{ slurm_dir_name }}"
 
 - name: Configure openldap if supported
@@ -124,13 +124,6 @@
           })
       }}
   loop: "{{ conf_files }}"
-
-# - name: Slurm dict ops
-#   ansible.builtin.set_fact:
-#     slurm_conf_dict: "{{ __slurm_default_config | ansible.builtin.combine(slurm_config | default({})) }}"
-#     cgroup_conf_dict: "{{ __cgroup_default_config | ansible.builtin.combine(cgroup | default({})) }}"
-#     slurm_dbd_conf_dict: "{{ __slurm_dbd_default_config | ansible.builtin.combine(slurm_dbd_config | default({})) }}"
-#     gres_conf_dict: "{{ __gres_default_config | ansible.builtin.combine(gres | default({})) }}"
 
 - name: Read NodeName parameters
   ansible.builtin.include_tasks: read_node_idrac.yml

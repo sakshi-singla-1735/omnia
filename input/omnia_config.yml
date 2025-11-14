@@ -40,9 +40,11 @@
 
 slurm_cluster:
   - cluster_name: slurm_cluster
-    installation_type: "configless"
-    restart_slurm_services: true
     nfs_storage_name: nfs_slurm
+    config_sources:
+      slurm: "/opt/omnia/custom_slurm.conf"
+      cgroup: 
+        CgroupPlugin: 'cgroup/v1'
   
 # ----------------------------SERVICE K8S------------------------------------------------------
 # For service k8s cluster below parameters are required,(List)
