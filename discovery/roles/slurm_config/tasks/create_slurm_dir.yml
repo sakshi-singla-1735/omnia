@@ -31,7 +31,6 @@
 - name: Set facts for slurm
   ansible.builtin.set_fact:
     cluster_name: "{{ slurm_cluster[0].cluster_name }}"
-    restart_slurm_services: "{{ slurm_cluster[0].restart_slurm_services }}"
     configs_input: "{{ slurm_cluster[0].config_sources | default({}) | dict2items | rejectattr('value', 'falsy') | list | items2dict }}"
     slurm_config_path: "{{ share_path }}/{{ slurm_dir_name }}"
 
@@ -147,9 +146,10 @@
 - name: Verify slurm conf keys only
   ansible.builtin.assert:
     that:
-      - (apply_config['slurm'].keys() | list) | difference(__conf_keys['slurm']) | length == 0
-      # TODO: Add support for cgroup and slurmdbd
-    fail_msg: "The following slurm config keys are invalid: {{ apply_config['slurm'].keys() | list | difference(__conf_keys['slurm']) | join(', ') }}"
+      - (apply_config[item].keys() | list) | difference(__conf_keys[item]) | length == 0
+    fail_msg: "The following {{ item }} config keys are invalid: {{ apply_config[item].keys() | list | difference(__conf_keys[item]) | join(', ') }}"
+  when: apply_config[item] and __conf_keys[item]
+  loop: "{{ conf_files }}"
 
 - name: Slurm dict ops
   ansible.builtin.set_fact:

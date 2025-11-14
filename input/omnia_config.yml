@@ -23,28 +23,38 @@
 # List of slurm clusters
 # cluster_name is required field
 
-# installation_type
-# This variable accepts whether slurm installation is supported in configless mode
-# Default value is "configless"
-# No other mode is supported
-
-# restart_slurm_services
-# Variable indicates whether slurm control node services(slurmctld) should be restarted or not
-# If restart_slurm_services is set to true, slurmctld services will be restarted on every execution of omnia.yml.
-# It accepts true and false values
-# Default value is true
-
 # nfs_storage_name
 # Storage name corresponding to the NFS share to be used by slurm cluster 
 # This should match with exactly with a entry in storage_config.yml
 
+# config_sources
+# defines how the Slurm configuration files are provided to the cluster.
+# <conf name> : <filepath> or <mapping>
+# Each entry can be specified in one of two ways:
+# 1: <filepath> Either provide an absolute path to an existing configuration file on the system. 
+# This is useful when configuration is already maintained externally or delivered through NFS or local directory.
+# 2. <mapping> Supply the configuration values directly as a key–value map
+# The conf files supported by slurm are
+# slurm
+# cgroup
+# gres
+# mpi
+# helpers
+# job_container
+# acct_gather
+# oci
+# plugstack
+# topology
+# Thes files will be written into the slurm_config directory with .conf suffix
+
 slurm_cluster:
   - cluster_name: slurm_cluster
     nfs_storage_name: nfs_slurm
-    config_sources:
-      slurm: "/opt/omnia/custom_slurm.conf"
-      cgroup: 
-        CgroupPlugin: 'cgroup/v1'
+    # config_sources:
+    #   slurm: "/path/to/custom_slurm.conf"
+    #   cgroup: 
+    #     CgroupPlugin: autodetect
+    #     AllowedRAMSpace: 100
   
 # ----------------------------SERVICE K8S------------------------------------------------------
 # For service k8s cluster below parameters are required,(List)

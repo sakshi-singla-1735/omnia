@@ -211,41 +211,42 @@ __conf_keys:
     - VSizeFactor
     - WaitTime
     - X11Parameters
-mpi:
-  - PMIxCliTmpDirBase
-  - PMIxCollFence
-  - PMIxDebug
-  - PMIxDirectConn
-  - PMIxDirectConnEarly
-  - PMIxDirectConnUCX
-  - PMIxDirectSameArch
-  - PMIxEnv
-  - PMIxFenceBarrier
-  - PMIxNetDevicesUCX
-  - PMIxShareServerTopology
-  - PMIxTimeout
-  - PMIxTlsUCX
-cgroup:
-  - CgroupMountpoint
-  - CgroupPlugin
-  - CgroupSlice
-  - SystemdTimeout
-  - IgnoreSystemd
-  - IgnoreSystemdOnFailure
-  - EnableControllers
-  - EnableExtraControllers
-  - AllowedRAMSpace
-  - AllowedSwapSpace
-  - ConstrainCores
-  - ConstrainDevices
-  - ConstrainRAMSpace
-  - ConstrainSwapSpace
-  - MaxRAMPercent
-  - MaxSwapPercent
-  - MemorySwappiness
-  - MinRAMSpace
-  - SignalChildrenProcesses
-gres: {}
+  mpi:
+    - PMIxCliTmpDirBase
+    - PMIxCollFence
+    - PMIxDebug
+    - PMIxDirectConn
+    - PMIxDirectConnEarly
+    - PMIxDirectConnUCX
+    - PMIxDirectSameArch
+    - PMIxEnv
+    - PMIxFenceBarrier
+    - PMIxNetDevicesUCX
+    - PMIxShareServerTopology
+    - PMIxTimeout
+    - PMIxTlsUCX
+  cgroup:
+    - CgroupMountpoint
+    - CgroupPlugin
+    - CgroupSlice
+    - SystemdTimeout
+    - IgnoreSystemd
+    - IgnoreSystemdOnFailure
+    - EnableControllers
+    - EnableExtraControllers
+    - AllowedRAMSpace
+    - AllowedSwapSpace
+    - ConstrainCores
+    - ConstrainDevices
+    - ConstrainRAMSpace
+    - ConstrainSwapSpace
+    - MaxRAMPercent
+    - MaxSwapPercent
+    - MemorySwappiness
+    - MinRAMSpace
+    - SignalChildrenProcesses
+  slurmdbd: {}
+  gres: {}
 __default_config:
   cgroup:
     # CgroupAutomount: true
