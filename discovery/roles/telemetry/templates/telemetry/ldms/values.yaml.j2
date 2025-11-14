@@ -1,3 +1,8 @@
+# Port configurations for Helm templates
+agg_port: {{ telemetry_config.ldms_agg_port }}
+store_port: {{ telemetry_config.ldms_store_port }}
+sampler_port: {{ telemetry_config.ldms_sampler_port }}
+
 agg:
   resources:
     limits:
@@ -7,7 +12,7 @@ aggs:
 - conf: /ldms_conf/ldmsd.nersc-ldms-aggr.r7525-0.conf
   env: /ldms_conf/ldms-env.nersc-ldms-aggr.r7525-0.sh
   name: r7525-0
-  port: 10001
+  port: {{ telemetry_config.ldms_agg_port }}
 authVolMountOption:
 - mountPath: /nersc-munge-key
   name: nersc-munge-key
@@ -22,9 +27,6 @@ authVolOption:
   secret:
     defaultMode: 0o400
     secretName: nersc-ldms-ovis-auth
-exportLabel:
-  export: ldms-metrics
-exporterPort: 9101
 image:
   registry: docker.io/dellhpcomniaaisolution
   repository: /ubuntu-ldms
@@ -33,8 +35,6 @@ imagePullSecretsOption:
   imagePullSecrets: []
 namespace: telemetry
 net_atat_def: null
-pollingInterval: 60s
-scrapeTimeout: 45s
 statefulSet:
   store:
   - name: r7525
