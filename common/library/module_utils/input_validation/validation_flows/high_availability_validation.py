@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# pylint: disable=too-many-arguments,too-many-locals,too-many-positional-arguments
+# pylint: disable=too-many-arguments,too-many-locals,too-many-positional-arguments,import-error
 """
 This module contains functions for validating high availability configuration.
 """
@@ -371,7 +371,6 @@ def validate_k8s_head_node_ha(
         None: Errors are collected in the provided `errors` list.
     """
     admin_network = network_spec_data["admin_network"]
-    admin_dynamic_range = admin_network.get("dynamic_range", "N/A")
     admin_netmaskbits = network_spec_data.get("admin_netmaskbits")
     oim_admin_ip = network_spec_data["oim_admin_ip"]
 
