@@ -318,15 +318,12 @@ def validate_vip_address(
             )
         )
     else:
-        # virtual_ip_address is mutually exclusive with admin static and dynamic ranges
-        vip_within_static_range = validation_utils.is_ip_within_range(
-            admin_network["static_range"], vip_address
-        )
+        # virtual_ip_address is mutually exclusive with admin dynamic ranges
         vip_within_dynamic_range = validation_utils.is_ip_within_range(
             admin_network["dynamic_range"], vip_address
         )
 
-        if vip_within_static_range or vip_within_dynamic_range:
+        if vip_within_dynamic_range:
             errors.append(
                 create_error_msg(
                     f"{config_type} virtual_ip_address",
@@ -350,7 +347,6 @@ def validate_k8s_head_node_ha(
     config_type,
     ha_data,
     network_spec_data,
-    roles_config_json,
     all_service_tags,
     ha_node_vip_list
 ):
@@ -375,42 +371,25 @@ def validate_k8s_head_node_ha(
         None: Errors are collected in the provided `errors` list.
     """
     admin_network = network_spec_data["admin_network"]
-    admin_static_range = admin_network.get("static_range", "N/A")
     admin_dynamic_range = admin_network.get("dynamic_range", "N/A")
+    admin_netmaskbits = network_spec_data.get("admin_netmaskbits")
     oim_admin_ip = network_spec_data["oim_admin_ip"]
+
 
     if not isinstance(ha_data, list):
         ha_data = [ha_data]
     for hdata in ha_data:
-        does_overlap = []
-        external_loadbalancer_ip = hdata.get("external_loadbalancer_ip")
-        active_node_service_tags = hdata.get("active_node_service_tags")
-        # validate active_node_service_tag and passive_node_service_tag
-        all_service_tags_set = set(all_service_tags)
-        active_node_service_tags_set = set(active_node_service_tags)
-
-        # Find the intersection
-        common_tags = all_service_tags_set & active_node_service_tags_set
-
-        # Optional: check if there are common values
-        if common_tags:
-            errors.append(
-                create_error_msg(
-                    f"{config_type}",
-                    common_tags,
-                    en_us_validation_msg.DUPLICATE_ACTIVE_NODE_SERVICE_TAG,
-                )
+        vip_address = hdata.get("virtual_ip_address")
+        if vip_address:
+            validate_vip_address(
+                errors,
+                config_type,
+                vip_address,
+                ha_node_vip_list,
+                admin_network,
+                admin_netmaskbits,
+                oim_admin_ip
             )
-
-        if external_loadbalancer_ip:
-            ip_ranges = [admin_static_range, admin_dynamic_range, external_loadbalancer_ip]
-            does_overlap, _ = validation_utils.check_overlap(ip_ranges)
-
-        if does_overlap:
-            errors.append(
-                create_error_msg("IP overlap -", None, en_us_validation_msg.IP_OVERLAP_FAIL_MSG)
-            )
-
 
 
 def validate_slurm_head_node_ha(
