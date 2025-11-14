@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """Generate manifest for cluster specific variables"""
 
+import argparse
+import json
+import logging
 import os
 import sys
-import logging
+
 import yaml
-import json
-import argparse
 
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 
@@ -307,10 +308,11 @@ def write_yaml_file(path, data, description=None):
         if description:
             logging.info(f"Wrote {description} to {path}")
     except Exception as e:
-        logging.error(f"Failed to write {description or 'YAML'} to {path}: {e}")
-        raise FailedManifestCreateException()
+        logging.error("Failed to write %s to %s: %s", description or 'YAML', path, e)
+        raise FailedManifestCreateException() from e
 
-def main():
+def main():  # pylint: disable=too-many-locals
+    """Main function to generate LDMS manifest and values.yaml."""
     parser = argparse.ArgumentParser(description="Generate manifest for cluster specific variables")
     parser.add_argument('--cluster-file', default="/etc/shasta.yml", help="Path to cluster YAML")
     parser.add_argument('--manifest-template', default="manifest.yaml.in", help="Path to manifest template YAML")
@@ -329,7 +331,7 @@ def main():
     sys_conf = os.path.join(here, args.sys_conf)
     values_output_file = os.path.join(here, args.values_output)
 
-    logging.info(f"JOB: Generate manifest: {manifest_output_file}")
+    logging.info("JOB: Generate manifest: %s", manifest_output_file)
 
     # Step 1: Cluster info and vars file
     net_vars = None
@@ -340,9 +342,9 @@ def main():
         try:
             net_vars = harvest_network_vars(vars_file)
         except FileNotFoundError:
-            logging.warning(f"Vars file {vars_file} not found. Skipping population of network variables.")
+            logging.warning("Vars file %s not found. Skipping population of network variables.", vars_file)
     except FileNotFoundError:
-        logging.warning(f"Cluster file {cluster_file} not found. Skipping population of network variables.")
+        logging.warning("Cluster file %s not found. Skipping population of network variables.", cluster_file)
 
     # Step 2: Replica info
     aggs, store_stateful_replicas, replicas_exporter = harvest_replica_info(replica_map_file)
@@ -380,7 +382,7 @@ def main():
 if __name__ == '__main__':
     try:
         main()
-    except Exception as e:
-        logging.critical(f"Fatal error: {e}")
+    except Exception as e:  # pylint: disable=broad-exception-caught
+        logging.critical("Fatal error: %s", e)
         sys.exit(1)
 
