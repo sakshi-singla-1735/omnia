@@ -306,7 +306,7 @@
               sleep 10
             done
             echo "kube-vip (${KUBE_VIP}) is reachable. Joining this service_kube_control_plane_x86_64 to the cluster now."
-            JOIN_CMD="$(cat "$JOIN_CMD_FILE") --node-name ${NODE_NAME}"
+            JOIN_CMD="$(cat "$JOIN_CMD_FILE") --node-name ${NODE_NAME} --apiserver-advertise-address ${NODE_NAME}"
             echo "Executing: $JOIN_CMD"
             eval $JOIN_CMD
             mkdir -p /root/.kube

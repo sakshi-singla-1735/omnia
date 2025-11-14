@@ -9,6 +9,7 @@
       {"package": "dracut-network", "type": "rpm", "repo_name": "x86_64_baseos"},
       {"package": "squashfs-tools", "type": "rpm", "repo_name": "x86_64_baseos"},
       {"package": "nfs-utils", "type": "rpm", "repo_name": "x86_64_baseos"},
+      {"package": "nfs4-acl-tools", "type": "rpm", "repo_name": "x86_64_baseos"},
       {"package": "NetworkManager", "type": "rpm", "repo_name": "x86_64_baseos"},
       {"package": "nm-connection-editor", "type": "rpm", "repo_name": "x86_64_appstream"},
       {"package": "iproute", "type": "rpm", "repo_name": "x86_64_baseos"},
