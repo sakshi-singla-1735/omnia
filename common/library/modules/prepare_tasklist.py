@@ -42,7 +42,6 @@ from ansible.module_utils.local_repo.config import (
     USER_JSON_FILE_DEFAULT,
     LOG_DIR_DEFAULT,
     LOCAL_REPO_CONFIG_PATH_DEFAULT,
-    FUNCTIONAL_GROUPS_CONFIG_PATH_DEFAULT,
     SOFTWARE_CSV_FILENAME,
     ARCH_SUFFIXES
 )
@@ -62,7 +61,6 @@ def main():
         "csv_file_path": {"type": "str", "required": False, "default": CSV_FILE_PATH_DEFAULT},
         "user_json_file": {"type": "str", "required": False, "default": USER_JSON_FILE_DEFAULT},
         "local_repo_config_path": {"type": "str", "required": False, "default": LOCAL_REPO_CONFIG_PATH_DEFAULT},
-        "functional_groups_config_path": {"type": "str", "required": False, "default": FUNCTIONAL_GROUPS_CONFIG_PATH_DEFAULT},
         "log_dir": {"type": "str", "required": False, "default": LOG_DIR_DEFAULT},
         "key_path": {"type": "str", "required": True},
         "sub_urls": {"type": "dict","required": False,"default": {}}
@@ -74,7 +72,6 @@ def main():
     user_json_file = module.params["user_json_file"]
     csv_file_path = module.params["csv_file_path"]
     local_repo_config_path = module.params["local_repo_config_path"]
-    functional_groups_config_path = module.params["functional_groups_config_path"]
     vault_key_path = module.params["key_path"]
     sub_urls =  module.params["sub_urls"]
     logger = setup_standard_logger(log_dir)
@@ -83,7 +80,6 @@ def main():
 
     try:
         user_data = load_json(user_json_file)
-        functional_groups_config_data = load_yaml(functional_groups_config_path)
         cluster_os_type = user_data['cluster_os_type']
         cluster_os_version = user_data['cluster_os_version']
         repo_config = user_data['repo_config']
@@ -108,7 +104,7 @@ def main():
             logger.info(f"sub rhel urls : {sub_urls}")
             logger.info(f"fresh_installation dict: {fresh_installation}")
             logger.info(f"software_csv_path: {software_csv_path}")
-            software_list[arch] = get_software_names_and_arch(user_data,functional_groups_config_data,arch)
+            software_list[arch] = get_software_names_and_arch(user_data,arch)
             logger.info(f"software_list: {software_list}")
             if not fresh_installation[arch]:
                 csv_softwares[arch] = get_csv_software(software_csv_path[arch])

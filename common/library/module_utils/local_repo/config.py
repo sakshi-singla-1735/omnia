@@ -43,7 +43,6 @@ USER_REG_KEY_PATH = "/opt/omnia/input/project_default/.local_repo_credentials_ke
 # ----------------------------
 LOCAL_REPO_CONFIG_PATH_DEFAULT = "/opt/omnia/input/project_default/local_repo_config.yml"
 SOFTWARE_CONFIG_PATH_DEFAULT = "/opt/omnia/input/project_default/software_config.json"
-FUNCTIONAL_GROUPS_CONFIG_PATH_DEFAULT = "/opt/omnia/.data/functional_groups_config.yml"
 SOFTWARE_CSV_FILENAME = "software.csv"
 FRESH_INSTALLATION_STATUS = True
 
