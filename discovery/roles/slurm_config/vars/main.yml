@@ -21,7 +21,7 @@ conf_files: # Must match this MASTER list
   - slurmdbd
   - cgroup
   - gres
-copy_from_oim: true
+copy_from_oim: false
 ctld_dir:
   - /etc/slurm
   - /etc/my.cnf.d
