@@ -15,11 +15,11 @@ spec:
     trustedCertificates:
       - secretName: kafka-cluster-ca-cert
         certificate: ca.crt
-  # Optional: Enable mTLS authentication
-  # authentication:
-  #   type: tls
-  #   certificateAndKey:
-  #     secretName: bridge-user
-  #     certificate: user.crt
-  #     key: user.key
+  # Enable mTLS authentication (required for port 9093)
+  authentication:
+    type: tls
+    certificateAndKey:
+      secretName: kafkapump
+      certificate: user.crt
+      key: user.key
   replicas: 1

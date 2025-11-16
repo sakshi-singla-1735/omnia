@@ -49,15 +49,14 @@ spec:
           - Describe
           - Read
         host: "*"
-      # Consumer group permissions
+      # Consumer group permissions for Bridge
       - resource:
           type: group
-          name: kafkapump-consumer-group
+          name: idrac-consumer-group
           patternType: prefix
         operations:
           - Read
         host: "*"
-      # Additional consumer group for LDMS
       - resource:
           type: group
           name: ldms-consumer-group
