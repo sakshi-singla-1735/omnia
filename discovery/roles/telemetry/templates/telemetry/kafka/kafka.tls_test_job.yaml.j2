@@ -23,8 +23,14 @@ data:
     #!/bin/bash
     set -e
     
-    echo "=== Kafka TLS Connection Test ==="
-    echo "Kafka Bootstrap Server: kafka-kafka-bootstrap:9093"
+    # Set Kafka bin path
+    export PATH="/opt/kafka/bin:$PATH"
+    
+    echo "=========================================="
+    echo "   Kafka TLS/mTLS Connection Test"
+    echo "=========================================="
+    echo "Bootstrap Server: kafka-kafka-bootstrap:9093"
+    echo "Certificate: kafkapump (for both topics)"
     echo ""
     
     # Create truststore from cluster CA
@@ -36,34 +42,65 @@ data:
     echo "✓ Truststore created successfully"
     echo ""
     
-    # List topics to verify TLS connection
-    echo "Step 2: Testing connection by listing topics..."
-    kafka-topics.sh --bootstrap-server kafka-kafka-bootstrap:9093 \
-      --command-config /tmp/kafka-client.properties \
-      --list
-    echo "✓ TLS connection successful"
+    # Create keystore from client certificate (for mTLS)
+    echo "Step 2: Creating keystore with client certificate..."
+    openssl pkcs12 -export \
+      -in /etc/kafka/certs/user.crt \
+      -inkey /etc/kafka/certs/user.key \
+      -out /tmp/keystore.p12 \
+      -password pass:changeit \
+      -name kafkapump
+    echo "✓ Keystore created successfully"
     echo ""
     
-    # Test consumer (tail last 10 messages)
-    echo "Step 3: Testing consumer on idrac_telemetry topic..."
-    timeout 10 kafka-console-consumer.sh \
+    # Create client properties file with mTLS
+    echo "security.protocol=SSL" > /tmp/kafka-client.properties
+    echo "ssl.truststore.location=/tmp/truststore.jks" >> /tmp/kafka-client.properties
+    echo "ssl.truststore.password=changeit" >> /tmp/kafka-client.properties
+    echo "ssl.keystore.location=/tmp/keystore.p12" >> /tmp/kafka-client.properties
+    echo "ssl.keystore.password=changeit" >> /tmp/kafka-client.properties
+    echo "ssl.keystore.type=PKCS12" >> /tmp/kafka-client.properties
+    
+    # List topics to verify TLS connection
+    echo "Step 3: Testing mTLS connection by listing topics..."
+    /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka-kafka-bootstrap:9093 \
+      --command-config /tmp/kafka-client.properties \
+      --list
+    echo "✓ mTLS connection successful"
+    echo ""
+    
+    # Test iDRAC telemetry topic consumer
+    echo "Step 4: Testing consumer on idrac_telemetry topic (kafkapump user)..."
+    timeout 10 /opt/kafka/bin/kafka-console-consumer.sh \
       --bootstrap-server kafka-kafka-bootstrap:9093 \
       --topic {{ kafka.telemetry_topic_name }} \
-      --consumer-property security.protocol=SSL \
-      --consumer-property ssl.truststore.location=/tmp/truststore.jks \
-      --consumer-property ssl.truststore.password=changeit \
+      --consumer.config /tmp/kafka-client.properties \
+      --group kafkapump-consumer-group \
       --from-beginning \
-      --max-messages 10 || echo "No messages or timeout (this is normal)"
+      --max-messages 10 || echo "No messages or timeout (this is normal for idrac_telemetry)"
+    echo ""
+    
+    # Test LDMS topic consumer
+    echo "Step 5: Testing consumer on ldms topic (kafkapump user with ldms-consumer-group)..."
+    timeout 10 /opt/kafka/bin/kafka-console-consumer.sh \
+      --bootstrap-server kafka-kafka-bootstrap:9093 \
+      --topic ldms \
+      --consumer.config /tmp/kafka-client.properties \
+      --group ldms-consumer-group \
+      --from-beginning \
+      --max-messages 10 || echo "No messages or timeout (this is normal for ldms)"
     
     echo ""
     echo "=== All tests completed ==="
-    
-  kafka-client.properties: |
-    # SSL/TLS Configuration
-    security.protocol=SSL
-    ssl.truststore.location=/tmp/truststore.jks
-    ssl.truststore.password=changeit
-    
+    echo ""
+    echo "Summary:"
+    echo "  ✓ Truststore created (cluster CA)"
+    echo "  ✓ Keystore created (client certificate)"
+    echo "  ✓ mTLS connection established"
+    echo "  ✓ Topics listed successfully"
+    echo "  ✓ idrac_telemetry topic tested"
+    echo "  ✓ ldms topic tested"
+
 ---
 apiVersion: batch/v1
 kind: Job
@@ -85,22 +122,25 @@ spec:
         - name: kafka-cluster-ca-cert
           secret:
             secretName: kafka-cluster-ca-cert
+        - name: kafkapump-user-certs
+          secret:
+            secretName: kafkapump
         - name: test-script
           configMap:
             name: kafka-tls-test-script
             defaultMode: 0755
       containers:
         - name: kafka-tls-test
-          image: quay.io/strimzi/kafka:0.43.0-kafka-4.1.0
+          image: quay.io/strimzi/kafka:0.48.0-kafka-4.1.0
           imagePullPolicy: IfNotPresent
           volumeMounts:
             - mountPath: /etc/kafka/cluster-ca
               name: kafka-cluster-ca-cert
               readOnly: true
+            - mountPath: /etc/kafka/certs
+              name: kafkapump-user-certs
+              readOnly: true
             - mountPath: /opt/test
               name: test-script
           command: ["/bin/bash"]
           args: ["/opt/test/test-kafka-tls.sh"]
-          env:
-            - name: KAFKA_OPTS
-              value: "-Djava.security.auth.login.config=/tmp/kafka-client.properties"

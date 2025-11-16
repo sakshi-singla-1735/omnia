@@ -46,11 +46,20 @@ spec:
           - Write
           - Create
           - Describe
+          - Read
         host: "*"
       # Consumer group permissions
       - resource:
           type: group
           name: kafkapump-consumer-group
+          patternType: prefix
+        operations:
+          - Read
+        host: "*"
+      # Additional consumer group for LDMS
+      - resource:
+          type: group
+          name: ldms-consumer-group
           patternType: prefix
         operations:
           - Read
@@ -86,6 +95,15 @@ spec:
           - Write
           - Create
           - Describe
+          - Read
+        host: "*"
+      # Consumer group permissions for testing
+      - resource:
+          type: group
+          name: ldms-consumer-group
+          patternType: prefix
+        operations:
+          - Read
         host: "*"
       # Cluster-level permissions
       - resource:
