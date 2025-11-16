@@ -165,12 +165,12 @@ spec:
           volumeMounts:
             - mountPath: /go/src/github.com/telemetry-reference-tools
               name: telemetry-reference-tools
-            # Mount kafkapump user certificates for mTLS
-            - mountPath: /etc/kafka/certs
+            # Mount kafkapump user certificates for mTLS (under /extrabin/certs/)
+            - mountPath: /extrabin/certs/kafka-certs
               name: kafkapump-user-certs
               readOnly: true
-            # Mount cluster CA certificate
-            - mountPath: /etc/kafka/cluster-ca
+            # Mount cluster CA certificate (under /extrabin/certs/)
+            - mountPath: /extrabin/certs/cluster-ca
               name: kafka-cluster-ca-cert
               readOnly: true
           workingDir: /go/src/github.com/telemetry-reference-tools
@@ -185,12 +185,13 @@ spec:
             - name: KAFKA_TOPIC
               value: "{{ kafka.telemetry_topic_name }}"
             # TLS configuration - using iDRAC Telemetry Reference Tools standard env var names
+            # Note: kafkapump prepends /extrabin/certs/ to these paths, so use relative paths
             - name: KAFKA_CACERT
-              value: "/etc/kafka/cluster-ca/ca.crt"
+              value: "cluster-ca/ca.crt"
             - name: KAFKA_CLIENT_CERT
-              value: "/etc/kafka/certs/user.crt"
+              value: "kafka-certs/user.crt"
             - name: KAFKA_CLIENT_KEY
-              value: "/etc/kafka/certs/user.key"
+              value: "kafka-certs/user.key"
             - name: KAFKA_SKIP_VERIFY
               value: "false"
             - name: KAFKA_PARTITION
