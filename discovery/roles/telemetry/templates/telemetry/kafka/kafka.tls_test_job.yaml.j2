@@ -1,0 +1,106 @@
+#  Copyright 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kafka-tls-test-script
+  namespace: {{ telemetry_namespace }}
+data:
+  test-kafka-tls.sh: |
+    #!/bin/bash
+    set -e
+    
+    echo "=== Kafka TLS Connection Test ==="
+    echo "Kafka Bootstrap Server: kafka-kafka-bootstrap:9093"
+    echo ""
+    
+    # Create truststore from cluster CA
+    echo "Step 1: Creating Java truststore from cluster CA certificate..."
+    keytool -import -trustcacerts -alias kafka-cluster-ca \
+      -file /etc/kafka/cluster-ca/ca.crt \
+      -keystore /tmp/truststore.jks \
+      -storepass changeit -noprompt
+    echo "✓ Truststore created successfully"
+    echo ""
+    
+    # List topics to verify TLS connection
+    echo "Step 2: Testing connection by listing topics..."
+    kafka-topics.sh --bootstrap-server kafka-kafka-bootstrap:9093 \
+      --command-config /tmp/kafka-client.properties \
+      --list
+    echo "✓ TLS connection successful"
+    echo ""
+    
+    # Test consumer (tail last 10 messages)
+    echo "Step 3: Testing consumer on idrac_telemetry topic..."
+    timeout 10 kafka-console-consumer.sh \
+      --bootstrap-server kafka-kafka-bootstrap:9093 \
+      --topic {{ kafka.telemetry_topic_name }} \
+      --consumer-property security.protocol=SSL \
+      --consumer-property ssl.truststore.location=/tmp/truststore.jks \
+      --consumer-property ssl.truststore.password=changeit \
+      --from-beginning \
+      --max-messages 10 || echo "No messages or timeout (this is normal)"
+    
+    echo ""
+    echo "=== All tests completed ==="
+    
+  kafka-client.properties: |
+    # SSL/TLS Configuration
+    security.protocol=SSL
+    ssl.truststore.location=/tmp/truststore.jks
+    ssl.truststore.password=changeit
+    
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: kafka-tls-test
+  namespace: {{ telemetry_namespace }}
+  labels:
+    app: kafka-tls-test
+spec:
+  ttlSecondsAfterFinished: 3600
+  backoffLimit: 2
+  template:
+    metadata:
+      labels:
+        app: kafka-tls-test
+    spec:
+      restartPolicy: Never
+      volumes:
+        - name: kafka-cluster-ca-cert
+          secret:
+            secretName: kafka-cluster-ca-cert
+        - name: test-script
+          configMap:
+            name: kafka-tls-test-script
+            defaultMode: 0755
+      containers:
+        - name: kafka-tls-test
+          image: quay.io/strimzi/kafka:0.43.0-kafka-4.1.0
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - mountPath: /etc/kafka/cluster-ca
+              name: kafka-cluster-ca-cert
+              readOnly: true
+            - mountPath: /opt/test
+              name: test-script
+          command: ["/bin/bash"]
+          args: ["/opt/test/test-kafka-tls.sh"]
+          env:
+            - name: KAFKA_OPTS
+              value: "-Djava.security.auth.login.config=/tmp/kafka-client.properties"

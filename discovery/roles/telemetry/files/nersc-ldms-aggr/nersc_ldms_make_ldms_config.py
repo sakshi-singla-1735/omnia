@@ -536,10 +536,17 @@ class LdmsdManager:  # pylint: disable=too-many-instance-attributes
         cfg.append(f"updtr_start name={ldmsd_name}")
         cfg.append("prdcr_start_regex regex=.*")
         cfg.extend([
-            "# Store in kafka",
+            "# Store in kafka with TLS support",
             "load name=store_avro_kafka",
-            "config name=store_avro_kafka encoding=json topic=ldms",
-            f"strgp_add name=kafka regex=.* plugin=store_avro_kafka container=kafka-kafka-bootstrap.{self.namespace}.svc.cluster.local:9092 decomposition=/ldms_bin/decomp.json",
+            "# Configure store with TLS - port 9093, SSL enabled",
+            "config name=store_avro_kafka encoding=json topic=ldms "
+            "security.protocol=SSL "
+            "ssl.ca.location=/etc/kafka/cluster-ca/ca.crt "
+            "ssl.certificate.location=/etc/kafka/certs/user.crt "
+            "ssl.key.location=/etc/kafka/certs/user.key",
+            f"strgp_add name=kafka regex=.* plugin=store_avro_kafka "
+            f"container=kafka-kafka-bootstrap.{self.namespace}.svc.cluster.local:9093 "
+            "decomposition=/ldms_bin/decomp.json",
             "strgp_start name=kafka"
         ])
         with open(out_file, 'w', encoding='utf-8') as fh:

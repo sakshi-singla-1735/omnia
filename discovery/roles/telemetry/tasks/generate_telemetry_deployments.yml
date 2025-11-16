@@ -73,12 +73,20 @@
           dest: 'kafka.kafka.yaml'
           type: 'kafka'
 
+        - src: 'telemetry/kafka/kafka.kafkapump_user.yaml.j2'
+          dest: 'kafka.kafkapump_user.yaml'
+          type: 'kafka'
+
         - src: 'telemetry/kafka/kafka.kafka_bridge.yaml.j2'
           dest: 'kafka.kafka_bridge.yaml'
           type: 'kafka'
 
         - src: 'telemetry/kafka/kafka.kafka_bridge_lb.yaml.j2'
           dest: 'kafka.kafka_bridge_lb.yaml'
+          type: 'kafka'
+
+        - src: 'telemetry/kafka/kafka.tls_test_job.yaml.j2'
+          dest: 'kafka.tls_test_job.yaml'
           type: 'kafka'
 
     - name: Extract and set facts for tarball URLs for strmzi kafka
