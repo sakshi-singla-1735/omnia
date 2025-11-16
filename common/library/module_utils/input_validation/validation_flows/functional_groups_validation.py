@@ -377,14 +377,14 @@ def validate_software_section_mappings(functional_groups, software_data):
     slurm_section = software_data.get("slurm_custom", [])
 
     sw_requirements = {
-        "service_kube_node": ["service_k8s", "nfs"],
-        "slurm_control_node": ["slurm_custom", "nfs"],
-        "slurm_node": ["slurm_custom", "nfs"],
-        "login_node": ["slurm_custom", "nfs", "openldap"],
-        "login_compiler_node": ["slurm_custom", "nfs", "openldap"],
+        "service_kube_node": ["service_k8s"],
+        "slurm_control_node": ["slurm_custom"],
+        "slurm_node": ["slurm_custom"],
+        "login_node": ["slurm_custom", "openldap"],
+        "login_compiler_node": ["slurm_custom", "openldap"],
     }
 
-    aarch_supported = {"slurm_custom", "nfs"}
+    aarch_supported = {"slurm_custom", "openldap", "ldms"}
 
     for fg in functional_groups:
         fg_name = fg.get("name", "")

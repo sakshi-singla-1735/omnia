@@ -15,7 +15,6 @@ spec:
       - id: 0
         type: persistent-claim
         size: "{{ hostvars['localhost']['kafka_persistence_size'] }}"
-        class: {{ storage_class_name }}
         kraftMetadata: shared
         deleteClaim: false
 ---
@@ -37,7 +36,6 @@ spec:
       - id: 0
         type: persistent-claim
         size: "{{ hostvars['localhost']['kafka_persistence_size'] }}"
-        class: {{ storage_class_name }}
         kraftMetadata: shared
         deleteClaim: false
 ---
@@ -62,6 +60,10 @@ spec:
       - name: tls
         port: 9093
         type: internal
+        tls: true
+      - name: external
+        port: 9094
+        type: loadbalancer
         tls: true
     config:
       offsets.topic.replication.factor: 3
