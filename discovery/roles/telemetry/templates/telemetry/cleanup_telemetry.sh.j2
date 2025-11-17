@@ -272,11 +272,12 @@ if [ "$CLEAN_IDRAC" = true ]; then
     echo ""
 fi
 
-if [ "$CLEAN_KAFKA" = true ] || [ "$CLEAN_LDMS" = true ] || [ "$CLEAN_IDRAC" = true ]; then
+if [ "$CLEAN_KAFKA" = true ] || [ "$CLEAN_LDMS" = true ] || [ "$CLEAN_IDRAC" = true ] || [ "$CLEAN_VICTORIA" = true ]; then
     echo "Step 9: Delete ConfigMaps"
     echo "-------------------------"
     if [ "$CLEAN_KAFKA" = true ]; then
         delete_all configmap "app=kafka"
+        delete_resource configmap kafka-tls-test-script
     fi
     if [ "$CLEAN_LDMS" = true ]; then
         delete_all configmap "app=nersc-ldms"
@@ -284,12 +285,28 @@ if [ "$CLEAN_KAFKA" = true ] || [ "$CLEAN_LDMS" = true ] || [ "$CLEAN_IDRAC" = t
     if [ "$CLEAN_IDRAC" = true ]; then
         delete_all configmap "app=idrac-telemetry"
     fi
+    if [ "$CLEAN_VICTORIA" = true ]; then
+        delete_resource configmap victoria-tls-test-script
+    fi
     sleep 2
     echo ""
 fi
 
 if [ "$CLEAN_KAFKA" = true ] || [ "$CLEAN_VICTORIA" = true ]; then
-    echo "Step 10: Delete Services"
+    echo "Step 10: Delete TLS Test Jobs"
+    echo "------------------------------"
+    if [ "$CLEAN_KAFKA" = true ]; then
+        delete_resource job kafka-tls-test
+    fi
+    if [ "$CLEAN_VICTORIA" = true ]; then
+        delete_resource job victoria-tls-test
+    fi
+    sleep 2
+    echo ""
+fi
+
+if [ "$CLEAN_KAFKA" = true ] || [ "$CLEAN_VICTORIA" = true ]; then
+    echo "Step 11: Delete Services"
     echo "------------------------"
     if [ "$CLEAN_KAFKA" = true ]; then
         delete_resource service kafka-kafka-bootstrap
@@ -305,7 +322,7 @@ if [ "$CLEAN_KAFKA" = true ] || [ "$CLEAN_VICTORIA" = true ]; then
 fi
 
 if [ "$CLEAN_VICTORIA" = true ]; then
-    echo "Step 11: Delete Monitoring Resources"
+    echo "Step 12: Delete Monitoring Resources"
     echo "-------------------------------------"
     delete_resource statefulset victoria-metric
     delete_resource deployment vmagent
@@ -325,12 +342,13 @@ if [ "$CLEAN_VICTORIA" = true ]; then
 fi
 
 echo ""
-echo "Step 12: Force Delete Any Remaining Component Pods"
+echo "Step 13: Force Delete Any Remaining Component Pods"
 echo "---------------------------------------------------"
 # Only force delete pods from components being cleaned
 if [ "$CLEAN_KAFKA" = true ]; then
     kubectl -n $NAMESPACE delete pod -l strimzi.io/cluster=kafka --grace-period=0 --force --ignore-not-found=true 2>/dev/null || true
     kubectl -n $NAMESPACE delete pod -l app.kubernetes.io/name=kafka-bridge --grace-period=0 --force --ignore-not-found=true 2>/dev/null || true
+    kubectl -n $NAMESPACE delete pod -l app=kafka-tls-test --grace-period=0 --force --ignore-not-found=true 2>/dev/null || true
 fi
 if [ "$CLEAN_LDMS" = true ]; then
     kubectl -n $NAMESPACE delete pod -l app=nersc-ldms --grace-period=0 --force --ignore-not-found=true 2>/dev/null || true
@@ -341,11 +359,12 @@ fi
 if [ "$CLEAN_VICTORIA" = true ]; then
     kubectl -n $NAMESPACE delete pod -l app=victoria-metric --grace-period=0 --force --ignore-not-found=true 2>/dev/null || true
     kubectl -n $NAMESPACE delete pod -l app=vmagent --grace-period=0 --force --ignore-not-found=true 2>/dev/null || true
+    kubectl -n $NAMESPACE delete pod -l app=victoria-tls-test --grace-period=0 --force --ignore-not-found=true 2>/dev/null || true
 fi
 sleep 5
 
 echo ""
-echo "Step 13: Check for Remaining Resources"
+echo "Step 14: Check for Remaining Resources"
 echo "---------------------------------------"
 if [ "$CLEAN_KAFKA" = true ]; then
     echo "Remaining Kafka resources:"
