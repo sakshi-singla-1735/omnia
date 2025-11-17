@@ -9,7 +9,7 @@ resources:
   - victoria-agent-deployment.yaml
   - victoria-statefulset.yaml
   # Uncomment to deploy VictoriaMetrics TLS test job
-  # - victoria-tls-test-job.yaml
+  # - test/victoria-tls-test-job.yaml
 {% endif %}
 {% if kafka_support %}
   - kafka.kafka.yaml
@@ -17,7 +17,7 @@ resources:
   - kafka.kafka_bridge.yaml
   - kafka.kafka_bridge_lb.yaml
   # Uncomment to deploy TLS test job
-  # - kafka.tls_test_job.yaml
+  # - test/kafka.tls_test_job.yaml
 {% endif %}
 {% if hostvars['localhost']['ldms_support'] %}
   - kafka.topic_ldms.yaml

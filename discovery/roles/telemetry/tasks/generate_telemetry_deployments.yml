@@ -13,6 +13,13 @@
 # limitations under the License.
 ---
 
+- name: Create test directory for TLS test jobs
+  ansible.builtin.file:
+    path: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/deployments/test"
+    state: directory
+    mode: "{{ hostvars['localhost']['dir_permissions_755'] }}"
+  tags: telemetry_deployment
+
 - name: Populate telemetry deployment configs
   ansible.builtin.template:
     src: "{{ item.src }}"
@@ -49,7 +56,7 @@
       type: 'victoria'
 
     - src: 'telemetry/victoria/victoria-tls-test-job.yaml.j2'
-      dest: 'victoria-tls-test-job.yaml'
+      dest: 'test/victoria-tls-test-job.yaml'
       type: 'victoria'
 
   when:
@@ -83,7 +90,7 @@
           type: 'kafka'
 
         - src: 'telemetry/kafka/kafka.tls_test_job.yaml.j2'
-          dest: 'kafka.tls_test_job.yaml'
+          dest: 'test/kafka.tls_test_job.yaml'
           type: 'kafka'
 
     - name: Extract and set facts for tarball URLs for strmzi kafka
