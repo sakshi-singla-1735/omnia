@@ -41,8 +41,10 @@ def load_existing_yaml(filepath):
         data = yaml.safe_load(f)
         if not isinstance(data, dict):
             data = {}
-        data.setdefault("groups", OrderedDict())
-        data.setdefault("functional_groups", [])
+        if not isinstance(data.get("groups"), dict):
+            data["groups"] = OrderedDict()
+        if not isinstance(data.get("functional_groups"), list):
+            data["functional_groups"] = []
         return data
 
 
@@ -147,7 +149,7 @@ def merge_yaml(existing, new_groups, new_func_groups, kube_cluster_name, slurm_c
                 "cluster_name": cluster_name,
                 "group": sorted(list(group_list)),
                 "_comment": [
-                    f"{description} functional_groups: ({func_group.split('_')[-1]})",
+                    f"{description} functional_groups:",
                     f"This functional_group is used to configure the nodes for {description}. It belongs to the {layer} layer.",
                     f"The nodes included in this.functional_group will have the necessary tools and configurations to run {description}.",
                     f"The nodes in this functional_group can be used to run {description}."
@@ -173,8 +175,8 @@ def dump_yaml_with_comments(data, filename):
         f.write("# Functional Groups definition\n")
         f.write("# ------------------------------------------------------------------------------------------------\n")
         f.write("functional_groups:\n")
-        for fg in data["functional_groups"]:
-            for c in fg["_comment"]:
+        for fg in data.get("functional_groups") or []:
+            for c in fg.get("_comment", []):
                 f.write(f"  # {c}\n")
             f.write(f"  - name: \"{fg['name']}\"\n")
             f.write(f"    cluster_name: \"{fg['cluster_name']}\"\n")
