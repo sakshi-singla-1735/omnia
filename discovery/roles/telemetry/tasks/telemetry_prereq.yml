@@ -111,3 +111,53 @@
       changed_when: false
       no_log: true
       when: not cluster_id_present | default(false)
+
+- name: Configure TLS certificate for VictoriaMetrics
+  block:
+    - name: Create VictoriaMetrics certificate directory
+      ansible.builtin.file:
+        path: "/tmp/victoria-certs"
+        state: directory
+        mode: "0755"
+
+    - name: Deploy VictoriaMetrics certificate generation script
+      ansible.builtin.template:
+        src: telemetry/victoria/gen_victoria_certs.sh.j2
+        dest: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/deployments/gen_victoria_certs.sh"
+        mode: "{{ hostvars['localhost']['file_permissions_755'] }}"
+
+    - name: Generate VictoriaMetrics TLS certificates
+      ansible.builtin.command:
+        cmd: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/deployments/gen_victoria_certs.sh"
+      changed_when: false
+
+    - name: Read VictoriaMetrics server certificate
+      ansible.builtin.slurp:
+        src: /tmp/victoria-certs/server.crt
+      register: victoria_server_cert
+      no_log: true
+
+    - name: Read VictoriaMetrics server key
+      ansible.builtin.slurp:
+        src: /tmp/victoria-certs/server.key
+      register: victoria_server_key
+      no_log: true
+
+    - name: Read VictoriaMetrics CA certificate
+      ansible.builtin.slurp:
+        src: /tmp/victoria-certs/ca.crt
+      register: victoria_ca_cert
+      no_log: true
+
+    - name: Set certificate variables for template
+      ansible.builtin.set_fact:
+        victoria_server_cert_b64: "{{ victoria_server_cert.content }}"
+        victoria_server_key_b64: "{{ victoria_server_key.content }}"
+        victoria_ca_cert_b64: "{{ victoria_ca_cert.content }}"
+      no_log: true
+
+    - name: Create VictoriaMetrics TLS secret manifest with actual certificates
+      ansible.builtin.template:
+        src: telemetry/victoria/victoria-tls-secret.yaml.j2
+        dest: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/deployments/victoria-tls-secret.yaml"
+        mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
