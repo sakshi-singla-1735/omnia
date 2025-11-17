@@ -85,10 +85,10 @@ spec:
             - "--selfScrapeInterval=5s"
             - "--storageDataPath=/victoria-metrics-data"
             - "--retentionPeriod={{ hostvars['localhost']['victoria_configurations']['retention_period'] }}"
-            - "--httpListenAddr=''"
-            - "--tlsListenAddr=:8443"
-            - "--tlsCertFile=/etc/victoria/certs/server.crt"
-            - "--tlsKeyFile=/etc/victoria/certs/server.key"
+            - "--httpListenAddr=:8443"
+            - "-tls"
+            - "-tlsCertFile=/etc/victoria/certs/server.crt"
+            - "-tlsKeyFile=/etc/victoria/certs/server.key"
           ports:
             - containerPort: 8443
               name: https
