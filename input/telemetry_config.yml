@@ -68,6 +68,7 @@ kafka_configurations:
   topic_partitions: 1
 
 # LDMS-specific configurations and samplers
+# interval and offset values are in microseconds
 ldms_sampler_configurations:
   - plugin_name: meminfo
     config_parameters: ""

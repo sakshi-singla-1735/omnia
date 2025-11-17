@@ -139,5 +139,3 @@ auth_cleanup_directory:
   - "{{ omnia_nfs_share }}/auth"
 
 auth_service_container_name: omnia_auth
-
-functional_groups_config_path: "/opt/omnia/.data/functional_groups_config.yml"
