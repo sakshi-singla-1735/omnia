@@ -88,6 +88,9 @@
       ansible.builtin.fail:
         msg: "{{ nfs_export_help_msg }}"
 
+- name: Creating the persist folders in nfs share
+  ansible.builtin.include_tasks: create_node_dir.yml
+
 - name: Include local repo access variable file
   ansible.builtin.include_vars: "{{ local_repo_access_config_file }}"
 
