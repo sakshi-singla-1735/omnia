@@ -11,10 +11,8 @@ import time
 import shutil
 import logging
 import argparse
-import requests
-import urllib3
-from requests.adapters import HTTPAdapter
-from requests.packages.urllib3.util.retry import Retry
+import requests  # pylint: disable=unused-import
+import urllib3  # pylint: disable=unused-import
 
 def setup_logging(verbose=False):
     """Configure logging facility."""

@@ -13,6 +13,11 @@
 #  limitations under the License.
 ---
 
+- name: Include telemetry configuration file
+  ansible.builtin.include_vars:
+    file: "{{ telemetry_config_file_path }}"
+    name: telemetry_config
+
 - name: Configure of k8s telemetry service
   when:
     - hostvars['localhost']['idrac_telemetry_support'] or hostvars['localhost']['ldms_support']
