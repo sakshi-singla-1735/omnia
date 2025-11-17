@@ -167,15 +167,13 @@ class LdmsdManager:  # pylint: disable=too-many-instance-attributes
         """Generate Kafka SSL properties file for store_avro_kafka plugin."""
         logging.info("Make Kafka SSL Properties")
         kafka_ssl_props = [
-            "# Kafka SSL/TLS Configuration for store_avro_kafka plugin",
+            "# Kafka SSL/TLS Configuration for store_avro_kafka plugin (librdkafka)",
             "# Auto-generated - do not edit manually",
+            "# Note: librdkafka uses PEM files directly, not JKS",
             "security.protocol=SSL",
-            "ssl.truststore.location=/kafka-certs/truststore.jks",
-            "ssl.truststore.password=changeit",
-            "ssl.keystore.location=/kafka-certs/ldms-keystore.p12",
-            "ssl.keystore.password=changeit",
-            "ssl.keystore.type=PKCS12",
-            "ssl.key.password=changeit",
+            "ssl.ca.location=/etc/kafka/cluster-ca/ca.crt",
+            "ssl.certificate.location=/etc/kafka/ldms-certs/user.crt",
+            "ssl.key.location=/etc/kafka/ldms-certs/user.key",
             "# SSL endpoint identification disabled for internal cluster communication",
             "ssl.endpoint.identification.algorithm=",
         ]
