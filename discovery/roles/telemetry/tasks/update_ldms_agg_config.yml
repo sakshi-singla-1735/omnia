@@ -48,8 +48,8 @@
 
 - name: Generate hostmap for ldms
   ansible.builtin.template:
-    src: 'telemetry/ldms/host_map.r7525.json.j2'
-    dest: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/ldms/nersc-ldms-aggr/host_map.r7525.json"
+    src: 'telemetry/ldms/host_map.slurm-cluster.json.j2'
+    dest: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/ldms/nersc-ldms-aggr/host_map.slurm-cluster.json"
     mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
   vars:
     nodes: "{{ hostvars['localhost']['read_mapping_file']['dict'] | dict2items }}"

@@ -61,7 +61,7 @@ For csm: make_host_map.csm.py:
 3. Write to out_dir/host_map.json
 
 For dell: make_host_map.dell.py:
-1. Copy host_map.r7525.json to out_dir/host_map.json
+1. Copy host_map.slurm-cluster.json to out_dir/host_map.json
 
 Create ldms config and prepare chart (nersc_ldms_make_ldms_config.py)
 1. Create `ldmsd` config and environment variable files for each `ldmsd` to distribute the producers across daemons and enable daemons to find each other.
@@ -256,11 +256,11 @@ helm install -n telemetry nersc-ldms-aggr nersc-ldms-aggr --values values.yaml
 
 # Let it startup
 kubectl  -n telemetry top pods --containers |grep ldms
-nersc-ldms-aggr-0                           r7525-0                    2m           16Mi            
+nersc-ldms-aggr-0                           slurm-cluster-0            2m           16Mi            
 nersc-ldms-exporter-0                       exporter                   1m           27Mi            
 nersc-ldms-exporter-1                       exporter                   1m           24Mi            
 nersc-ldms-exporter-2                       exporter                   1m           24Mi            
-nersc-ldms-store-r7525-0                    store                      2m           10Mi            
+nersc-ldms-store-slurm-cluster-0            store                      2m           10Mi            
 nersc-ldms-stream-0                         stream                     1m           13Mi  
 
 ```
