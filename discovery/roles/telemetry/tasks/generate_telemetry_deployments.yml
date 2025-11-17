@@ -22,9 +22,6 @@
     - src: 'telemetry/common/telemetry_namespace_creation.yaml.j2'
       dest: 'telemetry_namespace_creation.yaml'
 
-    - src: 'telemetry/common/gen_certs_script.sh.j2'
-      dest: 'gen_certs_script.sh'
-
     - src: 'telemetry/common/telemetry_secret_creation.yaml.j2'
       dest: 'telemetry_secret_creation.yaml'
       skip_when: "{{ cluster_id_present | default(false) }}"
@@ -65,10 +62,6 @@
         dest: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/deployments/{{ item.dest }}"
         mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
       loop:
-        - src: 'telemetry/kafka/kafka-san.cnf.j2'
-          dest: 'kafka-san.cnf'
-          type: 'kafka'
-
         - src: 'telemetry/kafka/kafka.kafka.yaml.j2'
           dest: 'kafka.kafka.yaml'
           type: 'kafka'

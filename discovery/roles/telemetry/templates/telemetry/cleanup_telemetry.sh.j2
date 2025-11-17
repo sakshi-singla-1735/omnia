@@ -220,7 +220,7 @@ if [ "$CLEAN_KAFKA" = true ]; then
     echo ""
 fi
 
-if [ "$CLEAN_KAFKA" = true ] || [ "$CLEAN_LDMS" = true ] || [ "$CLEAN_IDRAC" = true ]; then
+if [ "$CLEAN_KAFKA" = true ] || [ "$CLEAN_LDMS" = true ] || [ "$CLEAN_IDRAC" = true ] || [ "$CLEAN_VICTORIA" = true ]; then
     echo "Step 7: Delete Persistent Volume Claims"
     echo "----------------------------------------"
     if [ "$CLEAN_KAFKA" = true ]; then
@@ -231,6 +231,10 @@ if [ "$CLEAN_KAFKA" = true ] || [ "$CLEAN_LDMS" = true ] || [ "$CLEAN_IDRAC" = t
     fi
     if [ "$CLEAN_IDRAC" = true ]; then
         delete_all pvc "app=idrac-telemetry"
+    fi
+    if [ "$CLEAN_VICTORIA" = true ]; then
+        delete_all pvc "app=victoria-metric"
+        delete_resource pvc victoria-metrics-pvc-victoria-metric-0
     fi
     sleep 2
     echo ""
@@ -245,6 +249,25 @@ if [ "$CLEAN_KAFKA" = true ]; then
     delete_resource secret kafka-clients-ca
     delete_resource secret kafkapump
     delete_resource secret ldms-producer
+    delete_resource secret kafka-secrets
+    delete_resource secret kafka-cluster-id
+    sleep 2
+    echo ""
+fi
+
+if [ "$CLEAN_LDMS" = true ]; then
+    echo "Step 8a: Delete LDMS Secrets"
+    echo "-----------------------------"
+    delete_resource secret nersc-ldms-ovis-auth
+    delete_resource secret nersc-munge-key
+    sleep 2
+    echo ""
+fi
+
+if [ "$CLEAN_IDRAC" = true ]; then
+    echo "Step 8b: Delete MySQL Secrets"
+    echo "------------------------------"
+    delete_resource secret mysqldb-credentials
     sleep 2
     echo ""
 fi
