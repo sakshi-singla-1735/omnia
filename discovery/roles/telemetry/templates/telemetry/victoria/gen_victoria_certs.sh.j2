@@ -17,7 +17,7 @@
 
 set -e
 
-CERT_DIR="/tmp/victoria-certs"
+CERT_DIR="{{ victoria_cert_dir }}"
 CA_KEY="$CERT_DIR/ca.key"
 CA_CERT="$CERT_DIR/ca.crt"
 CERT_KEY="$CERT_DIR/server.key"

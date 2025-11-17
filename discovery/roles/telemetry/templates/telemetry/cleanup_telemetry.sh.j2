@@ -379,11 +379,27 @@ echo "  Cleanup Complete!"
 echo "=========================================="
 echo ""
 
-# Only show operator note if Kafka was cleaned
+# Only show operator prompt if Kafka was cleaned
 if [ "$CLEAN_KAFKA" = true ]; then
-    echo "Note: Strimzi Cluster Operator was NOT deleted."
-    echo "If you want to delete it too, run:"
-    echo "  kubectl -n $NAMESPACE delete deployment strimzi-cluster-operator"
+    echo ""
+    echo "=========================================="
+    echo "  Strimzi Cluster Operator Cleanup"
+    echo "=========================================="
+    echo ""
+    echo "The Strimzi Cluster Operator is still running."
+    echo "Do you want to delete it as well?"
+    echo ""
+    read -p "Delete Strimzi Cluster Operator? (y/N): " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        echo ""
+        echo "Deleting Strimzi Cluster Operator..."
+        kubectl -n $NAMESPACE delete deployment strimzi-cluster-operator --ignore-not-found=true --wait=false 2>/dev/null || true
+        kubectl -n $NAMESPACE delete secret sh.helm.release.v1.strimzi-cluster-operator.v1 --ignore-not-found=true 2>/dev/null || true
+        echo "Strimzi Cluster Operator deleted."
+    else
+        echo "Strimzi Cluster Operator was NOT deleted."
+    fi
     echo ""
 fi
 

@@ -117,7 +117,7 @@
   block:
     - name: Create VictoriaMetrics certificate directory
       ansible.builtin.file:
-        path: "/tmp/victoria-certs"
+        path: "{{ victoria_cert_dir }}"
         state: directory
         mode: "{{ dir_permissions_755 }}"
 
@@ -134,19 +134,19 @@
 
     - name: Read VictoriaMetrics server certificate
       ansible.builtin.slurp:
-        src: /tmp/victoria-certs/server.crt
+        src: "{{ victoria_cert_dir }}/server.crt"
       register: victoria_server_cert
       no_log: true
 
     - name: Read VictoriaMetrics server key
       ansible.builtin.slurp:
-        src: /tmp/victoria-certs/server.key
+        src: "{{ victoria_cert_dir }}/server.key"
       register: victoria_server_key
       no_log: true
 
     - name: Read VictoriaMetrics CA certificate
       ansible.builtin.slurp:
-        src: /tmp/victoria-certs/ca.crt
+        src: "{{ victoria_cert_dir }}/ca.crt"
       register: victoria_ca_cert
       no_log: true
 

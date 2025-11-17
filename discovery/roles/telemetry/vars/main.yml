@@ -83,6 +83,7 @@ victoria:
 
 # VictoriaMetrics TLS Configuration
 victoria_tls_cert_days: 3650
+victoria_cert_dir: "/tmp/victoria-certs"
 
 # Usage: vmagent-scrape-config.yaml
 
