@@ -38,8 +38,10 @@ data:
     echo "Step 1: Verifying CA certificate..."
     if [ -f "$CA_CERT" ]; then
       echo "✓ CA certificate found at $CA_CERT"
-      echo "Certificate details:"
-      openssl x509 -in "$CA_CERT" -noout -subject -issuer -dates | sed 's/^/  /'
+      if command -v openssl > /dev/null 2>&1; then
+        echo "Certificate details:"
+        openssl x509 -in "$CA_CERT" -noout -subject -issuer -dates 2>/dev/null | sed 's/^/  /' || echo "  (Certificate details not available)"
+      fi
     else
       echo "✗ CA certificate not found!"
       exit 1
@@ -102,9 +104,13 @@ data:
     
     # Test 7: Check certificate details from server
     echo "Step 7: Checking server certificate details..."
-    echo | openssl s_client -connect victoria-loadbalancer:8443 -CAfile "$CA_CERT" 2>/dev/null | \
-      openssl x509 -noout -subject -issuer -dates 2>/dev/null | sed 's/^/  /' || \
-      echo "  ⚠ Could not retrieve server certificate details"
+    if command -v openssl > /dev/null 2>&1; then
+      echo | openssl s_client -connect victoria-loadbalancer:8443 -CAfile "$CA_CERT" 2>/dev/null | \
+        openssl x509 -noout -subject -issuer -dates 2>/dev/null | sed 's/^/  /' || \
+        echo "  ⚠ Could not retrieve server certificate details"
+    else
+      echo "  ℹ OpenSSL not available (certificate details skipped, but curl validated TLS successfully)"
+    fi
     echo ""
     
     echo "=== All tests completed ==="
