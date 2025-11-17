@@ -17,7 +17,7 @@
 discovery_inputs:
   - path: "{{ hostvars['localhost']['input_project_dir'] }}/provision_config.yml"
   - path: "{{ hostvars['localhost']['input_project_dir'] }}/network_spec.yml"
-  - path: "{{ hostvars['localhost']['omnia_functional_groups_file_path'] }}"
+  - path: "{{ hostvars['localhost']['functional_groups_config_path'] }}"
   - path: "/opt/omnia/.data/oim_metadata.yml"
   - path: "{{ hostvars['localhost']['input_project_dir'] }}/security_config.yml"
   - path: "{{ hostvars['localhost']['input_project_dir'] }}/telemetry_config.yml"
@@ -46,7 +46,7 @@ capital_hostname_fail_msg: |
   Refer documentation for more details."
 temp_pxe_file_path: "/opt/omnia/openchami/temp_pxe_file.csv"
 file_mode: "0644"
-functional_groups_file_path: "{{ hostvars['localhost']['omnia_functional_groups_file_path'] }}"
+functional_groups_file_path: "{{ hostvars['localhost']['functional_groups_config_path'] }}"
 
 # Usage: updates_hosts.yml
 hosts_file_path: /opt/omnia/hosts
