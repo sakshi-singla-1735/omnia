@@ -24,26 +24,6 @@ k8s_packages_file: "{{ input_project_dir }}/config/x86_64/{{ software_config.clu
 
 # Usage: secrets_creation.yml
 mysqldb_secrets_name: mysqldb-credentials
-telemetry_cert_path: "/opt/omnia/telemetry/certs"
-kafka_secrets:
-  name: kafka-secrets
-  cert_file: "{{ telemetry_cert_path }}/kafka.crt"
-  cert_key: "{{ telemetry_cert_path }}/kafka.key"
-  cacert_file: "{{ telemetry_cert_path }}/ca.crt"
-  ca_key_file: "{{ telemetry_cert_path }}/ca.key"
-  combined_pem: "{{ telemetry_cert_path }}/kafka.keystore.combined.pem"
-  san_permissions: "0644"
-  dir_permissions: "0755"
-  ssl_limit: 365
-  san_cn: "kafka-headless.telemetry.svc.cluster.local"
-  san_dns:
-    - "kafka-headless.telemetry.svc.cluster.local"
-    - "*.kafka-headless.telemetry.svc.cluster.local"
-    - "kafka.telemetry.svc.cluster.local"
-    - "*.kafka.telemetry.svc.cluster.local"
-    - "localhost"
-  san_ips:
-    - "127.0.0.1"
 
 # Usage: idrac_telemetry_deployment.yml
 service_cluster_idrac_telemetry_dir_path: "{{ hostvars['localhost']['k8s_client_share_path'] }}/idrac_telemetry"
