@@ -22,7 +22,7 @@ spec:
       initContainers:
         # Convert Kafka TLS certificates to JKS format for store_avro_kafka plugin
         - name: setup-kafka-certs
-          image: eclipse-temurin:21-jre
+          image: docker.io/library/eclipse-temurin:21-jre
           command:
             - /bin/bash
             - -c
