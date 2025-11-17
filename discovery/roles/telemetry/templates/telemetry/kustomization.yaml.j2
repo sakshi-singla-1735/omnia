@@ -8,6 +8,8 @@ resources:
   - vmagent-scrape-config.yaml
   - victoria-agent-deployment.yaml
   - victoria-statefulset.yaml
+  # Uncomment to deploy VictoriaMetrics TLS test job
+  # - victoria-tls-test-job.yaml
 {% endif %}
 {% if kafka_support %}
   - kafka.kafka.yaml

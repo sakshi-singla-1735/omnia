@@ -48,6 +48,10 @@
       dest: 'victoria-agent-deployment.yaml'
       type: 'victoria'
 
+    - src: 'telemetry/victoria/victoria-tls-test-job.yaml.j2'
+      dest: 'victoria-tls-test-job.yaml'
+      type: 'victoria'
+
   when:
     - item.type is not defined or item.type in hostvars['localhost']['idrac_telemetry_collection_type'].split(',')
     - item.skip_when is not defined or not item.skip_when | bool
