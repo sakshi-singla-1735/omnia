@@ -207,46 +207,34 @@
         path: "/tmp/victoria-certs"
         state: directory
         mode: "0755"
-      delegate_to: localhost
-      connection: local
 
     - name: Deploy VictoriaMetrics certificate generation script
       ansible.builtin.template:
         src: telemetry/victoria/gen_victoria_certs.sh.j2
         dest: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/deployments/gen_victoria_certs.sh"
         mode: "{{ hostvars['localhost']['file_permissions_755'] }}"
-      delegate_to: localhost
-      connection: local
 
     - name: Generate VictoriaMetrics TLS certificates
       ansible.builtin.command:
         cmd: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/deployments/gen_victoria_certs.sh"
       changed_when: false
-      delegate_to: localhost
-      connection: local
 
     - name: Read VictoriaMetrics server certificate
       ansible.builtin.slurp:
         src: /tmp/victoria-certs/server.crt
       register: victoria_server_cert
-      delegate_to: localhost
-      connection: local
       no_log: true
 
     - name: Read VictoriaMetrics server key
       ansible.builtin.slurp:
         src: /tmp/victoria-certs/server.key
       register: victoria_server_key
-      delegate_to: localhost
-      connection: local
       no_log: true
 
     - name: Read VictoriaMetrics CA certificate
       ansible.builtin.slurp:
         src: /tmp/victoria-certs/ca.crt
       register: victoria_ca_cert
-      delegate_to: localhost
-      connection: local
       no_log: true
 
     - name: Set certificate variables for template
@@ -261,5 +249,3 @@
         src: telemetry/victoria/victoria-tls-secret.yaml.j2
         dest: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/deployments/victoria-tls-secret.yaml"
         mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
-      delegate_to: localhost
-      connection: local
