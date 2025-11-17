@@ -118,6 +118,8 @@ spec:
               name: telemetry-reference-tools
           workingDir: /go/src/github.com/telemetry-reference-tools
           env:
+            - name: INCLUDE_ALERTS
+              value: true
             - name: MESSAGEBUS_HOST
               value: 127.0.0.1
             - name: MESSAGEBUS_PORT
