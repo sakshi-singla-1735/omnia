@@ -19,6 +19,47 @@ spec:
       {{- if $.Values.imagePullSecretsOption }}
       {{- toYaml $.Values.imagePullSecretsOption | nindent 6 }}
       {{- end }}
+      initContainers:
+        # Convert Kafka TLS certificates to JKS format for store_avro_kafka plugin
+        - name: setup-kafka-certs
+          image: eclipse-temurin:21-jre
+          command:
+            - /bin/bash
+            - -c
+            - |
+              set -e
+              echo "Converting Kafka TLS certificates to JKS format for LDMS store..."
+              
+              # Create truststore from cluster CA certificate
+              echo "Creating Java truststore from Kafka cluster CA..."
+              keytool -import -trustcacerts -alias kafka-cluster-ca \
+                -file /etc/kafka/cluster-ca/ca.crt \
+                -keystore /kafka-certs/truststore.jks \
+                -storepass changeit -noprompt
+              echo "✓ Truststore created"
+              
+              # Create keystore from ldms-producer client certificate
+              echo "Creating keystore with ldms-producer client certificate..."
+              openssl pkcs12 -export \
+                -in /etc/kafka/ldms-certs/user.crt \
+                -inkey /etc/kafka/ldms-certs/user.key \
+                -out /kafka-certs/ldms-keystore.p12 \
+                -password pass:changeit \
+                -name ldms-producer
+              echo "✓ Keystore created"
+              
+              # Set permissions
+              chmod 644 /kafka-certs/*.jks /kafka-certs/*.p12
+              echo "✓ Kafka TLS certificates ready"
+          volumeMounts:
+            - name: kafka-cluster-ca
+              mountPath: /etc/kafka/cluster-ca
+              readOnly: true
+            - name: kafka-ldms-certs
+              mountPath: /etc/kafka/ldms-certs
+              readOnly: true
+            - name: kafka-certs-jks
+              mountPath: /kafka-certs
       containers:
         - name: store
           {{- with $.Values.image }}
@@ -47,6 +88,9 @@ spec:
               mountPath: /ldms_conf
             - name: ldms-bin
               mountPath: /ldms_bin
+            - name: kafka-certs-jks
+              mountPath: /kafka-certs
+              readOnly: true
 {{- if $.Values.authVolMountOption }}
 {{- toYaml $.Values.authVolMountOption | nindent 12 }}
 {{- end }}
@@ -75,6 +119,24 @@ spec:
           configMap:
             name: nersc-ldms-bin
             defaultMode: 0500
+        # Kafka TLS certificates
+        - name: kafka-cluster-ca
+          secret:
+            secretName: kafka-cluster-ca-cert
+            items:
+              - key: ca.crt
+                path: ca.crt
+        - name: kafka-ldms-certs
+          secret:
+            secretName: ldms-producer
+            items:
+              - key: user.crt
+                path: user.crt
+              - key: user.key
+                path: user.key
+        # EmptyDir for JKS files created by initContainer
+        - name: kafka-certs-jks
+          emptyDir: {}
 {{- if $.Values.authVolOption }}
 {{ toYaml $.Values.authVolOption | nindent 8 }}
 {{- end }}
