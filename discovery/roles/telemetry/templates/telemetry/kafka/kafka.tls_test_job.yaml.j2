@@ -94,7 +94,7 @@ data:
       --bootstrap-server kafka-kafka-bootstrap:9093 \
       --topic idrac_telemetry \
       --consumer.config /tmp/kafkapump-client.properties \
-      --group kafkapump-consumer-group \
+      --group idrac-consumer-group \
       --from-beginning \
       --max-messages 10 || echo "No messages or timeout (this is normal for idrac_telemetry)"
     echo ""
