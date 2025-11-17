@@ -13,6 +13,13 @@
 # limitations under the License.
 ---
 
+- name: Create cleanup directory for telemetry cleanup scripts
+  ansible.builtin.file:
+    path: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/cleanup"
+    state: directory
+    mode: "{{ hostvars['localhost']['dir_permissions_755'] }}"
+  tags: telemetry_deployment
+
 - name: Create test directory for TLS test jobs
   ansible.builtin.file:
     path: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/deployments/test"
@@ -106,6 +113,6 @@
 - name: Deploy telemetry cleanup script
   ansible.builtin.template:
     src: 'telemetry/cleanup_telemetry.sh.j2'
-    dest: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/deployments/cleanup_telemetry.sh"
+    dest: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/cleanup/cleanup_telemetry.sh"
     mode: "{{ hostvars['localhost']['file_permissions_755'] }}"
   tags: telemetry_deployment
