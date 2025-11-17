@@ -163,9 +163,37 @@ class LdmsdManager:  # pylint: disable=too-many-instance-attributes
                     os.path.join(self.out_dir, f"ldms-env.nersc-ldms-aggr.{ldmsd_name}-{index}.sh")
                 ])
 
+    def make_kafka_ssl_properties(self):
+        """Generate Kafka SSL properties file for store_avro_kafka plugin."""
+        logging.info("Make Kafka SSL Properties")
+        kafka_ssl_props = [
+            "# Kafka SSL/TLS Configuration for store_avro_kafka plugin",
+            "# Auto-generated - do not edit manually",
+            "security.protocol=SSL",
+            "ssl.truststore.location=/kafka-certs/truststore.jks",
+            "ssl.truststore.password=changeit",
+            "ssl.keystore.location=/kafka-certs/ldms-keystore.p12",
+            "ssl.keystore.password=changeit",
+            "ssl.keystore.type=PKCS12",
+            "ssl.key.password=changeit",
+            "# SSL endpoint identification disabled for internal cluster communication",
+            "ssl.endpoint.identification.algorithm=",
+        ]
+        
+        props_file = os.path.join(self.out_dir, "kafka-ssl.properties")
+        with open(props_file, 'w', encoding='utf-8') as fh:
+            fh.write('\n'.join(kafka_ssl_props))
+        logging.info("Kafka SSL properties written to: %s", props_file)
+        
+        # Add to configmaps list so it gets included in the ConfigMap
+        self.configmaps.append(props_file)
+    
     def make_store_configs(self):  # pylint: disable=too-many-locals
         """Generate store configuration files."""
         logging.info("Make Store Configs")
+        
+        # Generate Kafka SSL properties file
+        self.make_kafka_ssl_properties()
         for ldmsd_name, ldmsd_conf in self.config['node_types'].items():
             # grab auth data
             auth_type = ldmsd_conf.get('auth_type')
@@ -538,15 +566,10 @@ class LdmsdManager:  # pylint: disable=too-many-instance-attributes
         cfg.extend([
             "# Store in kafka with TLS - port 9093 (mTLS listener)",
             "# Using JKS keystores created by initContainer for authentication",
+            "# SSL properties configured in /ldms_conf/kafka-ssl.properties",
             "load name=store_avro_kafka",
             "config name=store_avro_kafka encoding=json topic=ldms "
-            "security.protocol=SSL "
-            "ssl.truststore.location=/kafka-certs/truststore.jks "
-            "ssl.truststore.password=changeit "
-            "ssl.keystore.location=/kafka-certs/ldms-keystore.p12 "
-            "ssl.keystore.password=changeit "
-            "ssl.keystore.type=PKCS12 "
-            "ssl.key.password=changeit",
+            "conf=/ldms_conf/kafka-ssl.properties",
             f"strgp_add name=kafka regex=.* plugin=store_avro_kafka "
             f"container=kafka-kafka-bootstrap.{self.namespace}.svc.cluster.local:9093 "
             "decomposition=/ldms_bin/decomp.json",

@@ -105,17 +105,6 @@ vmagent:
   scrape_config_path: "/etc/vmagent/prometheus.yml"
   remote_write_url: "https://victoria-loadbalancer.telemetry.svc.cluster.local:8443/api/v1/write"
 
-# Usage: generate_telemetry_deployments.yaml
-telemetry_templates:
-  - telemetry/common/telemetry_secret_creation.yaml.j2
-  - telemetry/kustomization.yaml.j2
-  - telemetry/idrac_telemetry/idrac_telemetry_statefulset.yml.j2
-  - telemetry/kafka/kafka.kafka.yaml.j2
-  - telemetry/kafka/kafka.topic_ldms.yaml.j2
-  - telemetry/kafka/kafka.kafka_bridge.yaml.j2
-  - telemetry/victoria/gen_victoria_certs.sh.j2
-  - telemetry/victoria/victoria-tls-secret.yaml.j2
-  - telemetry/victoria/victoria-statefulset.yaml.j2
 strmzi_kafka_tarball_url: "{{ offline_tarball_path }}/{{ strimzi_kafka_pkg }}/{{ strimzi_kafka_pkg }}.tar.gz"
 
 # Usage: validate_idrac_inventory.yml
