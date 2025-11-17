@@ -98,8 +98,11 @@ victoria:
   app_name: "victoriametrics"
   container_name: "victoriametrics"
   service_name: "victoria-loadbalancer"
-  container_port1: 8428
+  container_port: 8443
   image: "victoriametrics/victoria-metrics:v1.128.0"
+
+# VictoriaMetrics TLS Configuration
+victoria_tls_cert_days: 3650
 
 # Usage: vmagent-scrape-config.yaml
 
@@ -119,7 +122,7 @@ vmagent:
   container_name: "vmagent"
   image: "victoriametrics/vmagent:v1.128.0"
   scrape_config_path: "/etc/vmagent/prometheus.yml"
-  remote_write_url: "http://victoria-loadbalancer.telemetry.svc.cluster.local:8428/api/v1/write"
+  remote_write_url: "https://victoria-loadbalancer.telemetry.svc.cluster.local:8443/api/v1/write"
 
 # Usage: generate_telemetry_deployments.yaml
 telemetry_templates:
@@ -131,6 +134,8 @@ telemetry_templates:
   - telemetry/kafka/kafka.kafka.yaml.j2
   - telemetry/kafka/kafka.topic_ldms.yaml.j2
   - telemetry/kafka/kafka.kafka_bridge.yaml.j2
+  - telemetry/victoria/gen_victoria_certs.sh.j2
+  - telemetry/victoria/victoria-tls-secret.yaml.j2
   - telemetry/victoria/victoria-statefulset.yaml.j2
 strmzi_kafka_tarball_url: "{{ offline_tarball_path }}/{{ strimzi_kafka_pkg }}/{{ strimzi_kafka_pkg }}.tar.gz"
 

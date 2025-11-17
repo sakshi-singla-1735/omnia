@@ -291,6 +291,10 @@ if [ "$CLEAN_VICTORIA" = true ]; then
     delete_resource service vmagent
     delete_resource configmap vmagent-config
     delete_resource configmap victoria-metric-config
+    delete_resource secret victoria-tls-certs
+    delete_resource serviceaccount vmagent
+    delete_resource role vmagent-sd
+    delete_resource rolebinding vmagent-sd-binding
     delete_all pod "app=victoria-metric"
     delete_all pod "app=vmagent"
     sleep 2

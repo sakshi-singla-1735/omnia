@@ -25,8 +25,9 @@ spec:
   selector:
     app: "{{ victoria.app_name }}"
   ports:
-    - port: 8428
-      targetPort: 8428
+    - port: 8443
+      targetPort: 8443
+      name: https
 ---
 apiVersion: apps/v1
 kind: StatefulSet
@@ -65,6 +66,17 @@ spec:
           key: node.kubernetes.io/unreachable
           operator: Exists
           tolerationSeconds: 5
+      volumes:
+        - name: victoria-tls-certs
+          secret:
+            secretName: victoria-tls-certs
+            items:
+              - key: tls.crt
+                path: server.crt
+              - key: tls.key
+                path: server.key
+              - key: ca.crt
+                path: ca.crt
       containers:
         - name: "{{ victoria.container_name }}"
           image: "{{ victoria.image }}"
@@ -73,12 +85,19 @@ spec:
             - "--selfScrapeInterval=5s"
             - "--storageDataPath=/victoria-metrics-data"
             - "--retentionPeriod={{ hostvars['localhost']['victoria_configurations']['retention_period'] }}"
+            - "--httpListenAddr=''"
+            - "--tlsListenAddr=:8443"
+            - "--tlsCertFile=/etc/victoria/certs/server.crt"
+            - "--tlsKeyFile=/etc/victoria/certs/server.key"
           ports:
-            - containerPort: 8428
-              name: victoriametrics
+            - containerPort: 8443
+              name: https
           volumeMounts:
             - name: victoria-metrics-pvc
               mountPath: /victoria-metrics-data
+            - name: victoria-tls-certs
+              mountPath: /etc/victoria/certs
+              readOnly: true
 
   volumeClaimTemplates:
     - metadata:
