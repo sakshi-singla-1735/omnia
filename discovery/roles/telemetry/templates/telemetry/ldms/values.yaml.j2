@@ -7,12 +7,17 @@ aggs:
 - conf: /ldms_conf/ldmsd.nersc-ldms-aggr.r7525-0.conf
   env: /ldms_conf/ldms-env.nersc-ldms-aggr.r7525-0.sh
   name: r7525-0
-  port: 10001
+  port: {{ telemetry_config.ldms_agg_port }}
 authVolMountOption:
 - mountPath: /nersc-munge-key
   name: nersc-munge-key
 - mountPath: /nersc-ldms-ovis-auth
   name: nersc-ldms-ovis-auth
+# Mount Kafka certificates for TLS support
+- mountPath: /etc/kafka/cluster-ca
+  name: kafka-cluster-ca-cert
+- mountPath: /etc/kafka/certs
+  name: ldms-producer-certs
 authVolOption:
 - name: nersc-munge-key
   secret:
@@ -22,9 +27,22 @@ authVolOption:
   secret:
     defaultMode: 0o400
     secretName: nersc-ldms-ovis-auth
-exportLabel:
-  export: ldms-metrics
-exporterPort: 9101
+# Kafka cluster CA certificate volume
+- name: kafka-cluster-ca-cert
+  secret:
+    secretName: kafka-cluster-ca-cert
+    items:
+      - key: ca.crt
+        path: ca.crt
+# LDMS producer user certificates volume
+- name: ldms-producer-certs
+  secret:
+    secretName: ldms-producer
+    items:
+      - key: user.crt
+        path: user.crt
+      - key: user.key
+        path: user.key
 image:
   registry: docker.io/dellhpcomniaaisolution
   repository: /ubuntu-ldms
@@ -33,13 +51,12 @@ imagePullSecretsOption:
   imagePullSecrets: []
 namespace: telemetry
 net_atat_def: null
-pollingInterval: 60s
-scrapeTimeout: 45s
 statefulSet:
   store:
   - name: r7525
     replicas: 1
 store:
+  port: {{ telemetry_config.ldms_store_port }}
   resources:
     limits:
       cpu: 1
