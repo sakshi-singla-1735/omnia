@@ -13,6 +13,11 @@
 #  limitations under the License.
 ---
 
+- name: Install make
+  ansible.builtin.package:
+    name: make
+    state: present
+
 - name: Populate telemetry deployment configs
   ansible.builtin.template:
     src: "{{ item.src }}"
@@ -34,6 +39,12 @@
     dest: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/ldms"
     mode: '0755'
   when: not values_file_exists.stat.exists
+
+- name: Generate ldms_machine_config.json from template
+  ansible.builtin.template:
+    src: 'telemetry/ldms/ldms_machine_config.json.j2'
+    dest: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/ldms/nersc-ldms-aggr/ldms_machine_config.json"
+    mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
 
 - name: Generate hostmap for ldms
   ansible.builtin.template:
@@ -67,7 +78,3 @@
     src: "telemetry/ldms/ldmsauth.conf.j2"
     dest: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/ldms/ldmsauth.conf"
     mode: "{{ hostvars['localhost']['file_permissions_600'] }}"
-
-- name: Replace all port 6001
-  ansible.builtin.shell: find {{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/ldms  -type f -exec sed -i 's/6001/10001/g' {} +
-  changed_when: false
