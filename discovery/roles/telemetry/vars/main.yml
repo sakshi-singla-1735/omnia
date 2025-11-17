@@ -111,7 +111,6 @@ telemetry_templates:
   - telemetry/kustomization.yaml.j2
   - telemetry/idrac_telemetry/idrac_telemetry_statefulset.yml.j2
   - telemetry/kafka/kafka.kafka.yaml.j2
-  - telemetry/kafka/kafka.network_policy.yaml.j2
   - telemetry/kafka/kafka.topic_ldms.yaml.j2
   - telemetry/kafka/kafka.kafka_bridge.yaml.j2
   - telemetry/victoria/gen_victoria_certs.sh.j2

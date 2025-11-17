@@ -203,13 +203,7 @@ if [ "$CLEAN_KAFKA" = true ]; then
     sleep 2
 
     echo ""
-    echo "Step 5: Delete Kafka NetworkPolicy"
-    echo "-----------------------------------"
-    delete_resource networkpolicy kafka-plaintext-access
-    sleep 2
-
-    echo ""
-    echo "Step 6: Delete Kafka Cluster"
+    echo "Step 5: Delete Kafka Cluster"
     echo "-----------------------------"
     delete_resource kafka kafka
     echo "Waiting for Kafka cluster to terminate (this may take 2-3 minutes)..."
@@ -217,7 +211,7 @@ if [ "$CLEAN_KAFKA" = true ]; then
     sleep 5
 
     echo ""
-    echo "Step 7: Delete Kafka Node Pools"
+    echo "Step 6: Delete Kafka Node Pools"
     echo "--------------------------------"
     delete_resource kafkanodepool broker
     delete_resource kafkanodepool controller
@@ -226,7 +220,7 @@ if [ "$CLEAN_KAFKA" = true ]; then
 fi
 
 if [ "$CLEAN_KAFKA" = true ] || [ "$CLEAN_LDMS" = true ] || [ "$CLEAN_IDRAC" = true ] || [ "$CLEAN_VICTORIA" = true ]; then
-    echo "Step 8: Delete Persistent Volume Claims"
+    echo "Step 7: Delete Persistent Volume Claims"
     echo "----------------------------------------"
     if [ "$CLEAN_KAFKA" = true ]; then
         delete_all pvc "strimzi.io/cluster=kafka"
@@ -246,7 +240,7 @@ if [ "$CLEAN_KAFKA" = true ] || [ "$CLEAN_LDMS" = true ] || [ "$CLEAN_IDRAC" = t
 fi
 
 if [ "$CLEAN_KAFKA" = true ]; then
-    echo "Step 9: Delete Kafka Secrets"
+    echo "Step 8: Delete Kafka Secrets"
     echo "-----------------------------"
     delete_all secret "strimzi.io/cluster=kafka"
     delete_resource secret kafka-cluster-ca-cert
@@ -261,8 +255,8 @@ if [ "$CLEAN_KAFKA" = true ]; then
 fi
 
 if [ "$CLEAN_LDMS" = true ]; then
-    echo "Step 9a: Delete LDMS Secrets"
-    echo "------------------------------"
+    echo "Step 8a: Delete LDMS Secrets"
+    echo "-----------------------------"
     delete_resource secret nersc-ldms-ovis-auth
     delete_resource secret nersc-munge-key
     sleep 2
@@ -270,7 +264,7 @@ if [ "$CLEAN_LDMS" = true ]; then
 fi
 
 if [ "$CLEAN_IDRAC" = true ]; then
-    echo "Step 9b: Delete MySQL Secrets"
+    echo "Step 8b: Delete MySQL Secrets"
     echo "------------------------------"
     delete_resource secret mysqldb-credentials
     sleep 2
@@ -278,8 +272,8 @@ if [ "$CLEAN_IDRAC" = true ]; then
 fi
 
 if [ "$CLEAN_KAFKA" = true ] || [ "$CLEAN_LDMS" = true ] || [ "$CLEAN_IDRAC" = true ] || [ "$CLEAN_VICTORIA" = true ]; then
-    echo "Step 10: Delete ConfigMaps"
-    echo "--------------------------"
+    echo "Step 9: Delete ConfigMaps"
+    echo "-------------------------"
     if [ "$CLEAN_KAFKA" = true ]; then
         delete_all configmap "app=kafka"
         delete_resource configmap kafka-tls-test-script
@@ -298,8 +292,8 @@ if [ "$CLEAN_KAFKA" = true ] || [ "$CLEAN_LDMS" = true ] || [ "$CLEAN_IDRAC" = t
 fi
 
 if [ "$CLEAN_KAFKA" = true ] || [ "$CLEAN_VICTORIA" = true ]; then
-    echo "Step 11: Delete TLS Test Jobs"
-    echo "-------------------------------"
+    echo "Step 10: Delete TLS Test Jobs"
+    echo "------------------------------"
     if [ "$CLEAN_KAFKA" = true ]; then
         delete_resource job kafka-tls-test
     fi
@@ -311,8 +305,8 @@ if [ "$CLEAN_KAFKA" = true ] || [ "$CLEAN_VICTORIA" = true ]; then
 fi
 
 if [ "$CLEAN_KAFKA" = true ] || [ "$CLEAN_VICTORIA" = true ]; then
-    echo "Step 12: Delete Services"
-    echo "-------------------------"
+    echo "Step 11: Delete Services"
+    echo "------------------------"
     if [ "$CLEAN_KAFKA" = true ]; then
         delete_resource service kafka-kafka-bootstrap
         delete_resource service kafka-kafka-brokers
@@ -327,8 +321,8 @@ if [ "$CLEAN_KAFKA" = true ] || [ "$CLEAN_VICTORIA" = true ]; then
 fi
 
 if [ "$CLEAN_VICTORIA" = true ]; then
-    echo "Step 13: Delete Monitoring Resources"
-    echo "--------------------------------------"
+    echo "Step 12: Delete Monitoring Resources"
+    echo "-------------------------------------"
     delete_resource statefulset victoria-metric
     delete_resource deployment vmagent
     delete_resource service victoria-loadbalancer
@@ -347,7 +341,7 @@ if [ "$CLEAN_VICTORIA" = true ]; then
 fi
 
 echo ""
-echo "Step 14: Force Delete Any Remaining Component Pods"
+echo "Step 13: Force Delete Any Remaining Component Pods"
 echo "---------------------------------------------------"
 # Only force delete pods from components being cleaned
 if [ "$CLEAN_KAFKA" = true ]; then
@@ -369,7 +363,7 @@ fi
 sleep 5
 
 echo ""
-echo "Step 15: Check for Remaining Resources"
+echo "Step 14: Check for Remaining Resources"
 echo "---------------------------------------"
 if [ "$CLEAN_KAFKA" = true ]; then
     echo "Remaining Kafka resources:"
