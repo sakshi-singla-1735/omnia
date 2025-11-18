@@ -9,6 +9,4 @@ spec:
   partitions: {{ kafka_topic_partitions['ome'] }}
   replicas: 2
   config:
-    retention.ms: {{ kafka_log_retention_hours * 3600000 }}
     cleanup.policy: delete
-    retention.bytes: {{ kafka_log_retention_bytes }}
