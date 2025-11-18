@@ -199,7 +199,6 @@ if [ "$CLEAN_KAFKA" = true ]; then
     echo "Step 4: Delete Kafka Users"
     echo "--------------------------"
     delete_resource kafkauser kafkapump
-    delete_resource kafkauser ldms-producer
     sleep 2
 
     echo ""
@@ -247,7 +246,6 @@ if [ "$CLEAN_KAFKA" = true ]; then
     delete_resource secret kafka-cluster-ca
     delete_resource secret kafka-clients-ca
     delete_resource secret kafkapump
-    delete_resource secret ldms-producer
     delete_resource secret kafka-secrets
     delete_resource secret kafka-cluster-id
     sleep 2
