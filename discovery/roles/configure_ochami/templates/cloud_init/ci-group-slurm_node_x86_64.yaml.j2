@@ -83,7 +83,7 @@
 
             echo "[INFO] Mounting NFS runfile directory for driver installation..."
             mkdir -p /gpu-runfile
-            mount -t nfs 172.33.36.5:/nfs-server/slurm/lcnode/etc/slurm/epilog.d/runfile /gpu-runfile
+            mount -t nfs {{ cloud_init_nfs_path }}/lcnode/etc/slurm/epilog.d/runfile /gpu-runfile
 
             if [ $? -ne 0 ]; then
                 echo "[ERROR] Failed to mount NFS runfile share. Exiting."
@@ -91,8 +91,8 @@
             fi
 
             echo "[INFO] Installing NVIDIA driver..."
-            if [ -f "/gpu-runfile/cuda_13.0.2_580.95.05_linux_sbsa.run" ]; then
-                bash /gpu-runfile/cuda_13.0.2_580.95.05_linux_sbsa.run --silent --driver --no-opengl-libs --kernel-source-path=/lib/modules/$(uname -r)/build
+            if [ -f "/gpu-runfile/cuda_13.0.2_580.95.05_linux.run" ]; then
+                bash /gpu-runfile/cuda_13.0.2_580.95.05_linux.run --silent --driver --no-opengl-libs --kernel-source-path=/lib/modules/$(uname -r)/build
                 if [ $? -eq 0 ] && command -v nvidia-smi &>/dev/null; then
                     echo "[SUCCESS] NVIDIA driver installed successfully."
                 else
@@ -105,7 +105,7 @@
             echo "[INFO] Setting up CUDA toolkit mount (no installation)..."
             # Simply mount the CUDA toolkit NFS share without verification
             cuda_mount_point="/usr/local/cuda"
-            cuda_nfs_share="172.33.36.5:/nfs-server/slurm/lcnode/etc/slurm/epilog.d/cuda/cuda-libs"
+            cuda_nfs_share="{{ cloud_init_nfs_path }}/lcnode/etc/slurm/epilog.d/cuda/cuda-libs"
 
             echo "[INFO] Mounting CUDA toolkit from NFS: $cuda_nfs_share"
             mkdir -p "$cuda_mount_point"
