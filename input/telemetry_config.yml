@@ -139,13 +139,13 @@ kafka_configurations:
 # kafka_configurations.topic_partitions above.
 #
 # LDMS Port Configurations
-# Aggregator starting port (subsequent aggregators increment: port+1, port+2, etc.)
+# Aggregator port on service k8s cluster
 # Valid range: 6001-6100
 # Default: 6001
 ldms_agg_port: 6001
 
-# Store daemon port (all stores use this, isolated by pod)
-# Can be the same as ldms_agg_port (isolated by pod)
+# Store daemon port on service k8s cluster
+# Can be the same as ldms_agg_port
 # Valid range: 6001-6100
 # Default: 6001
 ldms_store_port: 6001
