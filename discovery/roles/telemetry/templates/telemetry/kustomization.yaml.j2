@@ -27,4 +27,6 @@ resources:
   # Uncomment to deploy TLS test job
   # - test/kafka.tls_test_job.yaml
 {% endif %}
+{% if hostvars['localhost']['idrac_telemetry_support'] %}
   - idrac_telemetry_statefulset.yaml
+{% endif %}
