@@ -49,8 +49,9 @@
         },
         "activation_parameters": {
           "type": "string",
-          "description": "Activation parameters as a string (e.g., 'interval=1000000 offset=0')",
-          "pattern": "^(?=.*\\binterval=[1-9][0-9]*\\b)(?:.*\\boffset=[0-9]+\\b)?$"
+          "description": "Activation parameters as a string (e.g., 'interval=1000000 offset=0'). Format: 'interval=<microseconds>' with optional 'offset=<microseconds>' separated by space.",
+          "pattern": "^interval=[1-9][0-9]*(?:\\s+offset=[0-9]+)?$",
+          "errorMessage": "Must be in format 'interval=<non-zero-number>' or 'interval=<non-zero-number> offset=<number>'. Example: 'interval=1000000' or 'interval=1000000 offset=0'"
         }
       },
       "required": ["plugin_name", "activation_parameters"],
