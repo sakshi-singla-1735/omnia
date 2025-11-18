@@ -22,6 +22,10 @@ bmc_group_data_filename: "/opt/omnia/telemetry/bmc_group_data.csv"
 warning_telemetry_support_false: |
   "[WARNING] idrac_telemetry_support are false in telemetry_config.yml.
   Omnia does not deploy telemetry feature if none of the support category is true."
+warning_bmc_group_data_file_not_updated_msg: |
+  "[WARNING] The following BMC IPs are missing from {{ bmc_group_data_filename }}:
+  {{ missing_bmc_ips | join('\n') }}
+  If telemetry collection required for missing IPs then re-run the playbook."
 telemetry_config_syntax_fail_msg: "Failed. Syntax errors present in telemetry_config.yml. Fix errors and re-run playbook again."
 warning_idrac_telemetry_support_false: |
   "[WARNING] idrac_telemetry_support is set to false in telemetry_config.yml. This means iDRAC telemetry will not be activated.
