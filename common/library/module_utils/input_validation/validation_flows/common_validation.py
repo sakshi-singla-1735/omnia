@@ -1128,9 +1128,10 @@ def validate_telemetry_config(
         )
     
     # Determine LDMS support from software_config.json
+    # software_config.json is in the same directory as telemetry_config.yml
     ldms_support_from_software_config = False
-    config_file_path = omnia_base_dir.replace("../", "")
-    software_config_file_path = create_file_path(config_file_path, file_names["software_config"])
+    input_dir = os.path.dirname(input_file_path)
+    software_config_file_path = os.path.join(input_dir, "software_config.json")
     
     logger.info(f"Checking for LDMS software in: {software_config_file_path}")
     
