@@ -342,14 +342,14 @@ def validate_vip_address(
 
     # pxe_map IPs
     # validate virtual_ip_address is in the admin subnet
-    if not validation_utils.is_ip_in_subnet(oim_admin_ip, admin_netmaskbits, vip_address):
-        errors.append(
-            create_error_msg(
-                f"{config_type} virtual_ip_address",
-                vip_address,
-                en_us_validation_msg.VIRTUAL_IP_NOT_IN_ADMIN_SUBNET,
-            )
-        )
+    # if not validation_utils.is_ip_in_subnet(oim_admin_ip, admin_netmaskbits, vip_address):
+    #     errors.append(
+    #         create_error_msg(
+    #             f"{config_type} virtual_ip_address",
+    #             vip_address,
+    #             en_us_validation_msg.VIRTUAL_IP_NOT_IN_ADMIN_SUBNET,
+    #         )
+    #     )
 
 def validate_service_k8s_cluster_ha(
     errors,
@@ -403,25 +403,8 @@ def validate_service_k8s_cluster_ha(
         ha_data = [ha_data]
     for hdata in ha_data:
         does_overlap = []
-        external_loadbalancer_ip = hdata.get("external_loadbalancer_ip")
-        active_node_service_tags = hdata.get("active_node_service_tags")
-        # validate active_node_service_tag and passive_node_service_tag
-        all_service_tags_set = set(all_service_tags)
-        active_node_service_tags_set = set(active_node_service_tags)
         vip_address = hdata.get("virtual_ip_address")
         # Find the intersection
-        common_tags = all_service_tags_set & active_node_service_tags_set
-
-        # Optional: check if there are common values
-        if common_tags:
-            errors.append(
-                create_error_msg(
-                    f"{config_type}",
-                    common_tags,
-                    en_us_validation_msg.DUPLICATE_ACTIVE_NODE_SERVICE_TAG,
-                )
-            )
-
         if vip_address:
             for ip_list in (ha_node_vip_list, pxe_admin_ips, pxe_bmc_ips):
                 if vip_address in ip_list:
@@ -438,15 +421,6 @@ def validate_service_k8s_cluster_ha(
                 pod_external_ip_list,
                 admin_netmaskbits,
                 oim_admin_ip
-            )
-
-        if external_loadbalancer_ip:
-            ip_ranges = [admin_dynamic_range, external_loadbalancer_ip]
-            does_overlap, _ = validation_utils.check_overlap(ip_ranges)
-
-        if does_overlap:
-            errors.append(
-                create_error_msg("IP overlap -", None, en_us_validation_msg.IP_OVERLAP_FAIL_MSG)
             )
 
 
@@ -530,8 +504,7 @@ def validate_high_availability_config(
     all_service_tags = set()
 
     ha_configs = [
-        ("service_k8s_cluster_ha", ["virtual_ip_address", "active_node_service_tags"],
-        "enable_k8s_ha")
+        ("service_k8s_cluster_ha", ["virtual_ip_address"], "enable_k8s_ha")
     ]
 
     for config_name, mandatory_fields, enable_key in ha_configs:
@@ -539,21 +512,6 @@ def validate_high_availability_config(
         if ha_data:
             ha_data = ha_data[0] if isinstance(ha_data, list) else ha_data
             if ha_data.get(enable_key):
-                # append all the active and passive node service tags to a set
-                if "active_node_service_tag" in ha_data:
-                    all_service_tags.add(ha_data["active_node_service_tag"])
-                elif "active_node_service_tags" in ha_data:
-                    all_service_tags.update(ha_data.get("active_node_service_tags", []))
-
-                if "passive_nodes" in ha_data:
-                    for node_service_tag in ha_data.get("passive_nodes", []):
-                        all_service_tags.update(node_service_tag.get("node_service_tags", []))
-
-                if "admin_virtual_ip_address" in ha_data:
-                    ha_node_vip_list.append(ha_data["admin_virtual_ip_address"])
-                elif "bmc_virtual_ip_address" in ha_data:
-                    ha_node_vip_list.append(ha_data["bmc_virtual_ip_address"])
-                # oim_ha and service_node_ha has been removed
                 validate_ha_config(ha_data, mandatory_fields, errors, config_name,
                                    os.path.dirname(input_file_path),
                                    all_service_tags, ha_node_vip_list)
