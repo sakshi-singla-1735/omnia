@@ -10,7 +10,6 @@ on:
       - pub/ochami
       - pub/ochami_aarch64
       - pub/k8s_telemetry
-      - pub/slurm_gpu
 
 jobs:
   build:
