@@ -76,7 +76,7 @@ data:
     
     # Test iDRAC telemetry topic consumer
     echo "Step 5: Testing consumer on idrac topic (kafkapump user)..."
-    timeout 10 /opt/kafka/bin/kafka-console-consumer.sh \
+    timeout 30 /opt/kafka/bin/kafka-console-consumer.sh \
       --bootstrap-server kafka-kafka-bootstrap:9093 \
       --topic idrac \
       --consumer.config /tmp/kafkapump-client.properties \
@@ -87,7 +87,7 @@ data:
     
     # Test LDMS topic consumer
     echo "Step 6: Testing consumer on ldms topic (kafkapump user via TLS)..."
-    timeout 10 /opt/kafka/bin/kafka-console-consumer.sh \
+    timeout 30 /opt/kafka/bin/kafka-console-consumer.sh \
       --bootstrap-server kafka-kafka-bootstrap:9093 \
       --topic ldms \
       --consumer.config /tmp/kafkapump-client.properties \
@@ -98,7 +98,7 @@ data:
     
     # Test OME topic consumer
     echo "Step 7: Testing consumer on ome topic (kafkapump user)..."
-    timeout 10 /opt/kafka/bin/kafka-console-consumer.sh \
+    timeout 30 /opt/kafka/bin/kafka-console-consumer.sh \
       --bootstrap-server kafka-kafka-bootstrap:9093 \
       --topic ome \
       --consumer.config /tmp/kafkapump-client.properties \

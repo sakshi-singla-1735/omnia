@@ -123,7 +123,10 @@
               "name": {
                 "type": "string",
                 "enum": ["idrac", "ldms", "ome"],
-                "description": "CONSTANT: Fixed topic names that cannot be changed. Only 'idrac', 'ldms', and 'ome' are allowed."
+                "description": "CONSTANT: Fixed topic names that cannot be changed. Only 'idrac', 'ldms', and 'ome' are allowed.",
+                "errorMessage": {
+                  "enum": "Invalid topic name. Only 'idrac', 'ldms', and 'ome' are allowed as Kafka topic names. Custom topic names are not supported."
+                }
               },
               "partitions": {
                 "type": "integer",
@@ -133,7 +136,13 @@
               }
             },
             "required": ["name", "partitions"],
-            "additionalProperties": false
+            "additionalProperties": false,
+            "errorMessage": {
+              "required": {
+                "name": "Topic 'name' is required and must be one of: 'idrac', 'ldms', 'ome'",
+                "partitions": "Topic 'partitions' is required and must be between 1-100"
+              }
+            }
           },
           "uniqueItems": true,
           "description": "IMPORTANT: At least one Kafka topic must be defined. Topic names 'idrac', 'ldms', and 'ome' are CONSTANTS. 'idrac' is required if idrac_telemetry_support is true and kafka is in idrac_telemetry_collection_type. 'ldms' is required if ldms_support is true. 'ome' is optional. Only partition counts can be changed.",
