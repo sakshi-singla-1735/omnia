@@ -19,7 +19,7 @@ resources:
 {% if hostvars['localhost']['ldms_support'] %}
   - kafka.topic_ldms.yaml
 {% endif %}
-{% if 'ome' in hostvars['localhost']['kafka_topic_partitions'] %}
+{% if 'ome' in kafka_topic_partitions %}
   - kafka.topic_ome.yaml
 {% endif %}
   - kafka.kafka_bridge.yaml
