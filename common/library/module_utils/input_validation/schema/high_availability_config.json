@@ -20,6 +20,14 @@
           "virtual_ip_address": {
             "type": "string",
             "description": "Mandatory if enable_k8s_ha is true. The virtual IP address for the K8s service node HA setup."
+          },
+          "external_loadbalancer_ip": {
+            "type": "string",
+            "description": "Optional. IP address of an external load balancer. Must differ from virtual_ip_address."
+          },
+          "loadbalancer_port": {
+            "type": [ "integer","null"],
+            "description": "Mandatory if external_loadbalancer_ip is specified. The port must not be in use and cannot be 6443."
           }
         },
         "required": [
@@ -41,13 +49,35 @@
             ],
             "properties": {
               "virtual_ip_address": {
-                "type": "string",
-                "allOf": [
-                    { "pattern": "^[0-9.]+$" },
-                    { "format": "ipv4" }
-                ]
+                  "type": "string",
+                  "allOf": [
+                      { "pattern": "^[0-9.]+$" },
+                      { "format": "ipv4" }
+                  ]
+              },
+              "active_node_service_tags": {
+                "type": ["array", "null"],
+                "minItems": 0,
+                "items": {
+                  "type": "string",
+                  "pattern": "^[a-zA-Z0-9]+$"
+                }
               }
             }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "external_loadbalancer_ip": {
+                "type": "string",
+                "format": "ipv4"
+              }
+            },
+            "required": ["external_loadbalancer_ip"]
+          },
+          "then": {
+            "required": ["loadbalancer_port"]
           }
         }
       ]
