@@ -14,24 +14,32 @@
             "minLength": 1,
             "description": "Unique name for the slurm cluster." 
           },
-          "installation_type": { 
-            "description":"slurm installation is supported in configless mode",
-            "enum":["configless"]
-          },
-          "restart_slurm_services": {
-            "description": "indicates whether slurm control node services(slurmctld) should be restarted or not and if  restart_slurm_services is set to true, slurmctld services will be restarted on every execution of omnia.yml",
-            "type": "boolean"
-          },
           "nfs_storage_name": { 
             "type": "string", 
             "minLength": 1,
             "description": "Name of the nfs storage in storage_config.yml" 
+          },
+          "config_sources": {
+            "type": "object",
+            "description": "Config can be a file path or inline mapping",
+            "additionalProperties": {
+              "oneOf": [
+                {
+                  "type": "string",
+                  "description": "File path string",
+                  "pattern": "^/.+"
+                },
+                {
+                  "type": "object",
+                  "description": "Inline configuration mapping",
+                  "additionalProperties": true
+                }
+              ]
+            }
           }
         },
         "required": [
           "cluster_name",
-          "installation_type",
-          "restart_slurm_services",
           "nfs_storage_name"
         ]
       }
