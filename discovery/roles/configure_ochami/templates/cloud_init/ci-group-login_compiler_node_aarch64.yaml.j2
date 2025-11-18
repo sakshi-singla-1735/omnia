@@ -123,7 +123,8 @@
 
             echo "[INFO] Copying CUDA toolkit to shared location..."
             # Copy the installed CUDA toolkit to the shared location for compute nodes
-            rsync -av /usr/local/cuda/ /shared-cuda-toolkit/ --exclude='*.a' --exclude='doc/'
+            #rsync -av /usr/local/cuda/ /shared-cuda-toolkit/ --exclude='*.a' --exclude='doc/'
+            cp -r /usr/local/cuda/* /shared-cuda-toolkit/ 2>/dev/null || true
 
             echo "[INFO] Cleaning up temporary mounts..."
             umount /cuda-runfile 2>/dev/null
