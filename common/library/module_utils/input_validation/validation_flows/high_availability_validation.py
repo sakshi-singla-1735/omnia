@@ -41,7 +41,7 @@ def get_roles_config_json(input_file_path, logger, module, omnia_base_dir, proje
     Returns:
         dict: The roles configuration as json.
     """
-    roles_config_file_path = create_file_path(input_file_path, file_names["functional_groups_config"])
+    roles_config_file_path = "/opt/omnia/.data/functional_groups_config.yml"
     roles_config_json = validation_utils.load_yaml_as_json(
         roles_config_file_path, omnia_base_dir, project_name, logger, module
     )
