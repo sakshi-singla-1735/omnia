@@ -62,12 +62,17 @@
     - name: Add idrac topic if enabled
       ansible.builtin.set_fact:
         kafka_topics_to_create: "{{ kafka_topics_to_create + [{'name': 'idrac', 'key': 'idrac', 'filename': 'kafka.topic_idrac.yaml'}] }}"
-      when: hostvars['localhost']['idrac_telemetry_support'] and 'kafka' in hostvars['localhost']['idrac_telemetry_collection_type'].split(',')
+      when:
+        - hostvars['localhost']['idrac_telemetry_support']
+        - "'kafka' in hostvars['localhost']['idrac_telemetry_collection_type'].split(',')"
+        - "'idrac' in kafka_topic_partitions"
 
     - name: Add ldms topic if enabled
       ansible.builtin.set_fact:
         kafka_topics_to_create: "{{ kafka_topics_to_create + [{'name': 'ldms', 'key': 'ldms', 'filename': 'kafka.topic_ldms.yaml'}] }}"
-      when: hostvars['localhost']['ldms_support']
+      when:
+        - hostvars['localhost']['ldms_support']
+        - "'ldms' in kafka_topic_partitions"
 
     - name: Add ome topic (optional)
       ansible.builtin.set_fact:
