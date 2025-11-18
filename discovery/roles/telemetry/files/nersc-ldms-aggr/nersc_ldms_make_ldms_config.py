@@ -176,6 +176,9 @@ class LdmsdManager:  # pylint: disable=too-many-instance-attributes
             "ssl.key.location=/etc/kafka/ldms-certs/user.key",
             "# SSL endpoint identification disabled for internal cluster communication",
             "ssl.endpoint.identification.algorithm=",
+            "# Enable debug logging for troubleshooting",
+            "debug=broker,security,protocol",
+            "log_level=7",
         ]
         
         props_file = os.path.join(self.out_dir, "kafka-ssl.properties")
