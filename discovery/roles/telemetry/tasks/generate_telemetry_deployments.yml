@@ -79,11 +79,17 @@
         kafka_log_retention_hours: "{{ telemetry_config.kafka_configurations.log_retention_hours }}"
         kafka_log_retention_bytes: "{{ telemetry_config.kafka_configurations.log_retention_bytes }}"
         kafka_log_segment_bytes: "{{ telemetry_config.kafka_configurations.log_segment_bytes }}"
-    
+
     - name: Create kafka_topic_partitions dictionary from telemetry_config
       ansible.builtin.set_fact:
-        kafka_topic_partitions: "{{ dict(telemetry_config.kafka_configurations.topic_partitions | map(attribute='name') | zip(telemetry_config.kafka_configurations.topic_partitions | map(attribute='partitions'))) }}"
-    
+        kafka_topic_partitions: >-
+          {{
+            dict(
+              telemetry_config.kafka_configurations.topic_partitions | map(attribute='name')
+              | zip(telemetry_config.kafka_configurations.topic_partitions | map(attribute='partitions'))
+            )
+          }}
+
     - name: Populate telemetry deployment configs for kafka
       ansible.builtin.template:
         src: "{{ item.src }}"
