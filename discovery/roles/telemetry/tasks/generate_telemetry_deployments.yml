@@ -74,11 +74,22 @@
 - name: Kafka configurations
   when: kafka_support
   block:
+    - name: Set Kafka configuration variables from telemetry_config
+      ansible.builtin.set_fact:
+        kafka_log_retention_hours: "{{ telemetry_config.kafka_configurations.log_retention_hours }}"
+        kafka_log_retention_bytes: "{{ telemetry_config.kafka_configurations.log_retention_bytes }}"
+        kafka_log_segment_bytes: "{{ telemetry_config.kafka_configurations.log_segment_bytes }}"
+    
+    - name: Create kafka_topic_partitions dictionary from telemetry_config
+      ansible.builtin.set_fact:
+        kafka_topic_partitions: "{{ dict(telemetry_config.kafka_configurations.topic_partitions | map(attribute='name') | zip(telemetry_config.kafka_configurations.topic_partitions | map(attribute='partitions'))) }}"
+    
     - name: Populate telemetry deployment configs for kafka
       ansible.builtin.template:
         src: "{{ item.src }}"
         dest: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/deployments/{{ item.dest }}"
         mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
+      when: item.condition is not defined or item.condition | bool
       loop:
         - src: 'telemetry/kafka/kafka.kafka.yaml.j2'
           dest: 'kafka.kafka.yaml'
@@ -86,6 +97,20 @@
 
         - src: 'telemetry/kafka/kafka.kafkapump_user.yaml.j2'
           dest: 'kafka.kafkapump_user.yaml'
+          type: 'kafka'
+
+        - src: 'telemetry/kafka/kafka.topic_idrac_telemetry.yaml.j2'
+          dest: 'kafka.topic_idrac_telemetry.yaml'
+          type: 'kafka'
+          condition: "{{ hostvars['localhost']['idrac_telemetry_support'] and 'kafka' in hostvars['localhost']['idrac_telemetry_collection_type'].split(',') }}"
+
+        - src: 'telemetry/kafka/kafka.topic_ldms.yaml.j2'
+          dest: 'kafka.topic_ldms.yaml'
+          type: 'kafka'
+          condition: "{{ hostvars['localhost']['ldms_support'] }}"
+
+        - src: 'telemetry/kafka/kafka.topic_ome.yaml.j2'
+          dest: 'kafka.topic_ome.yaml'
           type: 'kafka'
 
         - src: 'telemetry/kafka/kafka.kafka_bridge.yaml.j2'

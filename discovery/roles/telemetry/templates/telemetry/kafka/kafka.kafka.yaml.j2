@@ -53,15 +53,15 @@ spec:
     version: 4.1.0
     metadataVersion: 4.1-IV0
     listeners:
-      # Internal TLS listener (port 9092) - encryption only, no client auth
-      # Used by Strimzi operators for cluster management
-      # TLS encryption without mTLS for simpler operator connectivity
+      # Internal plaintext listener (port 9092) - no TLS, no auth
+      # Used by LDMS store_avro_kafka plugin for anonymous access
+      # Plaintext for internal cluster communication only
       - name: internal
         port: 9092
         type: internal
-        tls: true
+        tls: false
       # Internal TLS listener with mTLS (port 9093)
-      # LDMS store_avro_kafka plugin uses this listener
+      # Used by iDRAC telemetry and other authenticated clients
       - name: tls
         port: 9093
         type: internal
@@ -78,12 +78,14 @@ spec:
     # Enable simple authorization for ACL support
     authorization:
       type: simple
+      # Allow all for port 9092 since it's plaintext and anonymous
       # Note: No superUsers defined for security
       # Listener configuration:
-      # Port 9092: Internal TLS (encryption only) for Strimzi operators - no client authentication required
-      # Port 9093: Internal TLS with mTLS for LDMS store_avro_kafka plugin - client certificate required
+      # Port 9092: Internal PLAINTEXT (no TLS, no auth) for LDMS - anonymous access allowed
+      # Port 9093: Internal TLS with mTLS for iDRAC telemetry - client certificate required
       # Port 9094: External TLS with mTLS for external clients - client certificate required
-      # Strimzi operators connect via port 9092 and are implicitly allowed admin operations
+      superUsers:
+        - User:ANONYMOUS  # Allow anonymous users on plaintext listener (port 9092)
     config:
       offsets.topic.replication.factor: 3
       transaction.state.log.replication.factor: 3

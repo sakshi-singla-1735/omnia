@@ -63,9 +63,17 @@ kafka_configurations:
   log_segment_bytes: 1073741824
 
   # The number of partitions for each Kafka topic.
-  # Increasing this can improve throughput but also increases storage/overhead.
-  # Default: 1
-  topic_partitions: 1
+  # Increasing partitions can improve throughput but also increases storage/overhead.
+  # Topic names (idrac_telemetry, ldms, and ome) are fixed and cannot be changed.
+  # Only partition counts can be modified.
+  # Default: idrac_telemetry=1, ldms=2, ome=1
+  topic_partitions:
+    - name: "idrac_telemetry"
+      partitions: 1
+    - name: "ldms"
+      partitions: 2
+    - name: "ome"
+      partitions: 1
 
 # LDMS port configurations
 # Aggregator starting port (subsequent aggregators increment: 6002, 6003...)

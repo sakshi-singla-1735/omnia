@@ -49,6 +49,17 @@ spec:
           - Describe
           - Read
         host: "*"
+      # Producer permissions for ome topic
+      - resource:
+          type: topic
+          name: ome
+          patternType: literal
+        operations:
+          - Write
+          - Create
+          - Describe
+          - Read
+        host: "*"
       # Consumer group permissions for Bridge
       - resource:
           type: group
@@ -64,48 +75,14 @@ spec:
         operations:
           - Read
         host: "*"
-      # Cluster-level permissions for idempotent producers
-      - resource:
-          type: cluster
-        operations:
-          - IdempotentWrite
-        host: "*"
-{% endif %}
----
-{% if hostvars['localhost']['ldms_support'] %}
-apiVersion: kafka.strimzi.io/v1beta2
-kind: KafkaUser
-metadata:
-  name: ldms-producer
-  namespace: {{ telemetry_namespace }}
-  labels:
-    strimzi.io/cluster: kafka
-spec:
-  authentication:
-    type: tls
-  authorization:
-    type: simple
-    acls:
-      # Producer permissions for ldms topic
-      - resource:
-          type: topic
-          name: ldms
-          patternType: literal
-        operations:
-          - Write
-          - Create
-          - Describe
-          - Read
-        host: "*"
-      # Consumer group permissions for testing
       - resource:
           type: group
-          name: ldms-consumer-group
+          name: ome-consumer-group
           patternType: prefix
         operations:
           - Read
         host: "*"
-      # Cluster-level permissions
+      # Cluster-level permissions for idempotent producers
       - resource:
           type: cluster
         operations:

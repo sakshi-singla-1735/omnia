@@ -163,38 +163,10 @@ class LdmsdManager:  # pylint: disable=too-many-instance-attributes
                     os.path.join(self.out_dir, f"ldms-env.nersc-ldms-aggr.{ldmsd_name}-{index}.sh")
                 ])
 
-    def make_kafka_ssl_properties(self):
-        """Generate Kafka SSL properties file for store_avro_kafka plugin."""
-        logging.info("Make Kafka SSL Properties")
-        kafka_ssl_props = [
-            "# Kafka SSL/TLS Configuration for store_avro_kafka plugin (librdkafka)",
-            "# Auto-generated - do not edit manually",
-            "# Note: librdkafka uses PEM files directly, not JKS",
-            "security.protocol=SSL",
-            "ssl.ca.location=/etc/kafka/cluster-ca/ca.crt",
-            "ssl.certificate.location=/etc/kafka/ldms-certs/user.crt",
-            "ssl.key.location=/etc/kafka/ldms-certs/user.key",
-            "# SSL endpoint identification disabled for internal cluster communication",
-            "ssl.endpoint.identification.algorithm=",
-            "# Enable debug logging for troubleshooting",
-            "debug=broker,security,protocol",
-            "log_level=7",
-        ]
-        
-        props_file = os.path.join(self.out_dir, "kafka-ssl.properties")
-        with open(props_file, 'w', encoding='utf-8') as fh:
-            fh.write('\n'.join(kafka_ssl_props))
-        logging.info("Kafka SSL properties written to: %s", props_file)
-        
-        # Add to configmaps list so it gets included in the ConfigMap
-        self.configmaps.append(props_file)
-    
     def make_store_configs(self):  # pylint: disable=too-many-locals
         """Generate store configuration files."""
         logging.info("Make Store Configs")
         
-        # Generate Kafka SSL properties file
-        self.make_kafka_ssl_properties()
         for ldmsd_name, ldmsd_conf in self.config['node_types'].items():
             # grab auth data
             auth_type = ldmsd_conf.get('auth_type')
@@ -565,14 +537,13 @@ class LdmsdManager:  # pylint: disable=too-many-instance-attributes
         cfg.append(f"updtr_start name={ldmsd_name}")
         cfg.append("prdcr_start_regex regex=.*")
         cfg.extend([
-            "# Store in kafka with TLS - port 9093 (mTLS listener)",
-            "# Using JKS keystores created by initContainer for authentication",
-            "# SSL properties configured in /ldms_conf/kafka-ssl.properties",
+            "# Store in kafka - port 9092 (plaintext, no TLS, no auth)",
+            "# NOTE: store_avro_kafka plugin using plaintext for anonymous access",
+            "# Using plaintext listener on port 9092 (internal cluster only)",
             "load name=store_avro_kafka",
-            "config name=store_avro_kafka encoding=json topic=ldms "
-            "conf=/ldms_conf/kafka-ssl.properties",
+            "config name=store_avro_kafka encoding=json topic=ldms",
             f"strgp_add name=kafka regex=.* plugin=store_avro_kafka "
-            f"container=kafka-kafka-bootstrap.{self.namespace}.svc.cluster.local:9093 "
+            f"container=kafka-kafka-bootstrap.{self.namespace}.svc.cluster.local:9092 "
             "decomposition=/ldms_bin/decomp.json",
             "strgp_start name=kafka"
         ])

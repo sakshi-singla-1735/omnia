@@ -47,13 +47,6 @@ spec:
               mountPath: /ldms_conf
             - name: ldms-bin
               mountPath: /ldms_bin
-            # Kafka TLS certificates (PEM format for librdkafka)
-            - name: kafka-cluster-ca
-              mountPath: /etc/kafka/cluster-ca
-              readOnly: true
-            - name: kafka-ldms-certs
-              mountPath: /etc/kafka/ldms-certs
-              readOnly: true
 {{- if $.Values.authVolMountOption }}
 {{- toYaml $.Values.authVolMountOption | nindent 12 }}
 {{- end }}
@@ -82,21 +75,6 @@ spec:
           configMap:
             name: nersc-ldms-bin
             defaultMode: 0500
-        # Kafka TLS certificates (PEM format for librdkafka)
-        - name: kafka-cluster-ca
-          secret:
-            secretName: kafka-cluster-ca-cert
-            items:
-              - key: ca.crt
-                path: ca.crt
-        - name: kafka-ldms-certs
-          secret:
-            secretName: ldms-producer
-            items:
-              - key: user.crt
-                path: user.crt
-              - key: user.key
-                path: user.key
 {{- if $.Values.authVolOption }}
 {{ toYaml $.Values.authVolOption | nindent 8 }}
 {{- end }}

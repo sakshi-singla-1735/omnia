@@ -1,6 +1,5 @@
 resources:
   - telemetry_secret_creation.yaml
-  - idrac_telemetry_statefulset.yaml
 {% set types = hostvars['localhost']['idrac_telemetry_collection_type'].split(',') %}
 {% if 'victoria' in types %}
   - victoria-tls-secret.yaml
@@ -14,6 +13,10 @@ resources:
 {% if kafka_support %}
   - kafka.kafka.yaml
   - kafka.kafkapump_user.yaml
+{% if hostvars['localhost']['idrac_telemetry_support'] and 'kafka' in hostvars['localhost']['idrac_telemetry_collection_type'].split(',') %}
+  - kafka.topic_idrac_telemetry.yaml
+{% endif %}
+  - kafka.topic_ome.yaml
   - kafka.kafka_bridge.yaml
   - kafka.kafka_bridge_lb.yaml
   # Uncomment to deploy TLS test job
@@ -22,3 +25,4 @@ resources:
 {% if hostvars['localhost']['ldms_support'] %}
   - kafka.topic_ldms.yaml
 {% endif %}
+  - idrac_telemetry_statefulset.yaml

@@ -1127,6 +1127,50 @@ def validate_telemetry_config(
             en_us_validation_msg.TELEMETRY_SERVICE_CLUSTER_ENTRY_MISSING_ROLES_CONFIG_MSG
             )    
         )
+    
+    # Validate topic_partitions configuration
+    kafka_config = data.get("kafka_configurations", {})
+    topic_partitions = kafka_config.get("topic_partitions", [])
+    
+    if topic_partitions:
+        # Ensure exactly three topics are defined
+        if len(topic_partitions) != 3:
+            errors.append(create_error_msg(
+                "kafka_configurations.topic_partitions",
+                f"contains {len(topic_partitions)} topics",
+                "Exactly three topics must be defined: 'idrac_telemetry', 'ldms', and 'ome'"
+            ))
+        
+        # Collect topic names
+        topic_names = [topic.get("name") for topic in topic_partitions if "name" in topic]
+        
+        # Ensure all required topics are present
+        required_topics = {"idrac_telemetry", "ldms", "ome"}
+        present_topics = set(topic_names)
+        
+        if present_topics != required_topics:
+            missing = required_topics - present_topics
+            extra = present_topics - required_topics
+            error_msg = []
+            if missing:
+                error_msg.append(f"Missing required topics: {', '.join(missing)}")
+            if extra:
+                error_msg.append(f"Invalid topic names: {', '.join(extra)}")
+            errors.append(create_error_msg(
+                "kafka_configurations.topic_partitions",
+                f"topics: {', '.join(topic_names)}",
+                ". ".join(error_msg) + ". Only 'idrac_telemetry', 'ldms', and 'ome' are allowed."
+            ))
+        
+        # Check for duplicate topic names
+        if len(topic_names) != len(set(topic_names)):
+            duplicates = [name for name in topic_names if topic_names.count(name) > 1]
+            errors.append(create_error_msg(
+                "kafka_configurations.topic_partitions",
+                f"duplicate topics: {', '.join(set(duplicates))}",
+                "Each topic must be defined only once"
+            ))
+    
     return errors
 
 def validate_additional_software(

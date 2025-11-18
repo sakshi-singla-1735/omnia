@@ -114,8 +114,34 @@
           "type": "integer"
         },
         "topic_partitions": {
-          "type": "integer",
-          "minimum": 1
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "enum": ["idrac_telemetry", "ldms", "ome"],
+                "description": "CONSTANT: Fixed topic names that cannot be changed. Only 'idrac_telemetry', 'ldms', and 'ome' are allowed."
+              },
+              "partitions": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 100,
+                "description": "Number of partitions for the topic (1-100). This is the only configurable parameter."
+              }
+            },
+            "required": ["name", "partitions"],
+            "additionalProperties": false
+          },
+          "uniqueItems": true,
+          "description": "IMPORTANT: Topic names 'idrac_telemetry', 'ldms', and 'ome' are CONSTANTS and cannot be modified. Only partition counts can be changed. All three topics must be defined exactly once.",
+          "errorMessage": {
+            "minItems": "Exactly 3 topics must be defined: 'idrac_telemetry', 'ldms', and 'ome'",
+            "maxItems": "Exactly 3 topics must be defined: 'idrac_telemetry', 'ldms', and 'ome'",
+            "uniqueItems": "Each topic (idrac_telemetry, ldms, ome) must appear only once"
+          }
         }
       },
       "required": [
