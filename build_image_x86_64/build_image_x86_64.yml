@@ -53,6 +53,10 @@
       vars:
         oim_node_name: "{{ hostvars['localhost']['oim_node_name'] }}"
 
+- name: Generate functional groups configuration
+  ansible.builtin.import_playbook: ../utils/generate_functional_groups.yml
+  tags: always
+
 - name: Verify x86_64 functional_group presnt
   hosts: localhost
   connection: local

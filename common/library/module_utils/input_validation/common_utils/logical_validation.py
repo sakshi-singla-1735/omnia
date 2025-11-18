@@ -63,7 +63,7 @@ def validate_input_logic(
         "telemetry_config.yml": common_validation.validate_telemetry_config,
         "security_config.yml": common_validation.validate_security_config,
         "storage_config.yml": common_validation.validate_storage_config,
-        "functional_groups_config.yml": functional_groups_validation.validate_functional_groups_config,
+        #"functional_groups_config.yml": functional_groups_validation.validate_functional_groups_config,
         "high_availability_config.yml":
             high_availability_validation.validate_high_availability_config,
         "additional_software.json": common_validation.validate_additional_software,

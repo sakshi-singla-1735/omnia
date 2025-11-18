@@ -23,8 +23,7 @@ from ansible.module_utils.local_repo.software_utils import(
     load_yaml
 )
 from ansible.module_utils.local_repo.config import (
-     SOFTWARE_CONFIG_PATH_DEFAULT,
-     FUNCTIONAL_GROUPS_CONFIG_PATH_DEFAULT
+     SOFTWARE_CONFIG_PATH_DEFAULT
 )
 
 def main():
@@ -45,19 +44,16 @@ def main():
     module_args = {
         "software_name": {"type": "str", "required": True},
         "user_json_file": {"type": "str", "required": False, "default": SOFTWARE_CONFIG_PATH_DEFAULT},
-        "functional_groups_config_path": {"type": "str", "required": False, "default": FUNCTIONAL_GROUPS_CONFIG_PATH_DEFAULT},
     }
 
     module = AnsibleModule(argument_spec=module_args, supports_check_mode=False)
 
     software_name = module.params['software_name']
     sw_config_path = module.params['user_json_file']
-    functional_groups_config_path = module.params['functional_groups_config_path']
 
     try:
         sw_config_data = load_json(sw_config_path)
-        functional_groups_config_data = load_yaml(functional_groups_config_path)
-        result = get_arch_from_sw_config(software_name, sw_config_data, functional_groups_config_data)
+        result = get_arch_from_sw_config(software_name, sw_config_data)
         module.exit_json(changed=False, arch=result)
     except Exception as e:
         module.fail_json(msg=str(e))
