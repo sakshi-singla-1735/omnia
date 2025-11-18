@@ -1132,6 +1132,8 @@ def validate_telemetry_config(
     config_file_path = omnia_base_dir.replace("../", "")
     software_config_file_path = create_file_path(config_file_path, file_names["software_config"])
     
+    logger.info(f"Checking for LDMS software in: {software_config_file_path}")
+    
     if os.path.exists(software_config_file_path):
         try:
             with open(software_config_file_path, 'r') as f:
@@ -1140,17 +1142,30 @@ def validate_telemetry_config(
                 ldms_support_from_software_config = any(
                     software.get("name") == "ldms" for software in softwares
                 )
+                logger.info(f"LDMS software detected in software_config.json: {ldms_support_from_software_config}")
+                if ldms_support_from_software_config:
+                    logger.info("LDMS software found - 'ldms' topic will be required in kafka_configurations.topic_partitions")
         except (json.JSONDecodeError, IOError) as e:
             logger.warn(f"Could not load software_config.json: {e}")
+    else:
+        logger.info(f"software_config.json not found at: {software_config_file_path}")
     
     # Validate topic_partitions configuration
     kafka_config = data.get("kafka_configurations", {})
     topic_partitions = kafka_config.get("topic_partitions", [])
-    ldms_support = data.get("ldms_support", False)
     idrac_telemetry_collection_type = data.get("idrac_telemetry_collection_type", "")
     
+    # Check if LDMS software is configured but kafka_configurations is missing entirely
+    if ldms_support_from_software_config and not kafka_config:
+        errors.append(create_error_msg(
+            "kafka_configurations",
+            "not defined",
+            "LDMS software is configured in software_config.json, but kafka_configurations section is missing in telemetry_config.yml. "
+            "Please define kafka_configurations with at least the 'ldms' topic in topic_partitions."
+        ))
+    
     # Check if LDMS software is configured but no topics are defined
-    if ldms_support_from_software_config and not topic_partitions:
+    if ldms_support_from_software_config and kafka_config and not topic_partitions:
         errors.append(create_error_msg(
             "kafka_configurations.topic_partitions",
             "not defined",
@@ -1207,13 +1222,17 @@ def validate_telemetry_config(
                     "idrac topic is required when idrac_telemetry_support is true and 'kafka' is in idrac_telemetry_collection_type"
                 ))
         
-        # If LDMS is enabled (from software_config.json or ldms_support flag), ldms topic is required
-        if (ldms_support_from_software_config or ldms_support) and 'ldms' not in present_topics:
+        # If LDMS software is configured in software_config.json, ldms topic is required
+        logger.info(f"Checking LDMS topic requirement - ldms_support_from_software_config: {ldms_support_from_software_config}")
+        if ldms_support_from_software_config and 'ldms' not in present_topics:
+            logger.error(f"LDMS topic validation FAILED - 'ldms' topic is missing from present_topics: {present_topics}")
             errors.append(create_error_msg(
                 "kafka_configurations.topic_partitions",
                 "missing 'ldms' topic",
-                "ldms topic is required when LDMS software is configured in software_config.json or ldms_support is true"
+                "ldms topic is required when LDMS software is configured in software_config.json"
             ))
+        elif ldms_support_from_software_config:
+            logger.info(f"LDMS topic validation PASSED - 'ldms' found in present_topics: {present_topics}")
         
         # Check for duplicate topic names
         if len(topic_names) != len(set(topic_names)):
