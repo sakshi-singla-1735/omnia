@@ -31,7 +31,7 @@ data:
     echo "=========================================="
     echo "Bootstrap Server: kafka-kafka-bootstrap:9093"
     echo "Certificates: kafkapump (for all TLS topics)"
-    echo "Testing: idrac_telemetry, ldms, ome topics"
+    echo "Testing: idrac, ldms, ome topics"
     echo "Note: All topics use port 9093 with mTLS for testing"
     echo ""
     
@@ -75,14 +75,14 @@ data:
     echo ""
     
     # Test iDRAC telemetry topic consumer
-    echo "Step 5: Testing consumer on idrac_telemetry topic (kafkapump user)..."
+    echo "Step 5: Testing consumer on idrac topic (kafkapump user)..."
     timeout 10 /opt/kafka/bin/kafka-console-consumer.sh \
       --bootstrap-server kafka-kafka-bootstrap:9093 \
-      --topic idrac_telemetry \
+      --topic idrac \
       --consumer.config /tmp/kafkapump-client.properties \
       --group idrac-consumer-group \
       --from-beginning \
-      --max-messages 10 || echo "No messages or timeout (this is normal for idrac_telemetry)"
+      --max-messages 10 || echo "No messages or timeout (this is normal for idrac)"
     echo ""
     
     # Test LDMS topic consumer
@@ -114,7 +114,7 @@ data:
     echo "  ✓ kafkapump keystore created"
     echo "  ✓ mTLS connection established"
     echo "  ✓ Topics listed successfully"
-    echo "  ✓ idrac_telemetry topic tested (kafkapump user)"
+    echo "  ✓ idrac topic tested (kafkapump user)"
     echo "  ✓ ldms topic tested via TLS (kafkapump user)"
     echo "  ✓ ome topic tested (kafkapump user)"
     echo ""

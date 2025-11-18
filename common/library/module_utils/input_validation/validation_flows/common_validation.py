@@ -1130,35 +1130,48 @@ def validate_telemetry_config(
     # Validate topic_partitions configuration
     kafka_config = data.get("kafka_configurations", {})
     topic_partitions = kafka_config.get("topic_partitions", [])
+    ldms_support = data.get("ldms_support", False)
+    idrac_telemetry_collection_type = data.get("idrac_telemetry_collection_type", "")
     
     if topic_partitions:
-        # Ensure exactly three topics are defined
-        if len(topic_partitions) != 3:
+        # Ensure at least one topic is defined
+        if len(topic_partitions) < 1:
             errors.append(create_error_msg(
                 "kafka_configurations.topic_partitions",
-                f"contains {len(topic_partitions)} topics",
-                "Exactly three topics must be defined: 'idrac_telemetry', 'ldms', and 'ome'"
+                "is empty",
+                "At least one Kafka topic must be defined"
             ))
         
         # Collect topic names
         topic_names = [topic.get("name") for topic in topic_partitions if "name" in topic]
-        
-        # Ensure all required topics are present
-        required_topics = {"idrac_telemetry", "ldms", "ome"}
         present_topics = set(topic_names)
+        allowed_topics = {"idrac", "ldms", "ome"}
         
-        if present_topics != required_topics:
-            missing = required_topics - present_topics
-            extra = present_topics - required_topics
-            error_msg = []
-            if missing:
-                error_msg.append(f"Missing required topics: {', '.join(missing)}")
-            if extra:
-                error_msg.append(f"Invalid topic names: {', '.join(extra)}")
+        # Check for invalid topic names
+        invalid_topics = present_topics - allowed_topics
+        if invalid_topics:
             errors.append(create_error_msg(
                 "kafka_configurations.topic_partitions",
-                f"topics: {', '.join(topic_names)}",
-                ". ".join(error_msg) + ". Only 'idrac_telemetry', 'ldms', and 'ome' are allowed."
+                f"invalid topics: {', '.join(invalid_topics)}",
+                "Only 'idrac', 'ldms', and 'ome' topics are allowed"
+            ))
+        
+        # Validate required topics based on feature flags
+        # If iDRAC telemetry is enabled with Kafka, idrac topic is required
+        if idrac_telemetry_support and 'kafka' in idrac_telemetry_collection_type.split(','):
+            if 'idrac' not in present_topics:
+                errors.append(create_error_msg(
+                    "kafka_configurations.topic_partitions",
+                    "missing 'idrac' topic",
+                    "idrac topic is required when idrac_telemetry_support is true and 'kafka' is in idrac_telemetry_collection_type"
+                ))
+        
+        # If LDMS is enabled, ldms topic is required
+        if ldms_support and 'ldms' not in present_topics:
+            errors.append(create_error_msg(
+                "kafka_configurations.topic_partitions",
+                "missing 'ldms' topic",
+                "ldms topic is required when ldms_support is true"
             ))
         
         # Check for duplicate topic names

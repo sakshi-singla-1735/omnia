@@ -27,10 +27,10 @@ spec:
     type: simple
     acls:
 {% if hostvars['localhost']['idrac_telemetry_support'] and 'kafka' in hostvars['localhost']['idrac_telemetry_collection_type'].split(',') %}
-      # Producer permissions for idrac_telemetry topic
+      # Producer permissions for idrac topic
       - resource:
           type: topic
-          name: {{ kafka.telemetry_topic_name }}
+          name: idrac
           patternType: literal
         operations:
           - Write
@@ -38,7 +38,7 @@ spec:
           - Describe
           - Read
         host: "*"
-      # Consumer group permissions for idrac_telemetry
+      # Consumer group permissions for idrac
       - resource:
           type: group
           name: idrac-consumer-group
