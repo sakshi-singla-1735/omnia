@@ -203,6 +203,14 @@
             {{ lookup('template', 'templates/openldap/update_ldap_conf.sh.j2') | indent(12) }}
 {% endif %}
 
+{% if hostvars['localhost']['ldms_support'] %}
+        - path: /root/ldms_conf.sh
+          owner: root:root
+          permissions: '0755'
+          content: |
+            {{ lookup('template', 'templates/ldms/ldms_conf.sh.j2') | indent(12) }}
+{% endif %}
+
         - path: /etc/hosts
           append: true
           content: |
@@ -235,7 +243,7 @@
         - chmod {{ file_mode_755 }} /var/log/slurm /var/run/slurm /var/spool /var/lib/slurm
         - chmod {{ file_mode_400 }} /etc/munge/munge.key
         - chmod {{ file_mode_755 }} /etc/slurm/epilog.d/
-        - chmod +x /etc/slurm/epilog.d/logout_user.sh
+        - chmod {{ file_mode_755 }} /etc/slurm/epilog.d/logout_user.sh
         - mkdir -p /var/spool/slurmd
         - chmod {{ file_mode_755 }} /var/spool/slurmd
         - chown -R {{ user }}:{{ slurm_group_name }} /var/spool/slurmd
@@ -285,9 +293,19 @@
 
 {% endif %}
 
-{% if hostvars['localhost']['ucx_support'] or hostvars['localhost']['openmpi_support'] %}
+{% if hostvars['localhost']['ucx_support'] or hostvars['localhost']['openmpi_support'] or hostvars['localhost']['ldms_support'] %}
         # Add NFS entry and mount
         - mkdir -p {{ client_mount_path }}
-        - echo "{{ nfs_src }} {{ client_mount_path }} nfs defaults,_netdev 0 0" >> /etc/fstab
+        - echo "{{ cloud_init_slurm_nfs_path }} {{ client_mount_path }} nfs defaults,_netdev 0 0" >> /etc/fstab
         - mount -a
 {% endif %}
+
+{% if hostvars['localhost']['ldms_support'] %}
+        - echo " Starting LDMS setup " | tee -a /var/log/ldms-cloudinit.log
+
+        - cp -rf {{ client_mount_path }}/ldms/samplers/sampler.conf /opt/ovis-ldms/etc/ldms/
+
+        - /root/ldms_conf.sh
+{% endif %}
+
+

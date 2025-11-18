@@ -3,8 +3,22 @@ resources:
   - idrac_telemetry_statefulset.yaml
 {% set types = hostvars['localhost']['idrac_telemetry_collection_type'].split(',') %}
 {% if 'victoria' in types %}
+  - victoria-tls-secret.yaml
+  - victoria-vmagent-rbac.yaml
+  - vmagent-scrape-config.yaml
+  - victoria-agent-deployment.yaml
   - victoria-statefulset.yaml
+  # Uncomment to deploy VictoriaMetrics TLS test job
+  # - test/victoria-tls-test-job.yaml
 {% endif %}
-{% if 'kafka' in types %}
-  - kafka-statefulset.yaml
+{% if kafka_support %}
+  - kafka.kafka.yaml
+  - kafka.kafkapump_user.yaml
+  - kafka.kafka_bridge.yaml
+  - kafka.kafka_bridge_lb.yaml
+  # Uncomment to deploy TLS test job
+  # - test/kafka.tls_test_job.yaml
+{% endif %}
+{% if hostvars['localhost']['ldms_support'] %}
+  - kafka.topic_ldms.yaml
 {% endif %}

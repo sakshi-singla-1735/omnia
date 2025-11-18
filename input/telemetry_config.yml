@@ -18,6 +18,7 @@
 # SIMPLY APPEND THE REQUIRED VALUES AGAINST THE PARAMETER OF YOUR CHOICE.
 # ***********************************************************************
 
+
 # This variable is used to enable iDRAC telemetry support
 # Accepted values:  true or false
 idrac_telemetry_support: true
@@ -37,12 +38,17 @@ victoria_configurations:
   # Default: 8Gi
   persistence_size: "8Gi"
 
+  # Duration (in hours) to retain victoria logs before they are deleted.
+  # Default: 168 (7 days)
+  retention_period: 168
+
 # These variables are used to configure Kafka for telemetry
 kafka_configurations:
   # The amount of storage allocated for Kafka's persistent volume.
+  # This storage will be divided among 6 pods, comprising 3 Kafka brokers and 3 Kafka controllers.
   # Accepted values: in the form of "X[Ki|Mi|Gi|Ti|Pi|Ei]"
-  # Default: 8Gi
-  persistence_size: "8Gi"
+  # Default: 48Gi
+  persistence_size: "48Gi"
 
   # The number of hours to retain Kafka logs before they are deleted.
   # Default: 168 (7 days)
@@ -60,3 +66,56 @@ kafka_configurations:
   # Increasing this can improve throughput but also increases storage/overhead.
   # Default: 1
   topic_partitions: 1
+
+# LDMS port configurations
+# Aggregator starting port (subsequent aggregators increment: 6002, 6003...)
+ldms_agg_port: 6001
+# Store daemon port (all stores use this, isolated by pod)
+ldms_store_port: 6001
+
+# Producer/Sampler port configured in each sampler plugin below
+# Sampler port on compute nodes (default: 10001)
+ldms_sampler_port: 10001
+
+# LDMS-specific configurations and samplers
+# interval and offset values are in microseconds
+ldms_sampler_configurations:
+  - plugin_name: meminfo
+    config_parameters: ""
+    # interval=1000000 indicates data collection every 1 seconds
+    activation_parameters: "interval=1000000"
+
+  - plugin_name: procstat2
+    config_parameters: ""
+    # interval=1000000 indicates data collection every 1 seconds
+    activation_parameters: "interval=1000000"
+
+  - plugin_name: vmstat
+    config_parameters: ""
+    # interval=1000000 indicates data collection every 1 seconds
+    activation_parameters: "interval=1000000"
+
+  - plugin_name: loadavg
+    config_parameters: ""
+    # interval=1000000 indicates data collection every 1 seconds
+    activation_parameters: "interval=1000000"
+
+  - plugin_name: slurm_sampler
+    # component_id=2, stream=slurm, job_count=8, task_count=8
+    # component_id=2, if not specified default value is 0
+    # stream=slurm indicates the data stream type
+    # job_count=8 if not specified, the default value is 8
+    # task_count=8 specify the number of jobs and tasks to monitor 
+    config_parameters: "component_id=2 stream=slurm job_count=8 task_count=8"
+    # interval=1000000 indicates data collection every 10 seconds
+    # offset=0 specifies the time offset for data collection
+    activation_parameters: "interval=1000000 offset=0"
+
+  - plugin_name: procnetdev2
+    # ifaces=eth0,eth1
+    # ifaces=eth0,eth1 specifies the network interfaces to monitor
+    # if not specified, all interfaces will be monitored
+    config_parameters: ""
+    # interval=1000000 indicates data collection every 10 seconds
+    # offset=0 specifies the time offset for data collection
+    activation_parameters: "interval=1000000 offset=0"

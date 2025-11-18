@@ -14,49 +14,32 @@
 ---
 
 # Usage: generate_service_cluster_metadata.yml
-functional_groups_config_path: "{{ hostvars['localhost']['input_project_dir'] }}/functional_groups_config.yml"
+functional_groups_config_path: "{{ hostvars['localhost']['functional_groups_config_path'] }}"
 functional_groups_config_syntax_fail_msg: "Failed. Syntax errors present in functional_groups_config.yml. Fix errors and re-run playbook again."
 service_cluster_metadata_path: "/opt/omnia/.data/service_cluster_metadata.yml"
 metadata_perm: "0644"
 
+# Usage: read_software_config.yml
+k8s_packages_file: "{{ input_project_dir }}/config/x86_64/{{ software_config.cluster_os_type }}/{{ software_config.cluster_os_version }}/service_k8s.json"
+
 # Usage: secrets_creation.yml
 mysqldb_secrets_name: mysqldb-credentials
-telemetry_cert_path: "/opt/omnia/telemetry/certs"
-kafka_secrets:
-  name: kafka-secrets
-  cert_file: "{{ telemetry_cert_path }}/kafka.crt"
-  cert_key: "{{ telemetry_cert_path }}/kafka.key"
-  cacert_file: "{{ telemetry_cert_path }}/ca.crt"
-  ca_key_file: "{{ telemetry_cert_path }}/ca.key"
-  combined_pem: "{{ telemetry_cert_path }}/kafka.keystore.combined.pem"
-  san_permissions: "0644"
-  dir_permissions: "0755"
-  ssl_limit: 365
-  san_cn: "kafka-headless.telemetry.svc.cluster.local"
-  san_dns:
-    - "kafka-headless.telemetry.svc.cluster.local"
-    - "*.kafka-headless.telemetry.svc.cluster.local"
-    - "kafka.telemetry.svc.cluster.local"
-    - "*.kafka.telemetry.svc.cluster.local"
-    - "localhost"
-  san_ips:
-    - "127.0.0.1"
 
 # Usage: idrac_telemetry_deployment.yml
 service_cluster_idrac_telemetry_dir_path: "{{ hostvars['localhost']['k8s_client_share_path'] }}/idrac_telemetry"
 dir_permissions_755: "0755"
 idrac_telemetry_github_repo: https://github.com/dell/iDRAC-Telemetry-Reference-Tools.git
-reference_tools_stable_commit: "62fad19"
+reference_tools_stable_commit: "56420c4"
 idrac_telemetry_reference_git_clone_path: "{{ service_cluster_idrac_telemetry_dir_path }}/iDRAC-Telemetry-Reference-Tools"
-# idrac_git_clone_error_msg: |
-#   Failed to clone iDRAC Telemetry GitHub repository from {{ idrac_telemetry_github_repo }}
-#   to {{ idrac_telemetry_reference_git_clone_path }} directory in NFS share.
-# idrac_telemetry_scripting_repo: "https://github.com/dell/iDRAC-Telemetry-Scripting.git"
-# idrac_telemetry_scripting_stable_commit: "f6999f5"
-# idrac_telemetry_scripting_git_clone_path: "{{ service_cluster_idrac_telemetry_dir_path }}/iDRAC-Telemetry-Scripting"
-# idrac_script_git_clone_error_msg: |
-#   Failed to clone iDRAC Telemetry GitHub repository from {{ idrac_telemetry_scripting_repo }}
-#   to {{ idrac_telemetry_scripting_git_clone_path }} directory in NFS share.
+idrac_git_clone_error_msg: |
+  Failed to clone iDRAC Telemetry GitHub repository from {{ idrac_telemetry_github_repo }}
+  to {{ idrac_telemetry_reference_git_clone_path }} directory in NFS share.
+idrac_telemetry_scripting_repo: "https://github.com/dell/iDRAC-Telemetry-Scripting.git"
+idrac_telemetry_scripting_stable_commit: "f6999f5"
+idrac_telemetry_scripting_git_clone_path: "{{ service_cluster_idrac_telemetry_dir_path }}/iDRAC-Telemetry-Scripting"
+idrac_script_git_clone_error_msg: |
+  Failed to clone iDRAC Telemetry GitHub repository from {{ idrac_telemetry_scripting_repo }}
+  to {{ idrac_telemetry_scripting_git_clone_path }} directory in NFS share.
 max_retries: 10
 delay_count: 5
 telemetry_namespace: "telemetry"
@@ -76,7 +59,7 @@ mysqldb_container_port1: 3306
 mysqldb_container_port2: 33060
 mysql_image: "docker.io/library/mysql:9.3.0"
 pod_wait_timeout: "10m"
-kafka_skip_verify: false
+kafka_skip_verify: true
 
 # Usage: kafka_deployment.yml
 kafka:
@@ -95,19 +78,45 @@ victoria:
   app_name: "victoriametrics"
   container_name: "victoriametrics"
   service_name: "victoria-loadbalancer"
-  container_port1: 8428
+  container_port: 8443
   image: "victoriametrics/victoria-metrics:v1.128.0"
 
+# VictoriaMetrics TLS Configuration
+victoria_tls_cert_days: 3650
+victoria_cert_dir: "/tmp/victoria-certs"
+
+# Usage: vmagent-scrape-config.yaml
+
+vmagent:
+  configmap_name: "vmagent-scrape-config"
+  global:
+    scrape_interval: "10s"
+  job_name: "idrac-telemetry"
+  kubernetes_sd_namespace: "{{ telemetry_namespace }}"
+  target_pod_label: "{{ idrac_telemetry_k8s_name }}"
+  metrics_container_name: "victoria-pump"
+  metrics_port: 2112
+  service_account_name: "vmagent"
+  role_name: "vmagent-sd"
+  rolebinding_name: "vmagent-sd-binding"
+  app_name: "vmagent"
+  container_name: "vmagent"
+  image: "victoriametrics/vmagent:v1.128.0"
+  scrape_config_path: "/etc/vmagent/prometheus.yml"
+  remote_write_url: "https://victoria-loadbalancer.telemetry.svc.cluster.local:8443/api/v1/write"
+
 # Usage: generate_telemetry_deployments.yaml
-storage_class_name: "nfs-client"
 telemetry_templates:
-  - telemetry/common/gen_certs_script.sh.j2
   - telemetry/common/telemetry_secret_creation.yaml.j2
   - telemetry/kustomization.yaml.j2
   - telemetry/idrac_telemetry/idrac_telemetry_statefulset.yml.j2
-  - telemetry/kafka/kafka-san.cnf.j2
-  - telemetry/kafka/kafka-statefulset.yaml.j2
+  - telemetry/kafka/kafka.kafka.yaml.j2
+  - telemetry/kafka/kafka.topic_ldms.yaml.j2
+  - telemetry/kafka/kafka.kafka_bridge.yaml.j2
+  - telemetry/victoria/gen_victoria_certs.sh.j2
+  - telemetry/victoria/victoria-tls-secret.yaml.j2
   - telemetry/victoria/victoria-statefulset.yaml.j2
+strmzi_kafka_tarball_url: "{{ offline_tarball_path }}/{{ strimzi_kafka_pkg }}/{{ strimzi_kafka_pkg }}.tar.gz"
 
 # Usage: validate_idrac_inventory.yml
 bmc_group_data_filename: "/opt/omnia/telemetry/bmc_group_data.csv"
@@ -115,3 +124,7 @@ bmc_group_data_headers: "BMC_IP,GROUP_NAME,PARENT"
 openchami_work_dir: "{{ hostvars['localhost']['oim_shared_path'] }}/omnia/openchami/workdir"
 nodes_dir: "{{ openchami_work_dir }}/nodes"
 openchami_nodes_vars_path: "{{ nodes_dir }}/nodes.yaml"
+
+# Usage: update_ldms_sampler.yml
+telemetry_config_file_path: "{{ hostvars['localhost']['input_project_dir'] }}/telemetry_config.yml"
+common_mode: "0755"

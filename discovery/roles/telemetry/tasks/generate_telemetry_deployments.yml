@@ -1,0 +1,118 @@
+# Copyright 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+---
+
+- name: Create cleanup directory for telemetry cleanup scripts
+  ansible.builtin.file:
+    path: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/cleanup"
+    state: directory
+    mode: "{{ hostvars['localhost']['dir_permissions_755'] }}"
+  tags: telemetry_deployment
+
+- name: Create test directory for TLS test jobs
+  ansible.builtin.file:
+    path: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/deployments/test"
+    state: directory
+    mode: "{{ hostvars['localhost']['dir_permissions_755'] }}"
+  tags: telemetry_deployment
+
+- name: Populate telemetry deployment configs
+  ansible.builtin.template:
+    src: "{{ item.src }}"
+    dest: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/deployments/{{ item.dest }}"
+    mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
+  loop:
+    - src: 'telemetry/common/telemetry_namespace_creation.yaml.j2'
+      dest: 'telemetry_namespace_creation.yaml'
+
+    - src: 'telemetry/common/telemetry_secret_creation.yaml.j2'
+      dest: 'telemetry_secret_creation.yaml'
+      skip_when: "{{ cluster_id_present | default(false) }}"
+
+    - src: 'telemetry/kustomization.yaml.j2'
+      dest: 'kustomization.yaml'
+
+    - src: 'telemetry/idrac_telemetry/idrac_telemetry_statefulset.yaml.j2'
+      dest: 'idrac_telemetry_statefulset.yaml'
+
+    - src: 'telemetry/victoria/victoria-statefulset.yaml.j2'
+      dest: 'victoria-statefulset.yaml'
+      type: 'victoria'
+
+    - src: 'telemetry/victoria/victoria-vmagent-rbac.yaml.j2'
+      dest: 'victoria-vmagent-rbac.yaml'
+      type: 'victoria'
+
+    - src: 'telemetry/victoria/vmagent-scrape-config.yaml.j2'
+      dest: 'vmagent-scrape-config.yaml'
+      type: 'victoria'
+
+    - src: 'telemetry/victoria/victoria-agent-deployment.yaml.j2'
+      dest: 'victoria-agent-deployment.yaml'
+      type: 'victoria'
+
+    - src: 'telemetry/victoria/victoria-tls-test-job.yaml.j2'
+      dest: 'test/victoria-tls-test-job.yaml'
+      type: 'victoria'
+
+  when:
+    - item.type is not defined or item.type in hostvars['localhost']['idrac_telemetry_collection_type'].split(',')
+    - item.skip_when is not defined or not item.skip_when | bool
+  tags: telemetry_deployment
+
+- name: Kafka configurations
+  when: kafka_support
+  block:
+    - name: Populate telemetry deployment configs for kafka
+      ansible.builtin.template:
+        src: "{{ item.src }}"
+        dest: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/deployments/{{ item.dest }}"
+        mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
+      loop:
+        - src: 'telemetry/kafka/kafka.kafka.yaml.j2'
+          dest: 'kafka.kafka.yaml'
+          type: 'kafka'
+
+        - src: 'telemetry/kafka/kafka.kafkapump_user.yaml.j2'
+          dest: 'kafka.kafkapump_user.yaml'
+          type: 'kafka'
+
+        - src: 'telemetry/kafka/kafka.kafka_bridge.yaml.j2'
+          dest: 'kafka.kafka_bridge.yaml'
+          type: 'kafka'
+
+        - src: 'telemetry/kafka/kafka.kafka_bridge_lb.yaml.j2'
+          dest: 'kafka.kafka_bridge_lb.yaml'
+          type: 'kafka'
+
+        - src: 'telemetry/kafka/kafka.tls_test_job.yaml.j2'
+          dest: 'test/kafka.tls_test_job.yaml'
+          type: 'kafka'
+
+    - name: Extract and set facts for tarball URLs for strmzi kafka
+      ansible.builtin.set_fact:
+        strimzi_kafka_pkg: "{{ k8s_packages_json['service_k8s']['cluster'] | selectattr('type', 'equalto', 'tarball') | selectattr('package', 'search', 'strimzi-kafka-operator') | map(attribute='package') | join }}" # noqa: yaml[line-length]
+
+    - name: Download strmzi kafka tarball
+      ansible.builtin.get_url:
+        url: "{{ strmzi_kafka_tarball_url }}"
+        dest: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/{{ strimzi_kafka_pkg }}.tar.gz"
+        mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
+
+- name: Deploy telemetry cleanup script
+  ansible.builtin.template:
+    src: 'telemetry/cleanup_telemetry.sh.j2'
+    dest: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/cleanup/cleanup_telemetry.sh"
+    mode: "{{ hostvars['localhost']['file_permissions_755'] }}"
+  tags: telemetry_deployment
