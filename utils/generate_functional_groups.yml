@@ -13,20 +13,8 @@
 #  limitations under the License.
 ---
 
-- name: Delete omnia_credential_config
-  ansible.builtin.file:
-    path: "{{ omnia_credential_config }}"
-    state: absent
-  failed_when: false
-
-- name: Delete omnia_credential_file vault key
-  ansible.builtin.file:
-    path: "{{ omnia_credential_config_key }}"
-    state: absent
-  failed_when: false
-
-- name: Delete functional groups configuration file
-  ansible.builtin.file:
-    path: "{{ functional_groups_config_path }}"
-    state: absent
-  failed_when: false
+- name: Include input directory
+  hosts: localhost
+  connection: local
+  roles:
+    - generate_functional_groups

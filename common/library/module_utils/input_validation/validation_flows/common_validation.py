@@ -1034,9 +1034,8 @@ def check_is_service_cluster_functional_groups_defined(
     Returns:
         True if 'service_kube_node_x86_64' is defined and valid, else False
     """
-    functional_groups_config_file_path = create_file_path(
-        input_file_path, file_names["functional_groups_config"]
-    )
+    functional_groups_config_file_path = "/opt/omnia/.data/functional_groups_config.yml"
+
     functional_groups_config_json = validation_utils.load_yaml_as_json(
         functional_groups_config_file_path, omnia_base_dir, project_name, logger, module
     )

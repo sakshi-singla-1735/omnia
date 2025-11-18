@@ -77,7 +77,7 @@ ha_nfs_error_msg: |
   Please configure External NFS for HA capabilities.
 
 # Usage: check_service_role.yml
-functional_groups_config_path: "{{ input_project_dir }}/functional_groups_config.yml"
+functional_groups_config_path: "/opt/omnia/.data/functional_groups_config.yml"
 functional_groups_config_syntax_fail_msg: "Failed. Syntax errors present in functional_groups_config.yml. Fix errors and re-run playbook again."
 
 # Usage: check_idrac_telemetry_support.yml
