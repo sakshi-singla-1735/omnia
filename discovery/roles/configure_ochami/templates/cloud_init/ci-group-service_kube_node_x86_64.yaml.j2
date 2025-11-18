@@ -193,7 +193,7 @@
           export KUBECONFIG="/etc/kubernetes/admin.conf"
           if [ ! -f "$MARKER" ]; then
             # Join Kubernetes cluster
-            echo "First boot- so doing kubeadm join for service_kube_node_x86_64"
+            echo "Initial boot - initializing and setting up service_kube_node_x86_64"
             K8S_CLIENT_MOUNT_PATH="{{ k8s_client_mount_path }}"
             NODE_NAME="{% raw %}{{ ds.meta_data.instance_data.local_ipv4 }}{% endraw %}"
             KUBE_VIP="{{ kube_vip }}"
@@ -230,7 +230,8 @@
             touch "$MARKER"
           else
             # SUBSEQUENT BOOT - SKIP JOIN
-            echo "service_node_x86_64 has already joined"
+            echo "service_kube_node_x86_64 is already part of cluster."
+            echo "Cluster already initialized. Performing node reboot procedures."
             # CRI and kubelet already enabled above
             systemctl status kubelet
           fi

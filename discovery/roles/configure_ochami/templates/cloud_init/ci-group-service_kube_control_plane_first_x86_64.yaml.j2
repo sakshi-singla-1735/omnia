@@ -378,7 +378,7 @@
           if [ ! -f "$MARKER" ]; then
             # FIRST BOOT - CLUSTER INIT
             # -- All the commands below this line should be run ONCE ONLY:
-            echo "First boot- so doing kubeadm init"
+            echo "Initial boot - initializing and setting up service_kube_control_plane_first_x86_64"
             mv /tmp/ipaddress_pool.yaml {{ k8s_client_mount_path }}/metallb/ipaddress_pool.yaml
             mv /tmp/l2advertisement.yaml {{ k8s_client_mount_path }}/metallb/l2advertisement.yaml
             # Setup Kubernetes cluster
@@ -610,17 +610,17 @@
             echo "Deploy Layer2 Configuration"
             kubectl create -f metallb/l2advertisement.yaml
 
-            # echo "Deploy Multus"
-            # kubectl apply -f multus/{{ multus_package }}.yml
-            # echo "Waiting for multus pods to be ready..."
-            # kubectl wait --for=condition=Ready pod -l app=multus -n kube-system --timeout=300s
+            echo "Deploy Multus"
+            kubectl apply -f multus/{{ multus_package }}.yml
+            echo "Waiting for multus pods to be ready..."
+            kubectl wait --for=condition=Ready pod -l app=multus -n kube-system --timeout=300s
 
-            # echo "Deploy Wherabouts"
-            # kubectl apply -f whereabouts/whereabouts/doc/crds/daemonset-install.yaml
-            # kubectl apply -f whereabouts/whereabouts/doc/crds/whereabouts.cni.cncf.io_ippools.yaml
-            # kubectl apply -f whereabouts/whereabouts/doc/crds/whereabouts.cni.cncf.io_overlappingrangeipreservations.yaml
-            # echo "Waiting for whereabouts pods to be ready..."
-            # kubectl wait --for=condition=Ready pod -l app=whereabouts -n kube-system --timeout=300s
+            echo "Deploy Wherabouts"
+            kubectl apply -f whereabouts/whereabouts/doc/crds/daemonset-install.yaml
+            kubectl apply -f whereabouts/whereabouts/doc/crds/whereabouts.cni.cncf.io_ippools.yaml
+            kubectl apply -f whereabouts/whereabouts/doc/crds/whereabouts.cni.cncf.io_overlappingrangeipreservations.yaml
+            echo "Waiting for whereabouts pods to be ready..."
+            kubectl wait --for=condition=Ready pod -l app=whereabouts -n kube-system --timeout=300s
 
 
             export KUBECONFIG=/etc/kubernetes/admin.conf
@@ -857,7 +857,8 @@
             touch "$MARKER"
           else
             # SUBSEQUENT BOOT - SKIP INIT
-            echo "Cluster already initialized. Not re-initializing."
+            echo "service_kube_control_plane_first_x86_64 is already part of cluster."
+            echo "Cluster already initialized. Performing node reboot procedures."
             # CRI and kubelet already enabled above
             # You can log health status etc if you wish:
             mkdir -p $HOME/.kube /root/.kube
@@ -866,4 +867,23 @@
             yes | cp -i /etc/kubernetes/admin.conf /root/.kube/config
             kubectl get nodes -o wide || echo "Cluster not yet fully up"
             kubectl get pods --all-namespaces -o wide || echo "Pods may not be ready yet"
+
+            # Wait for all pods in all namespaces to be ready (status=Running or Completed)
+            echo "Waiting for all pods to be Ready (Running/Completed)..."
+            while true; do
+              not_ready=$(kubectl get pods --all-namespaces --no-headers 2>/dev/null | awk '{ print $4 }' | grep -vE '^(Running|Completed)$' | wc -l)
+              if [ "${not_ready}" -eq 0 ]; then
+                echo "All pods are Running or Completed."
+                break
+              else
+                echo "$not_ready pods not yet ready, waiting 5s ..."
+                sleep 5
+              fi
+            done
+
+            echo "Listing all Kubernetes nodes:"
+            kubectl get nodes -o wide
+            echo "Listing all Kubernetes pods in all namespaces:"
+            kubectl get pods --all-namespaces -o wide
+
           fi
