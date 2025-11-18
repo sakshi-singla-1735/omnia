@@ -13,6 +13,20 @@
 # limitations under the License.
 ---
 
+- name: Create cleanup directory for telemetry cleanup scripts
+  ansible.builtin.file:
+    path: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/cleanup"
+    state: directory
+    mode: "{{ hostvars['localhost']['dir_permissions_755'] }}"
+  tags: telemetry_deployment
+
+- name: Create test directory for TLS test jobs
+  ansible.builtin.file:
+    path: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/deployments/test"
+    state: directory
+    mode: "{{ hostvars['localhost']['dir_permissions_755'] }}"
+  tags: telemetry_deployment
+
 - name: Populate telemetry deployment configs
   ansible.builtin.template:
     src: "{{ item.src }}"
@@ -21,9 +35,6 @@
   loop:
     - src: 'telemetry/common/telemetry_namespace_creation.yaml.j2'
       dest: 'telemetry_namespace_creation.yaml'
-
-    - src: 'telemetry/common/gen_certs_script.sh.j2'
-      dest: 'gen_certs_script.sh'
 
     - src: 'telemetry/common/telemetry_secret_creation.yaml.j2'
       dest: 'telemetry_secret_creation.yaml'
@@ -51,6 +62,10 @@
       dest: 'victoria-agent-deployment.yaml'
       type: 'victoria'
 
+    - src: 'telemetry/victoria/victoria-tls-test-job.yaml.j2'
+      dest: 'test/victoria-tls-test-job.yaml'
+      type: 'victoria'
+
   when:
     - item.type is not defined or item.type in hostvars['localhost']['idrac_telemetry_collection_type'].split(',')
     - item.skip_when is not defined or not item.skip_when | bool
@@ -65,16 +80,24 @@
         dest: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/deployments/{{ item.dest }}"
         mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
       loop:
-        - src: 'telemetry/kafka/kafka-san.cnf.j2'
-          dest: 'kafka-san.cnf'
-          type: 'kafka'
-
         - src: 'telemetry/kafka/kafka.kafka.yaml.j2'
           dest: 'kafka.kafka.yaml'
           type: 'kafka'
 
+        - src: 'telemetry/kafka/kafka.kafkapump_user.yaml.j2'
+          dest: 'kafka.kafkapump_user.yaml'
+          type: 'kafka'
+
         - src: 'telemetry/kafka/kafka.kafka_bridge.yaml.j2'
           dest: 'kafka.kafka_bridge.yaml'
+          type: 'kafka'
+
+        - src: 'telemetry/kafka/kafka.kafka_bridge_lb.yaml.j2'
+          dest: 'kafka.kafka_bridge_lb.yaml'
+          type: 'kafka'
+
+        - src: 'telemetry/kafka/kafka.tls_test_job.yaml.j2'
+          dest: 'test/kafka.tls_test_job.yaml'
           type: 'kafka'
 
     - name: Extract and set facts for tarball URLs for strmzi kafka
@@ -86,3 +109,10 @@
         url: "{{ strmzi_kafka_tarball_url }}"
         dest: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/{{ strimzi_kafka_pkg }}.tar.gz"
         mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
+
+- name: Deploy telemetry cleanup script
+  ansible.builtin.template:
+    src: 'telemetry/cleanup_telemetry.sh.j2'
+    dest: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/cleanup/cleanup_telemetry.sh"
+    mode: "{{ hostvars['localhost']['file_permissions_755'] }}"
+  tags: telemetry_deployment

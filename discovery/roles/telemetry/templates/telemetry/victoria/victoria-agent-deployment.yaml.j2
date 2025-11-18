@@ -34,10 +34,21 @@ spec:
         args:
           - -promscrape.config={{ vmagent.scrape_config_path }}
           - -remoteWrite.url={{ vmagent.remote_write_url }}
+          - -remoteWrite.tlsCAFile=/etc/victoria/certs/ca.crt
+          - -remoteWrite.tlsInsecureSkipVerify=false
         volumeMounts:
           - name: scrape-config
             mountPath: "/etc/vmagent"
+          - name: victoria-tls-certs
+            mountPath: "/etc/victoria/certs"
+            readOnly: true
       volumes:
         - name: scrape-config
           configMap:
             name: "{{ vmagent.configmap_name }}"
+        - name: victoria-tls-certs
+          secret:
+            secretName: victoria-tls-certs
+            items:
+              - key: ca.crt
+                path: ca.crt

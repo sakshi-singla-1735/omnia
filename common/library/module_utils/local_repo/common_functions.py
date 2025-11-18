@@ -200,14 +200,13 @@ def generate_vault_key(key_path):
     except (OSError, IOError) as e:
         return None
 
-def get_arch_from_sw_config(software_name, sw_config_data, functional_groups_config_data):
+def get_arch_from_sw_config(software_name, sw_config_data):
     """
     For a given software, extract architecture list from software_config.json.
     If not found, fallback to arch defined in Groups in functional_groups_config.yml.
     Parameters
        software_name: name of the software
        sw_config_data: json content of software_config.json
-       functional_groups_config_data: content of functional_groups_config.yml
 
     Returns:
         dict: {software_name: [arch list]}

@@ -12,17 +12,9 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 ---
-- name: Create first combo
-  ansible.builtin.set_fact:
-    ssh_combo: "{{ ssh_combo | default({}) | combine({'localhost': ansible_play_hosts}) }}"
 
-- name: Manager set
-  ansible.builtin.include_tasks: controller.yml
-  vars:
-    manager: localhost
-
-- name: SSH pass set
-  ansible.builtin.include_tasks: sshpasser.yml
-  vars:
-    manager: localhost
-  loop: "{{ ansible_play_hosts }}"
+- name: Include input directory
+  hosts: localhost
+  connection: local
+  roles:
+    - generate_functional_groups

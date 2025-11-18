@@ -4,15 +4,16 @@
 Create host map for ldms config file generation from nodes found in the SLS and HSM.
 """
 
-import os
-import json
-import yaml
-import time
-import shutil
-import logging
 import argparse
+import json
+import logging
+import os
+import shutil
+import time
+
 import requests
 import urllib3
+import yaml
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 
@@ -232,7 +233,7 @@ class LdmsdManager:
     def get_sls_network_chn(self):
         """Get list of hostnames and IP addresses from SLS network CHN API endpoint."""
         url = f"http://{self.shasta['shasta']['api_endpoint']}/apis/sls/v1/networks/CHN"
-        logging.debug(f"Querying SLS: {url}")
+        logging.debug("Querying SLS: %s", url)
         data = self.api_get(url)
         sls_name_lookup = []
         for subnet in data['ExtraProperties']['Subnets']:
@@ -245,6 +246,7 @@ class LdmsdManager:
         return sls_name_lookup
 
 def main():
+    """Main function to generate host map from SLS and HSM data."""
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "-v", "--verbose",

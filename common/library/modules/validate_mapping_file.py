@@ -47,6 +47,9 @@ def check_functional_groups_in_mapping(csv_file, config_fgs, module):
     """Check that all functional groups in functional_groups.yml exist in mapping file."""
     mapping_fgs = set(csv_file['FUNCTIONAL_GROUP_NAME'].str.strip().unique())
     missing_fgs = config_fgs - mapping_fgs
+    # Allow fallback: if the 'first' control plane FG is missing but the non-first exists in mapping, treat as present
+    if 'service_kube_control_plane_first_x86_64' in missing_fgs and 'service_kube_control_plane_x86_64' in mapping_fgs:
+        missing_fgs.discard('service_kube_control_plane_first_x86_64')
     if missing_fgs:
         module.fail_json(
             msg=f"FUNCTIONAL_GROUP_NAME(s) not found in mapping file: {', '.join(missing_fgs)}. Ensure they are defined in mapping file or comment them out if not required in functional_groups_config.yml."

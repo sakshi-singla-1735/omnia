@@ -67,7 +67,18 @@ kafka_configurations:
   # Default: 1
   topic_partitions: 1
 
+# LDMS port configurations
+# Aggregator starting port (subsequent aggregators increment: 6002, 6003...)
+ldms_agg_port: 6001
+# Store daemon port (all stores use this, isolated by pod)
+ldms_store_port: 6001
+
+# Producer/Sampler port configured in each sampler plugin below
+# Sampler port on compute nodes (default: 10001)
+ldms_sampler_port: 10001
+
 # LDMS-specific configurations and samplers
+# interval and offset values are in microseconds
 ldms_sampler_configurations:
   - plugin_name: meminfo
     config_parameters: ""

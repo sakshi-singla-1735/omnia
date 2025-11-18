@@ -59,7 +59,7 @@
             "type": "boolean"
           },
           "k8s_cni": {
-            "enum": ["calico", "flannel"],
+            "enum": ["calico"],
             "description": "K8s CNI plugin to use for this cluster."
           },
           "pod_external_ip_range": { 
@@ -76,18 +76,6 @@
             "type": "string",
             "pattern": "^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)/[0-9]{1,2}$",
             "description": "CIDR for K8s pod network."
-          },
-          "topology_manager_policy": {
-            "enum": ["none", "best-effort", "restricted", "single-numa-node"],
-            "description": "Topology policy for this cluster."
-          },
-          "topology_manager_scope": {
-            "enum": ["container", "pod"],
-            "description": "Scope of topology manager policy."
-          },
-          "k8s_offline_install": {
-            "type": "boolean",
-            "description": "Whether to pull packages/images from local repo."
           },
           "nfs_storage_name": {
             "type": "string",
@@ -111,14 +99,6 @@
           "k8s_service_addresses"
         ],
         "allOf": [
-        {
-          "if": {
-            "required": ["topology_manager_policy"]
-          },
-          "then": {
-            "required": ["topology_manager_scope"]
-          }
-        },
         {
           "if": {
             "properties": {
