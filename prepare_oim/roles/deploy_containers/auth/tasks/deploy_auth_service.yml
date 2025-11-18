@@ -46,6 +46,11 @@
       changed_when: false
       no_log: true
 
+- name: Set ldap SELinux context
+  ansible.builtin.command: chcon -R system_u:object_r:container_file_t:s0 "{{ openldap_tls_certs_directory }}"
+  changed_when: true
+  failed_when: false
+
 - name: Check if {{ auth_service_container_name }} is already running and port is occupied # noqa: name[template]
   containers.podman.podman_container_info:
     name: "{{ auth_service_container_name }}"
