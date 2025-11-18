@@ -42,6 +42,18 @@
   vars:
     oim_group: true
 
+- name: Set_fact for fetch cluster os version
+  hosts: localhost
+  connection: local
+  tasks:
+    - name: Load software_config JSON
+      ansible.builtin.set_fact:
+        software_config: "{{ lookup('file', hostvars['localhost']['input_project_dir'] ~ '/software_config.json') | from_json }}"
+
+    - name: Set cluster OS version
+      ansible.builtin.set_fact:
+        cluster_os_version: "{{ software_config.cluster_os_version }}"
+
 - name: Check rhel subscription enabled or not
   hosts: oim
   connection: ssh
