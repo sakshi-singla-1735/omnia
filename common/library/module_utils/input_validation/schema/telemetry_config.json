@@ -20,18 +20,24 @@
     },
     "ldms_agg_port": {
       "type": "integer",
-      "const": 6001,
-      "description": "LDMS aggregator starting port (FIXED - cannot be changed)"
+      "minimum": 6001,
+      "maximum": 6100,
+      "default": 6001,
+      "description": "LDMS aggregator starting port. Valid range: 6001-6100 (subsequent aggregators increment: port+1, port+2, etc.). Default: 6001"
     },
     "ldms_store_port": {
       "type": "integer",
-      "const": 6001,
-      "description": "LDMS store daemon port (FIXED - cannot be changed)"
+      "minimum": 6001,
+      "maximum": 6100,
+      "default": 6001,
+      "description": "LDMS store daemon port. Valid range: 6001-6100. Can be the same as ldms_agg_port (isolated by pod). Default: 6001"
     },
     "ldms_sampler_port": {
       "type": "integer",
-      "const": 10001,
-      "description": "LDMS sampler port on compute nodes (FIXED - cannot be changed)"
+      "minimum": 10001,
+      "maximum": 10100,
+      "default": 10001,
+      "description": "LDMS sampler port on compute nodes. Valid range: 10001-10100. Default: 10001"
     },
     "ldms_sampler_configurations": {
     "type": "array",

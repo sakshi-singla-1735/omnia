@@ -76,13 +76,20 @@ kafka_configurations:
       partitions: 1
 
 # LDMS port configurations
-# Aggregator starting port (subsequent aggregators increment: 6002, 6003...)
+# Aggregator starting port (subsequent aggregators increment: port+1, port+2, etc.)
+# Valid range: 6001-6100
+# Default: 6001
 ldms_agg_port: 6001
+
 # Store daemon port (all stores use this, isolated by pod)
+# Can be the same as ldms_agg_port (isolated by pod)
+# Valid range: 6001-6100
+# Default: 6001
 ldms_store_port: 6001
 
-# Producer/Sampler port configured in each sampler plugin below
-# Sampler port on compute nodes (default: 10001)
+# Sampler port on compute nodes
+# Valid range: 10001-10100
+# Default: 10001
 ldms_sampler_port: 10001
 
 # LDMS-specific configurations and samplers
