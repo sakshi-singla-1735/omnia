@@ -686,7 +686,7 @@
 
             if [ "$POWERSCALE_DEPLOYMENT_FAILED" -eq 0 ]; then
               echo "===== Extracting PowerScale host from secret.yaml ====="
-              powerscale_endpoint=$(grep 'endpoint:' "$SECRET_FILE" | head -1 | sed -E 's/.*endpoint:[[:space:]]*"?(https?:\/\/[^"]*)"?/\1/')
+              powerscale_endpoint=$(grep '^[[:space:]]*endpoint:' "$SECRET_FILE" | head -1 | awk -F'"' '{print $2}')
               powerscale_host=$(echo "$powerscale_endpoint" | sed -E 's#https?://##' | sed -E 's#/.*##')
 
               echo "Extracted PowerScale Host: $powerscale_host"
@@ -747,7 +747,6 @@
                 if [ -d "/opt/omnia/csi-driver-powerscale/csi-powerscale/external-snapshotter/client/config/crd" ]; then
                   kubectl apply -f /opt/omnia/csi-driver-powerscale/csi-powerscale/external-snapshotter/client/config/crd/ >/dev/null 2>&1 || {
                     echo "CRD deployment failed (expected). Continuing..."
-                    POWERSCALE_DEPLOYMENT_FAILED=1
                   }
                 fi
               fi
@@ -757,7 +756,6 @@
                 if [ -d "/opt/omnia/csi-driver-powerscale/csi-powerscale/external-snapshotter/deploy/kubernetes/snapshot-controller" ]; then
                   kubectl apply -f /opt/omnia/csi-driver-powerscale/csi-powerscale/external-snapshotter/deploy/kubernetes/snapshot-controller/ >/dev/null 2>&1 || {
                     echo "Snapshot Controller deployment failed (expected). Continuing..."
-                    POWERSCALE_DEPLOYMENT_FAILED=1
                   }
 
                   echo "Updating Snapshot Controller image to v8.3.0..."
