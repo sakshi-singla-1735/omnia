@@ -75,36 +75,36 @@ data:
     echo ""
     
     # Test iDRAC telemetry topic consumer
-    echo "Step 5: Testing consumer on idrac topic (kafkapump user)..."
+    echo "Step 5: Testing consumer on {{ kafka.topics.idrac.name }} topic (kafkapump user)..."
     timeout 30 /opt/kafka/bin/kafka-console-consumer.sh \
       --bootstrap-server kafka-kafka-bootstrap:9093 \
-      --topic idrac \
+      --topic {{ kafka.topics.idrac.name }} \
       --consumer.config /tmp/kafkapump-client.properties \
-      --group idrac-consumer-group \
+      --group {{ kafka.topics.idrac.consumer_group }} \
       --from-beginning \
-      --max-messages 10 || echo "No messages or timeout (this is normal for idrac)"
+      --max-messages 10 || echo "No messages or timeout (this is normal for {{ kafka.topics.idrac.name }})"
     echo ""
     
     # Test LDMS topic consumer
-    echo "Step 6: Testing consumer on ldms topic (kafkapump user via TLS)..."
+    echo "Step 6: Testing consumer on {{ kafka.topics.ldms.name }} topic (kafkapump user via TLS)..."
     timeout 30 /opt/kafka/bin/kafka-console-consumer.sh \
       --bootstrap-server kafka-kafka-bootstrap:9093 \
-      --topic ldms \
+      --topic {{ kafka.topics.ldms.name }} \
       --consumer.config /tmp/kafkapump-client.properties \
-      --group ldms-consumer-group \
+      --group {{ kafka.topics.ldms.consumer_group }} \
       --from-beginning \
-      --max-messages 10 || echo "No messages or timeout (this is normal for ldms)"
+      --max-messages 10 || echo "No messages or timeout (this is normal for {{ kafka.topics.ldms.name }})"
     echo ""
     
     # Test OME topic consumer
-    echo "Step 7: Testing consumer on ome topic (kafkapump user)..."
+    echo "Step 7: Testing consumer on {{ kafka.topics.ome.name }} topic (kafkapump user)..."
     timeout 30 /opt/kafka/bin/kafka-console-consumer.sh \
       --bootstrap-server kafka-kafka-bootstrap:9093 \
-      --topic ome \
+      --topic {{ kafka.topics.ome.name }} \
       --consumer.config /tmp/kafkapump-client.properties \
-      --group ome-consumer-group \
+      --group {{ kafka.topics.ome.consumer_group }} \
       --from-beginning \
-      --max-messages 10 || echo "No messages or timeout (this is normal for ome)"
+      --max-messages 10 || echo "No messages or timeout (this is normal for {{ kafka.topics.ome.name }})"
     
     echo ""
     echo "=== All tests completed ==="
@@ -114,9 +114,9 @@ data:
     echo "  ✓ kafkapump keystore created"
     echo "  ✓ mTLS connection established"
     echo "  ✓ Topics listed successfully"
-    echo "  ✓ idrac topic tested (kafkapump user)"
-    echo "  ✓ ldms topic tested via TLS (kafkapump user)"
-    echo "  ✓ ome topic tested (kafkapump user)"
+    echo "  ✓ {{ kafka.topics.idrac.name }} topic tested (kafkapump user)"
+    echo "  ✓ {{ kafka.topics.ldms.name }} topic tested via TLS (kafkapump user)"
+    echo "  ✓ {{ kafka.topics.ome.name }} topic tested (kafkapump user)"
     echo ""
     echo "Note: In production, LDMS uses plaintext listener (port 9092) without TLS"
 

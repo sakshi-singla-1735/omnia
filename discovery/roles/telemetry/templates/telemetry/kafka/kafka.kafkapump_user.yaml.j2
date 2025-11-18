@@ -27,62 +27,62 @@ spec:
     type: simple
     acls:
 {% if hostvars['localhost']['idrac_telemetry_support'] and 'kafka' in hostvars['localhost']['idrac_telemetry_collection_type'].split(',') %}
-      # Producer permissions for idrac topic
+      # Producer and consumer permissions for idrac topic
       - resource:
           type: topic
-          name: idrac
+          name: {{ kafka.topics.idrac.name }}
           patternType: literal
         operations:
-          - Write
-          - Create
-          - Describe
           - Read
+          - Write
+          - Describe
+          - Create
         host: "*"
       # Consumer group permissions for idrac
       - resource:
           type: group
-          name: idrac-consumer-group
+          name: {{ kafka.topics.idrac.consumer_group }}
           patternType: prefix
         operations:
           - Read
         host: "*"
 {% endif %}
-{% if hostvars['localhost']['ldms_support'] %}
-      # Producer permissions for ldms topic
+{% if ldms_support %}
+      # Producer and consumer permissions for ldms topic
       - resource:
           type: topic
-          name: ldms
+          name: {{ kafka.topics.ldms.name }}
           patternType: literal
         operations:
-          - Write
-          - Create
-          - Describe
           - Read
+          - Write
+          - Describe
+          - Create
         host: "*"
       # Consumer group permissions for ldms
       - resource:
           type: group
-          name: ldms-consumer-group
+          name: {{ kafka.topics.ldms.consumer_group }}
           patternType: prefix
         operations:
           - Read
         host: "*"
 {% endif %}
-      # Producer permissions for ome topic (always created when Kafka is enabled)
+      # Producer and consumer permissions for ome topic (always created when Kafka is enabled)
       - resource:
           type: topic
-          name: ome
+          name: {{ kafka.topics.ome.name }}
           patternType: literal
         operations:
-          - Write
-          - Create
-          - Describe
           - Read
+          - Write
+          - Describe
+          - Create
         host: "*"
       # Consumer group permissions for ome
       - resource:
           type: group
-          name: ome-consumer-group
+          name: {{ kafka.topics.ome.consumer_group }}
           patternType: prefix
         operations:
           - Read
