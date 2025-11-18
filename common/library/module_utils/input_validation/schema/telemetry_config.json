@@ -145,7 +145,7 @@
             }
           },
           "uniqueItems": true,
-          "description": "IMPORTANT: At least one Kafka topic must be defined. Topic names 'idrac', 'ldms', and 'ome' are CONSTANTS. 'idrac' is required if idrac_telemetry_support is true and kafka is in idrac_telemetry_collection_type. 'ldms' is required if ldms_support is true. 'ome' is optional. Only partition counts can be changed.",
+          "description": "IMPORTANT: At least one Kafka topic must be defined. Topic names 'idrac', 'ldms', and 'ome' are CONSTANTS. 'idrac' is required if idrac_telemetry_support is true and kafka is in idrac_telemetry_collection_type. 'ldms' is required if LDMS software is configured in software_config.json (automatic detection). 'ome' is optional. Only partition counts can be changed.",
           "errorMessage": {
             "minItems": "At least 1 Kafka topic must be defined. Configure based on enabled features.",
             "maxItems": "Maximum 3 topics allowed: 'idrac', 'ldms', and 'ome'",

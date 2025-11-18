@@ -1127,11 +1127,36 @@ def validate_telemetry_config(
             )    
         )
     
+    # Determine LDMS support from software_config.json
+    ldms_support_from_software_config = False
+    config_file_path = omnia_base_dir.replace("../", "")
+    software_config_file_path = create_file_path(config_file_path, file_names["software_config"])
+    
+    if os.path.exists(software_config_file_path):
+        try:
+            with open(software_config_file_path, 'r') as f:
+                software_config = json.load(f)
+                softwares = software_config.get("softwares", [])
+                ldms_support_from_software_config = any(
+                    software.get("name") == "ldms" for software in softwares
+                )
+        except (json.JSONDecodeError, IOError) as e:
+            logger.warn(f"Could not load software_config.json: {e}")
+    
     # Validate topic_partitions configuration
     kafka_config = data.get("kafka_configurations", {})
     topic_partitions = kafka_config.get("topic_partitions", [])
     ldms_support = data.get("ldms_support", False)
     idrac_telemetry_collection_type = data.get("idrac_telemetry_collection_type", "")
+    
+    # Check if LDMS software is configured but no topics are defined
+    if ldms_support_from_software_config and not topic_partitions:
+        errors.append(create_error_msg(
+            "kafka_configurations.topic_partitions",
+            "not defined",
+            "LDMS software is configured in software_config.json, but kafka_configurations.topic_partitions is not defined. "
+            "Please define at least the 'ldms' topic in topic_partitions."
+        ))
     
     if topic_partitions:
         # Ensure at least one topic is defined
@@ -1142,19 +1167,35 @@ def validate_telemetry_config(
                 "At least one Kafka topic must be defined"
             ))
         
-        # Collect topic names
-        topic_names = [topic.get("name") for topic in topic_partitions if "name" in topic]
-        present_topics = set(topic_names)
+        # Collect topic names and validate each one
+        topic_names = []
         allowed_topics = {"idrac", "ldms", "ome"}
         
-        # Check for invalid topic names
-        invalid_topics = present_topics - allowed_topics
-        if invalid_topics:
-            errors.append(create_error_msg(
-                "kafka_configurations.topic_partitions",
-                f"invalid topics: {', '.join(invalid_topics)}",
-                "Only 'idrac', 'ldms', and 'ome' topics are allowed"
-            ))
+        for idx, topic in enumerate(topic_partitions):
+            if "name" not in topic:
+                errors.append(create_error_msg(
+                    f"kafka_configurations.topic_partitions[{idx}]",
+                    "missing 'name' field",
+                    "Each topic must have a 'name' field"
+                ))
+                continue
+            
+            topic_name = topic.get("name")
+            topic_names.append(topic_name)
+            
+            # Validate each topic name individually
+            if topic_name not in allowed_topics:
+                errors.append(create_error_msg(
+                    f"kafka_configurations.topic_partitions[{idx}].name",
+                    topic_name,
+                    f"Invalid topic name '{topic_name}'. Only 'idrac', 'ldms', and 'ome' are allowed as Kafka topic names. Custom topic names are not supported."
+                ))
+        
+        present_topics = set(topic_names)
+        
+        # Debug logging
+        logger.info(f"Telemetry validation - Present topics: {present_topics}")
+        logger.info(f"Telemetry validation - Allowed topics: {allowed_topics}")
         
         # Validate required topics based on feature flags
         # If iDRAC telemetry is enabled with Kafka, idrac topic is required
@@ -1166,12 +1207,12 @@ def validate_telemetry_config(
                     "idrac topic is required when idrac_telemetry_support is true and 'kafka' is in idrac_telemetry_collection_type"
                 ))
         
-        # If LDMS is enabled, ldms topic is required
-        if ldms_support and 'ldms' not in present_topics:
+        # If LDMS is enabled (from software_config.json or ldms_support flag), ldms topic is required
+        if (ldms_support_from_software_config or ldms_support) and 'ldms' not in present_topics:
             errors.append(create_error_msg(
                 "kafka_configurations.topic_partitions",
                 "missing 'ldms' topic",
-                "ldms topic is required when ldms_support is true"
+                "ldms topic is required when LDMS software is configured in software_config.json or ldms_support is true"
             ))
         
         # Check for duplicate topic names
