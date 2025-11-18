@@ -12,8 +12,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-{% set types = hostvars['localhost']['idrac_telemetry_collection_type'].split(',') %}
-{% if 'kafka' in types %}
+---
 apiVersion: kafka.strimzi.io/v1beta2
 kind: KafkaUser
 metadata:
@@ -27,6 +26,7 @@ spec:
   authorization:
     type: simple
     acls:
+{% if hostvars['localhost']['idrac_telemetry_support'] and 'kafka' in hostvars['localhost']['idrac_telemetry_collection_type'].split(',') %}
       # Producer permissions for idrac_telemetry topic
       - resource:
           type: topic
@@ -38,6 +38,16 @@ spec:
           - Describe
           - Read
         host: "*"
+      # Consumer group permissions for idrac_telemetry
+      - resource:
+          type: group
+          name: idrac-consumer-group
+          patternType: prefix
+        operations:
+          - Read
+        host: "*"
+{% endif %}
+{% if hostvars['localhost']['ldms_support'] %}
       # Producer permissions for ldms topic
       - resource:
           type: topic
@@ -49,7 +59,16 @@ spec:
           - Describe
           - Read
         host: "*"
-      # Producer permissions for ome topic
+      # Consumer group permissions for ldms
+      - resource:
+          type: group
+          name: ldms-consumer-group
+          patternType: prefix
+        operations:
+          - Read
+        host: "*"
+{% endif %}
+      # Producer permissions for ome topic (always created when Kafka is enabled)
       - resource:
           type: topic
           name: ome
@@ -60,21 +79,7 @@ spec:
           - Describe
           - Read
         host: "*"
-      # Consumer group permissions for Bridge
-      - resource:
-          type: group
-          name: idrac-consumer-group
-          patternType: prefix
-        operations:
-          - Read
-        host: "*"
-      - resource:
-          type: group
-          name: ldms-consumer-group
-          patternType: prefix
-        operations:
-          - Read
-        host: "*"
+      # Consumer group permissions for ome
       - resource:
           type: group
           name: ome-consumer-group
@@ -88,4 +93,3 @@ spec:
         operations:
           - IdempotentWrite
         host: "*"
-{% endif %}
