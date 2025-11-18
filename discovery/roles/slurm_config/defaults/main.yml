@@ -243,6 +243,7 @@ __slurm_default_config:
   SlurmdLogFile: "/var/log/slurm/slurmd.log"
   SlurmctldPidFile: /var/run/slurmctld.pid
   SlurmdPidFile: /var/run/slurmd.pid
+  SlurmdParameters: l3cache_as_socket
   AuthType: auth/munge
   CredType: cred/munge
   SlurmctldTimeout: 120
