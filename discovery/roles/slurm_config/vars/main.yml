@@ -37,6 +37,7 @@ cmpt_dir:
   - /var/lib/slurm
   - /etc/slurm/epilog.d
   - /etc/munge
+  - /etc/slurm/epilog.d/cuda
 
 login_dir:
   - /etc/munge
