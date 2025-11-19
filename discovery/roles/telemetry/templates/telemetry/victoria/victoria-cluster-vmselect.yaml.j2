@@ -70,8 +70,8 @@ spec:
           key: node.kubernetes.io/unreachable
           operator: Exists
           tolerationSeconds: 5
-{% if victoria_cluster.tls_enabled %}
       volumes:
+{% if victoria_cluster.tls_enabled %}
         - name: victoria-tls-certs
           secret:
             secretName: victoria-tls-certs
@@ -83,6 +83,10 @@ spec:
               - key: ca.crt
                 path: ca.crt
 {% endif %}
+{% if victoria_cluster.vmselect.cache_data_path %}
+        - name: cache
+          emptyDir: {}
+{% endif %}
       containers:
         - name: vmselect
           image: {{ victoria_cluster.vmselect.image }}
@@ -93,7 +97,6 @@ spec:
             - --storageNode=vmstorage-{{ i }}.vmstorage.{{ telemetry_namespace }}.svc.cluster.local:8401
 {% endfor %}
             - --httpListenAddr=:8481
-            - --selfScrapeInterval=5s
             - --search.maxQueryDuration={{ victoria_cluster.vmselect.max_query_duration }}
             - --search.maxConcurrentRequests={{ victoria_cluster.vmselect.max_concurrent_requests }}
 {% if victoria_cluster.vmselect.cache_data_path %}
@@ -133,17 +136,13 @@ spec:
             limits:
               memory: {{ victoria_cluster.vmselect.resources.limits.memory }}
               cpu: {{ victoria_cluster.vmselect.resources.limits.cpu }}
-{% if victoria_cluster.tls_enabled %}
           volumeMounts:
+{% if victoria_cluster.tls_enabled %}
             - name: victoria-tls-certs
               mountPath: /etc/victoria/certs
               readOnly: true
+{% endif %}
 {% if victoria_cluster.vmselect.cache_data_path %}
             - name: cache
               mountPath: /cache
-{% endif %}
-{% endif %}
-{% if victoria_cluster.vmselect.cache_data_path %}
-        - name: cache
-          emptyDir: {}
 {% endif %}

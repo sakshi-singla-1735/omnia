@@ -87,7 +87,6 @@ spec:
             - --httpListenAddr=:8482
             - --vminsertAddr=:8400
             - --vmselectAddr=:8401
-            - --selfScrapeInterval=5s
 {% if victoria_cluster.vmstorage.dedup_min_scrape_interval %}
             - --dedup.minScrapeInterval={{ victoria_cluster.vmstorage.dedup_min_scrape_interval }}
 {% endif %}

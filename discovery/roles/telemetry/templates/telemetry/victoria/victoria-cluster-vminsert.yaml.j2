@@ -93,7 +93,6 @@ spec:
             - --storageNode=vmstorage-{{ i }}.vmstorage.{{ telemetry_namespace }}.svc.cluster.local:8400
 {% endfor %}
             - --httpListenAddr=:8480
-            - --selfScrapeInterval=5s
             - --maxLabelsPerTimeseries=60
 {% if victoria_cluster.tls_enabled %}
             - -tls
