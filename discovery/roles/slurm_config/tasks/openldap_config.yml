@@ -12,26 +12,32 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
-- name: Create LDMS directory in NFS share path
+- name: Set facts for openldap
+  ansible.builtin.set_fact:
+    openldap_config_path: "{{ share_path }}/{{ openldap_dir_name }}"
+
+- name: Create the openldap certs directory in share
   ansible.builtin.file:
-    path: "{{ share_path }}/ldms/samplers"
+    path: "{{ openldap_config_path }}/certs"
     state: directory
     owner: root
     group: root
     mode: "{{ common_mode }}"
 
-- name: Copy LDMS sampler configuration files to NFS share
-  ansible.builtin.template:
-    src: "telemetry/ldms/sampler.conf.j2"
-    dest: "{{ share_path }}/ldms/samplers/sampler.conf"
+- name: Create the openldap ldapuser directory in share
+  ansible.builtin.file:
+    path: "{{ openldap_config_path }}/ldapuser"
+    state: directory
     owner: root
     group: root
+    mode: "{{ common_mode }}"
+
+- name: Copy the openldap certs
+  ansible.builtin.copy:
+    src: "{{ auth_tls_certs_path }}"
+    dest: "{{ openldap_config_path }}/certs"
     mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
 
-- name: Copy ldmsd.sampler.env to LDMS samplers directory
-  ansible.builtin.template:
-    src: "telemetry/ldms/ldmsd.sampler.env.j2"
-    dest: "{{ share_path }}/ldms/samplers/ldmsd.sampler.env"
-    owner: root
-    group: root
-    mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
+- name: NFS path for cloud init
+  ansible.builtin.set_fact:
+    cloud_init_nfs_path_openldap: "{{ nfs_server_ip }}:{{ nfs_server_path }}/openldap"

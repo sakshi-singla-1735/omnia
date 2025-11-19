@@ -314,6 +314,8 @@ VIRTUAL_IP_NOT_IN_ADMIN_SUBNET = ("virtual ip address provided is not in admin s
                                  "Check high_availability_config.yml and network_spec.yml")
 VIRTUAL_IP_NOT_VALID = ("should be outside the admin static and dynamic ranges. "
                        "Check high_availability_config.yml and network_spec.yml")
+VIRTUAL_IP_NOT_POD_EXT = ("should be outside the pod_external_ip ranges. "
+                       "Check high_availability_config.yml and omnia_config.yml")
 BMC_VIRTUAL_IP_NOT_VALID = ("should be outside any bmc static and dynamic ranges. "
                             "Check high_availability_config.yml, network_spec.yml, and "
                             "roles_config.yml")
