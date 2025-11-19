@@ -77,15 +77,6 @@ spec:
     # Enable simple authorization for ACL support
     authorization:
       type: simple
-      # Security Note: Port 9092 (plaintext) access is restricted via NetworkPolicy
-      # Only LDMS store pods and Strimzi operators can access port 9092
-      # NetworkPolicy: kafka-ldms-access.yaml restricts ingress to specific pods
-      # This is secure because:
-      #   1. NetworkPolicy enforces pod-level isolation at the network layer
-      #   2. Only authorized pods (LDMS store, Kafka internal, operators) can reach port 9092
-      #   3. TLS ports (9093, 9094) require mTLS authentication for all clients
-      # superUsers list is empty - access control enforced by NetworkPolicy
-      superUsers: []
     config:
       offsets.topic.replication.factor: 3
       transaction.state.log.replication.factor: 3
