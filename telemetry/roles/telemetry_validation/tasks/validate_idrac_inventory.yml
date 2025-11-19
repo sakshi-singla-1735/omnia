@@ -23,6 +23,22 @@
     msg: "{{ bmc_group_data_file_not_found_msg }}"
   when: not bmc_group_data_stat.stat.exists
 
+- name: Check if service cluster metadata file exists
+  ansible.builtin.stat:
+    path: "{{ service_cluster_metadata_path }}"
+  register: service_cluster_metadata_stat
+
+- name: Fail if service cluster metadata file is missing
+  ansible.builtin.fail:
+    msg: "{{ service_cluster_md_not_found_msg }}"
+  when: not service_cluster_metadata_stat.stat.exists
+
+- name: Include service_cluster metadata
+  ansible.builtin.include_vars:
+    file: "{{ service_cluster_metadata_path }}"
+  no_log: true
+  when: service_cluster_metadata_stat.stat.exists
+
 - name: Read BMC group data
   ansible.builtin.set_fact:
     bmc_group_data: "{{ lookup('file', bmc_group_data_filename).splitlines() }}"
@@ -42,11 +58,6 @@
   ansible.builtin.set_fact:
     bmc_dict_list: "{{ bmc_ip_data.bmc_dict_list }}"
     bmc_ips: "{{ bmc_ip_data.bmc_ips }}"
-
-- name: Include service_cluster metadata if already exists
-  ansible.builtin.include_vars: "{{ service_cluster_metadata_path }}"
-  no_log: true
-  failed_when: false
 
 - name: Add service_kube_cp host
   ansible.builtin.add_host:
