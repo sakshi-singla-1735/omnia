@@ -537,9 +537,12 @@ class LdmsdManager:  # pylint: disable=too-many-instance-attributes
         cfg.append(f"updtr_start name={ldmsd_name}")
         cfg.append("prdcr_start_regex regex=.*")
         cfg.extend([
-            "# Store in kafka - port 9092 (plaintext, no TLS, no auth)",
-            "# NOTE: store_avro_kafka plugin using plaintext for anonymous access",
-            "# Using plaintext listener on port 9092 (internal cluster only)",
+            "# Store in Kafka - port 9092 (plaintext, no TLS, no auth)",
+            "# NOTE: store_avro_kafka plugin does not support TLS/authentication",
+            "# Security: Access to port 9092 is restricted via NetworkPolicy",
+            "#   - NetworkPolicy 'kafka-ldms-access' allows only LDMS store pods",
+            "#   - Network-level isolation ensures only authorized pods can connect",
+            "#   - TLS ports (9093, 9094) require mTLS for all other clients",
             "load name=store_avro_kafka",
             "config name=store_avro_kafka encoding=json topic=ldms",
             f"strgp_add name=kafka regex=.* plugin=store_avro_kafka "
