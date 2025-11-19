@@ -38,12 +38,6 @@
         service_cluster_node_details | combine(service_cluster_metadata | default({}), recursive=True)
       }}
 
-- name: Add service_kube_cp host
-  ansible.builtin.add_host:
-    name: service_kube_cp
-    ansible_host: "{{ kube_vip }}"
-    groups: service_kube_cp_group
-
 - name: Set idrac-telemetry replica count
   ansible.builtin.set_fact:
     idrac_telemetry_replicas: >-

@@ -42,3 +42,15 @@
   ansible.builtin.set_fact:
     bmc_dict_list: "{{ bmc_ip_data.bmc_dict_list }}"
     bmc_ips: "{{ bmc_ip_data.bmc_ips }}"
+
+- name: Include service_cluster metadata if already exists
+  ansible.builtin.include_vars: "{{ service_cluster_metadata_path }}"
+  no_log: true
+  failed_when: false
+
+- name: Add service_kube_cp host
+  ansible.builtin.add_host:
+    name: service_kube_cp
+    ansible_host: "{{ kube_vip }}"
+    groups: service_kube_cp_group
+
