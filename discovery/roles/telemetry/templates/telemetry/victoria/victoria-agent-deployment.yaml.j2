@@ -27,7 +27,7 @@ spec:
       labels:
         app: "{{ vmagent.app_name }}"
     spec:
-      serviceAccountName: "{{ vmagent.service_account_name}}"
+      serviceAccountName: "{{ vmagent.service_account_name }}"
       containers:
       - name: "{{ vmagent.container_name }}"
         image: "{{ vmagent.image }}"

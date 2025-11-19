@@ -102,6 +102,17 @@ spec:
           ports:
             - containerPort: 8480
               name: http
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 8480
+{% if victoria_cluster.tls_enabled %}
+              scheme: HTTPS
+{% endif %}
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 30
           livenessProbe:
             httpGet:
               path: /health
