@@ -28,14 +28,14 @@ spec:
   policyTypes:
     - Ingress
   ingress:
-    # Allow all traffic on TLS ports (9093, 9094) - these require authentication
+    # Allow all traffic on TLS ports (9093, 9094) - these require mTLS authentication
     - ports:
         - protocol: TCP
           port: 9093  # TLS listener (mTLS auth)
         - protocol: TCP
           port: 9094  # External TLS listener (mTLS auth)
     
-    # Restrict plaintext port 9092 to LDMS store pods only
+    # Restrict plaintext port 9092 to authorized pods only
     - from:
         # Allow LDMS store pods
         - podSelector:
@@ -54,4 +54,4 @@ spec:
               name: strimzi-cluster-operator
       ports:
         - protocol: TCP
-          port: 9092  # Plaintext listener (no TLS, no auth - restricted access)
+          port: 9092  # Plaintext listener - restricted to authorized pods only
