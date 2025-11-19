@@ -175,18 +175,18 @@ if [ "$CLEAN_LDMS" = true ]; then
     echo "Cleaning up remaining LDMS resources..."
     # LDMS StatefulSets
     delete_resource statefulset nersc-ldms-aggr
-    delete_resource statefulset nersc-ldms-store-r7525
-    delete_resource statefulset nersc-ldms-store-r7525-0
+    delete_resource statefulset nersc-ldms-store-slurm-cluster
+    delete_resource statefulset nersc-ldms-store-slurm-cluster-0
     delete_resource statefulset nersc-ldms-aggr-0
 
     # LDMS Services
     delete_resource service nersc-ldms-aggr
     delete_resource service nersc-ldms-store
-    delete_resource service nersc-ldms-store-r7525-0
+    delete_resource service nersc-ldms-store-slurm-cluster-0
     delete_resource service nersc-ldms-aggr-0
 
     # LDMS ConfigMaps
-    delete_resource configmap nersc-ldms-store-r7525-0-config
+    delete_resource configmap nersc-ldms-store-slurm-cluster-0-config
     delete_resource configmap nersc-ldms-aggr-0-config
 
     # Delete any LDMS pods
@@ -199,8 +199,6 @@ if [ "$CLEAN_KAFKA" = true ]; then
     echo "Step 4: Delete Kafka Users"
     echo "--------------------------"
     delete_resource kafkauser kafkapump
-    delete_resource kafkauser ldms-producer
-    delete_resource kafkauser anonymous
     sleep 2
 
     echo ""
@@ -248,7 +246,6 @@ if [ "$CLEAN_KAFKA" = true ]; then
     delete_resource secret kafka-cluster-ca
     delete_resource secret kafka-clients-ca
     delete_resource secret kafkapump
-    delete_resource secret ldms-producer
     delete_resource secret kafka-secrets
     delete_resource secret kafka-cluster-id
     sleep 2

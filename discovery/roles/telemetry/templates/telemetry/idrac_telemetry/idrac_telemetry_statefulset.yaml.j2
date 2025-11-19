@@ -185,7 +185,7 @@ spec:
             - name: KAFKA_BROKER
               value: "kafka-kafka-bootstrap.telemetry.svc.cluster.local:9093"
             - name: KAFKA_TOPIC
-              value: "{{ kafka.telemetry_topic_name }}"
+              value: "{{ kafka.topics.idrac.name }}"
             # TLS configuration - using iDRAC Telemetry Reference Tools standard env var names
             # Note: kafkapump prepends /extrabin/certs/ to these paths, so use relative paths
             - name: KAFKA_CACERT
