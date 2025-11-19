@@ -71,7 +71,7 @@ kafka:
   container_port2: 9093
   image: "apache/kafka:4.1.0"
   cluster_id: "kafka-cluster-id"
-  
+
   # Kafka topic names (FIXED - cannot be changed)
   topics:
     idrac:
