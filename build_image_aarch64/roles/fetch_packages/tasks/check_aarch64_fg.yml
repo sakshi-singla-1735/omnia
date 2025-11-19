@@ -15,7 +15,7 @@
 
 - name: Load functional_group_config.yml
   ansible.builtin.include_vars:
-    file: "{{ input_project_dir }}/functional_groups_config.yml"
+    file: "{{ functional_groups_config_path }}"
     name: functional_group_cfg
 
 - name: Check for aarch64 functional groups

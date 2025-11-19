@@ -17,9 +17,23 @@
           "pattern": "(?i)^(kafka|victoria)(,(kafka|victoria))*$"
         }
       ]
-    }
-  },
-  "ldms_sampler_configurations": {
+    },
+    "ldms_agg_port": {
+      "type": "integer",
+      "const": 6001,
+      "description": "LDMS aggregator starting port (FIXED - cannot be changed)"
+    },
+    "ldms_store_port": {
+      "type": "integer",
+      "const": 6001,
+      "description": "LDMS store daemon port (FIXED - cannot be changed)"
+    },
+    "ldms_sampler_port": {
+      "type": "integer",
+      "const": 10001,
+      "description": "LDMS sampler port on compute nodes (FIXED - cannot be changed)"
+    },
+    "ldms_sampler_configurations": {
     "type": "array",
     "description": "LDMS-specific sampler configurations (string-based)",
     "items": {
@@ -77,6 +91,7 @@
           }
         }
       ]
+    }
     }
   },
   "required": ["idrac_telemetry_support"],

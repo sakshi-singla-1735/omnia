@@ -2,11 +2,9 @@
     "slurm_custom": {
         "cluster": [
             {"package": "munge", "type": "rpm", "repo_name": "x86_64_appstream"},
-            {"package": "munge-devel", "type": "rpm", "repo_name": "x86_64_codeready-builder"},
             {"package": "firewalld", "type": "rpm", "repo_name": "x86_64_baseos"},
             {"package": "python3-firewall", "type": "rpm", "repo_name": "x86_64_baseos"},
-            {"package": "pmix", "type": "rpm", "repo_name": "x86_64_appstream"},
-            {"package": "pmix-devel", "type": "rpm", "repo_name": "x86_64_appstream"}
+            {"package": "pmix", "type": "rpm", "repo_name": "x86_64_appstream"}
         ]
     },
     "slurm_control_node": {

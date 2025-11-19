@@ -52,9 +52,24 @@ spec:
             type: Directory
 {% set types = hostvars['localhost']['idrac_telemetry_collection_type'].split(',') %}
 {% if 'kafka' in types %}
-        - name: kafka-tls-certs
+        # Mount Kafka cluster CA certificate for TLS verification
+        - name: kafka-cluster-ca-cert
           secret:
-            secretName: "{{ kafka_secrets.name }}"
+            secretName: kafka-cluster-ca-cert
+            items:
+              - key: ca.crt
+                path: ca.crt
+        # Mount kafkapump user certificates for mTLS authentication
+        - name: kafkapump-user-certs
+          secret:
+            secretName: kafkapump
+            items:
+              - key: user.crt
+                path: user.crt
+              - key: user.key
+                path: user.key
+              - key: ca.crt
+                path: ca.crt
 {% endif %}
       hostAliases:
         - ip: "127.0.0.1"
@@ -152,21 +167,35 @@ spec:
           volumeMounts:
             - mountPath: /go/src/github.com/telemetry-reference-tools
               name: telemetry-reference-tools
-            - mountPath: /extrabin/certs 
-              name: kafka-tls-certs
-              readOnly: true 
+            # Mount kafkapump user certificates for mTLS (under /extrabin/certs/)
+            - mountPath: /extrabin/certs/kafka-certs
+              name: kafkapump-user-certs
+              readOnly: true
+            # Mount cluster CA certificate (under /extrabin/certs/)
+            - mountPath: /extrabin/certs/cluster-ca
+              name: kafka-cluster-ca-cert
+              readOnly: true
           workingDir: /go/src/github.com/telemetry-reference-tools
           env:
             - name: MESSAGEBUS_HOST
               value: 127.0.0.1
             - name: MESSAGEBUS_PORT
               value: "{{ messagebus_http_port }}"
+            # Use TLS port 9093 instead of plain 9092
             - name: KAFKA_BROKER
-              value: "kafka-kafka-bootstrap.telemetry.svc.cluster.local:9092"
+              value: "kafka-kafka-bootstrap.telemetry.svc.cluster.local:9093"
             - name: KAFKA_TOPIC
               value: "{{ kafka.telemetry_topic_name }}"
+            # TLS configuration - using iDRAC Telemetry Reference Tools standard env var names
+            # Note: kafkapump prepends /extrabin/certs/ to these paths, so use relative paths
+            - name: KAFKA_CACERT
+              value: "cluster-ca/ca.crt"
+            - name: KAFKA_CLIENT_CERT
+              value: "kafka-certs/user.crt"
+            - name: KAFKA_CLIENT_KEY
+              value: "kafka-certs/user.key"
             - name: KAFKA_SKIP_VERIFY
-              value: "{{ kafka_skip_verify | default('false') | lower }}"
+              value: "false"
             - name: KAFKA_PARTITION
               value: "0"
           command: ["/bin/sh", "-c"]

@@ -108,7 +108,7 @@
         - chmod {{ file_mode_755 }} /var/log/slurm /var/run/slurm /var/spool /var/lib/slurm
         - chmod {{ file_mode_400 }} /etc/munge/munge.key
         - chmod {{ file_mode_755 }} /etc/slurm/epilog.d/
-        - chmod +x /etc/slurm/epilog.d/logout_user.sh
+        - chmod {{ file_mode_755 }} /etc/slurm/epilog.d/logout_user.sh
         - mkdir -p /var/spool/slurmd
         - chmod {{ file_mode_755 }} /var/spool/slurmd
         - chown -R {{ user }}:{{ slurm_group_name }} /var/spool/slurmd
