@@ -143,7 +143,7 @@
 
 - name: Update service_cluster metadata file
   ansible.builtin.copy:
-    content: "{{ { 'kube_vip': kube_vip,'service_cluster_metadata': service_cluster_metadata} | to_nice_yaml }}"
+    content: "{{ {'kube_vip': kube_vip, 'service_cluster_metadata': service_cluster_metadata} | to_nice_yaml }}"
     dest: "{{ service_cluster_metadata_path }}"
     force: true
     mode: "{{ metadata_perm }}"
