@@ -53,4 +53,3 @@
     name: service_kube_cp
     ansible_host: "{{ kube_vip }}"
     groups: service_kube_cp_group
-
