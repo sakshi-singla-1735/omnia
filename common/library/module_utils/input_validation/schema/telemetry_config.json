@@ -172,6 +172,15 @@
     "victoria_configurations": {
       "type": "object",
       "properties": {
+        "deployment_mode": {
+          "type": "string",
+          "enum": ["single-node", "cluster"],
+          "default": "cluster",
+          "description": "VictoriaMetrics deployment mode. 'single-node' for simple deployment (1 pod), 'cluster' for high-availability deployment (7 pods). Default: 'cluster'",
+          "errorMessage": {
+            "enum": "deployment_mode must be either 'single-node' or 'cluster'"
+          }
+        },
         "persistence_size": {
           "type": "string",
           "pattern": "^[0-9]+(Ki|Mi|Gi|Ti|Pi|Ei)$"
@@ -182,6 +191,7 @@
         }
       },
       "required": [
+        "deployment_mode",
         "persistence_size",
         "retention_period"
       ],
