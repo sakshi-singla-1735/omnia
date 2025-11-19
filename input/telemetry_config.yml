@@ -18,20 +18,47 @@
 # SIMPLY APPEND THE REQUIRED VALUES AGAINST THE PARAMETER OF YOUR CHOICE.
 # ***********************************************************************
 
+# ============================================================================
+# TELEMETRY CONFIGURATION OVERVIEW
+# ============================================================================
+# This file configures telemetry data collection and storage for Dell Omnia.
+#
+# SECTIONS:
+#   1. iDRAC Telemetry    : Hardware metrics from Dell PowerEdge servers
+#   2. VictoriaMetrics    : Time-series database for metric storage
+#   3. Kafka              : Distributed streaming platform for telemetry data
+#   4. LDMS               : Lightweight Distributed Metric Service for compute nodes
+#
+# STORAGE OPTIONS:
+#   - VictoriaMetrics: Store iDRAC telemetry in time-series database
+#   - Kafka: Stream iDRAC and LDMS telemetry to Kafka topics
+#   - Both: Store iDRAC in both Victoria and Kafka (recommended)
+# ============================================================================
 
-# This variable is used to enable iDRAC telemetry support
-# Accepted values:  true or false
+# ============================================================================
+# iDRAC TELEMETRY CONFIGURATION
+# ============================================================================
+# iDRAC telemetry collects hardware metrics from Dell PowerEdge servers.
+# Telemetry data can be stored in VictoriaMetrics, Kafka, or both.
+
+# Enable or disable iDRAC telemetry support
+# Accepted values: true or false
+# Default: true
 idrac_telemetry_support: true
 
-# This variable is used to decide the iDRAC telemetry collection type.
+# Specify where to store iDRAC telemetry data
 # Supported values:
-#   - "victoria"
-#   - "kafka"
-#   - "victoria,kafka" (to enable both)
+#   - "victoria"        : Store in VictoriaMetrics only
+#   - "kafka"           : Store in Kafka only
+#   - "victoria,kafka"  : Store in both (recommended)
 # Default: "victoria,kafka"
 idrac_telemetry_collection_type: "victoria,kafka"
 
-# These variables are used to configure victoria for telemetry
+# ============================================================================
+# VICTORIAMETRICS CONFIGURATION
+# ============================================================================
+# VictoriaMetrics is a time-series database for storing telemetry metrics.
+# Used for iDRAC telemetry when 'victoria' is enabled in idrac_telemetry_collection_type.
 victoria_configurations:
   # The amount of storage allocated for victoria's persistent volume.
   # Accepted values: in the form of "X[Ki|Mi|Gi|Ti|Pi|Ei]"
@@ -42,7 +69,17 @@ victoria_configurations:
   # Default: 168 (7 days)
   retention_period: 168
 
-# These variables are used to configure Kafka for telemetry
+# ============================================================================
+# KAFKA CONFIGURATION
+# ============================================================================
+# Apache Kafka is a distributed streaming platform for storing telemetry data.
+# Used for iDRAC telemetry when 'kafka' is enabled in idrac_telemetry_collection_type.
+# Also used for LDMS telemetry when LDMS software is configured.
+#
+# NOTE: Kafka topics are auto-generated based on enabled features:
+#   - 'idrac' topic: Required when idrac_telemetry_support=true and 'kafka' is enabled
+#   - 'ldms' topic:  Required when LDMS is configured in software_config.json
+#   - 'ome' topic:   Optional for OpenManage Enterprise telemetry
 kafka_configurations:
   # The amount of storage allocated for Kafka's persistent volume.
   # This storage will be divided among 6 pods, comprising 3 Kafka brokers and 3 Kafka controllers.
@@ -62,60 +99,117 @@ kafka_configurations:
   # Default: 1073741824 (1 GB)
   log_segment_bytes: 1073741824
 
-  # The number of partitions for each Kafka topic.
-  # Increasing this can improve throughput but also increases storage/overhead.
-  # Default: 1
-  topic_partitions: 1
+  # Kafka Topic Partitions Configuration
+  # ----------------------------------------------------------------------------
+  # Define the number of partitions for each Kafka topic.
+  # Increasing partitions can improve throughput but also increases storage/overhead.
+  #
+  # IMPORTANT: Topic names are FIXED and cannot be changed.
+  #   - Topic names: Only 'idrac', 'ldms', and 'ome' are allowed
+  #   - Configurable: Only partition counts can be modified
+  #
+  # Topic Requirements (auto-validated):
+  #   - 'idrac': Required when idrac_telemetry_support=true and 'kafka' is enabled
+  #   - 'ldms':  Required when LDMS software is configured in software_config.json
+  #   - 'ome':   Optional (OpenManage Enterprise telemetry)
+  #
+  # Default partition counts: idrac=1, ldms=2, ome=1
+  topic_partitions:
+    - name: "idrac"
+      partitions: 1
+    - name: "ldms"
+      partitions: 2
+    - name: "ome"
+      partitions: 1
 
-# LDMS port configurations
-# Aggregator starting port (subsequent aggregators increment: 6002, 6003...)
+# ============================================================================
+# LDMS (Lightweight Distributed Metric Service) CONFIGURATION
+# ============================================================================
+# LDMS collects performance metrics from compute nodes (CPU, memory, network, etc.)
+# and streams them to Kafka for storage and analysis.
+#
+# PREREQUISITE: To enable LDMS support, add the following to software_config.json:
+#   {
+#     "softwares": [
+#       {"name": "ldms", "arch": ["x86_64", "aarch64"]}
+#     ]
+#   }
+#
+# When LDMS software is configured, the 'ldms' topic MUST be defined in
+# kafka_configurations.topic_partitions above.
+#
+# LDMS Port Configurations
+# Aggregator port on service k8s cluster
+# Valid range: 6001-6100
+# Default: 6001
 ldms_agg_port: 6001
-# Store daemon port (all stores use this, isolated by pod)
+
+# Store daemon port on service k8s cluster
+# Can be the same as ldms_agg_port
+# Valid range: 6001-6100
+# Default: 6001
 ldms_store_port: 6001
 
-# Producer/Sampler port configured in each sampler plugin below
-# Sampler port on compute nodes (default: 10001)
+# Sampler port on compute nodes
+# Valid range: 10001-10100
+# Default: 10001
 ldms_sampler_port: 10001
 
-# LDMS-specific configurations and samplers
-# interval and offset values are in microseconds
+# LDMS Sampler Plugin Configurations
+# ----------------------------------------------------------------------------
+# Configure which metrics to collect from compute nodes and collection intervals.
+# Each plugin collects specific system metrics.
+#
+# Parameters:
+#   - plugin_name: Name of the LDMS sampler plugin
+#   - config_parameters: Plugin-specific configuration (as a single string)
+#   - activation_parameters: Collection schedule in MICROSECONDS
+#       Format: "interval=<microseconds> offset=<microseconds>"
+#       Example: "interval=1000000"         (1000000 microseconds = 1 second)
+#                "interval=1000000 offset=0" (1000000 microseconds with no offset)
+#
+# Available Plugins:
+#   - meminfo: Memory usage statistics
+#   - procstat2: Process statistics
+#   - vmstat: Virtual memory statistics
+#   - loadavg: System load average
+#   - slurm_sampler: Slurm job/task monitoring (HPC workloads)
+#   - procnetdev2: Network interface statistics
 ldms_sampler_configurations:
+  # Memory usage statistics (free, used, buffers, cached, etc.)
   - plugin_name: meminfo
     config_parameters: ""
-    # interval=1000000 indicates data collection every 1 seconds
-    activation_parameters: "interval=1000000"
+    activation_parameters: "interval=1000000"  # interval=1000000 microseconds
 
+  # Process statistics (CPU, memory, I/O per process)
   - plugin_name: procstat2
     config_parameters: ""
-    # interval=1000000 indicates data collection every 1 seconds
-    activation_parameters: "interval=1000000"
+    activation_parameters: "interval=1000000"  # interval=1000000 microseconds
 
+  # Virtual memory statistics (paging, swapping, memory pressure)
   - plugin_name: vmstat
     config_parameters: ""
-    # interval=1000000 indicates data collection every 1 seconds
-    activation_parameters: "interval=1000000"
+    activation_parameters: "interval=1000000"  # interval=1000000 microseconds
 
+  # System load average (1, 5, and 15 minute averages)
   - plugin_name: loadavg
     config_parameters: ""
-    # interval=1000000 indicates data collection every 1 seconds
-    activation_parameters: "interval=1000000"
+    activation_parameters: "interval=1000000"  # interval=1000000 microseconds
 
+  # Slurm job and task monitoring (HPC workload telemetry)
+  # Config parameters:
+  #   - component_id=2: Component identifier (default: 0)
+  #   - stream=slurm: Data stream type
+  #   - job_count=8: Number of jobs to monitor (default: 8)
+  #   - task_count=8: Number of tasks to monitor per job (default: 8)
   - plugin_name: slurm_sampler
-    # component_id=2, stream=slurm, job_count=8, task_count=8
-    # component_id=2, if not specified default value is 0
-    # stream=slurm indicates the data stream type
-    # job_count=8 if not specified, the default value is 8
-    # task_count=8 specify the number of jobs and tasks to monitor 
     config_parameters: "component_id=2 stream=slurm job_count=8 task_count=8"
-    # interval=1000000 indicates data collection every 10 seconds
-    # offset=0 specifies the time offset for data collection
-    activation_parameters: "interval=1000000 offset=0"
+    activation_parameters: "interval=1000000 offset=0"  # interval=1000000 microseconds, offset=0
 
+  # Network interface statistics (bytes, packets, errors, drops per interface)
+  # Config parameters (optional):
+  #   - ifaces=eth0,eth1: Specific interfaces to monitor
+  #   - If not specified, all network interfaces will be monitored
   - plugin_name: procnetdev2
-    # ifaces=eth0,eth1
-    # ifaces=eth0,eth1 specifies the network interfaces to monitor
-    # if not specified, all interfaces will be monitored
-    config_parameters: ""
-    # interval=1000000 indicates data collection every 10 seconds
-    # offset=0 specifies the time offset for data collection
-    activation_parameters: "interval=1000000 offset=0"
+    config_parameters: ""  # Monitor all interfaces
+    activation_parameters: "interval=1000000 offset=0"  # interval=1000000 microseconds, offset=0

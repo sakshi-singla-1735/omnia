@@ -1137,6 +1137,124 @@ def validate_telemetry_config(
             en_us_validation_msg.TELEMETRY_SERVICE_CLUSTER_ENTRY_MISSING_ROLES_CONFIG_MSG
             )    
         )
+    
+    # Determine LDMS support from software_config.json
+    # software_config.json is in the same directory as telemetry_config.yml
+    ldms_support_from_software_config = False
+    input_dir = os.path.dirname(input_file_path)
+    software_config_file_path = os.path.join(input_dir, "software_config.json")
+    
+    logger.info(f"Checking for LDMS software in: {software_config_file_path}")
+    
+    if os.path.exists(software_config_file_path):
+        try:
+            with open(software_config_file_path, 'r') as f:
+                software_config = json.load(f)
+                softwares = software_config.get("softwares", [])
+                ldms_support_from_software_config = any(
+                    software.get("name") == "ldms" for software in softwares
+                )
+                logger.info(f"LDMS software detected in software_config.json: {ldms_support_from_software_config}")
+                if ldms_support_from_software_config:
+                    logger.info("LDMS software found - 'ldms' topic will be required in kafka_configurations.topic_partitions")
+        except (json.JSONDecodeError, IOError) as e:
+            logger.warn(f"Could not load software_config.json: {e}")
+    else:
+        logger.info(f"software_config.json not found at: {software_config_file_path}")
+    
+    # Validate topic_partitions configuration
+    kafka_config = data.get("kafka_configurations", {})
+    topic_partitions = kafka_config.get("topic_partitions", [])
+    idrac_telemetry_collection_type = data.get("idrac_telemetry_collection_type", "")
+    
+    # Check if LDMS software is configured but kafka_configurations is missing entirely
+    if ldms_support_from_software_config and not kafka_config:
+        errors.append(create_error_msg(
+            "kafka_configurations",
+            "not defined",
+            "LDMS software is configured in software_config.json, but kafka_configurations section is missing in telemetry_config.yml. "
+            "Please define kafka_configurations with at least the 'ldms' topic in topic_partitions."
+        ))
+    
+    # Check if LDMS software is configured but no topics are defined
+    if ldms_support_from_software_config and kafka_config and not topic_partitions:
+        errors.append(create_error_msg(
+            "kafka_configurations.topic_partitions",
+            "not defined",
+            "LDMS software is configured in software_config.json, but kafka_configurations.topic_partitions is not defined. "
+            "Please define at least the 'ldms' topic in topic_partitions."
+        ))
+    
+    if topic_partitions:
+        # Ensure at least one topic is defined
+        if len(topic_partitions) < 1:
+            errors.append(create_error_msg(
+                "kafka_configurations.topic_partitions",
+                "is empty",
+                "At least one Kafka topic must be defined"
+            ))
+        
+        # Collect topic names and validate each one
+        topic_names = []
+        allowed_topics = {"idrac", "ldms", "ome"}
+        
+        for idx, topic in enumerate(topic_partitions):
+            if "name" not in topic:
+                errors.append(create_error_msg(
+                    f"kafka_configurations.topic_partitions[{idx}]",
+                    "missing 'name' field",
+                    "Each topic must have a 'name' field"
+                ))
+                continue
+            
+            topic_name = topic.get("name")
+            topic_names.append(topic_name)
+            
+            # Validate each topic name individually
+            if topic_name not in allowed_topics:
+                errors.append(create_error_msg(
+                    f"kafka_configurations.topic_partitions[{idx}].name",
+                    topic_name,
+                    f"Invalid topic name '{topic_name}'. Only 'idrac', 'ldms', and 'ome' are allowed as Kafka topic names. Custom topic names are not supported."
+                ))
+        
+        present_topics = set(topic_names)
+        
+        # Debug logging
+        logger.info(f"Telemetry validation - Present topics: {present_topics}")
+        logger.info(f"Telemetry validation - Allowed topics: {allowed_topics}")
+        
+        # Validate required topics based on feature flags
+        # If iDRAC telemetry is enabled with Kafka, idrac topic is required
+        if idrac_telemetry_support and 'kafka' in idrac_telemetry_collection_type.split(','):
+            if 'idrac' not in present_topics:
+                errors.append(create_error_msg(
+                    "kafka_configurations.topic_partitions",
+                    "missing 'idrac' topic",
+                    "idrac topic is required when idrac_telemetry_support is true and 'kafka' is in idrac_telemetry_collection_type"
+                ))
+        
+        # If LDMS software is configured in software_config.json, ldms topic is required
+        logger.info(f"Checking LDMS topic requirement - ldms_support_from_software_config: {ldms_support_from_software_config}")
+        if ldms_support_from_software_config and 'ldms' not in present_topics:
+            logger.error(f"LDMS topic validation FAILED - 'ldms' topic is missing from present_topics: {present_topics}")
+            errors.append(create_error_msg(
+                "kafka_configurations.topic_partitions",
+                "missing 'ldms' topic",
+                "ldms topic is required when LDMS software is configured in software_config.json"
+            ))
+        elif ldms_support_from_software_config:
+            logger.info(f"LDMS topic validation PASSED - 'ldms' found in present_topics: {present_topics}")
+        
+        # Check for duplicate topic names
+        if len(topic_names) != len(set(topic_names)):
+            duplicates = [name for name in topic_names if topic_names.count(name) > 1]
+            errors.append(create_error_msg(
+                "kafka_configurations.topic_partitions",
+                f"duplicate topics: {', '.join(set(duplicates))}",
+                "Each topic must be defined only once"
+            ))
+    
     return errors
 
 def validate_additional_software(
