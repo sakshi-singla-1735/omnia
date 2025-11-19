@@ -85,6 +85,7 @@ kafka:
       consumer_group: "ome-consumer-group"
 
 # Usage: victoriametric_deployment.yml
+# Single-node VictoriaMetrics (deprecated - use cluster mode)
 victoria:
   app_name: "victoriametrics"
   container_name: "victoriametrics"
@@ -92,12 +93,60 @@ victoria:
   container_port: 8443
   image: "victoriametrics/victoria-metrics:v1.128.0"
 
+# VictoriaMetrics Cluster Configuration
+# Deployment mode is controlled by victoria_configurations.deployment_mode in telemetry_config.yml
+# Supported modes: "single-node" or "cluster"
+victoria_cluster:
+  # Auto-configured based on telemetry_config.yml
+  # true = cluster mode, false = single-node mode
+  enabled: "{{ true if hostvars['localhost']['victoria_configurations']['deployment_mode'] == 'cluster' else false }}"
+  tls_enabled: false  # Set to true to enable TLS for cluster components
+  
+  # VMStorage: Stores raw data and returns query results
+  vmstorage:
+    replicas: 3
+    image: "victoriametrics/vmstorage:v1.128.0-cluster"
+    dedup_min_scrape_interval: "1m"  # Deduplication interval
+    resources:
+      requests:
+        memory: "2Gi"
+        cpu: "500m"
+      limits:
+        memory: "4Gi"
+        cpu: "2000m"
+  
+  # VMInsert: Accepts data ingestion and routes to vmstorage
+  vminsert:
+    replicas: 2
+    image: "victoriametrics/vminsert:v1.128.0-cluster"
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "250m"
+      limits:
+        memory: "1Gi"
+        cpu: "1000m"
+  
+  # VMSelect: Performs queries against vmstorage nodes
+  vmselect:
+    replicas: 2
+    image: "victoriametrics/vmselect:v1.128.0-cluster"
+    max_query_duration: "5m"
+    max_concurrent_requests: "8"
+    cache_data_path: true  # Enable query result caching
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "250m"
+      limits:
+        memory: "1Gi"
+        cpu: "1000m"
+
 # VictoriaMetrics TLS Configuration
 victoria_tls_cert_days: 3650
 victoria_cert_dir: "/tmp/victoria-certs"
 
 # Usage: vmagent-scrape-config.yaml
-
 vmagent:
   configmap_name: "vmagent-scrape-config"
   global:
@@ -114,7 +163,10 @@ vmagent:
   container_name: "vmagent"
   image: "victoriametrics/vmagent:v1.128.0"
   scrape_config_path: "/etc/vmagent/prometheus.yml"
+  # Single-node URL
   remote_write_url: "https://victoria-loadbalancer.telemetry.svc.cluster.local:8443/api/v1/write"
+  # Cluster URL (used when victoria_cluster.enabled: true)
+  remote_write_url_cluster: "http://vminsert.telemetry.svc.cluster.local:8480/insert/0/prometheus/api/v1/write"
 
 strmzi_kafka_tarball_url: "{{ offline_tarball_path }}/{{ strimzi_kafka_pkg }}/{{ strimzi_kafka_pkg }}.tar.gz"
 
@@ -130,7 +182,8 @@ telemetry_config_file_path: "{{ hostvars['localhost']['input_project_dir'] }}/te
 common_mode: "0755"
 
 # Usage: generate_telemetry_deployments.yml - Template lists for different components
-victoria_templates:
+# Victoria templates - conditional based on victoria_cluster.enabled
+victoria_templates_common:
   - src: 'telemetry/victoria/victoria-tls-secret.yaml.j2'
     dest: 'victoria-tls-secret.yaml'
   - src: 'telemetry/victoria/victoria-vmagent-rbac.yaml.j2'
@@ -139,10 +192,29 @@ victoria_templates:
     dest: 'vmagent-scrape-config.yaml'
   - src: 'telemetry/victoria/victoria-agent-deployment.yaml.j2'
     dest: 'victoria-agent-deployment.yaml'
+
+# Single-node templates (used when victoria_cluster.enabled: false)
+victoria_templates_single:
   - src: 'telemetry/victoria/victoria-statefulset.yaml.j2'
     dest: 'victoria-statefulset.yaml'
+
+# Cluster templates (used when victoria_cluster.enabled: true)
+victoria_templates_cluster:
+  - src: 'telemetry/victoria/victoria-cluster-vmstorage.yaml.j2'
+    dest: 'victoria-cluster-vmstorage.yaml'
+  - src: 'telemetry/victoria/victoria-cluster-vminsert.yaml.j2'
+    dest: 'victoria-cluster-vminsert.yaml'
+  - src: 'telemetry/victoria/victoria-cluster-vmselect.yaml.j2'
+    dest: 'victoria-cluster-vmselect.yaml'
+
+# Test job template (optional)
+victoria_templates_test:
   - src: 'telemetry/victoria/victoria-tls-test-job.yaml.j2'
     dest: 'test/victoria-tls-test-job.yaml'
+
+# Combined victoria_templates for backward compatibility
+# Note: victoria_templates_test is commented out by default in kustomization.yaml.j2
+victoria_templates: "{{ victoria_templates_common + (victoria_templates_cluster if victoria_cluster.enabled else victoria_templates_single) + victoria_templates_test }}"
 
 kafka_templates:
   - src: 'telemetry/kafka/kafka.kafka.yaml.j2'

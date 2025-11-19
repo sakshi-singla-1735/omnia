@@ -35,6 +35,9 @@
   loop: "{{ victoria_templates }}"
   when: "'victoria' in hostvars['localhost']['idrac_telemetry_collection_type'].split(',')"
   tags: telemetry_deployment
+  # NOTE: victoria_templates is automatically set based on deployment_mode in telemetry_config.yml
+  #       - cluster mode: includes vmstorage, vminsert, vmselect templates
+  #       - single-node mode: includes victoria-statefulset template
 
 - name: Kafka configurations
   when: kafka_support
