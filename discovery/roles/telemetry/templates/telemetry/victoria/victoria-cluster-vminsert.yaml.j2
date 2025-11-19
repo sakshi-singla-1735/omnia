@@ -29,7 +29,11 @@ spec:
   ports:
     - port: 8480
       targetPort: 8480
+{% if victoria_cluster.tls_enabled %}
+      name: https
+{% else %}
       name: http
+{% endif %}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -101,7 +105,11 @@ spec:
 {% endif %}
           ports:
             - containerPort: 8480
+{% if victoria_cluster.tls_enabled %}
+              name: https
+{% else %}
               name: http
+{% endif %}
           startupProbe:
             httpGet:
               path: /health

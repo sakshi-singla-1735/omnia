@@ -29,7 +29,11 @@ spec:
   ports:
     - port: 8482
       targetPort: 8482
+{% if victoria_cluster.tls_enabled %}
+      name: https
+{% else %}
       name: http
+{% endif %}
     - port: 8400
       targetPort: 8400
       name: vminsert
@@ -77,6 +81,17 @@ spec:
           key: node.kubernetes.io/unreachable
           operator: Exists
           tolerationSeconds: 5
+{% if victoria_cluster.tls_enabled %}
+      volumes:
+        - name: victoria-tls-certs
+          secret:
+            secretName: victoria-tls-certs
+            items:
+              - key: tls.crt
+                path: server.crt
+              - key: tls.key
+                path: server.key
+{% endif %}
       containers:
         - name: vmstorage
           image: {{ victoria_cluster.vmstorage.image }}
@@ -90,9 +105,18 @@ spec:
 {% if victoria_cluster.vmstorage.dedup_min_scrape_interval %}
             - --dedup.minScrapeInterval={{ victoria_cluster.vmstorage.dedup_min_scrape_interval }}
 {% endif %}
+{% if victoria_cluster.tls_enabled %}
+            - -tls
+            - -tlsCertFile=/etc/victoria/certs/server.crt
+            - -tlsKeyFile=/etc/victoria/certs/server.key
+{% endif %}
           ports:
             - containerPort: 8482
+{% if victoria_cluster.tls_enabled %}
+              name: https
+{% else %}
               name: http
+{% endif %}
             - containerPort: 8400
               name: vminsert
             - containerPort: 8401
@@ -101,6 +125,9 @@ spec:
             httpGet:
               path: /health
               port: 8482
+{% if victoria_cluster.tls_enabled %}
+              scheme: HTTPS
+{% endif %}
             initialDelaySeconds: 30
             periodSeconds: 30
             timeoutSeconds: 5
@@ -108,6 +135,9 @@ spec:
             httpGet:
               path: /health
               port: 8482
+{% if victoria_cluster.tls_enabled %}
+              scheme: HTTPS
+{% endif %}
             initialDelaySeconds: 5
             periodSeconds: 15
           resources:
@@ -120,6 +150,11 @@ spec:
           volumeMounts:
             - name: vmstorage-data
               mountPath: /vmstorage-data
+{% if victoria_cluster.tls_enabled %}
+            - name: victoria-tls-certs
+              mountPath: /etc/victoria/certs
+              readOnly: true
+{% endif %}
   volumeClaimTemplates:
     - metadata:
         name: vmstorage-data
