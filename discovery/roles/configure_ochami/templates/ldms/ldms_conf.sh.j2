@@ -14,12 +14,22 @@ else
     echo "Environment file /opt/ovis-ldms/etc/profile.d/set-ovis-variables.sh not found. Continuing..." | tee -a "$LOG_FILE"
 fi
 
-# --- Verify environment file existence ---
-echo "Checking for LDMS sampler environment file..." | tee -a "$LOG_FILE"
-if [ -f /opt/ovis-ldms/etc/ldms/ldmsd.sampler.env ]; then
-    echo "Found ldmsd.sampler.env" | tee -a "$LOG_FILE"
+# --- Copy LDMS sampler environment file from NFS share ---
+echo "Copying LDMS sampler environment file from NFS share..." | tee -a "$LOG_FILE"
+if [ -f {{ client_mount_path }}/ldms/samplers/ldmsd.sampler.env ]; then
+    sudo cp {{ client_mount_path }}/ldms/samplers/ldmsd.sampler.env /opt/ovis-ldms/etc/ldms/ldmsd.sampler.env
+    echo "✓ Copied ldmsd.sampler.env" | tee -a "$LOG_FILE"
 else
-    echo "Warning: ldmsd.sampler.env not found" | tee -a "$LOG_FILE"
+    echo "Warning: ldmsd.sampler.env not found in NFS share" | tee -a "$LOG_FILE"
+fi
+
+# --- Source environment file to get port ---
+if [ -f /opt/ovis-ldms/etc/ldms/ldmsd.sampler.env ]; then
+    source /opt/ovis-ldms/etc/ldms/ldmsd.sampler.env
+    echo "✓ Sourced ldmsd.sampler.env (Port: $LDMSD_PORT)" | tee -a "$LOG_FILE"
+else
+    LDMSD_PORT=10001
+    echo "Warning: Using default port $LDMSD_PORT" | tee -a "$LOG_FILE"
 fi
 
 # --- Configure and enable LDMS service ---
@@ -36,13 +46,13 @@ fi
 
 # Configure firewall safely
 
-echo "Configuring firewall for LDMS port 10001..." | tee -a "$LOG_FILE"
-sudo firewall-cmd --permanent --add-port=10001/tcp
+echo "Configuring firewall for LDMS port $LDMSD_PORT..." | tee -a "$LOG_FILE"
+sudo firewall-cmd --permanent --add-port=$LDMSD_PORT/tcp
 sudo firewall-cmd --reload
 
 # --- Verify LDMS connection and metrics ---
 echo "Verifying LDMS connection and metrics..." | tee -a "$LOG_FILE"
-/opt/ovis-ldms/sbin/ldms_ls -a ovis -A conf=/opt/ovis-ldms/etc/ldms/ldmsauth.conf -p 10001 -h localhost | tee -a "$LOG_FILE"
-/opt/ovis-ldms/sbin/ldms_ls -l -a ovis -A conf=/opt/ovis-ldms/etc/ldms/ldmsauth.conf -p 10001 -h localhost > /tmp/metrics
+/opt/ovis-ldms/sbin/ldms_ls -a ovis -A conf=/opt/ovis-ldms/etc/ldms/ldmsauth.conf -p $LDMSD_PORT -h localhost | tee -a "$LOG_FILE"
+/opt/ovis-ldms/sbin/ldms_ls -l -a ovis -A conf=/opt/ovis-ldms/etc/ldms/ldmsauth.conf -p $LDMSD_PORT -h localhost > /tmp/metrics
 
 echo "===== LDMS setup completed =====" | tee -a "$LOG_FILE"

@@ -50,7 +50,7 @@ data:
     
     # Test 2: Test TLS connection with CA verification
     echo "Step 2: Testing HTTPS connection to VictoriaMetrics..."
-    if curl -s --cacert "$CA_CERT" "${VICTORIA_URL}/health" > /dev/null; then
+    if curl -s --max-time 30 --cacert "$CA_CERT" "${VICTORIA_URL}/health" > /dev/null; then
       echo "✓ TLS connection successful"
     else
       echo "✗ TLS connection failed!"
@@ -60,7 +60,7 @@ data:
     
     # Test 3: Test health endpoint
     echo "Step 3: Testing /health endpoint..."
-    HEALTH_RESPONSE=$(curl -s --cacert "$CA_CERT" "${VICTORIA_URL}/health")
+    HEALTH_RESPONSE=$(curl -s --max-time 30 --cacert "$CA_CERT" "${VICTORIA_URL}/health")
     echo "Health status: $HEALTH_RESPONSE"
     if [ -n "$HEALTH_RESPONSE" ]; then
       echo "✓ Health endpoint responding"
@@ -72,7 +72,7 @@ data:
     
     # Test 4: Test metrics endpoint
     echo "Step 4: Testing /metrics endpoint..."
-    METRICS_COUNT=$(curl -s --cacert "$CA_CERT" "${VICTORIA_URL}/metrics" | grep -c "^vm_" || true)
+    METRICS_COUNT=$(curl -s --max-time 30 --cacert "$CA_CERT" "${VICTORIA_URL}/metrics" | grep -c "^vm_" || true)
     echo "Found $METRICS_COUNT VictoriaMetrics metrics"
     if [ "$METRICS_COUNT" -gt 0 ]; then
       echo "✓ Metrics endpoint responding with VictoriaMetrics metrics"
@@ -83,7 +83,7 @@ data:
     
     # Test 5: Test API query endpoint
     echo "Step 5: Testing /api/v1/query endpoint..."
-    QUERY_RESPONSE=$(curl -s --cacert "$CA_CERT" "${VICTORIA_URL}/api/v1/query?query=up" || echo "failed")
+    QUERY_RESPONSE=$(curl -s --max-time 30 --cacert "$CA_CERT" "${VICTORIA_URL}/api/v1/query?query=up" || echo "failed")
     if echo "$QUERY_RESPONSE" | grep -q "status"; then
       echo "Query response:"
       echo "$QUERY_RESPONSE" | head -n 5 | sed 's/^/  /'
@@ -95,7 +95,7 @@ data:
     
     # Test 6: Test certificate verification (ensure it fails without CA)
     echo "Step 6: Testing certificate verification (should fail without CA)..."
-    if curl -s -k "${VICTORIA_URL}/health" > /dev/null 2>&1; then
+    if curl -s --max-time 30 -k "${VICTORIA_URL}/health" > /dev/null 2>&1; then
       echo "✓ Server requires proper certificate (insecure access blocked)"
     else
       echo "⚠ Could not test insecure connection"
