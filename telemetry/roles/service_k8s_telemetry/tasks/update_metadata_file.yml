@@ -25,6 +25,8 @@
     nodes_info: "{{ hostvars['localhost']['nodes'] }}"
     functional_groups_file_path: "{{ functional_groups_config_path }}"
     bmc_group_data: "{{ hostvars['localhost']['bmc_dict_list'] | default([]) }}"
+  delegate_to: localhost
+  connection: local
   register: service_cluster_info_output
 
 - name: Set fact for service_cluster role required and other facts
