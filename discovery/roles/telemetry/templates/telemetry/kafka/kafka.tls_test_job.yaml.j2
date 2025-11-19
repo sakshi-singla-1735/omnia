@@ -30,7 +30,9 @@ data:
     echo "   Kafka TLS/mTLS Connection Test"
     echo "=========================================="
     echo "Bootstrap Server: kafka-kafka-bootstrap:9093"
-    echo "Certificates: kafkapump (idrac_telemetry), ldms-producer (ldms)"
+    echo "Certificates: kafkapump (for all TLS topics)"
+    echo "Testing: idrac, ldms, ome topics"
+    echo "Note: All topics use port 9093 with mTLS for testing"
     echo ""
     
     # Create truststore from cluster CA
@@ -42,7 +44,7 @@ data:
     echo "✓ Truststore created successfully"
     echo ""
     
-    # Create keystore from kafkapump client certificate (for idrac_telemetry)
+    # Create keystore from kafkapump client certificate (for all topics)
     echo "Step 2: Creating keystore with kafkapump client certificate..."
     openssl pkcs12 -export \
       -in /etc/kafka/kafkapump-certs/user.crt \
@@ -53,32 +55,16 @@ data:
     echo "✓ kafkapump keystore created successfully"
     echo ""
     
-    # Create keystore from ldms-producer client certificate (for ldms topic)
-    echo "Step 3: Creating keystore with ldms-producer client certificate..."
-    openssl pkcs12 -export \
-      -in /etc/kafka/ldms-certs/user.crt \
-      -inkey /etc/kafka/ldms-certs/user.key \
-      -out /tmp/ldms-keystore.p12 \
-      -password pass:changeit \
-      -name ldms-producer
-    echo "✓ ldms-producer keystore created successfully"
-    echo ""
-    
     # Create kafka client properties file for kafkapump user
+    echo "Step 3: Creating Kafka client properties..."
     echo "security.protocol=SSL" > /tmp/kafkapump-client.properties
     echo "ssl.truststore.location=/tmp/truststore.jks" >> /tmp/kafkapump-client.properties
     echo "ssl.truststore.password=changeit" >> /tmp/kafkapump-client.properties
     echo "ssl.keystore.location=/tmp/kafkapump-keystore.p12" >> /tmp/kafkapump-client.properties
     echo "ssl.keystore.password=changeit" >> /tmp/kafkapump-client.properties
     echo "ssl.keystore.type=PKCS12" >> /tmp/kafkapump-client.properties
-    
-    # Create kafka client properties file for ldms-producer user
-    echo "security.protocol=SSL" > /tmp/ldms-client.properties
-    echo "ssl.truststore.location=/tmp/truststore.jks" >> /tmp/ldms-client.properties
-    echo "ssl.truststore.password=changeit" >> /tmp/ldms-client.properties
-    echo "ssl.keystore.location=/tmp/ldms-keystore.p12" >> /tmp/ldms-client.properties
-    echo "ssl.keystore.password=changeit" >> /tmp/ldms-client.properties
-    echo "ssl.keystore.type=PKCS12" >> /tmp/ldms-client.properties
+    echo "✓ Client properties created"
+    echo ""
     
     # List topics to verify TLS connection (using kafkapump user)
     echo "Step 4: Testing mTLS connection by listing topics..."
@@ -89,25 +75,36 @@ data:
     echo ""
     
     # Test iDRAC telemetry topic consumer
-    echo "Step 5: Testing consumer on idrac_telemetry topic (kafkapump user)..."
-    timeout 10 /opt/kafka/bin/kafka-console-consumer.sh \
+    echo "Step 5: Testing consumer on {{ kafka.topics.idrac.name }} topic (kafkapump user)..."
+    timeout 30 /opt/kafka/bin/kafka-console-consumer.sh \
       --bootstrap-server kafka-kafka-bootstrap:9093 \
-      --topic idrac_telemetry \
+      --topic {{ kafka.topics.idrac.name }} \
       --consumer.config /tmp/kafkapump-client.properties \
-      --group idrac-consumer-group \
+      --group {{ kafka.topics.idrac.consumer_group }} \
       --from-beginning \
-      --max-messages 10 || echo "No messages or timeout (this is normal for idrac_telemetry)"
+      --max-messages 10 || echo "No messages or timeout (this is normal for {{ kafka.topics.idrac.name }})"
     echo ""
     
-    # Test LDMS topic consumer with ldms-producer user
-    echo "Step 6: Testing consumer on ldms topic (ldms-producer user)..."
-    timeout 10 /opt/kafka/bin/kafka-console-consumer.sh \
+    # Test LDMS topic consumer
+    echo "Step 6: Testing consumer on {{ kafka.topics.ldms.name }} topic (kafkapump user via TLS)..."
+    timeout 30 /opt/kafka/bin/kafka-console-consumer.sh \
       --bootstrap-server kafka-kafka-bootstrap:9093 \
-      --topic ldms \
-      --consumer.config /tmp/ldms-client.properties \
-      --group ldms-consumer-group \
+      --topic {{ kafka.topics.ldms.name }} \
+      --consumer.config /tmp/kafkapump-client.properties \
+      --group {{ kafka.topics.ldms.consumer_group }} \
       --from-beginning \
-      --max-messages 10 || echo "No messages or timeout (this is normal for ldms)"
+      --max-messages 10 || echo "No messages or timeout (this is normal for {{ kafka.topics.ldms.name }})"
+    echo ""
+    
+    # Test OME topic consumer
+    echo "Step 7: Testing consumer on {{ kafka.topics.ome.name }} topic (kafkapump user)..."
+    timeout 30 /opt/kafka/bin/kafka-console-consumer.sh \
+      --bootstrap-server kafka-kafka-bootstrap:9093 \
+      --topic {{ kafka.topics.ome.name }} \
+      --consumer.config /tmp/kafkapump-client.properties \
+      --group {{ kafka.topics.ome.consumer_group }} \
+      --from-beginning \
+      --max-messages 10 || echo "No messages or timeout (this is normal for {{ kafka.topics.ome.name }})"
     
     echo ""
     echo "=== All tests completed ==="
@@ -115,11 +112,13 @@ data:
     echo "Summary:"
     echo "  ✓ Truststore created (cluster CA)"
     echo "  ✓ kafkapump keystore created"
-    echo "  ✓ ldms-producer keystore created"
     echo "  ✓ mTLS connection established"
     echo "  ✓ Topics listed successfully"
-    echo "  ✓ idrac_telemetry topic tested (kafkapump user)"
-    echo "  ✓ ldms topic tested (ldms-producer user)"
+    echo "  ✓ {{ kafka.topics.idrac.name }} topic tested (kafkapump user)"
+    echo "  ✓ {{ kafka.topics.ldms.name }} topic tested via TLS (kafkapump user)"
+    echo "  ✓ {{ kafka.topics.ome.name }} topic tested (kafkapump user)"
+    echo ""
+    echo "Note: In production, LDMS uses plaintext listener (port 9092) without TLS"
 
 ---
 apiVersion: batch/v1
@@ -145,9 +144,6 @@ spec:
         - name: kafkapump-user-certs
           secret:
             secretName: kafkapump
-        - name: ldms-producer-user-certs
-          secret:
-            secretName: ldms-producer
         - name: test-script
           configMap:
             name: kafka-tls-test-script
@@ -162,9 +158,6 @@ spec:
               readOnly: true
             - mountPath: /etc/kafka/kafkapump-certs
               name: kafkapump-user-certs
-              readOnly: true
-            - mountPath: /etc/kafka/ldms-certs
-              name: ldms-producer-user-certs
               readOnly: true
             - mountPath: /opt/test
               name: test-script

@@ -166,6 +166,7 @@ class LdmsdManager:  # pylint: disable=too-many-instance-attributes
     def make_store_configs(self):  # pylint: disable=too-many-locals
         """Generate store configuration files."""
         logging.info("Make Store Configs")
+        
         for ldmsd_name, ldmsd_conf in self.config['node_types'].items():
             # grab auth data
             auth_type = ldmsd_conf.get('auth_type')
@@ -537,7 +538,7 @@ class LdmsdManager:  # pylint: disable=too-many-instance-attributes
         cfg.append("prdcr_start_regex regex=.*")
         cfg.extend([
             "# Store in kafka - port 9092 (plaintext, no TLS, no auth)",
-            "# NOTE: store_avro_kafka plugin cannot configure TLS/SSL",
+            "# NOTE: store_avro_kafka plugin using plaintext for anonymous access",
             "# Using plaintext listener on port 9092 (internal cluster only)",
             "load name=store_avro_kafka",
             "config name=store_avro_kafka encoding=json topic=ldms",

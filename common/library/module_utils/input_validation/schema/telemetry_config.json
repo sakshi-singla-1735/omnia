@@ -20,18 +20,24 @@
     },
     "ldms_agg_port": {
       "type": "integer",
-      "const": 6001,
-      "description": "LDMS aggregator starting port (FIXED - cannot be changed)"
+      "minimum": 6001,
+      "maximum": 6100,
+      "default": 6001,
+      "description": "LDMS Aggregator port on service k8s cluster. Valid range: 6001-6100. Default: 6001"
     },
     "ldms_store_port": {
       "type": "integer",
-      "const": 6001,
-      "description": "LDMS store daemon port (FIXED - cannot be changed)"
+      "minimum": 6001,
+      "maximum": 6100,
+      "default": 6001,
+      "description": "LDMS store daemon port on service k8s cluster. Valid range: 6001-6100. Can be the same as ldms_agg_port (isolated by pod). Default: 6001"
     },
     "ldms_sampler_port": {
       "type": "integer",
-      "const": 10001,
-      "description": "LDMS sampler port on compute nodes (FIXED - cannot be changed)"
+      "minimum": 10001,
+      "maximum": 10100,
+      "default": 10001,
+      "description": "LDMS sampler port on compute nodes. Valid range: 10001-10100. Default: 10001"
     },
     "ldms_sampler_configurations": {
     "type": "array",
@@ -49,8 +55,9 @@
         },
         "activation_parameters": {
           "type": "string",
-          "description": "Activation parameters as a string (e.g., 'interval=1000000 offset=0')",
-          "pattern": "^(?=.*\\binterval=[1-9][0-9]*\\b)(?:.*\\boffset=[0-9]+\\b)?$"
+          "description": "Activation parameters as a string (e.g., 'interval=1000000 offset=0'). Format: 'interval=<microseconds>' with optional 'offset=<microseconds>' separated by space.",
+          "pattern": "^interval=[1-9][0-9]*(?:\\s+offset=[0-9]+)?$",
+          "errorMessage": "Must be in format 'interval=<non-zero-number>' or 'interval=<non-zero-number> offset=<number>'. Example: 'interval=1000000' or 'interval=1000000 offset=0'"
         }
       },
       "required": ["plugin_name", "activation_parameters"],
@@ -114,8 +121,43 @@
           "type": "integer"
         },
         "topic_partitions": {
-          "type": "integer",
-          "minimum": 1
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 3,
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "enum": ["idrac", "ldms", "ome"],
+                "description": "CONSTANT: Fixed topic names that cannot be changed. Only 'idrac', 'ldms', and 'ome' are allowed.",
+                "errorMessage": {
+                  "enum": "Invalid topic name. Only 'idrac', 'ldms', and 'ome' are allowed as Kafka topic names. Custom topic names are not supported."
+                }
+              },
+              "partitions": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 100,
+                "description": "Number of partitions for the topic (1-100). This is the only configurable parameter."
+              }
+            },
+            "required": ["name", "partitions"],
+            "additionalProperties": false,
+            "errorMessage": {
+              "required": {
+                "name": "Topic 'name' is required and must be one of: 'idrac', 'ldms', 'ome'",
+                "partitions": "Topic 'partitions' is required and must be between 1-100"
+              }
+            }
+          },
+          "uniqueItems": true,
+          "description": "IMPORTANT: At least one Kafka topic must be defined. Topic names 'idrac', 'ldms', and 'ome' are CONSTANTS. 'idrac' is required if idrac_telemetry_support is true and kafka is in idrac_telemetry_collection_type. 'ldms' is required if LDMS software is configured in software_config.json (automatic detection). 'ome' is optional. Only partition counts can be changed.",
+          "errorMessage": {
+            "minItems": "At least 1 Kafka topic must be defined. Configure based on enabled features.",
+            "maxItems": "Maximum 3 topics allowed: 'idrac', 'ldms', and 'ome'",
+            "uniqueItems": "Each topic (idrac, ldms, ome) must appear only once"
+          }
         }
       },
       "required": [
