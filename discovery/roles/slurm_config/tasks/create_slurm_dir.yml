@@ -77,6 +77,22 @@
   when: cmpt_list or login_list or compiler_login_list
   loop: "{{ (cmpt_list + login_list + compiler_login_list) | product(cmpt_dir) }}"
 
+- name: Create the cuda directory on share
+  ansible.builtin.file:
+    path: "{{ slurm_config_path }}/cuda"
+    state: directory
+    owner: root
+    group: root
+    mode: "{{ common_mode }}"
+
+- name: Create the runfile directory on share
+  ansible.builtin.file:
+    path: "{{ slurm_config_path }}/runfile"
+    state: directory
+    owner: root
+    group: root
+    mode: "{{ common_mode }}"
+
 - name: Check if munge key exists top level
   ansible.builtin.stat:
     path: "{{ slurm_config_path }}/munge.key"
