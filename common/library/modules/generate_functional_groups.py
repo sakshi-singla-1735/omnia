@@ -5,10 +5,10 @@ Ansible module: Generate cluster functional_groups.yaml based on a CSV mapping f
 Always overwrites the YAML file with new data.
 """
 import os
-from ansible.module_utils.basic import AnsibleModule
 import csv
-import yaml
 from collections import OrderedDict
+import yaml
+from ansible.module_utils.basic import AnsibleModule
 
 FUNCTIONAL_GROUP_LAYER_MAP = {
     "service_kube_control_plane_first_x86_64": "management",
@@ -156,6 +156,7 @@ def dump_yaml_with_comments(data, filename):
 
 
 def main():
+    """Initialize Ansible module for generating functional groups."""
     module_args = {
         "mapping_file_path": {"type": "str", "required": True},
         "functional_groups_file_path": {"type": "str", "required": True},
