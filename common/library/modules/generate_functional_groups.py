@@ -4,6 +4,7 @@
 Ansible module: Generate cluster functional_groups.yaml based on a CSV mapping file.
 Always overwrites the YAML file with new data.
 """
+
 import os
 import csv
 from collections import OrderedDict
@@ -46,9 +47,9 @@ def load_omnia_config(omnia_config_path, module):
         kube_name = None
         k8s_clusters = config.get("service_k8s_cluster", [])
         if isinstance(k8s_clusters, list) and k8s_clusters:
-            for c in k8s_clusters:
-                if c.get("deployment") is True:
-                    kube_name = c.get("cluster_name")
+            for cluster in k8s_clusters:
+                if cluster.get("deployment") is True:
+                    kube_name = cluster.get("cluster_name")
                     break
             if kube_name is None:
                 kube_name = k8s_clusters[0].get("cluster_name")
@@ -61,7 +62,9 @@ def load_omnia_config(omnia_config_path, module):
         return kube_name, slurm_name
 
     except Exception as e:
-        module.fail_json(msg=f"Failed to load omnia_config.yml: {str(e)}")
+        error_msg = f"Failed to load omnia_config.yml: {str(e)}"
+        module.fail_json(msg=error_msg)
+
 
 def parse_csv(filename, module):
     """Parse CSV file and extract groups and functional groups."""
@@ -74,7 +77,9 @@ def parse_csv(filename, module):
             cleaned_lines = [line.strip() for line in f if line.strip()]
             header = cleaned_lines[0].split(",")
             expected_columns = len(header)
-            valid_lines = [line for line in cleaned_lines if len(line.split(",")) == expected_columns]
+            valid_lines = [
+                line for line in cleaned_lines if len(line.split(",")) == expected_columns
+            ]
 
             reader = csv.DictReader(valid_lines)
 
@@ -94,11 +99,11 @@ def parse_csv(filename, module):
         return groups, functional_groups
 
     except Exception as e:
-        module.fail_json(msg=f"Error parsing CSV file: {str(e)}")
-
+        error_msg = f"Error parsing CSV file: {str(e)}"
+        module.fail_json(msg=error_msg)
 
 def build_yaml(new_groups, new_func_groups, kube_cluster_name, slurm_cluster_name):
-    """Build YAML structure with groups and functional groups, applying cluster names and descriptions."""
+    """Build YAML structure with groups and functional groups."""
     data = OrderedDict({"groups": OrderedDict(), "functional_groups": []})
 
     # Add groups
@@ -109,7 +114,13 @@ def build_yaml(new_groups, new_func_groups, kube_cluster_name, slurm_cluster_nam
     for func_group, group_list in new_func_groups.items():
         layer = FUNCTIONAL_GROUP_LAYER_MAP[func_group]
         fg_lower = func_group.lower()
-        cluster_name = kube_cluster_name if "kube" in fg_lower else slurm_cluster_name or "slurm_cluster"
+        # get appropriate cluster name
+        cluster_name = (
+            kube_cluster_name
+            if "kube" in fg_lower
+            else slurm_cluster_name or "slurm_cluster"
+        )
+
         desc_key = next((k for k in DESCRIPTION_MAP if func_group.startswith(k)), func_group)
         description = DESCRIPTION_MAP.get(desc_key, func_group)
 
@@ -119,8 +130,10 @@ def build_yaml(new_groups, new_func_groups, kube_cluster_name, slurm_cluster_nam
             "group": sorted(list(group_list)),
             "_comment": [
                 f"{description} functional_groups:",
-                f"This functional_group is used to configure the nodes for {description}. It belongs to the {layer} layer.",
-                f"The nodes included in this functional_group will have the necessary tools and configurations to run {description}.",
+                f"This functional_group is used to configure the nodes for {description}. "
+                f"It belongs to the {layer} layer.",
+                f"The nodes included in this functional_group will have the necessary tools "
+                f"and configurations to run {description}.",
                 f"The nodes in this functional_group can be used to run {description}."
             ]
         })
@@ -131,29 +144,28 @@ def build_yaml(new_groups, new_func_groups, kube_cluster_name, slurm_cluster_nam
 def dump_yaml_with_comments(data, filename):
     """Write YAML data to file with custom formatting and comments."""
     with open(filename, "w") as f:
-        f.write("# ------------------------------------------------------------------------------------------------\n")
+        f.write("# ----------------------------------------------------------------\n")
         f.write("# Groups definition\n")
-        f.write("# ------------------------------------------------------------------------------------------------\n")
+        f.write("# ----------------------------------------------------------------\n")
         f.write("groups:\n")
         for g in sorted(data["groups"].keys()):
             d = data["groups"][g]
             f.write(f"  {g}:\n")
             f.write(f"    parent: \"{d['parent']}\"\n")
 
-        f.write("\n# ------------------------------------------------------------------------------------------------\n")
+        f.write("\n# ----------------------------------------------------------------\n")
         f.write("# Functional Groups definition\n")
-        f.write("# ------------------------------------------------------------------------------------------------\n")
+        f.write("# -----------------------------------------------------------------\n")
         f.write("functional_groups:\n")
         for fg in data.get("functional_groups") or []:
-            for c in fg.get("_comment", []):
-                f.write(f"  # {c}\n")
+            for comment in fg.get("_comment", []):
+                f.write(f"  # {comment}\n")
             f.write(f"  - name: \"{fg['name']}\"\n")
             f.write(f"    cluster_name: \"{fg['cluster_name']}\"\n")
             f.write(f"    group:\n")
             for g in sorted(set(fg["group"])):
                 f.write(f"      - {g}\n")
             f.write("\n")
-
 
 def main():
     """Initialize Ansible module for generating functional groups."""
@@ -188,8 +200,8 @@ def main():
         )
 
     except Exception as e:
-        module.fail_json(msg=f"Error while generating functional groups YAML: {str(e)}")
-
+        error_msg = f"Error while generating functional groups YAML: {str(e)}"
+        module.fail_json(msg=error_msg)
 
 if __name__ == "__main__":
     main()
