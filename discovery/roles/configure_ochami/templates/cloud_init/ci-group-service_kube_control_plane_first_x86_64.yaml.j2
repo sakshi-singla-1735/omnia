@@ -176,7 +176,7 @@
                 - name: vip_interface
                   value: vip_interface
                 - name: vip_cidr
-                  value: "32"
+                  value: "{{ admin_netmask_bits }}"
                 - name: dns_mode
                   value: first
                 - name: cp_enable
@@ -382,6 +382,8 @@
             mv /tmp/ipaddress_pool.yaml {{ k8s_client_mount_path }}/metallb/ipaddress_pool.yaml
             mv /tmp/l2advertisement.yaml {{ k8s_client_mount_path }}/metallb/l2advertisement.yaml
             # Setup Kubernetes cluster
+            rm -rf /var/lib/etcd/*  /var/lib/kubelet/* /etc/kubernetes/*
+            rm -rf /var/lib/etcd/.*  /var/lib/kubelet/.* /etc/kubernetes/.*
             /usr/local/bin/k8s-cluster-setup.sh || true
             mkdir -p $HOME/.kube
             cp -f /etc/kubernetes/admin.conf $HOME/.kube/config
@@ -566,7 +568,6 @@
 
 
             set -e
-            cd {{ k8s_client_mount_path }}
             export KUBECONFIG=/etc/kubernetes/admin.conf
 
             echo "Waiting for at least one READY Kubernetes worker node ..."
@@ -587,7 +588,8 @@
               --namespace default --create-namespace \
               --set nfs.server={{ k8s_nfs_server_ip }} \
               --set nfs.path={{ k8s_server_share_path }} \
-              --set storageClass.defaultClass=true
+              --set storageClass.defaultClass=true \
+              --set storageClass.reclaimPolicy=Retain
             echo "Waiting for nfs-subdir-external-provisioner pods to appear..."
             # Give controller some time to create pods
             sleep 15
@@ -602,25 +604,25 @@
             fi
 
             echo "Installing Metallb"
-            kubectl create -f metallb/{{ metallb_package }}.yml
+            kubectl create -f {{ k8s_client_mount_path }}/metallb/{{ metallb_package }}.yml
             echo "Waiting for MetalLB pods to be ready..."
             kubectl wait --namespace metallb-system --for=condition=Ready pods --all --timeout=300s
             echo "Deploy ipaddress pool"
-            kubectl create -f metallb/ipaddress_pool.yaml
+            kubectl create -f {{ k8s_client_mount_path }}/metallb/ipaddress_pool.yaml
             echo "Deploy Layer2 Configuration"
-            kubectl create -f metallb/l2advertisement.yaml
+            kubectl create -f {{ k8s_client_mount_path }}/metallb/l2advertisement.yaml
 
-            echo "Deploy Multus"
-            kubectl apply -f multus/{{ multus_package }}.yml
-            echo "Waiting for multus pods to be ready..."
-            kubectl wait --for=condition=Ready pod -l app=multus -n kube-system --timeout=300s
+            #echo "Deploy Multus"
+            #kubectl apply -f {{ k8s_client_mount_path }}/multus/{{ multus_package }}.yml
+            #echo "Waiting for multus pods to be ready..."
+            #kubectl wait --for=condition=Ready pod -l app=multus -n kube-system --timeout=300s
 
-            echo "Deploy Wherabouts"
-            kubectl apply -f whereabouts/whereabouts/doc/crds/daemonset-install.yaml
-            kubectl apply -f whereabouts/whereabouts/doc/crds/whereabouts.cni.cncf.io_ippools.yaml
-            kubectl apply -f whereabouts/whereabouts/doc/crds/whereabouts.cni.cncf.io_overlappingrangeipreservations.yaml
-            echo "Waiting for whereabouts pods to be ready..."
-            kubectl wait --for=condition=Ready pod -l app=whereabouts -n kube-system --timeout=300s
+            #echo "Deploy Wherabouts"
+            #kubectl apply -f {{ k8s_client_mount_path }}/whereabouts/whereabouts/doc/crds/daemonset-install.yaml
+            #kubectl apply -f {{ k8s_client_mount_path }}/whereabouts/whereabouts/doc/crds/whereabouts.cni.cncf.io_ippools.yaml
+            #kubectl apply -f {{ k8s_client_mount_path }}/whereabouts/whereabouts/doc/crds/whereabouts.cni.cncf.io_overlappingrangeipreservations.yaml
+            #echo "Waiting for whereabouts pods to be ready..."
+            #kubectl wait --for=condition=Ready pod -l app=whereabouts -n kube-system --timeout=300s
 
 
             export KUBECONFIG=/etc/kubernetes/admin.conf
@@ -829,6 +831,50 @@
                     fi
                   else
                     echo "ERROR: CSI PowerScale driver pods not ready after waiting. Skipping StorageClass creation."
+                  fi
+                  echo "===== PowerScale CSI deployed successfully — updating default StorageClass ====="
+                  echo "Checking if StorageClass 'nfs-client' exists..."
+                  if kubectl get sc nfs-client >/dev/null 2>&1; then
+                    NFS_SC_EXISTS=1
+                    echo "nfs-client StorageClass found."
+                  else
+                    NFS_SC_EXISTS=0
+                    echo "nfs-client StorageClass NOT found."
+                  fi
+
+                  echo "Checking if StorageClass 'ps01' exists..."
+                  if kubectl get sc ps01 >/dev/null 2>&1; then
+                    PS01_SC_EXISTS=1
+                    echo "ps01 StorageClass found."
+                  else
+                    PS01_SC_EXISTS=0
+                    echo "ps01 StorageClass NOT found."
+                  fi
+
+                  # Only proceed if ps01 exists (means CSI is installed correctly)
+                  if [ "$PS01_SC_EXISTS" -eq 1 ]; then
+                    echo "===== Updating StorageClass defaults ====="
+
+                    # Disable default class on nfs-client
+                    if [ "$NFS_SC_EXISTS" -eq 1 ]; then
+                      echo "Checking if nfs-client is currently default..."
+                      DEFAULT_ANNOT=$(kubectl get sc nfs-client -o jsonpath='{.metadata.annotations.storageclass\.kubernetes\.io/is-default-class}' 2>/dev/null)
+
+                      if [ "$DEFAULT_ANNOT" = "true" ]; then
+                        echo "Removing default StorageClass annotation from nfs-client..."
+                        kubectl annotate sc nfs-client storageclass.kubernetes.io/is-default-class="false" --overwrite
+                      else
+                        echo "nfs-client is not default. Skipping."
+                      fi
+                    fi
+
+                    # Set ps01 as default
+                    echo "Setting ps01 as default StorageClass..."
+                    kubectl annotate sc ps01 storageclass.kubernetes.io/is-default-class="true" --overwrite
+
+                    echo "===== StorageClass update completed successfully ====="
+                  else
+                    echo "ps01 StorageClass not found. Cannot update default StorageClass settings."
                   fi
                 fi
               fi

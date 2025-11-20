@@ -153,7 +153,7 @@
                     - name: vip_interface
                       value: vip_interface
                     - name: vip_cidr
-                      value: "32"
+                      value: "{{ admin_netmask_bits }}"
                     - name: dns_mode
                       value: first
                     - name: cp_enable
@@ -295,6 +295,8 @@
           if [ ! -f "$MARKER" ]; then
             # Join Kubernetes cluster
             echo "Initial boot - initializing and setting up service_kube_control_plane_x86_64"
+            rm -rf /var/lib/etcd/*  /var/lib/kubelet/* /etc/kubernetes/*
+            rm -rf /var/lib/etcd/.*  /var/lib/kubelet/.* /etc/kubernetes/.*
             K8S_CLIENT_MOUNT_PATH="{{ k8s_client_mount_path }}"
             NODE_NAME="{% raw %}{{ ds.meta_data.instance_data.local_ipv4 }}{% endraw %}"
             KUBE_VIP="{{ kube_vip }}"
