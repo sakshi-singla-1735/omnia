@@ -79,7 +79,6 @@ spec:
       type: simple
       # ANONYMOUS superuser required for LDMS (store_avro_kafka plugin has no auth support)
       # Security: NetworkPolicy restricts port 9092 access to only LDMS store pods
-      # See: KAFKA_LDMS_SECURITY.md for detailed security implementation
       superUsers:
         - ANONYMOUS
     config:
