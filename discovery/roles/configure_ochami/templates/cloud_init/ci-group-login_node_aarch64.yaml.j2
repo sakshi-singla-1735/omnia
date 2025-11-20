@@ -162,6 +162,7 @@
         - mount -a
 
         - cp -rf {{ client_mount_path }}/ldms/samplers/sampler.conf /opt/ovis-ldms/etc/ldms/
+        - cp -rf {{ client_mount_path }}/ldms/samplers/ldmsauth.conf /opt/ovis-ldms/etc/ldms/
 
         - /root/ldms_conf.sh
 {% endif %}
