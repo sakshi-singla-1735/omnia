@@ -122,7 +122,11 @@ spec:
             httpGet:
               path: /health
               port: 8481
+{% if victoria_cluster.tls_enabled %}
+              scheme: HTTPS
+{% else %}
               scheme: HTTP
+{% endif %}
             initialDelaySeconds: 30
             periodSeconds: 30
             timeoutSeconds: 5
@@ -130,7 +134,11 @@ spec:
             httpGet:
               path: /health
               port: 8481
+{% if victoria_cluster.tls_enabled %}
+              scheme: HTTPS
+{% else %}
               scheme: HTTP
+{% endif %}
             initialDelaySeconds: 5
             periodSeconds: 15
           resources:
