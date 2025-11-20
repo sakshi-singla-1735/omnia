@@ -44,6 +44,7 @@ gpu_slurm_conf:
   GresTypes: gpu
   SelectType: select/cons_tres
   SelectTypeParameters: CR_Core_Memory
+  SlurmdParameters: l3cache_as_socket
 innodb_buffer_pool_size: 1G
 innodb_lock_wait_timeout: 120
 # TODO tmp
