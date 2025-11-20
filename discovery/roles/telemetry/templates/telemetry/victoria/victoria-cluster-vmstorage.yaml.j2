@@ -29,11 +29,10 @@ spec:
   ports:
     - port: 8482
       targetPort: 8482
-      name: http
 {% if victoria_cluster.tls_enabled %}
-    - port: 8483
-      targetPort: 8483
       name: https
+{% else %}
+      name: http
 {% endif %}
     - port: 8400
       targetPort: 8400
@@ -100,13 +99,11 @@ spec:
           args:
             - --storageDataPath=/vmstorage-data
             - --retentionPeriod={{ hostvars['localhost']['victoria_configurations']['retention_period'] }}
-{% if victoria_cluster.tls_enabled %}
             - --httpListenAddr=:8482
-            - --httpsListenAddr=:8483
+{% if victoria_cluster.tls_enabled %}
+            - -tls
             - -tlsCertFile=/etc/victoria/certs/server.crt
             - -tlsKeyFile=/etc/victoria/certs/server.key
-{% else %}
-            - --httpListenAddr=:8482
 {% endif %}
             - --vminsertAddr=:8400
             - --vmselectAddr=:8401
@@ -115,10 +112,10 @@ spec:
 {% endif %}
           ports:
             - containerPort: 8482
-              name: http
 {% if victoria_cluster.tls_enabled %}
-            - containerPort: 8483
               name: https
+{% else %}
+              name: http
 {% endif %}
             - containerPort: 8400
               name: vminsert
