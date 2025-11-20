@@ -74,3 +74,6 @@ omnia_credentials:
   build_aarch_image:
     mandatory:
       - { password: provision_password }
+  ldms:
+    mandatory:
+      - { password: ldms_sampler_password }
