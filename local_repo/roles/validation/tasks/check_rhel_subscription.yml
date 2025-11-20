@@ -46,6 +46,21 @@
 - name: Extract subscription urls
   when: subscription_status | bool
   block:
+    - name: Set subscription release from software_config.json
+      ansible.builtin.command:
+        cmd: >
+          subscription-manager release --set="{{ hostvars['localhost']['cluster_os_version'] }}"
+      changed_when: true
+
+    - name: Get subscription-manager release
+      ansible.builtin.command: subscription-manager release --show
+      register: release_info
+      changed_when: false
+
+    - name: Show subscription-manager release
+      ansible.builtin.debug:
+        msg: "{{ release_info.stdout }}"
+
     - name: Ensure shared path exists
       ansible.builtin.file:
         path: "{{ rhel_repo_cert_dir }}"
