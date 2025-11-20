@@ -95,11 +95,18 @@
 
 - name: Set NFS info fact
   ansible.builtin.set_fact:
-      shared_path: "{{ hostvars['localhost']['oim_shared_path'] }}"
+    oim_shared_path: "{{ hostvars['localhost']['oim_shared_path'] }}"
 
-- name: Copy files using shell with glob expansion
-  ansible.builtin.shell:
-    cmd: "cp -r {{ shared_path }}/omnia/offline_repo/cluster/aarch64/rhel/10.0/iso/cuda-run/* {{ slurm_config_path }}/runfile/"
+- name: Copy files using copy module with glob expansion
+  ansible.builtin.copy:
+    src: "{{ oim_shared_path }}/omnia/offline_repo/cluster/aarch64/rhel/10.0/iso/cuda-run/"
+    dest: "{{ slurm_config_path }}/runfile/"
+    mode: '0755'
+    owner: root
+    group: root
+    directory_mode: '0755'
+    remote_src: true
+
 
 - name: Check if munge key exists top level
   ansible.builtin.stat:
