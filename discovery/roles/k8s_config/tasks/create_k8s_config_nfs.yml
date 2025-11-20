@@ -72,7 +72,7 @@
       ansible.builtin.file:
         path: "{{ k8s_client_mount_path }}/{{ item }}"
         state: directory
-        mode: '0755'
+        mode: "{{ folder_mode }}"
         owner: root
         group: root
       loop:
@@ -87,7 +87,7 @@
       ansible.builtin.file:
         path: "{{ k8s_client_mount_path }}/{{ item }}"
         state: directory
-        mode: '0755'
+        mode: "{{ folder_mode }}"
         owner: root
         group: root
       loop:
