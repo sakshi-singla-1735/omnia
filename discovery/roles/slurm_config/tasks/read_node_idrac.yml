@@ -46,7 +46,11 @@
     proc_params: "{{ {} | combine({'Sockets': (1 if (cpus | length == 0) else (cpus | length))})
      | combine({'CoresPerSocket': (cpus[0].TotalEnabledCores | default(1))})
      | combine({'ThreadsPerCore': ((cpus[0].TotalThreads | default(1)) // (cpus[0].TotalCores | default(1)))})
-     | combine({'Gres': 'gpu'} if gpus else {}) }}"
+     | combine(
+                {'Gres': 'gpu:' ~ (gpus | default([1]) | length | string)}
+                if (gpus | default([]))
+                else {}
+              ) }}"
 
 - name: Add to Nodeparam dict
   ansible.builtin.set_fact:
