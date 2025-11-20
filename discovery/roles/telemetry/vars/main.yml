@@ -119,6 +119,8 @@ victoria_cluster:
   vminsert:
     replicas: 2
     image: "victoriametrics/vminsert:v1.128.0-cluster"
+    # External access configuration
+    external_access: true  # Enable LoadBalancer service for external data ingestion
     resources:
       requests:
         memory: "512Mi"
