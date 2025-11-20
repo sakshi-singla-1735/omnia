@@ -49,10 +49,6 @@ def load_existing_yaml(filepath):
 
 
 def load_omnia_config(omnia_config_path, module):
-    """Load omnia_config.yml and extract:
-    - Kubernetes cluster name (deployment=true preferred)
-    - Slurm cluster name
-    """
     if not os.path.exists(omnia_config_path):
         module.fail_json(msg=f"omnia_config.yml not found: {omnia_config_path}")
 
@@ -60,9 +56,6 @@ def load_omnia_config(omnia_config_path, module):
         with open(omnia_config_path) as f:
             config = yaml.safe_load(f) or {}
 
-        # ------------------------------
-        # Kubernetes cluster name
-        # ------------------------------
         kube_name = None
         k8s_clusters = config.get("service_k8s_cluster", [])
         if isinstance(k8s_clusters, list) and k8s_clusters:
@@ -73,9 +66,6 @@ def load_omnia_config(omnia_config_path, module):
             if kube_name is None:
                 kube_name = k8s_clusters[0].get("cluster_name")
 
-        # ------------------------------
-        # Slurm cluster name
-        # ------------------------------
         slurm_name = None
         slurm_clusters = config.get("slurm_cluster", [])
         if isinstance(slurm_clusters, list) and slurm_clusters:
@@ -94,20 +84,25 @@ def parse_csv(filename, module):
 
     try:
         with open(filename, newline="") as f:
-            reader = csv.DictReader(f)
+            cleaned_lines = [line.strip() for line in f if line.strip()]
+            header = cleaned_lines[0].split(",")
+            expected_columns = len(header)
+
+            # Keep only lines with the correct number of columns
+            valid_lines = [line for line in cleaned_lines if len(line.split(",")) == expected_columns]
+
+            reader = csv.DictReader(valid_lines)
+
             for row in reader:
                 func_group = row["FUNCTIONAL_GROUP_NAME"].strip()
                 group_name = row["GROUP_NAME"].strip()
                 parent = row.get("PARENT_SERVICE_TAG", "").strip() or ""
 
-                # First kube control plane rename
                 if func_group == "service_kube_control_plane_x86_64" and not kube_control_seen:
                     func_group = "service_kube_control_plane_first_x86_64"
                     kube_control_seen = True
 
-                if group_name not in groups:
-                    groups[group_name] = {"parent": parent}
-
+                groups[group_name] = {"parent": parent}
                 if func_group in FUNCTIONAL_GROUP_LAYER_MAP:
                     functional_groups.setdefault(func_group, set()).add(group_name)
 
@@ -120,30 +115,37 @@ def parse_csv(filename, module):
 def merge_yaml(existing, new_groups, new_func_groups, kube_cluster_name, slurm_cluster_name):
     added_groups, added_fgs = [], []
 
-    # Add missing groups
+    # Add or update groups
     for grp, details in new_groups.items():
         if grp not in existing["groups"]:
             existing["groups"][grp] = details
             added_groups.append(grp)
+        else:
+            existing_parent = existing["groups"][grp].get("parent", "")
+            new_parent = details.get("parent", "")
+            if existing_parent != new_parent:
+                existing["groups"][grp]["parent"] = new_parent
+                added_groups.append(grp + " (parent updated)")
 
-    existing_names = {fg["name"] for fg in existing["functional_groups"]}
+    # Map existing functional groups by name
+    existing_fg_map = {fg["name"]: fg for fg in existing["functional_groups"]}
 
-    # Add missing functional groups
+    # Add or update functional groups
     for func_group, group_list in new_func_groups.items():
-        if func_group not in existing_names:
-            layer = FUNCTIONAL_GROUP_LAYER_MAP[func_group]
+        layer = FUNCTIONAL_GROUP_LAYER_MAP[func_group]
+        fg_lower = func_group.lower()
+        cluster_name = kube_cluster_name if "kube" in fg_lower else slurm_cluster_name or "slurm_cluster"
+        desc_key = next((k for k in DESCRIPTION_MAP if func_group.startswith(k)), func_group)
+        description = DESCRIPTION_MAP.get(desc_key, func_group)
 
-            fg_lower = func_group.lower()
-
-            if "kube" in fg_lower:
-                cluster_name = kube_cluster_name or "kubernetes_cluster"
-            else:
-                cluster_name = slurm_cluster_name or "slurm_cluster"
-            # ---------------------------------------------------------
-
-            desc_key = next((k for k in DESCRIPTION_MAP if func_group.startswith(k)), func_group)
-            description = DESCRIPTION_MAP.get(desc_key, func_group)
-
+        if func_group in existing_fg_map:
+            fg_entry = existing_fg_map[func_group]
+            original_groups = set(fg_entry.get("group", []))
+            new_groups_to_add = group_list - original_groups
+            if new_groups_to_add:
+                fg_entry["group"].extend(sorted(new_groups_to_add))
+                added_fgs.append(func_group)
+        else:
             new_entry = OrderedDict({
                 "name": func_group,
                 "cluster_name": cluster_name,
@@ -155,7 +157,6 @@ def merge_yaml(existing, new_groups, new_func_groups, kube_cluster_name, slurm_c
                     f"The nodes in this functional_group can be used to run {description}."
                 ]
             })
-
             existing["functional_groups"].append(new_entry)
             added_fgs.append(func_group)
 
@@ -168,9 +169,11 @@ def dump_yaml_with_comments(data, filename):
         f.write("# Groups definition\n")
         f.write("# ------------------------------------------------------------------------------------------------\n")
         f.write("groups:\n")
-        for g, d in data["groups"].items():
+        for g in sorted(data["groups"].keys()):
+            d = data["groups"][g]
             f.write(f"  {g}:\n")
             f.write(f"    parent: \"{d['parent']}\"\n")
+
         f.write("\n# ------------------------------------------------------------------------------------------------\n")
         f.write("# Functional Groups definition\n")
         f.write("# ------------------------------------------------------------------------------------------------\n")
@@ -181,10 +184,9 @@ def dump_yaml_with_comments(data, filename):
             f.write(f"  - name: \"{fg['name']}\"\n")
             f.write(f"    cluster_name: \"{fg['cluster_name']}\"\n")
             f.write(f"    group:\n")
-            for g in fg["group"]:
+            for g in sorted(set(fg["group"])):
                 f.write(f"      - {g}\n")
             f.write("\n")
-
 
 def main():
     module_args = {
