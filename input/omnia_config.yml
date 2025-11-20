@@ -29,11 +29,9 @@
 
 # config_sources
 # defines how the Slurm configuration files are provided to the cluster.
-# <conf name> : <filepath> or <mapping>
-# Each entry can be specified in one of two ways:
-# 1: <filepath> Either provide an absolute path to an existing configuration file on the system. 
-# This is useful when configuration is already maintained externally or delivered through NFS or local directory.
-# 2. <mapping> Supply the configuration values directly as a key–value map
+# <conf name>: 
+#    <mapping>
+# <mapping> Supply the configuration values directly as a key–value map
 # The conf files supported by slurm are
 # slurm
 # cgroup
@@ -51,7 +49,9 @@ slurm_cluster:
   - cluster_name: slurm_cluster
     nfs_storage_name: nfs_slurm
     # config_sources:
-    #   slurm: "/path/to/custom_slurm.conf"
+    #   slurm:
+    #     SlurmctldTimeout: 60
+    #     SlurmdTimeout: 150
     #   cgroup: 
     #     CgroupPlugin: autodetect
     #     AllowedRAMSpace: 100
