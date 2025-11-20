@@ -29,10 +29,11 @@ spec:
   ports:
     - port: 8482
       targetPort: 8482
-{% if victoria_cluster.tls_enabled %}
-      name: https
-{% else %}
       name: http
+{% if victoria_cluster.tls_enabled %}
+    - port: 8483
+      targetPort: 8483
+      name: https
 {% endif %}
     - port: 8400
       targetPort: 8400
@@ -99,23 +100,25 @@ spec:
           args:
             - --storageDataPath=/vmstorage-data
             - --retentionPeriod={{ hostvars['localhost']['victoria_configurations']['retention_period'] }}
+{% if victoria_cluster.tls_enabled %}
             - --httpListenAddr=:8482
+            - --httpsListenAddr=:8483
+            - -tlsCertFile=/etc/victoria/certs/server.crt
+            - -tlsKeyFile=/etc/victoria/certs/server.key
+{% else %}
+            - --httpListenAddr=:8482
+{% endif %}
             - --vminsertAddr=:8400
             - --vmselectAddr=:8401
 {% if victoria_cluster.vmstorage.dedup_min_scrape_interval %}
             - --dedup.minScrapeInterval={{ victoria_cluster.vmstorage.dedup_min_scrape_interval }}
 {% endif %}
-{% if victoria_cluster.tls_enabled %}
-            - -tls
-            - -tlsCertFile=/etc/victoria/certs/server.crt
-            - -tlsKeyFile=/etc/victoria/certs/server.key
-{% endif %}
           ports:
             - containerPort: 8482
-{% if victoria_cluster.tls_enabled %}
-              name: https
-{% else %}
               name: http
+{% if victoria_cluster.tls_enabled %}
+            - containerPort: 8483
+              name: https
 {% endif %}
             - containerPort: 8400
               name: vminsert
@@ -125,9 +128,7 @@ spec:
             httpGet:
               path: /health
               port: 8482
-{% if victoria_cluster.tls_enabled %}
-              scheme: HTTPS
-{% endif %}
+              scheme: HTTP
             initialDelaySeconds: 30
             periodSeconds: 30
             timeoutSeconds: 5
@@ -135,9 +136,7 @@ spec:
             httpGet:
               path: /health
               port: 8482
-{% if victoria_cluster.tls_enabled %}
-              scheme: HTTPS
-{% endif %}
+              scheme: HTTP
             initialDelaySeconds: 5
             periodSeconds: 15
           resources:

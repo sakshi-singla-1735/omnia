@@ -29,10 +29,11 @@ spec:
   ports:
     - port: 8480
       targetPort: 8480
-{% if victoria_cluster.tls_enabled %}
-      name: https
-{% else %}
       name: http
+{% if victoria_cluster.tls_enabled %}
+    - port: 8481
+      targetPort: 8481
+      name: https
 {% endif %}
 ---
 apiVersion: apps/v1
@@ -96,27 +97,27 @@ spec:
 {% for i in range(1, victoria_cluster.vmstorage.replicas) %}
             - --storageNode=vmstorage-{{ i }}.vmstorage.{{ telemetry_namespace }}.svc.cluster.local:8400
 {% endfor %}
-            - --httpListenAddr=:8480
-            - --maxLabelsPerTimeseries=60
 {% if victoria_cluster.tls_enabled %}
-            - -tls
+            - --httpListenAddr=:8480
+            - --httpsListenAddr=:8481
             - -tlsCertFile=/etc/victoria/certs/server.crt
             - -tlsKeyFile=/etc/victoria/certs/server.key
+{% else %}
+            - --httpListenAddr=:8480
 {% endif %}
+            - --maxLabelsPerTimeseries=60
           ports:
             - containerPort: 8480
-{% if victoria_cluster.tls_enabled %}
-              name: https
-{% else %}
               name: http
+{% if victoria_cluster.tls_enabled %}
+            - containerPort: 8481
+              name: https
 {% endif %}
           startupProbe:
             httpGet:
               path: /health
               port: 8480
-{% if victoria_cluster.tls_enabled %}
-              scheme: HTTPS
-{% endif %}
+              scheme: HTTP
             initialDelaySeconds: 10
             periodSeconds: 5
             timeoutSeconds: 3
@@ -125,9 +126,7 @@ spec:
             httpGet:
               path: /health
               port: 8480
-{% if victoria_cluster.tls_enabled %}
-              scheme: HTTPS
-{% endif %}
+              scheme: HTTP
             initialDelaySeconds: 30
             periodSeconds: 30
             timeoutSeconds: 5
@@ -135,9 +134,7 @@ spec:
             httpGet:
               path: /health
               port: 8480
-{% if victoria_cluster.tls_enabled %}
-              scheme: HTTPS
-{% endif %}
+              scheme: HTTP
             initialDelaySeconds: 5
             periodSeconds: 15
           resources:

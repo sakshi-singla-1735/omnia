@@ -29,10 +29,11 @@ spec:
   ports:
     - port: 8481
       targetPort: 8481
-{% if victoria_cluster.tls_enabled %}
-      name: https
-{% else %}
       name: http
+{% if victoria_cluster.tls_enabled %}
+    - port: 8482
+      targetPort: 8482
+      name: https
 {% endif %}
 ---
 apiVersion: apps/v1
@@ -100,31 +101,31 @@ spec:
 {% for i in range(1, victoria_cluster.vmstorage.replicas) %}
             - --storageNode=vmstorage-{{ i }}.vmstorage.{{ telemetry_namespace }}.svc.cluster.local:8401
 {% endfor %}
+{% if victoria_cluster.tls_enabled %}
             - --httpListenAddr=:8481
+            - --httpsListenAddr=:8482
+            - -tlsCertFile=/etc/victoria/certs/server.crt
+            - -tlsKeyFile=/etc/victoria/certs/server.key
+{% else %}
+            - --httpListenAddr=:8481
+{% endif %}
             - --search.maxQueryDuration={{ victoria_cluster.vmselect.max_query_duration }}
             - --search.maxConcurrentRequests={{ victoria_cluster.vmselect.max_concurrent_requests }}
 {% if victoria_cluster.vmselect.cache_data_path %}
             - --cacheDataPath=/cache
 {% endif %}
-{% if victoria_cluster.tls_enabled %}
-            - -tls
-            - -tlsCertFile=/etc/victoria/certs/server.crt
-            - -tlsKeyFile=/etc/victoria/certs/server.key
-{% endif %}
           ports:
             - containerPort: 8481
-{% if victoria_cluster.tls_enabled %}
-              name: https
-{% else %}
               name: http
+{% if victoria_cluster.tls_enabled %}
+            - containerPort: 8482
+              name: https
 {% endif %}
           livenessProbe:
             httpGet:
               path: /health
               port: 8481
-{% if victoria_cluster.tls_enabled %}
-              scheme: HTTPS
-{% endif %}
+              scheme: HTTP
             initialDelaySeconds: 30
             periodSeconds: 30
             timeoutSeconds: 5
@@ -132,9 +133,7 @@ spec:
             httpGet:
               path: /health
               port: 8481
-{% if victoria_cluster.tls_enabled %}
-              scheme: HTTPS
-{% endif %}
+              scheme: HTTP
             initialDelaySeconds: 5
             periodSeconds: 15
           resources:
