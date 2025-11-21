@@ -31,7 +31,7 @@
 #     - 'type': The type of NTP entry, either 'server' or 'pool'.
 #     Example:  
 #     ntp_servers:
-#       - { address: "time.google.com", type: "server" }
+#       - { address: "172.16.10.80", type: "server" }
 
 Networks:
 - admin_network:
