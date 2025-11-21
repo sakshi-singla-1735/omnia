@@ -15,3 +15,4 @@
 
 - name: Import pre-requisite tasks
   ansible.builtin.include_tasks: pre_requisite.yml
+  tags: always
