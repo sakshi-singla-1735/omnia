@@ -191,6 +191,11 @@ if [ "$CLEAN_LDMS" = true ]; then
 
     # Delete any LDMS pods
     delete_all pod "app=nersc-ldms"
+    
+    # Delete LDMS network policies
+    echo "Deleting LDMS network policies..."
+    delete_resource networkpolicy kafka-ldms-access
+
     sleep 2
     echo ""
 fi
@@ -429,6 +434,9 @@ if [ "$CLEAN_VICTORIA" = true ]; then
 fi
 echo "Remaining PVCs:"
 kubectl -n $NAMESPACE get pvc 2>/dev/null || echo "  None"
+echo ""
+echo "Remaining Network Policies:"
+kubectl -n $NAMESPACE get networkpolicy 2>/dev/null || echo "  None"
 echo ""
 echo "All pods:"
 kubectl -n $NAMESPACE get pods 2>/dev/null || echo "  None"
