@@ -42,5 +42,3 @@ Networks:
     dynamic_range: "172.16.107.201-172.16.107.250"
     dns: []
     ntp_servers: []
-
-
