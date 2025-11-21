@@ -13,6 +13,22 @@
 #  limitations under the License.
 ---
 
+- name: Get StatefulSet replica details
+  ansible.builtin.command: >
+    kubectl get statefulset {{ idrac_telemetry_k8s_name }} -n {{ telemetry_namespace }} -o jsonpath='{.status.readyReplicas} {.spec.replicas}'
+  register: sts_info
+  changed_when: false
+
+- name: Parse ready and expected replicas
+  set_fact:
+    sts_ready: "{{ sts_info.stdout.split()[0] | default('0') | int }}"
+    sts_expected: "{{ sts_info.stdout.split()[1] | default('0') | int }}"
+
+- name: Fail if not all replicas are ready
+  ansible.builtin.fail:
+    msg: "Expected {{ sts_expected }} replicas ready, but got {{ sts_ready }}"
+  when: sts_ready != sts_expected
+
 - name: Include service_cluster metadata if already exists
   ansible.builtin.include_vars: "{{ service_cluster_metadata_path }}"
   delegate_to: localhost

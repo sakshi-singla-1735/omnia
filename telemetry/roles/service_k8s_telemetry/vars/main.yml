@@ -23,3 +23,6 @@ functional_groups_config_path: "/opt/omnia/.data/functional_groups_config.yml"
 functional_groups_config_syntax_fail_msg: "Failed. Syntax errors present in functional_groups_config.yml. Fix errors and re-run playbook again."
 service_cluster_metadata_path: "/opt/omnia/.data/service_cluster_metadata.yml"
 metadata_perm: "0644"
+telemetry_ready_replicas_failure_msg: >
+  "Failed. Telemetry deployment is not fully operational. Expected {{ sts_expected }} components to be ready, but only {{ sts_ready }} are available.
+  Please verify the Telemetry deployment status and execute Telemetry playbook again."
