@@ -6,6 +6,20 @@
 LOG_FILE="/var/log/ldms-cloudinit.log"
 echo "===== Starting LDMS setup =====" | tee -a "$LOG_FILE"
 
+echo "Copying LDMS sampler configuration files..." | tee -a "$LOG_FILE"
+
+# Copy sampler.conf and ldmsauth.conf
+for file in sampler.conf ldmsauth.conf; do
+    src="{{ client_mount_path }}/ldms/samplers/$file"
+    dest="/opt/ovis-ldms/etc/ldms/$file"
+    if [ -f "$src" ]; then
+        sudo cp -rf "$src" "$dest"
+        echo "✓ Copied $file" | tee -a "$LOG_FILE"
+    else
+        echo "Warning: $file not found in NFS share" | tee -a "$LOG_FILE"
+    fi
+done
+
 # --- Export LDMS environment variables ---
 echo "Sourcing LDMS environment variables..." | tee -a "$LOG_FILE"
 if [ -f /opt/ovis-ldms/etc/profile.d/set-ovis-variables.sh ]; then

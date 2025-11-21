@@ -53,6 +53,88 @@
                 done
             fi
 
+
+        - path: /root/install_cuda_toolkit.sh
+          permissions: '0755'
+          content: |
+            #!/bin/bash
+            LOGFILE="/var/log/cuda_toolkit_install.log"
+            exec > >(tee -a "$LOGFILE") 2>&1
+
+            echo "===== Starting CUDA Toolkit installation ====="
+
+            # Check if CUDA toolkit is already installed
+            if command -v nvcc &>/dev/null; then
+                CUDA_VERSION=$(nvcc --version | grep "release" | awk '{print $6}' | sed 's/,//')
+                echo "[INFO] CUDA toolkit already installed (version: ${CUDA_VERSION}). Exiting."
+                exit 0
+            fi
+
+            echo "[INFO] Mounting NFS runfile directory for CUDA toolkit..."
+            mkdir -p /cuda-runfile
+            mount -t nfs {{ cloud_init_nfs_path }}/runfile /cuda-runfile
+
+            if [ $? -ne 0 ]; then
+                echo "[ERROR] Failed to mount NFS runfile share. Exiting."
+                exit 1
+            fi
+
+            echo "[INFO] Installing CUDA toolkit..."
+            if [ -f "/cuda-runfile/cuda_13.0.2_580.95.05_linux.run" ]; then
+                # Install only the toolkit component
+                bash /cuda-runfile/cuda_13.0.2_580.95.05_linux.run --silent --toolkit --toolkitpath=/usr/local/cuda --override
+
+                if [ $? -eq 0 ]; then
+                    echo "[SUCCESS] CUDA toolkit installed successfully."
+
+                    # Set up environment variables
+                    cat > /etc/profile.d/cuda.sh << 'ENDOFFILE'
+            export PATH=/usr/local/cuda/bin:$PATH
+            export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+            export CUDA_HOME=/usr/local/cuda
+            ENDOFFILE
+
+                    # Apply environment variables for current session
+                    export PATH=/usr/local/cuda/bin:$PATH
+                    export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+                    export CUDA_HOME=/usr/local/cuda
+
+                    echo "[INFO] CUDA environment configured"
+                else
+                    echo "[ERROR] CUDA toolkit installation failed."
+                fi
+            else
+                echo "[ERROR] CUDA toolkit runfile not found in /cuda-runfile/"
+            fi
+
+            echo "[INFO] Verifying CUDA toolkit installation..."
+            if command -v nvcc &>/dev/null; then
+                CUDA_VERSION=$(nvcc --version | grep "release" | awk '{print $6}' | sed 's/,//')
+                echo "[SUCCESS] CUDA toolkit verified: version $CUDA_VERSION"
+                echo "[INFO] CUDA installation path: $(which nvcc)"
+            else
+                echo "[ERROR] CUDA toolkit (nvcc) not found after installation."
+            fi
+
+            echo "[INFO] Setting up shared CUDA directory for compute nodes..."
+            # Create shared directory for compute nodes to mount
+            mkdir -p /shared-cuda-toolkit
+            # Mount the shared NFS location where compute nodes will access the toolkit
+            mount -t nfs {{ cloud_init_nfs_path }}/cuda/ /shared-cuda-toolkit
+
+            echo "[INFO] Copying CUDA toolkit to shared location..."
+            # Copy the installed CUDA toolkit to the shared location for compute nodes
+            #rsync -av /usr/local/cuda/ /shared-cuda-toolkit/ --exclude='*.a' --exclude='doc/'
+            cp -r /usr/local/cuda/* /shared-cuda-toolkit/ 2>/dev/null || true
+
+            echo "[INFO] Cleaning up temporary mounts..."
+            umount /cuda-runfile 2>/dev/null
+            rmdir /cuda-runfile 2>/dev/null
+
+            echo "===== CUDA Toolkit installation completed ====="
+
+
+
 {% if hostvars['localhost']['openldap_support'] %}
         - path: /etc/sssd/sssd.conf
           owner: root:root
@@ -68,11 +150,11 @@
 {% endif %}
 
 {% if hostvars['localhost']['ldms_support'] %}
-        - path: /root/ldms_conf.sh
+        - path: /root/ldms_sampler.sh
           owner: root:root
           permissions: '0755'
           content: |
-            {{ lookup('template', 'templates/ldms/ldms_conf.sh.j2') | indent(12) }}
+            {{ lookup('template', 'templates/ldms/ldms_sampler.sh.j2') | indent(12) }}
 {% endif %}
 
         - path: /etc/hosts
@@ -85,6 +167,7 @@
 
       runcmd:
         - /usr/local/bin/set-ssh.sh
+        - /root/install_cuda_toolkit.sh
         - groupadd -r {{ slurm_group_name }}
         - useradd -r -g {{ slurm_group_name }} -d {{ home_dir }} -s /sbin/nologin {{ user }}
 
@@ -224,7 +307,5 @@
 {% if hostvars['localhost']['ldms_support'] %}
         - echo " Starting LDMS setup " | tee -a /var/log/ldms-cloudinit.log
 
-        - cp -rf {{ client_mount_path }}/ldms/samplers/sampler.conf /opt/ovis-ldms/etc/ldms/
-
-        - /root/ldms_conf.sh
+        - /root/ldms_sampler.sh
 {% endif %}

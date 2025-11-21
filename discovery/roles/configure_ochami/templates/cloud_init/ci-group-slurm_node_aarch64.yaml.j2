@@ -55,6 +55,140 @@
                 done
             fi
 
+        - path: /root/install_nvidia_driver.sh
+          permissions: '0755'
+          content: |
+            #!/bin/bash
+            LOGFILE="/var/log/nvidia_install.log"
+            exec > >(tee -a "$LOGFILE") 2>&1
+
+            echo "===== Starting NVIDIA GPU detection and driver installation ====="
+
+            # Check for NVIDIA GPU presence
+            echo "[INFO] Checking for NVIDIA GPU..."
+            if ! lspci | grep -i nvidia &>/dev/null; then
+                echo "[INFO] No NVIDIA GPU detected. Exiting."
+                exit 0
+            fi
+
+            echo "[INFO] NVIDIA GPU detected. Proceeding with setup."
+
+            # Check if NVIDIA driver is already installed
+            if command -v nvidia-smi &>/dev/null; then
+                echo "[INFO] NVIDIA driver already installed. Skipping driver installation."
+            else
+                echo "[INFO] Mounting NFS runfile directory for driver installation..."
+                mkdir -p /gpu-runfile
+                mount -t nfs {{ cloud_init_nfs_path }}/runfile /gpu-runfile
+
+                if [ $? -ne 0 ]; then
+                    echo "[ERROR] Failed to mount NFS runfile share. Exiting."
+                    exit 1
+                fi
+
+                echo "[INFO] Installing NVIDIA driver..."
+                if [ -f "/gpu-runfile/cuda_13.0.2_580.95.05_linux_sbsa.run" ]; then
+                    bash /gpu-runfile/cuda_13.0.2_580.95.05_linux_sbsa.run --silent --driver --no-opengl-libs --kernel-source-path=/lib/modules/$(uname -r)/build
+                    if [ $? -eq 0 ] && command -v nvidia-smi &>/dev/null; then
+                        echo "[SUCCESS] NVIDIA driver installed successfully."
+                    else
+                        echo "[ERROR] NVIDIA driver installation failed."
+                    fi
+                else
+                    echo "[ERROR] NVIDIA driver runfile not found in /gpu-runfile/"
+                fi
+
+                echo "[INFO] Cleaning up temporary NFS mount..."
+                umount /gpu-runfile 2>/dev/null
+                rmdir /gpu-runfile 2>/dev/null
+            fi
+
+            echo "[INFO] Setting up CUDA toolkit mount..."
+            # Unmount first if already mounted
+            umount /usr/local/cuda 2>/dev/null
+
+            # Create mount point
+            mkdir -p /usr/local/cuda
+
+            cuda_nfs_share="{{ cloud_init_nfs_path }}/cuda"
+
+            echo "[INFO] Mounting CUDA toolkit from NFS: $cuda_nfs_share"
+            mount -t nfs "$cuda_nfs_share" /usr/local/cuda
+
+            if [ $? -eq 0 ]; then
+                echo "[SUCCESS] CUDA toolkit NFS mount successful"
+                
+                # Add to fstab for persistence
+                grep -q "$cuda_nfs_share" /etc/fstab || echo "$cuda_nfs_share /usr/local/cuda nfs defaults,_netdev 0 0" >> /etc/fstab
+                
+                echo "[INFO] Configuring persistent CUDA environment..."
+                
+                # System-wide profile for login shells
+                cat > /etc/profile.d/cuda.sh << 'EOF'
+            export PATH=/usr/local/cuda/bin:$PATH
+            export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+            export CUDA_HOME=/usr/local/cuda
+            EOF
+                chmod +x /etc/profile.d/cuda.sh
+                
+                # Bashrc for non-login shells
+                cat > /etc/bashrc.cuda << 'EOF'
+            if [ -d "/usr/local/cuda/bin" ]; then
+                export PATH="/usr/local/cuda/bin:$PATH"
+                export LD_LIBRARY_PATH="/usr/local/cuda/lib64:$LD_LIBRARY_PATH"
+                export CUDA_HOME="/usr/local/cuda"
+            fi
+            EOF
+                grep -q "bashrc.cuda" /etc/bashrc || echo "source /etc/bashrc.cuda" >> /etc/bashrc
+                
+                # Slurm prolog for job environment
+                mkdir -p /etc/slurm/prolog.d
+                cat > /etc/slurm/prolog.d/cuda.sh << 'EOF'
+            #!/bin/bash
+            export PATH=/usr/local/cuda/bin:$PATH
+            export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+            export CUDA_HOME=/usr/local/cuda
+            EOF
+                chmod +x /etc/slurm/prolog.d/cuda.sh
+                
+                # Apply immediately for current session
+                export PATH=/usr/local/cuda/bin:$PATH
+                export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+                export CUDA_HOME=/usr/local/cuda
+                
+                echo "[SUCCESS] Persistent CUDA environment configured"
+            else
+                echo "[ERROR] Failed to mount CUDA toolkit NFS share"
+                # Clean up failed mount
+                rmdir /usr/local/cuda 2>/dev/null
+                exit 1
+            fi
+
+            echo "[INFO] Verifying installation..."
+            if command -v nvidia-smi &>/dev/null; then
+                nvidia_version=$(nvidia-smi --version | head -n1)
+                echo "[SUCCESS] NVIDIA driver: $nvidia_version"
+            else
+                echo "[ERROR] NVIDIA driver not found."
+            fi
+
+            if command -v nvcc &>/dev/null; then
+                cuda_version=$(nvcc --version | grep "release" | awk '{print $6}' | sed 's/,//')
+                echo "[SUCCESS] CUDA toolkit: version $cuda_version"
+            else
+                echo "[ERROR] CUDA toolkit (nvcc) not found."
+            fi
+
+            echo "[INFO] Testing persistence in new shell..."
+            bash -c 'nvcc --version > /dev/null 2>&1'
+            if [ $? -eq 0 ]; then
+                echo "[SUCCESS] CUDA persistence test passed"
+            else
+                echo "[WARNING] CUDA persistence test failed - manual PATH setup may be needed"
+            fi
+
+            echo "===== NVIDIA GPU setup completed ====="
+
 {% if hostvars['localhost']['openldap_support'] %}
         - path: /etc/sssd/sssd.conf
           owner: root:root
@@ -70,11 +204,11 @@
 {% endif %}
 
 {% if hostvars['localhost']['ldms_support'] %}
-        - path: /root/ldms_conf.sh
+        - path: /root/ldms_sampler.sh
           owner: root:root
           permissions: '0755'
           content: |
-            {{ lookup('template', 'templates/ldms/ldms_conf.sh.j2') | indent(12) }}
+            {{ lookup('template', 'templates/ldms/ldms_sampler.sh.j2') | indent(12) }}
 {% endif %}
 
         - path: /etc/hosts
@@ -86,6 +220,7 @@
 
       runcmd:
         - /usr/local/bin/set-ssh.sh
+        - /root/install_nvidia_driver.sh
         - useradd -mG wheel -p '$6$VHdSKZNm$O3iFYmRiaFQCemQJjhfrpqqV7DdHBi5YpY6Aq06JSQpABPw.3d8PQ8bNY9NuZSmDv7IL/TsrhRJ6btkgKaonT.' testuser
         - groupadd -r {{ slurm_group_name }}
         - useradd -r -g {{ slurm_group_name }} -d {{ home_dir }} -s /sbin/nologin {{ user }}
@@ -112,7 +247,6 @@
         - mkdir -p /var/spool/slurmd
         - chmod {{ file_mode_755 }} /var/spool/slurmd
         - chown -R {{ user }}:{{ slurm_group_name }} /var/spool/slurmd
-
 
         - sed -i '/^password\s\+include\s\+password-auth/i account    required    pam_slurm_adopt.so action_no_jobs=deny' /etc/pam.d/sshd
 
@@ -169,9 +303,7 @@
 {% if hostvars['localhost']['ldms_support'] %}
         - echo " Starting LDMS setup " | tee -a /var/log/ldms-cloudinit.log
 
-        - cp -rf {{ client_mount_path }}/ldms/samplers/sampler.conf /opt/ovis-ldms/etc/ldms/
-
-        - /root/ldms_conf.sh
+        - /root/ldms_sampler.sh
 {% endif %}
 
 
