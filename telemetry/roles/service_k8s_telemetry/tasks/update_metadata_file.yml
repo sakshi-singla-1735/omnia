@@ -13,16 +13,35 @@
 #  limitations under the License.
 ---
 
-- name: Get StatefulSet replica details
-  ansible.builtin.command: >
-    kubectl get statefulset {{ idrac_telemetry_k8s_name }} -n {{ telemetry_namespace }} -o jsonpath='{.status.readyReplicas} {.spec.replicas}'
-  register: sts_info
-  changed_when: false
+- name: Check if namespace exists
+  kubernetes.core.k8s_info:
+    api_version: v1
+    kind: Namespace
+    name: "{{ telemetry_namespace }}"
+  register: ns_info
 
-- name: Parse ready and expected replicas
-  set_fact:
-    sts_ready: "{{ sts_info.stdout.split()[0] | default('0') | int }}"
-    sts_expected: "{{ sts_info.stdout.split()[1] | default('0') | int }}"
+- name: Fail if namespace does not exist
+  ansible.builtin.fail:
+    msg: "{{ telemetry_namespace_not_found }}"
+  when: ns_info.resources | length == 0
+
+- name: Get StatefulSet details
+  kubernetes.core.k8s_info:
+    api_version: apps/v1
+    kind: StatefulSet
+    name: "{{ idrac_telemetry_k8s_name }}"
+    namespace: "{{ telemetry_namespace }}"
+  register: sts_info
+
+- name: Fail if StatefulSet does not exist
+  ansible.builtin.fail:
+    msg: "{{ telemetry_deployments_not_found }}"
+  when: sts_info.resources | length == 0
+
+- name: Extract ready and expected replicas
+  ansible.builtin.set_fact:
+    sts_ready: "{{ sts_info.resources[0].status.readyReplicas | default(0) }}"
+    sts_expected: "{{ sts_info.resources[0].spec.replicas | default(0) }}"
 
 - name: Fail if not all replicas are ready
   ansible.builtin.fail:
