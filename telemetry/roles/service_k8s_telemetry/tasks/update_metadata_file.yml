@@ -26,7 +26,7 @@
 
 - name: Fail if not all replicas are ready
   ansible.builtin.fail:
-    msg: "Expected {{ sts_expected }} replicas ready, but got {{ sts_ready }}"
+    msg: "{{ telemetry_ready_replicas_failure_msg }}"
   when: sts_ready != sts_expected
 
 - name: Include service_cluster metadata if already exists
