@@ -31,11 +31,22 @@
     enabled: true
     state: restarted
 
+- name: Chronyc sources
+  ansible.builtin.command: chronyc sources
+  changed_when: false
+  register: chronyc_sources
+  until: chronyc_sources is not failed
+  retries: "{{ hostvars['localhost']['fail_retry'] }}"
+  delay: "{{ hostvars['localhost']['fail_delay'] }}"
+
 - name: Retrieve NTP servers
   ansible.builtin.set_fact:
     ntp_servers: "{{ hostvars['localhost']['ntp_servers'] | default([]) }}"
 
 - name: Configure NTP servers in chrony when ntp_servers are provided
+  when:
+    - ntp_servers is defined
+    - ntp_servers | length > 0
   block:
     - name: Check reachability of configured NTP servers
       ansible.builtin.command: "ping -c 1 {{ item.address }}"
@@ -100,6 +111,4 @@
         - reachable_ntp_servers is defined
         - reachable_ntp_servers | length > 0
         - chrony_reachable_sources.stdout_lines | length == 0
-  when:
-    - ntp_servers is defined
-    - ntp_servers | length > 0
+
