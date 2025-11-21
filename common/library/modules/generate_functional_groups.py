@@ -1,14 +1,15 @@
 #!/usr/bin/python
 
 """
-Ansible module: Generate or update cluster functional_groups.yaml based on a CSV mapping file.
+Ansible module: Generate cluster functional_groups.yaml based on a CSV mapping file.
+Always overwrites the YAML file with new data.
 """
 
-from ansible.module_utils.basic import AnsibleModule
-import csv
-import yaml
-from collections import OrderedDict
 import os
+import csv
+from collections import OrderedDict
+import yaml
+from ansible.module_utils.basic import AnsibleModule
 
 FUNCTIONAL_GROUP_LAYER_MAP = {
     "service_kube_control_plane_first_x86_64": "management",
@@ -34,25 +35,8 @@ DESCRIPTION_MAP = {
 }
 
 
-def load_existing_yaml(filepath):
-    if not os.path.exists(filepath):
-        return OrderedDict({"groups": OrderedDict(), "functional_groups": []})
-    with open(filepath) as f:
-        data = yaml.safe_load(f)
-        if not isinstance(data, dict):
-            data = {}
-        if not isinstance(data.get("groups"), dict):
-            data["groups"] = OrderedDict()
-        if not isinstance(data.get("functional_groups"), list):
-            data["functional_groups"] = []
-        return data
-
-
 def load_omnia_config(omnia_config_path, module):
-    """Load omnia_config.yml and extract:
-    - Kubernetes cluster name (deployment=true preferred)
-    - Slurm cluster name
-    """
+    """Load omnia_config.yml and return (kube_name, slurm_name)."""
     if not os.path.exists(omnia_config_path):
         module.fail_json(msg=f"omnia_config.yml not found: {omnia_config_path}")
 
@@ -60,22 +44,16 @@ def load_omnia_config(omnia_config_path, module):
         with open(omnia_config_path) as f:
             config = yaml.safe_load(f) or {}
 
-        # ------------------------------
-        # Kubernetes cluster name
-        # ------------------------------
         kube_name = None
         k8s_clusters = config.get("service_k8s_cluster", [])
         if isinstance(k8s_clusters, list) and k8s_clusters:
-            for c in k8s_clusters:
-                if c.get("deployment") is True:
-                    kube_name = c.get("cluster_name")
+            for cluster in k8s_clusters:
+                if cluster.get("deployment") is True:
+                    kube_name = cluster.get("cluster_name")
                     break
             if kube_name is None:
                 kube_name = k8s_clusters[0].get("cluster_name")
 
-        # ------------------------------
-        # Slurm cluster name
-        # ------------------------------
         slurm_name = None
         slurm_clusters = config.get("slurm_cluster", [])
         if isinstance(slurm_clusters, list) and slurm_clusters:
@@ -84,109 +62,113 @@ def load_omnia_config(omnia_config_path, module):
         return kube_name, slurm_name
 
     except Exception as e:
-        module.fail_json(msg=f"Failed to load omnia_config.yml: {str(e)}")
+        error_msg = f"Failed to load omnia_config.yml: {str(e)}"
+        module.fail_json(msg=error_msg)
 
 
 def parse_csv(filename, module):
+    """Parse CSV file and extract groups and functional groups."""
     groups = {}
     functional_groups = {}
     kube_control_seen = False
 
     try:
         with open(filename, newline="") as f:
-            reader = csv.DictReader(f)
+            cleaned_lines = [line.strip() for line in f if line.strip()]
+            header = cleaned_lines[0].split(",")
+            expected_columns = len(header)
+            valid_lines = [
+                line for line in cleaned_lines if len(line.split(",")) == expected_columns
+            ]
+
+            reader = csv.DictReader(valid_lines)
+
             for row in reader:
                 func_group = row["FUNCTIONAL_GROUP_NAME"].strip()
                 group_name = row["GROUP_NAME"].strip()
                 parent = row.get("PARENT_SERVICE_TAG", "").strip() or ""
 
-                # First kube control plane rename
                 if func_group == "service_kube_control_plane_x86_64" and not kube_control_seen:
                     func_group = "service_kube_control_plane_first_x86_64"
                     kube_control_seen = True
 
-                if group_name not in groups:
-                    groups[group_name] = {"parent": parent}
-
+                groups[group_name] = {"parent": parent}
                 if func_group in FUNCTIONAL_GROUP_LAYER_MAP:
                     functional_groups.setdefault(func_group, set()).add(group_name)
 
         return groups, functional_groups
 
     except Exception as e:
-        module.fail_json(msg=f"Error parsing CSV file: {str(e)}")
+        error_msg = f"Error parsing CSV file: {str(e)}"
+        module.fail_json(msg=error_msg)
 
+def build_yaml(new_groups, new_func_groups, kube_cluster_name, slurm_cluster_name):
+    """Build YAML structure with groups and functional groups."""
+    data = OrderedDict({"groups": OrderedDict(), "functional_groups": []})
 
-def merge_yaml(existing, new_groups, new_func_groups, kube_cluster_name, slurm_cluster_name):
-    added_groups, added_fgs = [], []
-
-    # Add missing groups
+    # Add groups
     for grp, details in new_groups.items():
-        if grp not in existing["groups"]:
-            existing["groups"][grp] = details
-            added_groups.append(grp)
+        data["groups"][grp] = details
 
-    existing_names = {fg["name"] for fg in existing["functional_groups"]}
-
-    # Add missing functional groups
+    # Add functional groups
     for func_group, group_list in new_func_groups.items():
-        if func_group not in existing_names:
-            layer = FUNCTIONAL_GROUP_LAYER_MAP[func_group]
+        layer = FUNCTIONAL_GROUP_LAYER_MAP[func_group]
+        fg_lower = func_group.lower()
+        # get appropriate cluster name
+        cluster_name = (
+            kube_cluster_name
+            if "kube" in fg_lower
+            else slurm_cluster_name or "slurm_cluster"
+        )
 
-            fg_lower = func_group.lower()
+        desc_key = next((k for k in DESCRIPTION_MAP if func_group.startswith(k)), func_group)
+        description = DESCRIPTION_MAP.get(desc_key, func_group)
 
-            if "kube" in fg_lower:
-                cluster_name = kube_cluster_name or "kubernetes_cluster"
-            else:
-                cluster_name = slurm_cluster_name or "slurm_cluster"
-            # ---------------------------------------------------------
+        new_entry = OrderedDict({
+            "name": func_group,
+            "cluster_name": cluster_name,
+            "group": sorted(list(group_list)),
+            "_comment": [
+                f"{description} functional_groups:",
+                f"This functional_group is used to configure the nodes for {description}. "
+                f"It belongs to the {layer} layer.",
+                f"The nodes included in this functional_group will have the necessary tools "
+                f"and configurations to run {description}.",
+                f"The nodes in this functional_group can be used to run {description}."
+            ]
+        })
+        data["functional_groups"].append(new_entry)
 
-            desc_key = next((k for k in DESCRIPTION_MAP if func_group.startswith(k)), func_group)
-            description = DESCRIPTION_MAP.get(desc_key, func_group)
-
-            new_entry = OrderedDict({
-                "name": func_group,
-                "cluster_name": cluster_name,
-                "group": sorted(list(group_list)),
-                "_comment": [
-                    f"{description} functional_groups:",
-                    f"This functional_group is used to configure the nodes for {description}. It belongs to the {layer} layer.",
-                    f"The nodes included in this.functional_group will have the necessary tools and configurations to run {description}.",
-                    f"The nodes in this functional_group can be used to run {description}."
-                ]
-            })
-
-            existing["functional_groups"].append(new_entry)
-            added_fgs.append(func_group)
-
-    return existing, added_groups, added_fgs
-
+    return data
 
 def dump_yaml_with_comments(data, filename):
+    """Write YAML data to file with custom formatting and comments."""
     with open(filename, "w") as f:
-        f.write("# ------------------------------------------------------------------------------------------------\n")
+        f.write("# ----------------------------------------------------------------\n")
         f.write("# Groups definition\n")
-        f.write("# ------------------------------------------------------------------------------------------------\n")
+        f.write("# ----------------------------------------------------------------\n")
         f.write("groups:\n")
-        for g, d in data["groups"].items():
+        for g in sorted(data["groups"].keys()):
+            d = data["groups"][g]
             f.write(f"  {g}:\n")
             f.write(f"    parent: \"{d['parent']}\"\n")
-        f.write("\n# ------------------------------------------------------------------------------------------------\n")
+
+        f.write("\n# ----------------------------------------------------------------\n")
         f.write("# Functional Groups definition\n")
-        f.write("# ------------------------------------------------------------------------------------------------\n")
+        f.write("# -----------------------------------------------------------------\n")
         f.write("functional_groups:\n")
         for fg in data.get("functional_groups") or []:
-            for c in fg.get("_comment", []):
-                f.write(f"  # {c}\n")
+            for comment in fg.get("_comment", []):
+                f.write(f"  # {comment}\n")
             f.write(f"  - name: \"{fg['name']}\"\n")
             f.write(f"    cluster_name: \"{fg['cluster_name']}\"\n")
             f.write(f"    group:\n")
-            for g in fg["group"]:
+            for g in sorted(set(fg["group"])):
                 f.write(f"      - {g}\n")
             f.write("\n")
 
-
 def main():
+    """Initialize Ansible module for generating functional groups."""
     module_args = {
         "mapping_file_path": {"type": "str", "required": True},
         "functional_groups_file_path": {"type": "str", "required": True},
@@ -204,33 +186,22 @@ def main():
             module.fail_json(msg=f"CSV file not found: {mapping_file_path}")
 
         kube_cluster_name, slurm_cluster_name = load_omnia_config(omnia_config_path, module)
-
-        existing_yaml = load_existing_yaml(functional_groups_file_path)
         new_groups, new_func_groups = parse_csv(mapping_file_path, module)
 
-        merged_yaml, added_groups, added_fgs = merge_yaml(
-            existing_yaml,
-            new_groups,
-            new_func_groups,
-            kube_cluster_name,
-            slurm_cluster_name
-        )
-
-        changed = bool(added_groups or added_fgs)
-
-        if changed:
-            dump_yaml_with_comments(merged_yaml, functional_groups_file_path)
+        # Always overwrite: build fresh YAML
+        yaml_data = build_yaml(new_groups, new_func_groups, kube_cluster_name, slurm_cluster_name)
+        dump_yaml_with_comments(yaml_data, functional_groups_file_path)
 
         module.exit_json(
-            changed=changed,
-            msg=f"Updated functional_groups_config.yml file: {functional_groups_file_path}",
-            added_groups=added_groups,
-            added_functional_groups=added_fgs
+            changed=True,
+            msg=f"functional_groups_config.yml file overwritten: {functional_groups_file_path}",
+            added_groups=list(new_groups.keys()),
+            added_functional_groups=list(new_func_groups.keys())
         )
 
     except Exception as e:
-        module.fail_json(msg=f"Error while generating functional groups YAML: {str(e)}")
-
+        error_msg = f"Error while generating functional groups YAML: {str(e)}"
+        module.fail_json(msg=error_msg)
 
 if __name__ == "__main__":
     main()
