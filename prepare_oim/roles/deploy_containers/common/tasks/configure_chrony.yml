@@ -82,7 +82,10 @@
 
 - name: Extract any chrony source with Reach > 0
   ansible.builtin.shell: |
+    set -o pipefail
     chronyc sources -n | awk 'NR>2 { if ($5+0 > 0) print $2 " " $5 }' | uniq
+  args:
+    executable: /bin/bash
   register: chrony_reachable_sources
   changed_when: false
   failed_when: false
