@@ -154,13 +154,21 @@ class LdmsdManager:  # pylint: disable=too-many-instance-attributes
                     'LDMSD_CONF': f"/ldms_conf/ldmsd.nersc-ldms-aggr.{ldmsd_name}-{index}.conf",
                     # 'EXPORTER_PORT': 9101  # DISABLED: Exporter functionality
                 })
+                # Create environment file with pod name pattern for StatefulSet compatibility
+                pod_name = f"nersc-ldms-aggr-{index}"
+                self.create_ldms_env(
+                    os.path.join(self.out_dir, f"ldms-env.{pod_name}.sh"),
+                    self.env[ldmsd_name]['agg'][-1]
+                )
+                # Also create the original cluster-based name for backward compatibility
                 self.create_ldms_env(
                     os.path.join(self.out_dir, f"ldms-env.nersc-ldms-aggr.{ldmsd_name}-{index}.sh"),
                     self.env[ldmsd_name]['agg'][-1]
                 )
                 self.configmaps.extend([
                     os.path.join(self.out_dir, f"ldmsd.nersc-ldms-aggr.{ldmsd_name}-{index}.conf"),
-                    os.path.join(self.out_dir, f"ldms-env.nersc-ldms-aggr.{ldmsd_name}-{index}.sh")
+                    os.path.join(self.out_dir, f"ldms-env.nersc-ldms-aggr.{ldmsd_name}-{index}.sh"),
+                    os.path.join(self.out_dir, f"ldms-env.{pod_name}.sh")
                 ])
 
     def make_store_configs(self):  # pylint: disable=too-many-locals
@@ -212,13 +220,21 @@ class LdmsdManager:  # pylint: disable=too-many-instance-attributes
                         'LDMSD_CONF': f"/ldms_conf/ldmsd.nersc-ldms-store-{ldmsd_name}-{store_pod_index}.conf",
                         # 'EXPORTER_PORT': 9101  # DISABLED: Exporter functionality
                     })
+                    # Create environment file with pod name pattern for StatefulSet compatibility
+                    store_pod_name = f"nersc-ldms-store-{ldmsd_name}-{store_pod_index}"
+                    self.create_ldms_env(
+                        os.path.join(self.out_dir, f"ldms-env.{store_pod_name}.sh"),
+                        self.env[ldmsd_name]['store'][-1]
+                    )
+                    # Also create the original cluster-based name for backward compatibility
                     self.create_ldms_env(
                         os.path.join(self.out_dir, f"ldms-env.nersc-ldms-store-{ldmsd_name}-{store_pod_index}.sh"),
                         self.env[ldmsd_name]['store'][-1]
                     )
                     self.configmaps.extend([
                         os.path.join(self.out_dir, f"ldmsd.nersc-ldms-store-{ldmsd_name}-{store_pod_index}.conf"),
-                        os.path.join(self.out_dir, f"ldms-env.nersc-ldms-store-{ldmsd_name}-{store_pod_index}.sh")
+                        os.path.join(self.out_dir, f"ldms-env.nersc-ldms-store-{ldmsd_name}-{store_pod_index}.sh"),
+                        os.path.join(self.out_dir, f"ldms-env.{store_pod_name}.sh")
                     ])
                     store_pod_index += 1
 
@@ -537,9 +553,12 @@ class LdmsdManager:  # pylint: disable=too-many-instance-attributes
         cfg.append(f"updtr_start name={ldmsd_name}")
         cfg.append("prdcr_start_regex regex=.*")
         cfg.extend([
-            "# Store in kafka - port 9092 (plaintext, no TLS, no auth)",
-            "# NOTE: store_avro_kafka plugin using plaintext for anonymous access",
-            "# Using plaintext listener on port 9092 (internal cluster only)",
+            "# Store in Kafka - port 9092 (plaintext, no TLS, no auth)",
+            "# NOTE: store_avro_kafka plugin does not support TLS/authentication",
+            "# Security: Access to port 9092 is restricted via NetworkPolicy",
+            "#   - NetworkPolicy 'kafka-ldms-access' allows only LDMS store pods",
+            "#   - Network-level isolation ensures only authorized pods can connect",
+            "#   - TLS ports (9093, 9094) require mTLS for all other clients",
             "load name=store_avro_kafka",
             "config name=store_avro_kafka encoding=json topic=ldms",
             f"strgp_add name=kafka regex=.* plugin=store_avro_kafka "

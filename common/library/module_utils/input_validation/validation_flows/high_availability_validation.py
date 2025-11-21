@@ -301,7 +301,7 @@ def validate_vip_address(
         - errors (list): A list to store error messages.
         - config_type (str): The type of configuration being validated.
         - vip_address (str): The virtual IP address to be validated.
-        - service_node_vip (list): A list of existing service node VIPs.
+        - pod_external_ip_list (list): A list of external IP addresses associated with the pods
         - admin_network (dict): A dictionary containing admin network configuration.
         - admin_netmaskbits (str): The netmask bits value of the admin network.
         - oim_admin_ip (str): The IP address of the OIM admin interface.
@@ -310,9 +310,7 @@ def validate_vip_address(
         - None: The function does not return any value, it only appends
             error messages to the errors list.
     """
-    # validate if the same virtual_ip_address is already use
-
-        # virtual_ip_address is mutually exclusive with admin dynamic ranges
+    # virtual_ip_address is mutually exclusive with admin dynamic ranges
     vip_within_dynamic_range = validation_utils.is_ip_within_range(
         admin_network["dynamic_range"], vip_address
     )
@@ -325,6 +323,17 @@ def validate_vip_address(
                 en_us_validation_msg.VIRTUAL_IP_NOT_VALID,
             )
         )
+
+    # validate virtual_ip_address is in the admin subnet
+    if not validation_utils.is_ip_in_subnet(oim_admin_ip, admin_netmaskbits, vip_address):
+        errors.append(
+            create_error_msg(
+                f"{config_type} virtual_ip_address",
+                vip_address,
+                en_us_validation_msg.VIRTUAL_IP_NOT_IN_ADMIN_SUBNET,
+            )
+        )
+
     # pod external
     for pod_ext in pod_external_ip_list:
         vip_within_pod_external = validation_utils.is_ip_within_range(
@@ -339,17 +348,6 @@ def validate_vip_address(
                     en_us_validation_msg.VIRTUAL_IP_NOT_POD_EXT,
                 )
             )
-
-    # pxe_map IPs
-    # validate virtual_ip_address is in the admin subnet
-    # if not validation_utils.is_ip_in_subnet(oim_admin_ip, admin_netmaskbits, vip_address):
-    #     errors.append(
-    #         create_error_msg(
-    #             f"{config_type} virtual_ip_address",
-    #             vip_address,
-    #             en_us_validation_msg.VIRTUAL_IP_NOT_IN_ADMIN_SUBNET,
-    #         )
-    #     )
 
 def validate_service_k8s_cluster_ha(
     errors,
