@@ -36,3 +36,6 @@ Networks:
     primary_oim_bmc_ip: "" 
     dynamic_range: "172.16.107.201-172.16.107.250"
     dns: []
+    ntp_servers:
+      - { address: "www.facebook.com", type: "pool" }
+
