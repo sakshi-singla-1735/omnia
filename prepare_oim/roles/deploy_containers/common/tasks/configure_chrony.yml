@@ -80,7 +80,7 @@
   retries: "{{ hostvars['localhost']['fail_retry'] }}"
   delay: "{{ hostvars['localhost']['fail_delay'] }}"
 
-- name: Extract any chrony source with Reach > 0
+- name: Check reachable chrony sources
   ansible.builtin.shell: |
     set -o pipefail
     chronyc sources -n | awk 'NR>2 { if ($5+0 > 0) print $2 " " $5 }' | uniq
@@ -90,7 +90,7 @@
   changed_when: false
   failed_when: false
 
-- name: Fail if no chrony sources have non-zero reach
+- name: Fail if no chrony sources are reachable
   ansible.builtin.fail:
     msg: "{{ chrony_no_sources_msg }}"
   when:
