@@ -189,6 +189,7 @@
         - systemctl restart crio
         - kubeadm config images pull
         - |
+          set -e
           MARKER="/etc/kubernetes/.cluster_initialized"
           export KUBECONFIG="/etc/kubernetes/admin.conf"
           if [ ! -f "$MARKER" ]; then

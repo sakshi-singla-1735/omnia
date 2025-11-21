@@ -292,6 +292,7 @@
         - |
           MARKER="/etc/kubernetes/.cluster_initialized"
           export KUBECONFIG="/etc/kubernetes/admin.conf"
+          set -e
           if [ ! -f "$MARKER" ]; then
             # Join Kubernetes cluster
             echo "Initial boot - initializing and setting up service_kube_control_plane_x86_64"
@@ -300,6 +301,7 @@
             K8S_CLIENT_MOUNT_PATH="{{ k8s_client_mount_path }}"
             NODE_NAME="{% raw %}{{ ds.meta_data.instance_data.local_ipv4 }}{% endraw %}"
             KUBE_VIP="{{ kube_vip }}"
+            KUBE_PORT="6443"
             JOIN_CMD_FILE="${K8S_CLIENT_MOUNT_PATH}/control-plane-join-command.sh"
             echo "----------------------------------------------------------------------"
             echo "Waiting for the service_kube_control_plane_first_x86_64 to be initialized."
@@ -337,6 +339,23 @@
             else
               echo "WARNING: /etc/kubernetes/kubelet.conf not found. Kubelet may not be initialized yet."
             fi
+            # Update kubelet.conf
+            #sed -i "s|server: https://[^:]*:${KUBE_PORT}|server: https://${KUBE_VIP}:${KUBE_PORT}|" /etc/kubernetes/kubelet.conf
+
+            # Update controller-manager.conf
+            #sed -i "s|server: https://[^:]*:${KUBE_PORT}|server: https://${KUBE_VIP}:${KUBE_PORT}|" /etc/kubernetes/controller-manager.conf
+
+            # Update scheduler.conf
+            #sed -i "s|server: https://[^:]*:${KUBE_PORT}|server: https://${KUBE_VIP}:${KUBE_PORT}|" /etc/kubernetes/scheduler.conf
+
+            kubectl config set-cluster kubernetes --kubeconfig=/etc/kubernetes/controller-manager.conf --server=https://{{ kube_vip }}:6443
+
+            kubectl config set-cluster kubernetes --kubeconfig=/etc/kubernetes/scheduler.conf --server=https://{{ kube_vip }}:6443
+
+            kubectl config set-cluster kubernetes --kubeconfig=/etc/kubernetes/kubelet.conf --server=https://{{ kube_vip }}:6443
+           
+            systemctl restart kubelet
+
             echo "Installing Necessary Python pip packages"
             python3 -m ensurepip
 
