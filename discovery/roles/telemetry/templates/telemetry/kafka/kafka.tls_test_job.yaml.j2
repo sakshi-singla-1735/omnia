@@ -150,7 +150,7 @@ spec:
             defaultMode: 0755
       containers:
         - name: kafka-tls-test
-          image: quay.io/strimzi/kafka:0.48.0-kafka-4.1.0
+          image: {{ kafka.kafka_image }}
           imagePullPolicy: IfNotPresent
           volumeMounts:
             - mountPath: /etc/kafka/cluster-ca
