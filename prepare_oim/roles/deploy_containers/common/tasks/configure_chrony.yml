@@ -111,4 +111,3 @@
         - reachable_ntp_servers is defined
         - reachable_ntp_servers | length > 0
         - chrony_reachable_sources.stdout_lines | length == 0
-
