@@ -54,3 +54,7 @@ omnia_service_path:
 network_services:
   - network-online.target
   - NetworkManager-wait-online.service
+
+# Usage: configure_chrony.yml
+chrony_conf_path: "/etc/chrony.conf"
+chrony_no_sources_msg: "No chrony sources are reachable. Please give a valid NTP server configuration in network_spec.yml and re-run prepare_oim playbook."
