@@ -79,15 +79,20 @@ spec:
             name: nersc-ldms-bin
             defaultMode: 0500
         - name: kafkapump-certs
-          secret:
-            secretName: kafkapump
-            items:
-              - key: ca.crt
-                path: ca.crt
-              - key: user.crt
-                path: user.crt
-              - key: user.key
-                path: user.key
+          projected:
+            sources:
+              - secret:
+                  name: kafka-cluster-ca-cert
+                  items:
+                    - key: ca.crt
+                      path: ca.crt
+              - secret:
+                  name: kafkapump
+                  items:
+                    - key: user.crt
+                      path: user.crt
+                    - key: user.key
+                      path: user.key
 {{- if $.Values.authVolOption }}
 {{ toYaml $.Values.authVolOption | nindent 8 }}
 {{- end }}
