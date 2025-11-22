@@ -236,6 +236,7 @@
               --apiserver-advertise-address={% raw %}{{ ds.meta_data.instance_data.local_ipv4 }}{% endraw %} \
               --node-name {% raw %}{{ ds.meta_data.instance_data.local_ipv4 }}{% endraw %} \
               --cri-socket=unix:///var/run/crio/crio.sock \
+              --control-plane-endpoint={% raw %}{{ ds.meta_data.instance_data.local_ipv4 }}{% endraw %}:6443 \
               --apiserver-cert-extra-sans {{ kube_vip }}
         
         - path: /usr/local/bin/install-helm.sh
@@ -384,6 +385,15 @@
             # Setup Kubernetes cluster
             rm -rf /var/lib/etcd/*  /var/lib/kubelet/* /etc/kubernetes/*
             rm -rf /var/lib/etcd/.*  /var/lib/kubelet/.* /etc/kubernetes/.*
+            #!/bin/bash
+            NODE_IP="{% raw %}{{ ds.meta_data.instance_data.local_ipv4 }}{% endraw %}"
+            # Find the interface with this IP
+            VIP_IFACE=$(ip -o addr show | awk -v ip="$NODE_IP" '$4 ~ ip {print $2}')
+            # Replace the vip_interface placeholder in the yaml
+            sed -i "s/value: vip_interface/value: ${VIP_IFACE}/" /tmp/kube-vip.yaml
+            mkdir -p /etc/kubernetes/manifests/
+            cp /tmp/kube-vip.yaml /etc/kubernetes/manifests/kube-vip.yaml
+
             /usr/local/bin/k8s-cluster-setup.sh || true
             mkdir -p $HOME/.kube
             cp -f /etc/kubernetes/admin.conf $HOME/.kube/config
@@ -451,7 +461,12 @@
               sed -i "/ClusterConfiguration:/a\    controlPlaneEndpoint: ${kube_vip}:6443" /tmp/kubeadm-config.yaml
             fi
             kubectl apply -f /tmp/kubeadm-config.yaml
-
+ 
+            # Update cluster-info
+            kubectl get configmap cluster-info -n kube-public -o yaml > /tmp/cluster-info.yaml
+            sed -i "s|server: https://.*:6443|server: https://${kube_vip}:6443|" /tmp/cluster-info.yaml
+            kubectl apply -f /tmp/cluster-info.yaml
+            
             VIP="{{ kube_vip }}"
             KUBE_PORT="6443"
             sed -i "s|server: https://[^:]*:${KUBE_PORT}|server: https://${VIP}:${KUBE_PORT}|" /etc/kubernetes/admin.conf
@@ -463,30 +478,6 @@
             mkdir -p /root/.kube
             cp /etc/kubernetes/admin.conf /root/.kube/config
  
-            # Update kubelet.conf
-            #sed -i "s|server: https://[^:]*:${KUBE_PORT}|server: https://${VIP}:${KUBE_PORT}|" /etc/kubernetes/kubelet.conf
-
-            # Update controller-manager.conf
-            #sed -i "s|server: https://[^:]*:${KUBE_PORT}|server: https://${VIP}:${KUBE_PORT}|" /etc/kubernetes/controller-manager.conf
-
-            # Update scheduler.conf
-            #sed -i "s|server: https://[^:]*:${KUBE_PORT}|server: https://${VIP}:${KUBE_PORT}|" /etc/kubernetes/scheduler.conf
-
-            #!/bin/bash
-            NODE_IP="{% raw %}{{ ds.meta_data.instance_data.local_ipv4 }}{% endraw %}"
-            # Find the interface with this IP
-            VIP_IFACE=$(ip -o addr show | awk -v ip="$NODE_IP" '$4 ~ ip {print $2}')
-            # Replace the vip_interface placeholder in the yaml
-            sed -i "s/value: vip_interface/value: ${VIP_IFACE}/" /tmp/kube-vip.yaml
-            cp /tmp/kube-vip.yaml /etc/kubernetes/manifests/kube-vip.yaml
-            systemctl restart kubelet
-
-            kubectl config set-cluster kubernetes --kubeconfig=/etc/kubernetes/controller-manager.conf --server=https://{{ kube_vip }}:6443
-
-            kubectl config set-cluster kubernetes --kubeconfig=/etc/kubernetes/scheduler.conf --server=https://{{ kube_vip }}:6443
-
-            kubectl config set-cluster kubernetes --kubeconfig=/etc/kubernetes/kubelet.conf --server=https://{{ kube_vip }}:6443
-           
             systemctl restart kubelet
 
             KUBE_VIP="{{ kube_vip }}"
@@ -596,6 +587,7 @@
                 sleep 10
               fi
             done
+          
 
             echo "Installing plugins"
             echo "Installing nfs-client-provisioner"
@@ -916,6 +908,7 @@
 
             # Mark initialization complete so all of above is skipped on reboot!
             touch "$MARKER"
+
           else
             # SUBSEQUENT BOOT - SKIP INIT
             echo "service_kube_control_plane_first_x86_64 is already part of cluster."
