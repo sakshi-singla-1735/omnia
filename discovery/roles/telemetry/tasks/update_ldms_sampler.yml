@@ -28,6 +28,14 @@
     group: root
     mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
 
+- name: Load ldmsauth.conf to ldms dir
+  ansible.builtin.template:
+    src: "telemetry/ldms/ldmsauth.conf.j2"
+    dest: "{{ share_path }}/ldms/samplers/ldmsauth.conf"
+    owner: root
+    group: root
+    mode: "{{ hostvars['localhost']['file_permissions_600'] }}"
+
 - name: Copy ldmsd.sampler.env to LDMS samplers directory
   ansible.builtin.template:
     src: "telemetry/ldms/ldmsd.sampler.env.j2"
