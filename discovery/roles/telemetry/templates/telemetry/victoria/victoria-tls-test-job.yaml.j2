@@ -210,31 +210,6 @@ data:
     fi
     echo ""
     
-    # Test iDRAC telemetry metrics (PowerEdge hardware metrics)
-    echo "Testing iDRAC telemetry metrics..."
-    if [ "$USE_TLS" = "true" ]; then
-      IDRAC_METRICS=$(curl -s --max-time 30 --cacert "$CA_CERT" "${VICTORIA_URL}/api/v1/query?query={job=\"idrac-telemetry\"}" || echo "failed")
-    else
-      IDRAC_METRICS=$(curl -s --max-time 30 "${VICTORIA_URL}/api/v1/query?query={job=\"idrac-telemetry\"}" || echo "failed")
-    fi
-    
-    if echo "$IDRAC_METRICS" | grep -q "status.*success"; then
-      IDRAC_COUNT=$(echo "$IDRAC_METRICS" | grep -o '"metric":{[^}]*}' | wc -l || echo "0")
-      if [ "$IDRAC_COUNT" -gt 0 ]; then
-        echo "  Found $IDRAC_COUNT iDRAC telemetry metrics:"
-        echo "$IDRAC_METRICS" | grep -o '"__name__":"[^"]*"' | sed 's/"__name__":"//g; s/"//g' | sort | uniq | head -5 | sed 's/^/    /'
-        echo "  ✓ iDRAC telemetry metrics active"
-        
-        # Show server count
-        SERVER_COUNT=$(echo "$IDRAC_METRICS" | grep -o '"HostName":"[^"]*"' | sed 's/"HostName":"//g; s/"//g' | sort | uniq | wc -l || echo "0")
-        echo "  Monitoring $SERVER_COUNT Dell servers via iDRAC"
-      else
-        echo "  ⚠ No iDRAC telemetry metrics found"
-      fi
-    else
-      echo "  ⚠ Could not query iDRAC telemetry metrics"
-    fi
-    echo ""
     
     # Test 6: Test certificate verification (only for TLS)
     if [ "$USE_TLS" = "true" ]; then
