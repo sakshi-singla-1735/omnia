@@ -121,7 +121,6 @@ victoria_cluster:
       limits:
         memory: "4Gi"
         cpu: "2000m"
-  
   # VMInsert: Accepts data ingestion and routes to vmstorage
   vminsert:
     replicas: 2
@@ -178,7 +177,8 @@ vmagent:
   remote_write_url: "https://victoria-loadbalancer.telemetry.svc.cluster.local:8443/api/v1/write"
   # Cluster URL (used when victoria_cluster.enabled: true)
   remote_write_url_cluster: >
-    {% if victoria_cluster.tls_enabled %}https{% else %}http{% endif %}://vminsert.{{ telemetry_namespace }}.svc.cluster.local:8480/insert/0/prometheus/api/v1/write
+    {% if victoria_cluster.tls_enabled %}https{% else %}http{% endif %}://vminsert.{{ telemetry_namespace }}.svc.cluster.local:8480/
+    insert/0/prometheus/api/v1/write
 
 strmzi_kafka_tarball_url: "{{ offline_tarball_path }}/{{ strimzi_kafka_pkg }}/{{ strimzi_kafka_pkg }}.tar.gz"
 
