@@ -47,6 +47,7 @@
     admin_nic_ip: "{{ network_data.admin_network.primary_oim_admin_ip }}"
     admin_nic: "{{ network_data.admin_network.oim_nic_name }}"
     admin_netmask_bits: "{{ network_data.admin_network.netmask_bits }}"
+    ntp_servers: "{{ network_data.admin_network.ntp_servers }}"
 
 - name: Ensure NIC exists on the system
   ansible.builtin.assert:
