@@ -70,6 +70,9 @@ spec:
         tls: true
         authentication:
           type: tls
+    # Enable authorization for proper access control
+    authorization:
+      type: simple
     config:
       offsets.topic.replication.factor: 3
       transaction.state.log.replication.factor: 3
