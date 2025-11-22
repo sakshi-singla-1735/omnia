@@ -51,7 +51,7 @@
   failed_when: false
   loop:
     - out_dir
-    - manifest.yaml.in
+    - manifest.yaml
     - values.yaml
 
 - name: Run make command inside ldms directory
