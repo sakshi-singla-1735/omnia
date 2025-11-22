@@ -67,7 +67,7 @@ kafka:
   container_name: "kafka-controller"
   service_name: "kafka-headless"
   lb_service_name: "kafka-loadbalancer"
-  container_port1: 9092
+  container_port1: 9093
   # Kafka images from service_k8s.json
   operator_image: "{{ telemetry_images['strimzi/operator'] | default('quay.io/strimzi/operator:0.48.0') }}"
   kafka_image: "{{ telemetry_images['strimzi/kafka'] | default('quay.io/strimzi/kafka:0.48.0-kafka-4.1.0') }}"
@@ -232,8 +232,6 @@ victoria_templates: "{{ victoria_templates_common + (victoria_templates_cluster 
 kafka_templates:
   - src: 'telemetry/kafka/kafka.kafka.yaml.j2'
     dest: 'kafka.kafka.yaml'
-  - src: 'telemetry/kafka/kafka.networkpolicy.yaml.j2'
-    dest: 'kafka.networkpolicy.yaml'
   - src: 'telemetry/kafka/kafka.kafkapump_user.yaml.j2'
     dest: 'kafka.kafkapump_user.yaml'
   - src: 'telemetry/kafka/kafka.kafka_bridge.yaml.j2'

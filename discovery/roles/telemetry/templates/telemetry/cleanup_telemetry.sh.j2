@@ -192,9 +192,6 @@ if [ "$CLEAN_LDMS" = true ]; then
     # Delete any LDMS pods
     delete_all pod "app=nersc-ldms"
     
-    # Delete LDMS network policies
-    echo "Deleting LDMS network policies..."
-    delete_resource networkpolicy kafka-ldms-access
 
     sleep 2
     echo ""
