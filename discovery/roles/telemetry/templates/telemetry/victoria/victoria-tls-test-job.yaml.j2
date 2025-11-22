@@ -125,6 +125,93 @@ data:
     echo ""
     
     # Test 5: Test API query endpoint
+{% if hostvars['localhost']['victoria_configurations']['deployment_mode'] == 'cluster' %}
+    echo "Step 5: Testing /select/0/prometheus/api/v1/query endpoint..."
+    if [ "$USE_TLS" = "true" ]; then
+      QUERY_RESPONSE=$(curl -s --max-time 30 --cacert "$CA_CERT" "${VICTORIA_URL}/select/0/prometheus/api/v1/query?query=up" || echo "failed")
+    else
+      QUERY_RESPONSE=$(curl -s --max-time 30 "${VICTORIA_URL}/select/0/prometheus/api/v1/query?query=up" || echo "failed")
+    fi
+    if echo "$QUERY_RESPONSE" | grep -q "status"; then
+      echo "Query response:"
+      echo "$QUERY_RESPONSE" | head -n 5 | sed 's/^/  /'
+      echo "✓ API query endpoint responding"
+    else
+      echo "⚠ API query endpoint returned unexpected response (this is normal if no data ingested yet)"
+      echo "Response: $QUERY_RESPONSE"
+    fi
+    echo ""
+    
+    # Test 5.1: List all available metric names
+    echo "Step 5.1: Listing all available metric names..."
+    if [ "$USE_TLS" = "true" ]; then
+      METRIC_NAMES=$(curl -s --max-time 30 --cacert "$CA_CERT" "${VICTORIA_URL}/select/0/prometheus/api/v1/label/__name__/values" || echo "failed")
+    else
+      METRIC_NAMES=$(curl -s --max-time 30 "${VICTORIA_URL}/select/0/prometheus/api/v1/label/__name__/values" || echo "failed")
+    fi
+    
+    if echo "$METRIC_NAMES" | grep -q "status"; then
+      METRIC_COUNT=$(echo "$METRIC_NAMES" | grep -o '"[^"]*"' | wc -l || echo "0")
+      echo "Found $METRIC_COUNT unique metric names:"
+      echo "$METRIC_NAMES" | grep -o '"[^"]*"' | sed 's/"//g' | head -20 | sed 's/^/  /'
+      if [ "$METRIC_COUNT" -gt 20 ]; then
+        echo "  ... and $((METRIC_COUNT - 20)) more metrics"
+      fi
+      echo "✓ Metric names endpoint responding"
+    else
+      echo "⚠ No metrics found or endpoint not responding"
+      echo "Response: $METRIC_NAMES"
+    fi
+    echo ""
+    
+    # Test 5.2: Query specific known metrics with data
+    echo "Step 5.2: Testing specific telemetry metrics..."
+    
+    # Test PowerEdge CPU Temperature (known working metric)
+    echo "Testing PowerEdge CPU Temperature..."
+    if [ "$USE_TLS" = "true" ]; then
+      TEMP_METRICS=$(curl -s --max-time 30 --cacert "$CA_CERT" "${VICTORIA_URL}/select/0/prometheus/api/v1/query?query=PowerEdge_CPU1Temp_TemperatureReading" || echo "failed")
+    else
+      TEMP_METRICS=$(curl -s --max-time 30 "${VICTORIA_URL}/select/0/prometheus/api/v1/query?query=PowerEdge_CPU1Temp_TemperatureReading" || echo "failed")
+    fi
+    
+    if echo "$TEMP_METRICS" | grep -q "status.*success"; then
+      TEMP_COUNT=$(echo "$TEMP_METRICS" | grep -o '"metric":{[^}]*}' | wc -l || echo "0")
+      echo "  Found $TEMP_COUNT CPU temperature readings:"
+      if [ "$TEMP_COUNT" -gt 0 ]; then
+        echo "$TEMP_METRICS" | grep -o '"HostName":"[^"]*"' | sed 's/"HostName":"//g; s/"//g' | sed 's/^/    Server: /'
+        echo "$TEMP_METRICS" | grep -o '"value":\[[^]]*\]' | sed 's/"value":\[//g; s/\]//g' | sed 's/^/    Temperature: /' | sed 's/,/°C at timestamp /'
+        echo "  ✓ PowerEdge temperature metrics active"
+      else
+        echo "  ⚠ No temperature data found"
+      fi
+    else
+      echo "  ⚠ Could not query temperature metrics"
+    fi
+    echo ""
+    
+    # Test 'up' metric (service discovery)
+    echo "Testing service discovery metrics..."
+    if [ "$USE_TLS" = "true" ]; then
+      UP_METRICS=$(curl -s --max-time 30 --cacert "$CA_CERT" "${VICTORIA_URL}/select/0/prometheus/api/v1/query?query=up" || echo "failed")
+    else
+      UP_METRICS=$(curl -s --max-time 30 "${VICTORIA_URL}/select/0/prometheus/api/v1/query?query=up" || echo "failed")
+    fi
+    
+    if echo "$UP_METRICS" | grep -q "status.*success"; then
+      UP_COUNT=$(echo "$UP_METRICS" | grep -o '"metric":{[^}]*}' | wc -l || echo "0")
+      echo "  Found $UP_COUNT active targets:"
+      if [ "$UP_COUNT" -gt 0 ]; then
+        echo "$UP_METRICS" | grep -o '"job":"[^"]*"' | sed 's/"job":"//g; s/"//g' | sort | uniq | sed 's/^/    Job: /'
+        echo "  ✓ Service discovery metrics active"
+      else
+        echo "  ⚠ No service discovery data found"
+      fi
+    else
+      echo "  ⚠ Could not query service discovery metrics"
+    fi
+    echo ""
+{% else %}
     echo "Step 5: Testing /api/v1/query endpoint..."
     if [ "$USE_TLS" = "true" ]; then
       QUERY_RESPONSE=$(curl -s --max-time 30 --cacert "$CA_CERT" "${VICTORIA_URL}/api/v1/query?query=up" || echo "failed")
@@ -209,7 +296,7 @@ data:
       echo "  ⚠ Could not query service discovery metrics"
     fi
     echo ""
-    
+{% endif %}
     
     # Test 6: Test certificate verification (only for TLS)
     if [ "$USE_TLS" = "true" ]; then
