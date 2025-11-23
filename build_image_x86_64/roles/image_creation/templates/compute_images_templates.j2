@@ -8,6 +8,8 @@ group_name: "{{ item.key }}"
 rhel_base_compute_mounts: {{ ochami_compute_mounts | join(' ') }}
 image_build_name: {{ ochami_x86_64_image | join (' ') }}
 rhel_base_compute_command_options: {{ ochami_base_command | join (' ') }}
+minio_s3_username: "{{ minio_s3_username }}"
+minio_s3_password: "{{ minio_s3_password }}"
 
 rhel_repos:
 {% set rhel_repo = rhel_x86_64_repos %}
