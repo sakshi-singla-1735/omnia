@@ -68,25 +68,6 @@ spec:
           - Read
         host: "*"
 {% endif %}
-      # Producer and consumer permissions for ome topic (always created when Kafka is enabled)
-      - resource:
-          type: topic
-          name: {{ kafka.topics.ome.name }}
-          patternType: literal
-        operations:
-          - Read
-          - Write
-          - Describe
-          - Create
-        host: "*"
-      # Consumer group permissions for ome
-      - resource:
-          type: group
-          name: {{ kafka.topics.ome.consumer_group }}
-          patternType: prefix
-        operations:
-          - Read
-        host: "*"
       # Cluster-level permissions for idempotent producers
       - resource:
           type: cluster
