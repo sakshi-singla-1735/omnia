@@ -10,19 +10,7 @@ import csv
 from collections import OrderedDict
 import yaml
 from ansible.module_utils.basic import AnsibleModule
-
-FUNCTIONAL_GROUP_LAYER_MAP = {
-    "service_kube_control_plane_first_x86_64": "management",
-    "service_kube_control_plane_x86_64": "management",
-    "service_kube_node_x86_64": "management",
-    "login_node_x86_64": "management",
-    "login_node_aarch64": "management",
-    "login_compiler_node_x86_64": "management",
-    "login_compiler_node_aarch64": "management",
-    "slurm_control_node_x86_64": "management",
-    "slurm_node_x86_64": "compute",
-    "slurm_node_aarch64": "compute",
-}
+from ansible.module_utils.input_validation.common_utils import config
 
 DESCRIPTION_MAP = {
     "slurm_control_node": "Slurm Head",
@@ -31,9 +19,8 @@ DESCRIPTION_MAP = {
     "login_compiler_node": "Login Compiler Node",
     "service_kube_control_plane_first": "Kubernetes Control Plane (Primary)",
     "service_kube_control_plane": "Kubernetes Control Plane",
-    "service_kube_node": "Kubernetes Worker Node",
+    "service_kube_node": "Kubernetes Worker Node"
 }
-
 
 def load_omnia_config(omnia_config_path, module):
     """Load omnia_config.yml and return (kube_name, slurm_name)."""
@@ -93,7 +80,7 @@ def parse_csv(filename, module):
                     kube_control_seen = True
 
                 groups[group_name] = {"parent": parent}
-                if func_group in FUNCTIONAL_GROUP_LAYER_MAP:
+                if func_group in config.FUNCTIONAL_GROUP_LAYER_MAP:
                     functional_groups.setdefault(func_group, set()).add(group_name)
 
         return groups, functional_groups
@@ -112,7 +99,7 @@ def build_yaml(new_groups, new_func_groups, kube_cluster_name, slurm_cluster_nam
 
     # Add functional groups
     for func_group, group_list in new_func_groups.items():
-        layer = FUNCTIONAL_GROUP_LAYER_MAP[func_group]
+        layer = config.FUNCTIONAL_GROUP_LAYER_MAP[func_group]
         fg_lower = func_group.lower()
         # get appropriate cluster name
         cluster_name = (
@@ -144,18 +131,18 @@ def build_yaml(new_groups, new_func_groups, kube_cluster_name, slurm_cluster_nam
 def dump_yaml_with_comments(data, filename):
     """Write YAML data to file with custom formatting and comments."""
     with open(filename, "w") as f:
-        f.write("# ----------------------------------------------------------------\n")
+        f.write("# ---------------------------------------------------------------------------\n")
         f.write("# Groups definition\n")
-        f.write("# ----------------------------------------------------------------\n")
+        f.write("# ---------------------------------------------------------------------------\n")
         f.write("groups:\n")
         for g in sorted(data["groups"].keys()):
             d = data["groups"][g]
             f.write(f"  {g}:\n")
             f.write(f"    parent: \"{d['parent']}\"\n")
 
-        f.write("\n# ----------------------------------------------------------------\n")
+        f.write("\n# -------------------------------------------------------------------------\n")
         f.write("# Functional Groups definition\n")
-        f.write("# -----------------------------------------------------------------\n")
+        f.write("# ---------------------------------------------------------------------------\n")
         f.write("functional_groups:\n")
         for fg in data.get("functional_groups") or []:
             for comment in fg.get("_comment", []):

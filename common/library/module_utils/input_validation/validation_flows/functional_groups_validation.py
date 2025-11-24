@@ -190,6 +190,8 @@ def validate_functional_group_duplicates(functional_groups):
             seen.add(name)
     return errors
 
+# TODO with mapping file
+# should be validated that no groups are shared between functional groups
 def validate_functional_groups_separation(functional_groups):
     """
     Validates that groups are not shared between functional groups
@@ -210,6 +212,8 @@ def validate_functional_groups_separation(functional_groups):
 
     return errors
 
+# Not Applicable validations
+# TODO remove
 # Non-empty cluster name validation
 def validate_non_empty_clustername(functional_groups):
     """
@@ -247,8 +251,8 @@ def validate_non_empty_clustername(functional_groups):
     return errors
 
 # Slurm/K8s cluster validation
-
-
+# TODO remove
+# Not Applicable validations
 def validate_slurm_k8s_clusters(functional_groups, input_file_path):
     """
     Validates that SLURM and Kubernetes clusters do not overlap.
@@ -323,7 +327,7 @@ def validate_slurm_k8s_clusters(functional_groups, input_file_path):
     return errors
 
 # Slurm node parent validation
-
+# TODO remove
 def validate_slurm_node_parent(functional_groups, groups):
     """
     Validates the parent field for Slurm nodes in functional groups.
