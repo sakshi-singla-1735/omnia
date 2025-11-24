@@ -180,7 +180,6 @@ spec:
               value: 127.0.0.1
             - name: MESSAGEBUS_PORT
               value: "{{ messagebus_http_port }}"
-            # Use TLS port 9093 instead of plain 9092
             - name: KAFKA_BROKER
               value: "kafka-kafka-bootstrap.telemetry.svc.cluster.local:9093"
             - name: KAFKA_TOPIC

@@ -25,11 +25,11 @@ service_cluster_metadata_path: "/opt/omnia/.data/service_cluster_metadata.yml"
 metadata_perm: "0644"
 telemetry_ready_replicas_failure_msg: >
   "Failed. Telemetry deployment is not fully operational. Expected {{ sts_expected }} components to be ready, but only {{ sts_ready }} are available.
-  Please verify the Telemetry deployment status and execute Telemetry playbook again."
+  Please verify the telemetry deployment status and execute telemetry playbook again."
 telemetry_deployments_not_found: >
-  "Failed. Telemetry Deployments not found in namespace {{ telemetry_namespace }}.
-  Please verify the Telemetry deployment status and execute Telemetry playbook again."
+  "Failed. Telemetry deployments not found in namespace {{ telemetry_namespace }}.
+  Please verify the telemetry deployment status and execute telemetry playbook again."
 telemetry_namespace_not_found: >
-  "Failed. Telmetry Namespace does not exist.
-  Please verify the Telemetry deployment status and execute Telemetry playbook again."
+  "Failed. Telmetry namespace does not exist.
+  Please verify the telemetry deployment status and execute telemetry playbook again."
 pod_wait_timeout: "10m"
