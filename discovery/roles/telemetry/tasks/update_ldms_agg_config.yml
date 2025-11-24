@@ -46,12 +46,12 @@
 
 - name: Clean up previous build artifacts before make
   ansible.builtin.file:
-    path: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/ldms/ldms-aggr/{{ item }}"
+    path: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/ldms/nersc-ldms-aggr/{{ item }}"
     state: absent
   failed_when: false
   loop:
     - out_dir
-    - manifest.yaml.in
+    - manifest.yaml
     - values.yaml
 
 - name: Run make command inside ldms directory
