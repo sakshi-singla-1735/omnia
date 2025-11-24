@@ -29,9 +29,6 @@ resources:
 {% if hostvars['localhost']['ldms_support'] %}
   - kafka.topic_ldms.yaml
 {% endif %}
-{% if 'ome' in kafka_topic_partitions %}
-  - kafka.topic_ome.yaml
-{% endif %}
   - kafka.kafka_bridge.yaml
   - kafka.kafka_bridge_lb.yaml
   # Uncomment to deploy TLS test job

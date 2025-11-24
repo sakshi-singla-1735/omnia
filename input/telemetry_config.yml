@@ -29,6 +29,36 @@
 #   3. Kafka              : Distributed streaming platform for telemetry data
 #   4. LDMS               : Lightweight Distributed Metric Service for compute nodes
 #
+# ============================================================================
+# STORAGE REQUIREMENTS SUMMARY
+# ============================================================================
+# 
+# VICTORIAMETRICS STORAGE:
+# ┌─────────────────┬──────────────────┬─────────────────┬──────────────────┐
+# │ Deployment Mode │ Per-Pod Storage  │ Number of Pods  │ Total Storage    │
+# ├─────────────────┼──────────────────┼─────────────────┼──────────────────┤
+# │ Single-node     │ persistence_size │ 1 pod           │ 1× storage       │
+# ├─────────────────┼──────────────────┼─────────────────┼──────────────────┤
+# │ Cluster         │ persistence_size │ 3 vmstorage     │ 3× storage       │
+# └─────────────────┴──────────────────┴─────────────────┴──────────────────┘
+# Example: 8Gi per pod → Single-node: 8Gi total, Cluster: 24Gi total
+#
+# KAFKA STORAGE:
+# ┌─────────────────┬──────────────────┬─────────────────┬──────────────────┐
+# │ Component       │ Per-Pod Storage  │ Number of Pods  │ Total Storage    │
+# ├─────────────────┼──────────────────┼─────────────────┼──────────────────┤
+# │ Kafka Broker    │ persistence_size │ 3 pods          │ 3× storage       │
+# ├─────────────────┼──────────────────┼─────────────────┼──────────────────┤
+# │ Kafka Controller│ persistence_size │ 3 pods          │ 3× storage       │
+# ├─────────────────┼──────────────────┼─────────────────┼──────────────────┤
+# │ TOTAL KAFKA     │ persistence_size │ 6 pods          │ 6× storage       │
+# └─────────────────┴──────────────────┴─────────────────┴──────────────────┘
+# Example: 8Gi per pod → 48Gi total Kafka storage
+#
+# COMBINED STORAGE EXAMPLES:
+#   Default (8Gi each): VictoriaMetrics Cluster (24Gi) + Kafka (48Gi) = 72Gi total
+#   Single-node mode:   VictoriaMetrics Single (8Gi) + Kafka (48Gi) = 56Gi total
+#
 # STORAGE OPTIONS:
 #   - VictoriaMetrics: Store iDRAC telemetry in time-series database
 #   - Kafka: Stream iDRAC and LDMS telemetry to Kafka topics
@@ -83,10 +113,13 @@ victoria_configurations:
   #   - Lower resource usage (~4Gi memory vs ~10Gi for cluster)
   deployment_mode: "cluster"
 
-  # The amount of storage allocated for victoria's persistent volume.
+  # The amount of storage allocated for EACH VictoriaMetrics persistent volume.
+  # IMPORTANT: Total VictoriaMetrics storage depends on deployment mode:
+  #   - Single-node mode: Total storage = persistence_size × 1 pod
+  #   - Cluster mode: Total storage = persistence_size × 3 vmstorage pods
+  #   - Example (cluster): 8Gi × 3 = 24Gi total VictoriaMetrics storage
   # Accepted values: in the form of "X[Ki|Mi|Gi|Ti|Pi|Ei]"
-  # Default: 8Gi
-  # Note: In cluster mode, storage is allocated per vmstorage pod (default 3 pods)
+  # Default: 8Gi (results in 24Gi total storage for cluster mode)
   persistence_size: "8Gi"
 
   # Duration (in hours) to retain victoria logs before they are deleted.
@@ -103,13 +136,15 @@ victoria_configurations:
 # NOTE: Kafka topics are auto-generated based on enabled features:
 #   - 'idrac' topic: Required when idrac_telemetry_support=true and 'kafka' is enabled
 #   - 'ldms' topic:  Required when LDMS is configured in software_config.json
-#   - 'ome' topic:   Optional for OpenManage Enterprise telemetry
 kafka_configurations:
-  # The amount of storage allocated for Kafka's persistent volume.
-  # This storage will be divided among 6 pods, comprising 3 Kafka brokers and 3 Kafka controllers.
+  # The amount of storage allocated for EACH Kafka persistent volume.
+  # IMPORTANT: Total Kafka storage = persistence_size × 6 pods
+  #   - 3 Kafka brokers (each gets persistence_size storage)
+  #   - 3 Kafka controllers (each gets persistence_size storage)
+  #   - Example: 8Gi × 6 = 48Gi total Kafka storage
   # Accepted values: in the form of "X[Ki|Mi|Gi|Ti|Pi|Ei]"
-  # Default: 48Gi
-  persistence_size: "48Gi"
+  # Default: 8Gi (results in 48Gi total storage)
+  persistence_size: "8Gi"
 
   # The number of hours to retain Kafka logs before they are deleted.
   # Default: 168 (7 days)
@@ -129,22 +164,19 @@ kafka_configurations:
   # Increasing partitions can improve throughput but also increases storage/overhead.
   #
   # IMPORTANT: Topic names are FIXED and cannot be changed.
-  #   - Topic names: Only 'idrac', 'ldms', and 'ome' are allowed
+  #   - Topic names: Only 'idrac' and 'ldms' are allowed
   #   - Configurable: Only partition counts can be modified
   #
   # Topic Requirements (auto-validated):
   #   - 'idrac': Required when idrac_telemetry_support=true and 'kafka' is enabled
   #   - 'ldms':  Required when LDMS software is configured in software_config.json
-  #   - 'ome':   Optional (OpenManage Enterprise telemetry)
   #
-  # Default partition counts: idrac=1, ldms=2, ome=1
+  # Default partition counts: idrac=1, ldms=2
   topic_partitions:
     - name: "idrac"
       partitions: 1
     - name: "ldms"
       partitions: 2
-    - name: "ome"
-      partitions: 1
 
 # ============================================================================
 # LDMS (Lightweight Distributed Metric Service) CONFIGURATION

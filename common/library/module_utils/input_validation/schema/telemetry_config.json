@@ -123,16 +123,16 @@
         "topic_partitions": {
           "type": "array",
           "minItems": 1,
-          "maxItems": 3,
+          "maxItems": 2,
           "items": {
             "type": "object",
             "properties": {
               "name": {
                 "type": "string",
-                "enum": ["idrac", "ldms", "ome"],
-                "description": "CONSTANT: Fixed topic names that cannot be changed. Only 'idrac', 'ldms', and 'ome' are allowed.",
+                "enum": ["idrac", "ldms"],
+                "description": "CONSTANT: Fixed topic names that cannot be changed. Only 'idrac' and 'ldms' are allowed.",
                 "errorMessage": {
-                  "enum": "Invalid topic name. Only 'idrac', 'ldms', and 'ome' are allowed as Kafka topic names. Custom topic names are not supported."
+                  "enum": "Invalid topic name. Only 'idrac' and 'ldms' are allowed as Kafka topic names. Custom topic names are not supported."
                 }
               },
               "partitions": {
@@ -146,17 +146,17 @@
             "additionalProperties": false,
             "errorMessage": {
               "required": {
-                "name": "Topic 'name' is required and must be one of: 'idrac', 'ldms', 'ome'",
+                "name": "Topic 'name' is required and must be one of: 'idrac', 'ldms'",
                 "partitions": "Topic 'partitions' is required and must be between 1-100"
               }
             }
           },
           "uniqueItems": true,
-          "description": "IMPORTANT: At least one Kafka topic must be defined. Topic names 'idrac', 'ldms', and 'ome' are CONSTANTS. 'idrac' is required if idrac_telemetry_support is true and kafka is in idrac_telemetry_collection_type. 'ldms' is required if LDMS software is configured in software_config.json (automatic detection). 'ome' is optional. Only partition counts can be changed.",
+          "description": "IMPORTANT: At least one Kafka topic must be defined. Topic names 'idrac' and 'ldms' are CONSTANTS. 'idrac' is required if idrac_telemetry_support is true and kafka is in idrac_telemetry_collection_type. 'ldms' is required if LDMS software is configured in software_config.json (automatic detection). Only partition counts can be changed.",
           "errorMessage": {
             "minItems": "At least 1 Kafka topic must be defined. Configure based on enabled features.",
-            "maxItems": "Maximum 3 topics allowed: 'idrac', 'ldms', and 'ome'",
-            "uniqueItems": "Each topic (idrac, ldms, ome) must appear only once"
+            "maxItems": "Maximum 2 topics allowed: 'idrac' and 'ldms'",
+            "uniqueItems": "Each topic (idrac, ldms) must appear only once"
           }
         }
       },

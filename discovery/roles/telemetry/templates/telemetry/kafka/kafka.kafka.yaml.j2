@@ -14,7 +14,7 @@ spec:
     volumes:
       - id: 0
         type: persistent-claim
-        size: "{{ hostvars['localhost']['kafka_persistence_size'] }}"
+        size: "{{ hostvars['localhost']['kafka_configurations']['persistence_size'] }}"
         kraftMetadata: shared
         deleteClaim: false
 ---
@@ -35,7 +35,7 @@ spec:
     volumes:
       - id: 0
         type: persistent-claim
-        size: "{{ hostvars['localhost']['kafka_persistence_size'] }}"
+        size: "{{ hostvars['localhost']['kafka_configurations']['persistence_size'] }}"
         kraftMetadata: shared
         deleteClaim: false
 ---
