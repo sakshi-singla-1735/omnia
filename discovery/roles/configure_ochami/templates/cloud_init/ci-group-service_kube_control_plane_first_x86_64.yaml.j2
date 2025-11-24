@@ -614,6 +614,13 @@
             kubectl create -f {{ k8s_client_mount_path }}/metallb/{{ metallb_package }}.yml
             echo "Waiting for MetalLB pods to be ready..."
             kubectl wait --namespace metallb-system --for=condition=Ready pods --all --timeout=300s
+            echo "Waiting for MetalLB webhook to be ready..."
+            until kubectl get endpoints metallb-webhook-service -n metallb-system \
+              -o jsonpath='{.subsets[*].addresses[*].ip}' | grep -qE '[0-9]'; do
+              echo "Webhook endpoints not ready yet. Retrying in 5s..."
+              sleep 5
+            done
+            echo "MetalLB webhook is ready."
             echo "Deploy ipaddress pool"
             kubectl create -f {{ k8s_client_mount_path }}/metallb/ipaddress_pool.yaml
             echo "Deploy Layer2 Configuration"
