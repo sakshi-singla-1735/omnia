@@ -67,6 +67,7 @@
       { "package": "registry.k8s.io/kube-scheduler", "tag": "v1.34.1", "type": "image" },
       { "package": "registry.k8s.io/kube-proxy", "tag": "v1.34.1", "type": "image" },
       { "package": "registry.k8s.io/coredns/coredns", "tag": "v1.12.1", "type": "image" },
+      { "package": "docker.io/alpine/kubectl", "tag": "v1.34.1", "type": "image" },
       { "package": "registry.k8s.io/pause", "tag": "3.10.1", "type": "image" },
       { "package": "registry.k8s.io/etcd", "tag": "3.6.4-0", "type": "image" },
       { "package": "docker.io/calico/cni", "tag": "v3.30.3", "type": "image" },
