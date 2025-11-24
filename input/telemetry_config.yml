@@ -47,7 +47,7 @@
 # ┌─────────────────┬──────────────────┬─────────────────┬──────────────────┐
 # │ Component       │ Per-Pod Storage  │ Number of Pods  │ Total Storage    │
 # ├─────────────────┼──────────────────┼─────────────────┼──────────────────┤
-# │ Kafka Broker   │ persistence_size │ 3 pods          │ 3× storage       │
+# │ Kafka Broker    │ persistence_size │ 3 pods          │ 3× storage       │
 # ├─────────────────┼──────────────────┼─────────────────┼──────────────────┤
 # │ Kafka Controller│ persistence_size │ 3 pods          │ 3× storage       │
 # ├─────────────────┼──────────────────┼─────────────────┼──────────────────┤
