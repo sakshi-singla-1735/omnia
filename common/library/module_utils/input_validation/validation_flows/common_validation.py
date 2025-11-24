@@ -1088,6 +1088,68 @@ def check_is_service_cluster_functional_groups_defined(
 
     return False
 
+def check_is_slurm_cluster_functional_groups_defined(
+    errors, input_file_path, omnia_base_dir, project_name, logger, module
+):
+    """
+    Checks if 'service_kube_node_x86_64' is configured in the functional_groups_config.yml file,
+    and ensures its cluster_name does not overlap with any Slurm role.
+
+    Args:
+        errors (list): A list to store error messages.
+        input_file_path (str): The path to the input file.
+        omnia_base_dir (str): The base directory for Omnia.
+        project_name (str): The name of the project.
+        logger (object): A logger object for logging messages.
+        module (object): A module object for logging messages.
+
+    Returns:
+        True if 'service_kube_node_x86_64' is defined and valid, else False
+    """
+    functional_groups_config_file_path = "/opt/omnia/.data/functional_groups_config.yml"
+
+    functional_groups_config_json = validation_utils.load_yaml_as_json(
+        functional_groups_config_file_path, omnia_base_dir, project_name, logger, module
+    )
+    functional_groups = functional_groups_config_json.get("functional_groups", [])
+
+    kube_cluster = None
+    slurm_clusters = set()
+
+    for group in functional_groups:
+        name = group.get("name", "")
+        cluster = group.get("cluster_name", "")
+
+        # Capture kube service cluster
+        if name == "service_kube_node_x86_64":
+            kube_cluster = cluster
+
+        # Collect slurm clusters
+        if name in [
+            "slurm_control_node_x86_64",
+            "slurm_node_x86_64",
+            "slurm_node_aarch64",
+        ]:
+            if cluster:
+                slurm_clusters.add(cluster)
+
+    if kube_cluster:
+        if kube_cluster in slurm_clusters:
+            errors.append(
+                create_error_msg(
+                    "functional_groups_config.yml",
+                    kube_cluster,
+                    en_us_validation_msg.SLURM_KUBE_CLUSTER_OVERLAP_MSG.format(
+                        cluster=kube_cluster
+                    ),
+                )
+            )
+            return False
+    if slurm_clusters:
+        return True
+
+    return False
+
 def validate_telemetry_config(
     input_file_path,
     data,
@@ -1137,6 +1199,13 @@ def validate_telemetry_config(
             en_us_validation_msg.TELEMETRY_SERVICE_CLUSTER_ENTRY_MISSING_ROLES_CONFIG_MSG
             )    
         )
+
+    is_slurm_cluster_defined = check_is_slurm_cluster_functional_groups_defined(errors,
+                                input_file_path,
+                                omnia_base_dir,
+                                project_name,
+                                logger,
+                                module)
     
     # Determine LDMS support from software_config.json
     # software_config.json is in the same directory as telemetry_config.yml
@@ -1162,7 +1231,7 @@ def validate_telemetry_config(
     else:
         logger.info(f"software_config.json not found at: {software_config_file_path}")
 
-    if ldms_support_from_software_config and not is_service_cluster_defined:
+    if ldms_support_from_software_config and not (is_service_cluster_defined and is_slurm_cluster_defined):
         errors.append(create_error_msg(
             "LDMS entry in software_config.json set to ",
             ldms_support_from_software_config,

@@ -25,6 +25,10 @@
     oim_group: true
   tags: always
 
+- name: Generate functional groups configuration
+  ansible.builtin.import_playbook: ../utils/generate_functional_groups.yml
+  tags: always
+
 - name: Set_fact for fetch omnia config credentials
   hosts: localhost
   connection: local
@@ -51,10 +55,6 @@
 - name: Invoke validate_config.yml to perform L1 and L2 validations
   when: not config_file_status | default(false) | bool
   ansible.builtin.import_playbook: ../input_validation/validate_config.yml
-
-- name: Generate functional groups configuration
-  ansible.builtin.import_playbook: ../utils/generate_functional_groups.yml
-  tags: always
 
 - name: Invoke get_config_credentials.yml
   when: not config_file_status | default(false) | bool
