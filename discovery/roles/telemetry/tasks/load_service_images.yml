@@ -15,7 +15,7 @@
 
 - name: Extract image packages from service_k8s.json
   ansible.builtin.set_fact:
-    service_k8s_image_list: "{{ k8s_packages_json['service_k8s']['cluster'] | selectattr('type', 'equalto', 'image') | list }}"
+    service_k8s_image_list: "{{ telemetry_packages['service_k8s']['cluster'] | selectattr('type', 'equalto', 'image') | list }}"
 
 - name: Create service images mapping
   ansible.builtin.set_fact:
