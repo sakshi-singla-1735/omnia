@@ -84,9 +84,6 @@ kafka:
     ldms:
       name: "ldms"
       consumer_group: "ldms-consumer-group"
-    ome:
-      name: "ome"
-      consumer_group: "ome-consumer-group"
 
 # Dynamic image configuration from service_k8s.json
 # Images and versions are read dynamically from input/config/x86_64/rhel/10.0/service_k8s.json

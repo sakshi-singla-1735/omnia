@@ -1196,7 +1196,7 @@ def validate_telemetry_config(
         
         # Collect topic names and validate each one
         topic_names = []
-        allowed_topics = {"idrac", "ldms", "ome"}
+        allowed_topics = {"idrac", "ldms"}
         
         for idx, topic in enumerate(topic_partitions):
             if "name" not in topic:
@@ -1215,7 +1215,7 @@ def validate_telemetry_config(
                 errors.append(create_error_msg(
                     f"kafka_configurations.topic_partitions[{idx}].name",
                     topic_name,
-                    f"Invalid topic name '{topic_name}'. Only 'idrac', 'ldms', and 'ome' are allowed as Kafka topic names. Custom topic names are not supported."
+                    f"Invalid topic name '{topic_name}'. Only 'idrac' and 'ldms' are allowed as Kafka topic names. Custom topic names are not supported."
                 ))
         
         present_topics = set(topic_names)

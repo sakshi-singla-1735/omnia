@@ -87,15 +87,6 @@
         - hostvars['localhost']['ldms_support']
         - "kafka.topics.ldms.name in kafka_topic_partitions"
 
-    - name: Add ome topic (optional)
-      ansible.builtin.set_fact:
-        kafka_topics_to_create: >
-          {{ kafka_topics_to_create + [{
-            'name': kafka.topics.ome.name,
-            'key': kafka.topics.ome.name,
-            'filename': 'kafka.topic_ome.yaml'
-          }] }}
-      when: "kafka.topics.ome.name in kafka_topic_partitions"
 
     - name: Generate Kafka topic files dynamically
       ansible.builtin.template:
