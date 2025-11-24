@@ -22,6 +22,7 @@
       { "package": "docker.io/victoriametrics/vmstorage", "type": "image", "tag": "v1.128.0-cluster" },
       { "package": "docker.io/victoriametrics/vminsert", "type": "image", "tag": "v1.128.0-cluster" },
       { "package": "docker.io/victoriametrics/vmselect", "type": "image", "tag": "v1.128.0-cluster" },
+      { "package": "docker.io/alpine/kubectl", "tag": "v1.34.1", "type": "image" },
       { "package": "docker.io/curlimages/curl", "type": "image", "tag": "8.17.0" },
       { "package": "docker.io/library/golang", "type": "image", "tag": "1.24" },
       { "package": "docker.io/library/busybox", "type": "image", "tag": "1.36" },
@@ -42,6 +43,7 @@
   "service_kube_control_plane": {
     "cluster": [
       { "package": "ghcr.io/kube-vip/kube-vip", "tag": "v0.8.9", "type": "image" },
+      { "package": "docker.io/alpine/kubectl", "tag": "v1.34.1", "type": "image" },
       { "package": "registry.k8s.io/kube-apiserver", "tag": "v1.34.1", "type": "image" },
       { "package": "registry.k8s.io/kube-controller-manager", "tag": "v1.34.1", "type": "image" },
       { "package": "registry.k8s.io/kube-scheduler", "tag": "v1.34.1", "type": "image" },
