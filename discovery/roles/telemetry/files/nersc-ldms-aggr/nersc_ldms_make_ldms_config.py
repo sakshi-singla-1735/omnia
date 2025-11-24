@@ -425,7 +425,8 @@ class LdmsdManager:  # pylint: disable=too-many-instance-attributes
             "scripts/ldms_exporter.bash",
             "scripts/ldms_exporter.py",
             "scripts/start_munge.bash",
-            "scripts/decomp.json"
+            "scripts/decomp.json",
+            "scripts/kafka.conf"
         ]
         data = self.asseble_configmap_data(script_files)
         self.create_configmap_yaml(
@@ -553,16 +554,16 @@ class LdmsdManager:  # pylint: disable=too-many-instance-attributes
         cfg.append(f"updtr_start name={ldmsd_name}")
         cfg.append("prdcr_start_regex regex=.*")
         cfg.extend([
-            "# Store in Kafka - port 9092 (plaintext, no TLS, no auth)",
-            "# NOTE: store_avro_kafka plugin does not support TLS/authentication",
-            "# Security: Access to port 9092 is restricted via NetworkPolicy",
-            "#   - NetworkPolicy 'kafka-ldms-access' allows only LDMS store pods",
-            "#   - Network-level isolation ensures only authorized pods can connect",
-            "#   - TLS ports (9093, 9094) require mTLS for all other clients",
+            "# Store in Kafka - port 9093 (TLS with mTLS authentication)",
+            "# Uses kafkapump user certificates for mTLS authentication",
+            "# Security: TLS encryption + client certificate authentication",
+            "#   - TLS port 9093 requires valid client certificates",
+            "#   - kafkapump user certificates mounted at /ldms_certs/",
+            "#   - Kafka configuration file provides TLS settings",
             "load name=store_avro_kafka",
-            "config name=store_avro_kafka encoding=json topic=ldms",
+            "config name=store_avro_kafka encoding=json topic=ldms kafka_conf=/ldms_bin/kafka.conf",
             f"strgp_add name=kafka regex=.* plugin=store_avro_kafka "
-            f"container=kafka-kafka-bootstrap.{self.namespace}.svc.cluster.local:9092 "
+            f"container=kafka-kafka-bootstrap.{self.namespace}.svc.cluster.local:9093 "
             "decomposition=/ldms_bin/decomp.json",
             "strgp_start name=kafka"
         ])

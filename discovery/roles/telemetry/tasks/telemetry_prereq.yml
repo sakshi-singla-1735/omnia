@@ -36,11 +36,16 @@
     opts: "{{ hostvars['localhost']['k8s_mount_options'] }},vers=3"
     state: mounted
 
+- name: Delete existing telemetry deployment directory
+  ansible.builtin.file:
+    path: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/deployments"
+    state: absent
+
 - name: Create telemetry deployment directory
   ansible.builtin.file:
     path: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/deployments"
     state: directory
-    mode: '0755'
+    mode: "{{ hostvars['localhost']['dir_permissions_755'] }}"
 
 - name: Git checkout for iDRAC Telemetry Reference Tools
   block:
