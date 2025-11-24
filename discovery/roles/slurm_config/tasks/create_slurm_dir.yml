@@ -77,6 +77,59 @@
   when: cmpt_list or login_list or compiler_login_list
   loop: "{{ (cmpt_list + login_list + compiler_login_list) | product(cmpt_dir) }}"
 
+- name: Create the cuda directory on share
+  ansible.builtin.file:
+    path: "{{ slurm_config_path }}/cuda"
+    state: directory
+    owner: root
+    group: root
+    mode: "{{ common_mode }}"
+
+- name: Create the runfile directory on share
+  ansible.builtin.file:
+    path: "{{ slurm_config_path }}/runfile"
+    state: directory
+    owner: root
+    group: root
+    mode: "{{ common_mode }}"
+
+- name: Set NFS info fact
+  ansible.builtin.set_fact:
+    oim_shared_path: "{{ hostvars['localhost']['oim_shared_path'] }}"
+
+- name: Check if source directory exists
+  ansible.builtin.stat:
+    path: "{{ oim_shared_path }}/omnia/offline_repo/cluster/x86_64/rhel/10.0/iso/cuda-run/"
+  register: src_dir_check_x86_64
+
+
+- name: Check if source directory exists
+  ansible.builtin.stat:
+    path: "{{ oim_shared_path }}/omnia/offline_repo/cluster/aarch64/rhel/10.0/iso/cuda-run/"
+  register: src_dir_check_aarch64
+
+- name: Copy cuda run file using copy module for aarch64
+  ansible.builtin.copy:
+    src: "{{ oim_shared_path }}/omnia/offline_repo/cluster/aarch64/rhel/10.0/iso/cuda-run/"
+    dest: "{{ slurm_config_path }}/runfile/"
+    mode: '0755'
+    owner: root
+    group: root
+    directory_mode: '0755'
+    remote_src: true
+  when: src_dir_check_aarch64.stat.exists and src_dir_check_aarch64.stat.isdir
+
+- name: Copy cuda run file using copy module for x86_64
+  ansible.builtin.copy:
+    src: "{{ oim_shared_path }}/omnia/offline_repo/cluster/x86_64/rhel/10.0/iso/cuda-run/"
+    dest: "{{ slurm_config_path }}/runfile/"
+    mode: '0755'
+    owner: root
+    group: root
+    directory_mode: '0755'
+    remote_src: true
+  when: src_dir_check_x86_64.stat.exists and src_dir_check_x86_64.stat.isdir
+
 - name: Check if munge key exists top level
   ansible.builtin.stat:
     path: "{{ slurm_config_path }}/munge.key"

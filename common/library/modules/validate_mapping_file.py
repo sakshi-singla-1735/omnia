@@ -101,7 +101,7 @@ def validate_mapping_file(mapping_file_path, functional_groups_file, module):
         csv_file.columns = csv_file.columns.str.strip()
 
         # Validate columns
-        mandatory_col = ["FUNCTIONAL_GROUP_NAME", "GROUP_NAME", "SERVICE_TAG", "PARENT_SERVICE_TAG", "ADMIN_MAC", "HOSTNAME", "ADMIN_IP", "BMC_MAC", "BMC_IP"]
+        mandatory_col = ["FUNCTIONAL_GROUP_NAME", "GROUP_NAME", "SERVICE_TAG", "ADMIN_MAC", "HOSTNAME", "ADMIN_IP", "BMC_MAC", "BMC_IP"]
         for col in mandatory_col:
             if col not in csv_file.columns:
                 module.fail_json(msg=f"Missing mandatory column: {col} in mapping file.")

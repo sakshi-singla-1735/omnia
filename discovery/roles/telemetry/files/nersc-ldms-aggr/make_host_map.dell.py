@@ -47,7 +47,7 @@ class LdmsdManager:
         os.makedirs(self.out_dir, exist_ok=True)
    
         # PLACE HOLDER: just copy the example file for now
-        shutil.copy("host_map.r7525.json", self.out_dir)
+        shutil.copy("host_map.slurm-cluster.json", self.out_dir)
 
 def main():
     parser = argparse.ArgumentParser()

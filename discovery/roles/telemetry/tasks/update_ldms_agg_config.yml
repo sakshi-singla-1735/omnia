@@ -18,16 +18,6 @@
     name: make
     state: present
 
-- name: Populate telemetry deployment configs
-  ansible.builtin.template:
-    src: "{{ item.src }}"
-    dest: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/deployments/{{ item.dest }}"
-    mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
-  loop:
-    - src: 'telemetry/kafka/kafka.topic_ldms.yaml.j2'
-      dest: 'kafka.topic_ldms.yaml'
-      type: 'kafka'
-
 - name: Verify values.yaml exists
   ansible.builtin.stat:
     path: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/ldms/nersc-ldms-aggr/values.yaml"
@@ -48,11 +38,21 @@
 
 - name: Generate hostmap for ldms
   ansible.builtin.template:
-    src: 'telemetry/ldms/host_map.r7525.json.j2'
-    dest: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/ldms/nersc-ldms-aggr/host_map.r7525.json"
+    src: 'telemetry/ldms/host_map.slurm-cluster.json.j2'
+    dest: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/ldms/nersc-ldms-aggr/host_map.slurm-cluster.json"
     mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
   vars:
     nodes: "{{ hostvars['localhost']['read_mapping_file']['dict'] | dict2items }}"
+
+- name: Clean up previous build artifacts before make
+  ansible.builtin.file:
+    path: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/ldms/nersc-ldms-aggr/{{ item }}"
+    state: absent
+  failed_when: false
+  loop:
+    - out_dir
+    - manifest.yaml
+    - values.yaml
 
 - name: Run make command inside ldms directory
   ansible.builtin.shell: make clean all && make

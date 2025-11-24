@@ -13,6 +13,41 @@
 #  limitations under the License.
 ---
 
+- name: Check if namespace exists
+  kubernetes.core.k8s_info:
+    api_version: v1
+    kind: Namespace
+    name: "{{ telemetry_namespace }}"
+  register: ns_info
+
+- name: Fail if namespace does not exist
+  ansible.builtin.fail:
+    msg: "{{ telemetry_namespace_not_found }}"
+  when: ns_info.resources | length == 0
+
+- name: Get StatefulSet details
+  kubernetes.core.k8s_info:
+    api_version: apps/v1
+    kind: StatefulSet
+    name: "{{ idrac_telemetry_k8s_name }}"
+    namespace: "{{ telemetry_namespace }}"
+  register: sts_info
+
+- name: Fail if StatefulSet does not exist
+  ansible.builtin.fail:
+    msg: "{{ telemetry_deployments_not_found }}"
+  when: sts_info.resources | length == 0
+
+- name: Extract ready and expected replicas
+  ansible.builtin.set_fact:
+    sts_ready: "{{ sts_info.resources[0].status.readyReplicas | default(0) }}"
+    sts_expected: "{{ sts_info.resources[0].spec.replicas | default(0) }}"
+
+- name: Fail if not all replicas are ready
+  ansible.builtin.fail:
+    msg: "{{ telemetry_ready_replicas_failure_msg }}"
+  when: sts_ready != sts_expected
+
 - name: Include service_cluster metadata if already exists
   ansible.builtin.include_vars: "{{ service_cluster_metadata_path }}"
   delegate_to: localhost
@@ -123,9 +158,10 @@
 
 - name: Update service_cluster metadata file
   ansible.builtin.copy:
-    content: "{{ {'service_cluster_metadata': service_cluster_metadata} | to_nice_yaml }}"
+    content: "{{ {'kube_vip': kube_vip, 'service_cluster_metadata': service_cluster_metadata} | to_nice_yaml }}"
     dest: "{{ service_cluster_metadata_path }}"
     force: true
     mode: "{{ metadata_perm }}"
   delegate_to: localhost
   connection: local
+  no_log: true

@@ -27,15 +27,23 @@ spec:
       labels:
         app: "{{ vmagent.app_name }}"
     spec:
-      serviceAccountName: "{{ vmagent.service_account_name}}"
+      serviceAccountName: "{{ vmagent.service_account_name }}"
       containers:
       - name: "{{ vmagent.container_name }}"
         image: "{{ vmagent.image }}"
         args:
           - -promscrape.config={{ vmagent.scrape_config_path }}
+{% if victoria_cluster.enabled %}
+          - -remoteWrite.url={{ vmagent.remote_write_url_cluster }}
+{% if victoria_cluster.tls_enabled %}
+          - -remoteWrite.tlsCAFile=/etc/victoria/certs/ca.crt
+          - -remoteWrite.tlsInsecureSkipVerify=false
+{% endif %}
+{% else %}
           - -remoteWrite.url={{ vmagent.remote_write_url }}
           - -remoteWrite.tlsCAFile=/etc/victoria/certs/ca.crt
           - -remoteWrite.tlsInsecureSkipVerify=false
+{% endif %}
         volumeMounts:
           - name: scrape-config
             mountPath: "/etc/vmagent"

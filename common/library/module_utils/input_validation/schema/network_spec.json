@@ -67,6 +67,33 @@
                         }
                       }
                     ]
+                  },
+                  "ntp_servers": {
+                    "oneOf": [
+                      {
+                        "type": "array",
+                        "maxItems": 0
+                      },
+                      {
+                        "type": "array",
+                        "minItems": 1,
+                        "items": {
+                          "type": "object",
+                          "required": ["address", "type"],
+                          "properties": {
+                            "address": {
+                              "type": "string",
+                              "pattern": "^((?:(?:25[0-5]|2[0-4][0-9]|1?[0-9]{1,2})\\.){3}(?:25[0-5]|2[0-4][0-9]|1?[0-9]{1,2})|([a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,})$"
+                            },
+                            "type": {
+                              "type": "string",
+                              "enum": ["server", "pool"]
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      }
+                    ]
                   }
                 },
                 "additionalProperties": false

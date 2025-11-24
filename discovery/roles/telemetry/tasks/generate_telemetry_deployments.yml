@@ -27,78 +27,83 @@
     mode: "{{ hostvars['localhost']['dir_permissions_755'] }}"
   tags: telemetry_deployment
 
-- name: Populate telemetry deployment configs
+- name: Populate Victoria deployment configs
   ansible.builtin.template:
     src: "{{ item.src }}"
     dest: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/deployments/{{ item.dest }}"
     mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
-  loop:
-    - src: 'telemetry/common/telemetry_namespace_creation.yaml.j2'
-      dest: 'telemetry_namespace_creation.yaml'
-
-    - src: 'telemetry/common/telemetry_secret_creation.yaml.j2'
-      dest: 'telemetry_secret_creation.yaml'
-      skip_when: "{{ cluster_id_present | default(false) }}"
-
-    - src: 'telemetry/kustomization.yaml.j2'
-      dest: 'kustomization.yaml'
-
-    - src: 'telemetry/idrac_telemetry/idrac_telemetry_statefulset.yaml.j2'
-      dest: 'idrac_telemetry_statefulset.yaml'
-
-    - src: 'telemetry/victoria/victoria-statefulset.yaml.j2'
-      dest: 'victoria-statefulset.yaml'
-      type: 'victoria'
-
-    - src: 'telemetry/victoria/victoria-vmagent-rbac.yaml.j2'
-      dest: 'victoria-vmagent-rbac.yaml'
-      type: 'victoria'
-
-    - src: 'telemetry/victoria/vmagent-scrape-config.yaml.j2'
-      dest: 'vmagent-scrape-config.yaml'
-      type: 'victoria'
-
-    - src: 'telemetry/victoria/victoria-agent-deployment.yaml.j2'
-      dest: 'victoria-agent-deployment.yaml'
-      type: 'victoria'
-
-    - src: 'telemetry/victoria/victoria-tls-test-job.yaml.j2'
-      dest: 'test/victoria-tls-test-job.yaml'
-      type: 'victoria'
-
-  when:
-    - item.type is not defined or item.type in hostvars['localhost']['idrac_telemetry_collection_type'].split(',')
-    - item.skip_when is not defined or not item.skip_when | bool
+  loop: "{{ victoria_templates }}"
+  when: "'victoria' in hostvars['localhost']['idrac_telemetry_collection_type'].split(',')"
   tags: telemetry_deployment
+  # NOTE: victoria_templates is automatically set based on deployment_mode in telemetry_config.yml
+  #       - cluster mode: includes vmstorage, vminsert, vmselect templates
+  #       - single-node mode: includes victoria-statefulset template
 
 - name: Kafka configurations
   when: kafka_support
   block:
+    - name: Set Kafka configuration variables from telemetry_config
+      ansible.builtin.set_fact:
+        kafka_log_retention_hours: "{{ telemetry_config.kafka_configurations.log_retention_hours }}"
+        kafka_log_retention_bytes: "{{ telemetry_config.kafka_configurations.log_retention_bytes }}"
+        kafka_log_segment_bytes: "{{ telemetry_config.kafka_configurations.log_segment_bytes }}"
+
+    - name: Create kafka_topic_partitions dictionary from telemetry_config
+      ansible.builtin.set_fact:
+        kafka_topic_partitions: >-
+          {{
+            dict(
+              telemetry_config.kafka_configurations.topic_partitions | map(attribute='name')
+              | zip(telemetry_config.kafka_configurations.topic_partitions | map(attribute='partitions'))
+            )
+          }}
+
+    - name: Build list of Kafka topics to create
+      ansible.builtin.set_fact:
+        kafka_topics_to_create: []
+
+    - name: Add idrac topic if enabled
+      ansible.builtin.set_fact:
+        kafka_topics_to_create: >
+          {{ kafka_topics_to_create + [{
+            'name': kafka.topics.idrac.name,
+            'key': kafka.topics.idrac.name,
+            'filename': 'kafka.topic_idrac.yaml'
+          }] }}
+      when:
+        - hostvars['localhost']['idrac_telemetry_support']
+        - "'kafka' in hostvars['localhost']['idrac_telemetry_collection_type'].split(',')"
+        - "kafka.topics.idrac.name in kafka_topic_partitions"
+
+    - name: Add ldms topic if enabled
+      ansible.builtin.set_fact:
+        kafka_topics_to_create: >
+          {{ kafka_topics_to_create + [{
+            'name': kafka.topics.ldms.name,
+            'key': kafka.topics.ldms.name,
+            'filename': 'kafka.topic_ldms.yaml'
+          }] }}
+      when:
+        - hostvars['localhost']['ldms_support']
+        - "kafka.topics.ldms.name in kafka_topic_partitions"
+
+
+    - name: Generate Kafka topic files dynamically
+      ansible.builtin.template:
+        src: 'telemetry/kafka/kafka.topic.yaml.j2'
+        dest: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/deployments/{{ item.filename }}"
+        mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
+      loop: "{{ kafka_topics_to_create }}"
+      vars:
+        topic_name: "{{ item.name }}"
+        topic_key: "{{ item.key }}"
+
     - name: Populate telemetry deployment configs for kafka
       ansible.builtin.template:
         src: "{{ item.src }}"
         dest: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/deployments/{{ item.dest }}"
         mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
-      loop:
-        - src: 'telemetry/kafka/kafka.kafka.yaml.j2'
-          dest: 'kafka.kafka.yaml'
-          type: 'kafka'
-
-        - src: 'telemetry/kafka/kafka.kafkapump_user.yaml.j2'
-          dest: 'kafka.kafkapump_user.yaml'
-          type: 'kafka'
-
-        - src: 'telemetry/kafka/kafka.kafka_bridge.yaml.j2'
-          dest: 'kafka.kafka_bridge.yaml'
-          type: 'kafka'
-
-        - src: 'telemetry/kafka/kafka.kafka_bridge_lb.yaml.j2'
-          dest: 'kafka.kafka_bridge_lb.yaml'
-          type: 'kafka'
-
-        - src: 'telemetry/kafka/kafka.tls_test_job.yaml.j2'
-          dest: 'test/kafka.tls_test_job.yaml'
-          type: 'kafka'
+      loop: "{{ kafka_templates }}"
 
     - name: Extract and set facts for tarball URLs for strmzi kafka
       ansible.builtin.set_fact:
@@ -109,6 +114,23 @@
         url: "{{ strmzi_kafka_tarball_url }}"
         dest: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/{{ strimzi_kafka_pkg }}.tar.gz"
         mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
+
+- name: Populate common telemetry deployment configs
+  ansible.builtin.template:
+    src: "{{ item.src }}"
+    dest: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/deployments/{{ item.dest }}"
+    mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
+  loop: "{{ common_templates }}"
+  when: item.skip_when is not defined or not item.skip_when | bool
+  tags: telemetry_deployment
+
+- name: Populate iDRAC telemetry statefulset
+  ansible.builtin.template:
+    src: 'telemetry/idrac_telemetry/idrac_telemetry_statefulset.yaml.j2'
+    dest: "{{ hostvars['localhost']['k8s_client_share_path'] }}/telemetry/deployments/idrac_telemetry_statefulset.yaml"
+    mode: "{{ hostvars['localhost']['file_permissions_644'] }}"
+  when: hostvars['localhost']['idrac_telemetry_support']
+  tags: telemetry_deployment
 
 - name: Deploy telemetry cleanup script
   ansible.builtin.template:
