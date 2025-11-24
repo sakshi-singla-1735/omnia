@@ -206,15 +206,15 @@ KAFKA_ENABLE_FEDERATED_IDRAC_TELEMETRY_COLLECTION= ("requires federated_idrac_te
                                              "to be enabled. Please rerun the playbook "
                                              "with federated_idrac_telemetry_collection true"
                                              "in telemetry_config.yml.")
-TELEMETRY_SERVICE_CLUSTER_ENTRY_MISSING_ROLES_CONFIG_MSG= ("requires service k8s roles to be "
-                                             "defined in pxe_mapping_file.csv. Please either configure "
+TELEMETRY_SERVICE_CLUSTER_ENTRY_MISSING_ROLES_CONFIG_MSG= ("requires service k8s roles(service_kube_control_plane and service_kube_node)"
+                                             " to be defined in 'pxe_mapping_file.csv'. Please either configure "
                                              "service k8s roles in the mapping file "
                                              "or disable idrac_telemetry_support in in telemetry_config.yml "
                                              "and rerun the playbook.")
-TELEMETRY_SERVICE_CLUSTER_ENTRY_FOR_LDMS_MISSING_ROLES_CONFIG_MSG= ("requires service k8s roles to be "
-                                             "defined in pxe_mapping_file.csv. Please either configure "
+TELEMETRY_SERVICE_CLUSTER_ENTRY_FOR_LDMS_MISSING_ROLES_CONFIG_MSG= ("requires service k8s roles(service_kube_control_plane "
+                                             "and service_kube_node) to be defined in 'pxe_mapping_file.csv'. Please either configure "
                                              "service k8s roles in the mapping file or remove ldms from "
-                                             " software_config.json and rerun the playbook.")
+                                             "software_config.json and rerun the playbook.")
 
 def boolean_fail_msg(value):
     """Returns a formatted message indicating boolean_fail_msg."""

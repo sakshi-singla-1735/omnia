@@ -1162,7 +1162,7 @@ def validate_telemetry_config(
     else:
         logger.info(f"software_config.json not found at: {software_config_file_path}")
 
-    if ldms_support_from_software_config and not is_service_cluster_defined
+    if ldms_support_from_software_config and not is_service_cluster_defined:
         errors.append(create_error_msg(
             "LDMS entry in software_config.json set to ",
             ldms_support_from_software_config,

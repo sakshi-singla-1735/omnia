@@ -39,23 +39,9 @@ required_headers = [
     "ADMIN_MAC",
     "ADMIN_IP",
     "BMC_MAC",
-    "BMC_IP",
+    "BMC_IP"
 ]
 
-FUNCTIONAL_GROUP_LAYER_MAP = {
-    "service_kube_control_plane_first_x86_64": "management",
-    "service_kube_control_plane_x86_64": "management",
-    "service_kube_node_x86_64": "management",
-    "login_node_x86_64": "management",
-    "login_node_aarch64": "management",
-    "login_compiler_node_x86_64": "management",
-    "login_compiler_node_aarch64": "management",
-    "slurm_control_node_x86_64": "management",
-    "slurm_node_x86_64": "compute",
-    "slurm_node_aarch64": "compute",
-}
-
-#
 def validate_functional_groups_in_mapping_file(pxe_mapping_file_path):
     """
     Validates the PXE mapping file format.
@@ -117,7 +103,7 @@ def validate_functional_groups_in_mapping_file(pxe_mapping_file_path):
         if not fg_pattern.match(fg):
             invalid_entries.append(f"invalid functional group name '{fg}' at CSV row {row_idx}")
             continue
-        elif fg not in FUNCTIONAL_GROUP_LAYER_MAP.keys():
+        elif fg not in config.FUNCTIONAL_GROUP_LAYER_MAP.keys():
             invalid_entries.append(f"unrecognized functional group name '{fg}' at CSV row {row_idx}")
 
     if invalid_entries:
@@ -176,7 +162,7 @@ def validate_parent_service_tag_hierarchy(pxe_mapping_file_path):
         parent = row.get(parent_col, "").strip() if row.get(parent_col) else ""
         
         # Get the layer for this functional group
-        layer = FUNCTIONAL_GROUP_LAYER_MAP.get(fg)
+        layer = config.FUNCTIONAL_GROUP_LAYER_MAP.get(fg)
 
         if layer == "management":
             # Management nodes should NOT have a parent
@@ -249,10 +235,14 @@ def validate_provision_config(
     pxe_mapping_file_path = data.get("pxe_mapping_file_path", "")
     if pxe_mapping_file_path and validation_utils.verify_path(pxe_mapping_file_path):
         try:
-            validate_pxe_mapping_file(pxe_mapping_file_path)
+            validate_functional_groups_in_mapping_file(pxe_mapping_file_path)
             validate_parent_service_tag_hierarchy(pxe_mapping_file_path)
         except ValueError as e:
-            errors.append(str(e))
+            errors.append(
+                create_error_msg("pxe_mapping_file_path", pxe_mapping_file_path,
+                str(e),
+                )
+            )
     else:
         errors.append(
             create_error_msg(
