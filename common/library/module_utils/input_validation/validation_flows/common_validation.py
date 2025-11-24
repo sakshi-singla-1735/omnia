@@ -1161,6 +1161,14 @@ def validate_telemetry_config(
             logger.warn(f"Could not load software_config.json: {e}")
     else:
         logger.info(f"software_config.json not found at: {software_config_file_path}")
+
+    if ldms_support_from_software_config and not is_service_cluster_defined
+        errors.append(create_error_msg(
+            "LDMS entry in software_config.json set to ",
+            ldms_support_from_software_config,
+            en_us_validation_msg.TELEMETRY_SERVICE_CLUSTER_ENTRY_FOR_LDMS_MISSING_ROLES_CONFIG_MSG
+            )
+        )
     
     # Validate topic_partitions configuration
     kafka_config = data.get("kafka_configurations", {})

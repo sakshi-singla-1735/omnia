@@ -22,11 +22,181 @@ from ansible.module_utils.input_validation.common_utils import validation_utils
 from ansible.module_utils.input_validation.common_utils import config
 from ansible.module_utils.input_validation.common_utils import en_us_validation_msg
 from ansible.module_utils.input_validation.validation_flows import common_validation
+import csv
+from io import StringIO
 
 file_names = config.files
 create_error_msg = validation_utils.create_error_msg
 create_file_path = validation_utils.create_file_path
 
+# Expected header columns (case-insensitive)
+required_headers = [
+    "FUNCTIONAL_GROUP_NAME",
+    "GROUP_NAME",
+    "SERVICE_TAG",
+    "PARENT_SERVICE_TAG",
+    "HOSTNAME",
+    "ADMIN_MAC",
+    "ADMIN_IP",
+    "BMC_MAC",
+    "BMC_IP",
+]
+
+FUNCTIONAL_GROUP_LAYER_MAP = {
+    "service_kube_control_plane_first_x86_64": "management",
+    "service_kube_control_plane_x86_64": "management",
+    "service_kube_node_x86_64": "management",
+    "login_node_x86_64": "management",
+    "login_node_aarch64": "management",
+    "login_compiler_node_x86_64": "management",
+    "login_compiler_node_aarch64": "management",
+    "slurm_control_node_x86_64": "management",
+    "slurm_node_x86_64": "compute",
+    "slurm_node_aarch64": "compute",
+}
+
+#
+def validate_functional_groups_in_mapping_file(pxe_mapping_file_path):
+    """
+    Validates the PXE mapping file format.
+
+    Args:
+        pxe_mapping_file_path (str): Path to the PXE mapping file.
+
+    Raises:
+        ValueError: If the PXE mapping file format is invalid.
+    """
+
+    if not pxe_mapping_file_path or not os.path.isfile(pxe_mapping_file_path):
+        raise ValueError(f"PXE mapping file not found: {pxe_mapping_file_path}")
+
+
+    with open(pxe_mapping_file_path, "r", encoding="utf-8") as fh:
+        raw_lines = fh.readlines()
+    
+    # Disallow any comment lines in the PXE mapping file
+    comment_lines = [i + 1 for i, ln in enumerate(raw_lines) if ln.lstrip().startswith("#")]
+    if comment_lines:
+        raise ValueError(
+            f"PXE mapping file must not contain comments. Comment lines found at: {', '.join(map(str, comment_lines))}"
+        )
+
+    # Remove blank lines only; after the check above there are no comment lines
+    non_comment_lines = [ln for ln in raw_lines if ln.strip()]
+    if not non_comment_lines:
+        raise ValueError(f"PXE mapping file is empty: {pxe_mapping_file_path}")
+
+    # Use csv.DictReader on the filtered lines
+    reader = csv.DictReader(non_comment_lines)
+    if not reader.fieldnames:
+        raise ValueError(f"CSV header not found in PXE mapping file: {pxe_mapping_file_path}")
+
+    # Normalize header names for case-insensitive matching
+    fieldname_map = {fn.strip().upper(): fn for fn in reader.fieldnames}
+
+    # Check for required headers
+    missing = [h for h in required_headers if h not in fieldname_map]
+    if missing:
+        raise ValueError(
+            f"PXE mapping file missing required columns: {', '.join(missing)} (found: {', '.join(reader.fieldnames)})"
+        )
+
+    # Validate functional group names present in rows
+    invalid_entries = []
+    fg_col = fieldname_map["FUNCTIONAL_GROUP_NAME"]
+    # Accept alphanumeric and underscore/hyphen (examples use lowercase+underscores)
+    fg_pattern = re.compile(r"^[A-Za-z0-9_\-]+$")
+
+    # Iterate rows and validate FG names
+    for row_idx, row in enumerate(reader, start=2):  # start=2 approximates line number of first data row
+        raw_fg = row.get(fg_col, "")
+        fg = raw_fg.strip() if raw_fg is not None else ""
+        if not fg:
+            invalid_entries.append(f"empty functional group name at CSV row {row_idx}")
+            continue
+        if not fg_pattern.match(fg):
+            invalid_entries.append(f"invalid functional group name '{fg}' at CSV row {row_idx}")
+            continue
+        elif fg not in FUNCTIONAL_GROUP_LAYER_MAP.keys():
+            invalid_entries.append(f"unrecognized functional group name '{fg}' at CSV row {row_idx}")
+
+    if invalid_entries:
+        raise ValueError("PXE mapping file functional group name validation errors: " + "; ".join(invalid_entries))
+
+    # No exception => file considered valid for functional group names
+    return None
+
+def validate_parent_service_tag_hierarchy(pxe_mapping_file_path):
+    """
+    Validates the parent service tag hierarchy in the PXE mapping file.
+    
+    Ensures that:
+    - kube_control_plane and kube_node functional groups in slurm nodes have a parent_service_tag
+    - Management nodes (login, compiler, control plane) do not have a parent_service_tag
+    
+    Args:
+        pxe_mapping_file_path (str): Path to the PXE mapping file.
+    
+    Raises:
+        ValueError: If the parent service tag hierarchy is invalid.
+    """
+    if not pxe_mapping_file_path or not os.path.isfile(pxe_mapping_file_path):
+        raise ValueError(f"PXE mapping file not found: {pxe_mapping_file_path}")
+    
+    with open(pxe_mapping_file_path, "r", encoding="utf-8") as fh:
+        raw_lines = fh.readlines()
+    
+    non_comment_lines = [ln for ln in raw_lines if ln.strip()]
+    reader = csv.DictReader(non_comment_lines)
+    
+    fieldname_map = {fn.strip().upper(): fn for fn in reader.fieldnames}
+    fg_col = fieldname_map.get("FUNCTIONAL_GROUP_NAME")
+    parent_col = fieldname_map.get("PARENT_SERVICE_TAG")
+    
+    if not fg_col or not parent_col:
+        raise ValueError("Required columns FUNCTIONAL_GROUP_NAME or PARENT_SERVICE_TAG not found")
+    
+    hierarchy_errors = []
+
+    # Read all rows so we can pre-scan for a kube cluster and still iterate below
+    rows = list(reader)
+
+    # Detect if any row contains a kube control plane or kube node FG
+    kube_cluster_present = any(
+        ("kube_control_plane" in (row.get(fg_col) or "").strip().lower())
+        or ("kube_node" in (row.get(fg_col) or "").strip().lower())
+        for row in rows
+    )
+
+    # Replace reader with an iterator over the stored rows so the loop below can consume them
+    reader_iter = iter(rows)
+    
+    for row_idx, row in enumerate(reader_iter, start=2):
+        fg = row.get(fg_col, "").strip()
+        parent = row.get(parent_col, "").strip() if row.get(parent_col) else ""
+        
+        # Get the layer for this functional group
+        layer = FUNCTIONAL_GROUP_LAYER_MAP.get(fg)
+
+        if layer == "management":
+            # Management nodes should NOT have a parent
+            if parent:
+                hierarchy_errors.append(
+                    f"Management node with functional group '{fg}' at CSV row {row_idx} "
+                    f"should not have parent_service_tag, but found: '{parent}'"
+                )
+        elif layer == "compute" and kube_cluster_present:
+            # Compute nodes (slurm_node) MUST have a parent
+            if not parent:
+                hierarchy_errors.append(
+                    f"Compute node with functional group '{fg}' at CSV row {row_idx} "
+                    f"must have a parent_service_tag configured"
+                )
+    
+    if hierarchy_errors:
+        raise ValueError("PXE mapping file parent service tag hierarchy validation errors: " + "; ".join(hierarchy_errors))
+    
+    return None
 
 def validate_provision_config(
     input_file_path, data, logger, module, omnia_base_dir, module_utils_base, project_name
@@ -77,7 +247,13 @@ def validate_provision_config(
         module_utils_base, "input_validation", "common_utils", "timezone.txt"
     )
     pxe_mapping_file_path = data.get("pxe_mapping_file_path", "")
-    if pxe_mapping_file_path and not validation_utils.verify_path(pxe_mapping_file_path):
+    if pxe_mapping_file_path and validation_utils.verify_path(pxe_mapping_file_path):
+        try:
+            validate_pxe_mapping_file(pxe_mapping_file_path)
+            validate_parent_service_tag_hierarchy(pxe_mapping_file_path)
+        except ValueError as e:
+            errors.append(str(e))
+    else:
         errors.append(
             create_error_msg(
                 "pxe_mapping_file_path",
@@ -102,8 +278,6 @@ def validate_provision_config(
             )
         )
     return errors
-
-
 
 def validate_network_spec(
     input_file_path, data, logger, module, omnia_base_dir, module_utils_base, project_name

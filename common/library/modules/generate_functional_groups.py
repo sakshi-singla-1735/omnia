@@ -144,18 +144,18 @@ def build_yaml(new_groups, new_func_groups, kube_cluster_name, slurm_cluster_nam
 def dump_yaml_with_comments(data, filename):
     """Write YAML data to file with custom formatting and comments."""
     with open(filename, "w") as f:
-        f.write("# ----------------------------------------------------------------\n")
+        f.write("# ---------------------------------------------------------------------------\n")
         f.write("# Groups definition\n")
-        f.write("# ----------------------------------------------------------------\n")
+        f.write("# ---------------------------------------------------------------------------\n")
         f.write("groups:\n")
         for g in sorted(data["groups"].keys()):
             d = data["groups"][g]
             f.write(f"  {g}:\n")
             f.write(f"    parent: \"{d['parent']}\"\n")
 
-        f.write("\n# ----------------------------------------------------------------\n")
+        f.write("\n# -------------------------------------------------------------------------\n")
         f.write("# Functional Groups definition\n")
-        f.write("# -----------------------------------------------------------------\n")
+        f.write("# ---------------------------------------------------------------------------\n")
         f.write("functional_groups:\n")
         for fg in data.get("functional_groups") or []:
             for comment in fg.get("_comment", []):
