@@ -104,7 +104,7 @@ expected_versions = {
     "intel_benchmarks": "2024.1.0",
     "ucx": "1.15.0",
     "openmpi": "4.1.6",
-    "csi_driver_powerscale": "v2.11.0",
+    "csi_driver_powerscale": "v2.15.0",
     "rocm": "6.3.1"
 }
 
