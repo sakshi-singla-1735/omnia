@@ -165,3 +165,4 @@
     mode: "{{ metadata_perm }}"
   delegate_to: localhost
   connection: local
+  no_log: true
