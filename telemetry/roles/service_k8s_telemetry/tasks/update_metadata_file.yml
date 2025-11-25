@@ -159,7 +159,7 @@
 
 - name: Update service_cluster metadata file
   ansible.builtin.copy:
-    content: "{{ {'kube_client_share_path': kube_client_share_path, 'kube_vip': kube_vip, 'service_cluster_metadata': service_cluster_metadata} | to_nice_yaml }}"
+    content: "{{ {'kube_client_share_path': kube_client_share_path, 'kube_vip': kube_vip, 'service_cluster_metadata': service_cluster_metadata} | to_nice_yaml }}" # noqa: yaml[line-length]
     dest: "{{ service_cluster_metadata_path }}"
     force: true
     mode: "{{ metadata_perm }}"
