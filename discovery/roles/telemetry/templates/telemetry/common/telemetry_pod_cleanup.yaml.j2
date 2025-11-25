@@ -10,12 +10,12 @@ spec:
   failedJobsHistoryLimit: 1       # Keep only 1 failed job
   jobTemplate:
     spec:
-      ttlSecondsAfterFinished: 60 # Delete job and pod after 60s
+      ttlSecondsAfterFinished: 60 # Auto-delete job and pod after 60s
       template:
         spec:
           containers:
           - name: kubectl-cleanup
-            image: docker.io/alpine/kubectl:v1.34.1
+            image: docker.io/alpine/kubectl:1.34.1
             command:
             - /bin/sh
             - -c
@@ -33,11 +33,13 @@ spec:
               echo "$pods" | while IFS="|" read -r pod deletion_ts; do
                 if [ -n "$deletion_ts" ]; then
                   deletion_time=$(date -d "$deletion_ts" +%s || echo 0)
-                  if [ $((now - deletion_time)) -gt 60 ]; then
-                    echo "Removing finalizers from pod: $pod"
+                  age=$((now - deletion_time))
+                  if [ $age -gt 60 ]; then
+                    echo "Pod $pod has been terminating for $age seconds. Cleaning up..."
                     kubectl patch pod "$pod" -n telemetry -p '{"metadata":{"finalizers":[]}}' --type=merge || true
-                    echo "Force deleting pod: $pod"
                     kubectl delete pod "$pod" -n telemetry --grace-period=0 --force || true
+                  else
+                    echo "Pod $pod is terminating but only for $age seconds. Skipping."
                   fi
                 fi
               done
