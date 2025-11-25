@@ -40,7 +40,7 @@
           {{
             (
               ansible_run_tags | default([]) +
-              ['provision', 'slurm', 'slurm_custom', 'security', 'csi_driver_powerscale'] +
+              ['provision', 'slurm', 'slurm_custom', 'security', 'csi_driver_powerscale', 'ldms', 'telemetry'] +
               (
                 ['service_k8s']
                 if ( 'service_k8s' in (

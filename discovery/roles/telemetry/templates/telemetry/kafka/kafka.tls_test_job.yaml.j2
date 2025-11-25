@@ -31,7 +31,7 @@ data:
     echo "=========================================="
     echo "Bootstrap Server: kafka-kafka-bootstrap:9093"
     echo "Certificates: kafkapump (for all TLS topics)"
-    echo "Testing: idrac, ldms, ome topics"
+    echo "Testing: idrac and ldms topics"
     echo "Note: All topics use port 9093 with mTLS for testing"
     echo ""
     
@@ -96,16 +96,6 @@ data:
       --max-messages 10 || echo "No messages or timeout (this is normal for {{ kafka.topics.ldms.name }})"
     echo ""
     
-    # Test OME topic consumer
-    echo "Step 7: Testing consumer on {{ kafka.topics.ome.name }} topic (kafkapump user)..."
-    timeout 30 /opt/kafka/bin/kafka-console-consumer.sh \
-      --bootstrap-server kafka-kafka-bootstrap:9093 \
-      --topic {{ kafka.topics.ome.name }} \
-      --consumer.config /tmp/kafkapump-client.properties \
-      --group {{ kafka.topics.ome.consumer_group }} \
-      --from-beginning \
-      --max-messages 10 || echo "No messages or timeout (this is normal for {{ kafka.topics.ome.name }})"
-    
     echo ""
     echo "=== All tests completed ==="
     echo ""
@@ -116,7 +106,6 @@ data:
     echo "  ✓ Topics listed successfully"
     echo "  ✓ {{ kafka.topics.idrac.name }} topic tested (kafkapump user)"
     echo "  ✓ {{ kafka.topics.ldms.name }} topic tested via TLS (kafkapump user)"
-    echo "  ✓ {{ kafka.topics.ome.name }} topic tested (kafkapump user)"
     echo ""
 
 ---
