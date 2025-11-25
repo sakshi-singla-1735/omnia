@@ -347,7 +347,7 @@
         - sudo modprobe vxlan || true
         - sysctl --system
         - mkdir -p /tmp/crio-storage {{ k8s_client_mount_path }} /var/lib/etcd  /var/lib/kubelet /etc/kubernetes
-        - mount -a        
+        - mount -a
         - |
           tmpfile=$(mktemp)
           # Extract the first 'search' line only (ignore duplicates)
