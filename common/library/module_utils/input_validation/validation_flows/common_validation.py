@@ -1092,7 +1092,7 @@ def check_is_slurm_cluster_functional_groups_defined(
     errors, input_file_path, omnia_base_dir, project_name, logger, module
 ):
     """
-    Checks if 'service_kube_node_x86_64' is configured in the functional_groups_config.yml file,
+    Checks if 'slurm_control_node_x86_64 and slurm_node' is configured in the functional_groups_config.yml file,
     and ensures its cluster_name does not overlap with any Slurm role.
 
     Args:
@@ -1104,7 +1104,7 @@ def check_is_slurm_cluster_functional_groups_defined(
         module (object): A module object for logging messages.
 
     Returns:
-        True if 'service_kube_node_x86_64' is defined and valid, else False
+        True if 'slurm_control_node_x86_64 and slurm_node' is defined and valid, else False
     """
     functional_groups_config_file_path = "/opt/omnia/.data/functional_groups_config.yml"
 

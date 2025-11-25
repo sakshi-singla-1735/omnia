@@ -42,6 +42,214 @@ required_headers = [
     "BMC_IP"
 ]
 
+def validate_functional_groups_separation(pxe_mapping_file_path):
+    """
+    Validates that groups are not shared between different functional groups in the mapping file.
+    Args:
+        pxe_mapping_file_path (str): Path to the PXE mapping file.
+    Raises:
+        ValueError: If groups are shared between different functional groups.
+    """
+    if not pxe_mapping_file_path or not os.path.isfile(pxe_mapping_file_path):
+        raise ValueError(f"PXE mapping file not found: {pxe_mapping_file_path}")
+
+    with open(pxe_mapping_file_path, "r", encoding="utf-8") as fh:
+        raw_lines = fh.readlines()
+
+    non_comment_lines = [ln for ln in raw_lines if ln.strip()]
+    reader = csv.DictReader(non_comment_lines)
+
+    fieldname_map = {fn.strip().upper(): fn for fn in reader.fieldnames}
+    fg_col = fieldname_map.get("FUNCTIONAL_GROUP_NAME")
+    group_col = fieldname_map.get("GROUP_NAME")
+
+    if not fg_col or not group_col:
+        raise ValueError("FUNCTIONAL_GROUP_NAME or GROUP_NAME column not found in PXE mapping file")
+
+    fg_groups = {}
+    errors = []
+
+    for row in reader:
+        fg_name = row.get(fg_col, "").strip() if row.get(fg_col) else ""
+        group_name = row.get(group_col, "").strip() if row.get(group_col) else ""
+
+        if fg_name and group_name:
+            if fg_name not in fg_groups:
+                fg_groups[fg_name] = set()
+            fg_groups[fg_name].add(group_name)
+
+    # Check for shared groups between different functional groups
+    for fg_name1, fg_name2 in itertools.combinations(fg_groups.keys(), 2):
+        shared = fg_groups[fg_name1] & fg_groups[fg_name2]
+        if shared:
+            group_str = ', '.join(shared)
+            msg = f"Group is shared between {fg_name1} and {fg_name2} functional groups."
+            errors.append(create_error_msg("functional_groups", group_str, msg))
+
+    if errors:
+        raise ValueError("PXE mapping file group separation validation errors: " + "; ".join([str(e) for e in errors]))
+
+    return None
+
+def validate_duplicate_hostnames_in_mapping_file(pxe_mapping_file_path):
+    """
+    Validates that HOSTNAME values in the mapping file are unique.
+    Args:
+        pxe_mapping_file_path (str): Path to the PXE mapping file.
+    Raises:
+        ValueError: If duplicate hostnames are found.
+    """
+    if not pxe_mapping_file_path or not os.path.isfile(pxe_mapping_file_path):
+        raise ValueError(f"PXE mapping file not found: {pxe_mapping_file_path}")
+
+    with open(pxe_mapping_file_path, "r", encoding="utf-8") as fh:
+        raw_lines = fh.readlines()
+
+    non_comment_lines = [ln for ln in raw_lines if ln.strip()]
+    reader = csv.DictReader(non_comment_lines)
+
+    fieldname_map = {fn.strip().upper(): fn for fn in reader.fieldnames}
+    hostname_col = fieldname_map.get("HOSTNAME")
+
+    if not hostname_col:
+        raise ValueError("HOSTNAME column not found in PXE mapping file")
+
+    hostnames = []
+    duplicates = []
+
+    for row_idx, row in enumerate(reader, start=2):
+        hostname = row.get(hostname_col, "").strip() if row.get(hostname_col) else ""
+        if hostname in hostnames:
+            duplicates.append(f"'{hostname}' at CSV row {row_idx}")
+        else:
+            hostnames.append(hostname)
+
+    if duplicates:
+        raise ValueError(f"Duplicate HOSTNAME found in PXE mapping file: {'; '.join(duplicates)}")
+
+    return None
+
+def validate_duplicate_service_tags_in_mapping_file(pxe_mapping_file_path):
+    """
+    Validates that SERVICE_TAG values in the mapping file are unique.
+
+    Args:
+        pxe_mapping_file_path (str): Path to the PXE mapping file.
+
+    Raises:
+        ValueError: If duplicate service tags are found.
+    """
+    if not pxe_mapping_file_path or not os.path.isfile(pxe_mapping_file_path):
+        raise ValueError(f"PXE mapping file not found: {pxe_mapping_file_path}")
+
+    with open(pxe_mapping_file_path, "r", encoding="utf-8") as fh:
+        raw_lines = fh.readlines()
+
+    non_comment_lines = [ln for ln in raw_lines if ln.strip()]
+    reader = csv.DictReader(non_comment_lines)
+
+    fieldname_map = {fn.strip().upper(): fn for fn in reader.fieldnames}
+    st_col = fieldname_map.get("SERVICE_TAG")
+
+    if not st_col:
+        raise ValueError("SERVICE_TAG column not found in PXE mapping file")
+
+    service_tags = []
+    duplicates = []
+
+    for row_idx, row in enumerate(reader, start=2):
+        st = row.get(st_col, "").strip() if row.get(st_col) else ""
+        if st in service_tags:
+            duplicates.append(f"'{st}' at CSV row {row_idx}")
+        else:
+            service_tags.append(st)
+
+    if duplicates:
+        raise ValueError(f"Duplicate SERVICE_TAG found in PXE mapping file: {'; '.join(duplicates)}")
+
+    return None
+
+def validate_mapping_file_entries(mapping_file_path):
+    """
+    Validate CSV mapping file:
+        - Mandatory columns
+        - Non-null values
+        - MAC addresses format
+        - Service tags
+    Args:
+        mapping_file_path (str): Path to the mapping file
+        module (AnsibleModule): Ansible module instance
+    """
+    try:
+        csv_file = pd.read_csv(mapping_file_path)
+        if len(csv_file) == 0:
+            raise ValueError("Please provide details in mapping file.")
+
+        # Strip whitespace from column values and names
+        csv_file = csv_file.apply(lambda x: x.str.strip() if x.dtype == 'object' else x)
+        csv_file.columns = csv_file.columns.str.strip()
+
+        for col in required_headers:
+            if col not in csv_file.columns:
+                raise ValueError(f"Missing mandatory column: {col} in mapping file.")
+
+        # Validate non-null values
+        for col in required_headers:
+            if csv_file[col].isnull().values.any():
+                raise ValueError(f"Null values found in column: {col} in mapping file.")
+
+        # Validate service tags
+        for st in csv_file['SERVICE_TAG']:
+            if not st.isalnum():
+                raise ValueError(f"Invalid service tag: {st} in mapping file.")
+
+        # Validate parent service tags
+        for st in csv_file['PARENT_SERVICE_TAG']:
+            if not st.isalnum():
+                raise ValueError(f"Invalid parent service tag: {st} in mapping file.")
+
+        # Validate MAC addresses
+        pattern = r"^([0-9a-fA-F]{2}[:-]){5}[0-9a-fA-F]{2}$"
+        for mac in csv_file['ADMIN_MAC']:
+            if not re.match(pattern, mac):
+                raise ValueError(f"Invalid ADMIN_MAC: {mac} in mapping file.")
+
+        for mac in csv_file['BMC_MAC']:
+            if not re.match(pattern, mac):
+                raise ValueError(f"Invalid BMC_MAC: {mac} in mapping file.")
+
+        # Validate hostnames
+        for hostname in csv_file['HOSTNAME']:
+            if not re.match(r"^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?$", hostname):
+                raise ValueError(f"Invalid HOSTNAME: {hostname} in mapping file.")
+
+        # Validate group names (format: grp0 to grp100)
+        for group_name in csv_file['GROUP_NAME']:
+            if not re.match(r"^grp([0-9]|[1-9][0-9]|100)$", group_name):
+                raise ValueError(f"Invalid GROUP_NAME: {group_name} in mapping file. Must be in format grp0 to grp100.")
+
+        # Validate functional group names (alphanumeric and underscores)
+        for fg_name in csv_file['FUNCTIONAL_GROUP_NAME']:
+            if not re.match(r"^[A-Za-z0-9_]+$", fg_name):
+                raise ValueError(f"Invalid FUNCTIONAL_GROUP_NAME: {fg_name} in mapping file. Must be alphanumeric with underscores.")
+
+        # Validate ADMIN_IP addresses
+        for ip in csv_file['ADMIN_IP']:
+            if not validation_utils.validate_ipv4(ip):
+                raise ValueError(f"Invalid ADMIN_IP: {ip} in mapping file.")
+
+        # Validate BMC_IP addresses
+        for ip in csv_file['BMC_IP']:
+            if not validation_utils.validate_ipv4(ip):
+                raise ValueError(f"Invalid BMC_IP: {ip} in mapping file.")
+
+        # If all checks pass
+        module.exit_json(changed=False, msg="Mapping file is valid")
+
+    except Exception as e:
+        raise ValueError(str(e))
+
+
 def validate_functional_groups_in_mapping_file(pxe_mapping_file_path):
     """
     Validates the PXE mapping file format.
@@ -80,18 +288,9 @@ def validate_functional_groups_in_mapping_file(pxe_mapping_file_path):
     # Normalize header names for case-insensitive matching
     fieldname_map = {fn.strip().upper(): fn for fn in reader.fieldnames}
 
-    # Check for required headers
-    missing = [h for h in required_headers if h not in fieldname_map]
-    if missing:
-        raise ValueError(
-            f"PXE mapping file missing required columns: {', '.join(missing)} (found: {', '.join(reader.fieldnames)})"
-        )
-
-    # Validate functional group names present in rows
-    invalid_entries = []
-    fg_col = fieldname_map["FUNCTIONAL_GROUP_NAME"]
-    # Accept alphanumeric and underscore/hyphen (examples use lowercase+underscores)
-    fg_pattern = re.compile(r"^[A-Za-z0-9_\-]+$")
+    fg_col = fieldname_map.get("FUNCTIONAL_GROUP_NAME")
+    if not fg_col:
+        raise ValueError("FUNCTIONAL_GROUP_NAME column not found in PXE mapping file")
 
     # Iterate rows and validate FG names
     for row_idx, row in enumerate(reader, start=2):  # start=2 approximates line number of first data row
@@ -99,9 +298,6 @@ def validate_functional_groups_in_mapping_file(pxe_mapping_file_path):
         fg = raw_fg.strip() if raw_fg is not None else ""
         if not fg:
             invalid_entries.append(f"empty functional group name at CSV row {row_idx}")
-            continue
-        if not fg_pattern.match(fg):
-            invalid_entries.append(f"invalid functional group name '{fg}' at CSV row {row_idx}")
             continue
         elif fg not in config.FUNCTIONAL_GROUP_LAYER_MAP.keys():
             invalid_entries.append(f"unrecognized functional group name '{fg}' at CSV row {row_idx}")
@@ -235,8 +431,12 @@ def validate_provision_config(
     pxe_mapping_file_path = data.get("pxe_mapping_file_path", "")
     if pxe_mapping_file_path and validation_utils.verify_path(pxe_mapping_file_path):
         try:
+            validate_mapping_file_entries(pxe_mapping_file_path)
             validate_functional_groups_in_mapping_file(pxe_mapping_file_path)
             validate_parent_service_tag_hierarchy(pxe_mapping_file_path)
+            validate_duplicate_service_tags_in_mapping_file(pxe_mapping_file_path)
+            validate_duplicate_hostnames_in_mapping_file(pxe_mapping_file_path)
+            validate_functional_groups_separation(pxe_mapping_file_path)
         except ValueError as e:
             errors.append(
                 create_error_msg("pxe_mapping_file_path", pxe_mapping_file_path,
