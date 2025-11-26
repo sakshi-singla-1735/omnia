@@ -51,7 +51,7 @@
     dest: "{{ temp_pxe_file_path }}"
     mode: "0644"
 
-- name: generate xnames in temporary mapping file
+- name: Generate xnames in temporary mapping file
   generate_xname_in_mapping_file:
     mapping_file_path: "{{ temp_pxe_file_path }}"
 
