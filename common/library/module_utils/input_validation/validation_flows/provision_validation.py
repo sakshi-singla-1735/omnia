@@ -19,13 +19,11 @@ import json
 import os
 import re
 import itertools
+import csv
 from ansible.module_utils.input_validation.common_utils import validation_utils
 from ansible.module_utils.input_validation.common_utils import config
 from ansible.module_utils.input_validation.common_utils import en_us_validation_msg
 from ansible.module_utils.input_validation.validation_flows import common_validation
-import csv
-from io import StringIO
-
 
 file_names = config.files
 create_error_msg = validation_utils.create_error_msg
@@ -91,8 +89,6 @@ def validate_functional_groups_separation(pxe_mapping_file_path):
     if errors:
         raise ValueError("PXE mapping file group separation validation errors: " + "; ".join([str(e) for e in errors]))
 
-    return None
-
 def validate_duplicate_hostnames_in_mapping_file(pxe_mapping_file_path):
     """
     Validates that HOSTNAME values in the mapping file are unique.
@@ -128,8 +124,6 @@ def validate_duplicate_hostnames_in_mapping_file(pxe_mapping_file_path):
 
     if duplicates:
         raise ValueError(f"Duplicate HOSTNAME found in PXE mapping file: {'; '.join(duplicates)}")
-
-    return None
 
 def validate_duplicate_service_tags_in_mapping_file(pxe_mapping_file_path):
     """
@@ -168,8 +162,6 @@ def validate_duplicate_service_tags_in_mapping_file(pxe_mapping_file_path):
 
     if duplicates:
         raise ValueError(f"Duplicate SERVICE_TAG found in PXE mapping file: {'; '.join(duplicates)}")
-
-    return None
 
 def validate_mapping_file_entries(mapping_file_path):
     """
@@ -224,7 +216,8 @@ def validate_mapping_file_entries(mapping_file_path):
             val = row.get(col)
             if val is None or str(val).strip() == "":
                 if hdr == "PARENT_SERVICE_TAG":
-                    # allow empty parent service tag; ensure None becomes empty string for later .strip() calls
+                    # allow empty parent service tag; ensure None becomes empty string for later
+                    #.strip() calls
                     if val is None:
                         row[fieldname_map[hdr]] = ""
                     continue
@@ -247,7 +240,8 @@ def validate_mapping_file_entries(mapping_file_path):
 
         # Parent service tag: allow empty, otherwise alphanumeric
         if parent and not parent.isalnum():
-            raise ValueError(f"Invalid PARENT_SERVICE_TAG: '{parent}' at CSV row {row_idx} in mapping file. Must be alphanumeric or empty.")
+            raise ValueError(f"Invalid PARENT_SERVICE_TAG: '{parent}' at CSV row {row_idx} in mapping file. "
+            "Must be alphanumeric or empty.")
 
         # MAC addresses
         if not mac_re.match(admin_mac):
@@ -290,10 +284,8 @@ def validate_functional_groups_in_mapping_file(pxe_mapping_file_path):
     if not pxe_mapping_file_path or not os.path.isfile(pxe_mapping_file_path):
         raise ValueError(f"PXE mapping file not found: {pxe_mapping_file_path}")
 
-
     with open(pxe_mapping_file_path, "r", encoding="utf-8") as fh:
         raw_lines = fh.readlines()
-    
     # Disallow any comment lines in the PXE mapping file
     comment_lines = [i + 1 for i, ln in enumerate(raw_lines) if ln.lstrip().startswith("#")]
     if comment_lines:
@@ -325,15 +317,11 @@ def validate_functional_groups_in_mapping_file(pxe_mapping_file_path):
         fg = raw_fg.strip() if raw_fg is not None else ""
         if not fg:
             invalid_entries.append(f"empty functional group name at CSV row {row_idx}")
-            continue
         elif fg not in config.FUNCTIONAL_GROUP_LAYER_MAP.keys():
             invalid_entries.append(f"unrecognized functional group name '{fg}' at CSV row {row_idx}")
 
     if invalid_entries:
         raise ValueError("PXE mapping file functional group name validation errors: " + "; ".join(invalid_entries))
-
-    # No exception => file considered valid for functional group names
-    return None
 
 def validate_parent_service_tag_hierarchy(pxe_mapping_file_path):
     """
@@ -351,22 +339,16 @@ def validate_parent_service_tag_hierarchy(pxe_mapping_file_path):
     """
     if not pxe_mapping_file_path or not os.path.isfile(pxe_mapping_file_path):
         raise ValueError(f"PXE mapping file not found: {pxe_mapping_file_path}")
-    
     with open(pxe_mapping_file_path, "r", encoding="utf-8") as fh:
         raw_lines = fh.readlines()
-    
     non_comment_lines = [ln for ln in raw_lines if ln.strip()]
     reader = csv.DictReader(non_comment_lines)
-    
     fieldname_map = {fn.strip().upper(): fn for fn in reader.fieldnames}
     fg_col = fieldname_map.get("FUNCTIONAL_GROUP_NAME")
     parent_col = fieldname_map.get("PARENT_SERVICE_TAG")
-    
     if not fg_col or not parent_col:
         raise ValueError("Required columns FUNCTIONAL_GROUP_NAME or PARENT_SERVICE_TAG not found")
-    
     hierarchy_errors = []
-
     # Read all rows so we can pre-scan for a kube cluster and still iterate below
     rows = list(reader)
 
@@ -379,14 +361,11 @@ def validate_parent_service_tag_hierarchy(pxe_mapping_file_path):
 
     # Replace reader with an iterator over the stored rows so the loop below can consume them
     reader_iter = iter(rows)
-    
     for row_idx, row in enumerate(reader_iter, start=2):
         fg = row.get(fg_col, "").strip()
         parent = row.get(parent_col, "").strip() if row.get(parent_col) else ""
-        
         # Get the layer for this functional group
         layer = config.FUNCTIONAL_GROUP_LAYER_MAP.get(fg)
-
         if layer == "management":
             # Management nodes should NOT have a parent
             if parent:
@@ -401,11 +380,8 @@ def validate_parent_service_tag_hierarchy(pxe_mapping_file_path):
                     f"Compute node with functional group '{fg}' at CSV row {row_idx} "
                     f"must have a parent_service_tag configured"
                 )
-    
     if hierarchy_errors:
         raise ValueError("PXE mapping file parent service tag hierarchy validation errors: " + "; ".join(hierarchy_errors))
-    
-    return None
 
 def validate_provision_config(
     input_file_path, data, logger, module, omnia_base_dir, module_utils_base, project_name
@@ -427,7 +403,8 @@ def validate_provision_config(
     """
     errors = []
     software_config_file_path = create_file_path(input_file_path, file_names["software_config"])
-    software_config_json = json.load(open(software_config_file_path, "r"))
+    with open(software_config_file_path, "r", encoding="utf-8") as f:
+        software_config_json = json.load(f)
 
     # Call validate_software_config from common_validation
     software_errors = common_validation.validate_software_config(
@@ -501,7 +478,6 @@ def validate_network_spec(
 ):
     """
     Validates the network specification configuration.
-
     Args:
         input_file_path (str): Path to the input configuration file
         data (dict): The network specification data to validate
@@ -552,7 +528,7 @@ def _validate_admin_network(network):
     primary_oim_bmc_ip = admin_net.get("primary_oim_bmc_ip", "")
     dynamic_range = admin_net.get("dynamic_range", "")
     oim_nic_name = admin_net.get("oim_nic_name", "")
-    netmask_bits = admin_net.get("netmask_bits", "")    
+    netmask_bits = admin_net.get("netmask_bits", "")
 
     # Validate netmask_bits
     if "netmask_bits" in admin_net:
