@@ -23,11 +23,21 @@ from ansible.module_utils.input_validation.common_utils import config
 from ansible.module_utils.input_validation.common_utils import en_us_validation_msg
 from ansible.module_utils.input_validation.validation_flows import common_validation
 import csv
+import yaml
 from io import StringIO
 
 file_names = config.files
 create_error_msg = validation_utils.create_error_msg
 create_file_path = validation_utils.create_file_path
+
+def load_oim_metadata(metadata_file_path):
+    with open(metadata_file_path, 'r') as file:
+        metadata = yaml.safe_load(file)
+    return metadata
+
+metadata_file_path = '/opt/omnia/.data/oim_metadata.yml'
+metadata = load_oim_metadata(metadata_file_path)
+oim_timezone = metadata['oim_timezone']
 
 # Expected header columns (case-insensitive)
 required_headers = [
@@ -232,6 +242,7 @@ def validate_provision_config(
     timezone_file_path = os.path.join(
         module_utils_base, "input_validation", "common_utils", "timezone.txt"
     )
+    
     pxe_mapping_file_path = data.get("pxe_mapping_file_path", "")
     if pxe_mapping_file_path and validation_utils.verify_path(pxe_mapping_file_path):
         try:
@@ -255,8 +266,28 @@ def validate_provision_config(
     timezone = data["timezone"]
     if not validation_utils.validate_timezone(timezone, timezone_file_path):
         errors.append(
-            create_error_msg("timezone", timezone, en_us_validation_msg.TIMEZONE_FAIL_MSG)
+            create_error_msg(
+                "timezone",
+                timezone,
+                en_us_validation_msg.TIMEZONE_FAIL_MSG,
+            )
         )
+
+    # Normalize input and system timezones for comparison
+    input_timezone = (timezone or "").strip()
+    system_timezone = (oim_timezone or "").strip()
+
+    # Compare both timezones (case-insensitive)
+    if system_timezone.lower() != input_timezone.lower():
+        errors.append(
+            create_error_msg(
+                ""
+                "timezone_mismatch detected between OIM host and provision_config.yml.",
+                f"Provided input timezone : {input_timezone}, Detected oim timezone: {system_timezone}",
+                "Timezone mismatch detected. Please ensure both timezones match; refer to timezone.txt.",
+            )
+        )
+
 
     default_lease_time = data["default_lease_time"]
     if not validation_utils.validate_default_lease_time(default_lease_time):
