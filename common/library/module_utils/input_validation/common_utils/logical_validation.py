@@ -21,7 +21,6 @@ sys.path.append("module_utils/validation_flows")
 
 from ansible.module_utils.input_validation.validation_flows import provision_validation
 from ansible.module_utils.input_validation.validation_flows import common_validation
-from ansible.module_utils.input_validation.validation_flows import functional_groups_validation
 from ansible.module_utils.input_validation.validation_flows import high_availability_validation
 from ansible.module_utils.input_validation.validation_flows import local_repo_validation
 
