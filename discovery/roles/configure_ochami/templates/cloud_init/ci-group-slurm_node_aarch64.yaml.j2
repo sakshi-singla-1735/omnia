@@ -349,6 +349,7 @@
             echo "[INFO] Reloading systemd daemon and restarting sshd"
             systemctl daemon-reexec
             systemctl restart sshd
+            systemctl restart slurmd
 
             echo "[INFO] ===== Completed firewall and service configuration (aarch64) ====="
 
