@@ -25,7 +25,7 @@ from ast import literal_eval
 import ansible.module_utils.input_validation.common_utils.data_fetch as fetch
 from ansible.module_utils.input_validation.validation_flows import csi_driver_validation
 import ansible.module_utils.input_validation.common_utils.data_validation as validate
-
+from ansible.module_utils.input_validation.common_utils import config
 from ansible.module_utils.input_validation.common_utils import (
     validation_utils,
     config,
@@ -70,6 +70,20 @@ def validate_software_config(
         list: A list of errors encountered during validation.
     """
     errors = []
+    software_config_file_path = create_file_path(
+        input_file_path, file_names["software_config"])
+    with open(software_config_file_path, "r", encoding="utf-8") as f:
+        software_config_json = json.load(f)
+
+    results=validate_versions(software_config_json)
+    if results:   # means there are version mismatches
+       errors.append(
+          create_error_msg(
+              software_config_file_path,
+              "software version validation",
+              f"Version mismatches found: {', '.join(results)}"
+          )
+       )
     cluster_os_type = data["cluster_os_type"]
     cluster_os_version = data["cluster_os_version"]
     os_version_ranges = config.os_version_ranges
@@ -243,13 +257,13 @@ def is_version_valid(actual_version, expected):
         return actual_version in expected
     return actual_version == expected
 
-def validate_versions(data, expected):
+def validate_versions(data):
     mismatches = []
     # Validate top-level 'softwares'
     for sw in data.get("softwares", []):
         name = sw.get("name")
         version = sw.get("version")
-        expected_version = expected.get(name)
+        expected_version = config.expected_versions.get(name)
 
         if expected_version:
             if not version:
@@ -265,7 +279,7 @@ def validate_versions(data, expected):
         for sub_sw in children:
             name = sub_sw.get("name")
             version = sub_sw.get("version")
-            expected_version = expected.get(name)
+            expected_version = config.expected_versions.get(name)
 
             # Skip if version is not provided
             if expected_version and version:
@@ -981,6 +995,15 @@ def validate_omnia_config(
         input_file_path, file_names["software_config"])
     with open(software_config_file_path, "r", encoding="utf-8") as f:
         software_config_json = json.load(f)
+    results=validate_versions(software_config_json)
+    if results:   # means there are version mismatches
+       errors.append(
+          create_error_msg(
+              software_config_file_path,
+              "software version validation",
+              f"Version mismatches found: {', '.join(results)}"
+          )
+       )
     softwares = software_config_json["softwares"]
     sw_list = [k['name'] for k in softwares]
 
@@ -1088,6 +1111,68 @@ def check_is_service_cluster_functional_groups_defined(
 
     return False
 
+def check_is_slurm_cluster_functional_groups_defined(
+    errors, input_file_path, omnia_base_dir, project_name, logger, module
+):
+    """
+    Checks if 'slurm_control_node_x86_64 and slurm_node' is configured in the functional_groups_config.yml file,
+    and ensures its cluster_name does not overlap with any Slurm role.
+
+    Args:
+        errors (list): A list to store error messages.
+        input_file_path (str): The path to the input file.
+        omnia_base_dir (str): The base directory for Omnia.
+        project_name (str): The name of the project.
+        logger (object): A logger object for logging messages.
+        module (object): A module object for logging messages.
+
+    Returns:
+        True if 'slurm_control_node_x86_64 and slurm_node' is defined and valid, else False
+    """
+    functional_groups_config_file_path = "/opt/omnia/.data/functional_groups_config.yml"
+
+    functional_groups_config_json = validation_utils.load_yaml_as_json(
+        functional_groups_config_file_path, omnia_base_dir, project_name, logger, module
+    )
+    functional_groups = functional_groups_config_json.get("functional_groups", [])
+
+    kube_cluster = None
+    slurm_clusters = set()
+
+    for group in functional_groups:
+        name = group.get("name", "")
+        cluster = group.get("cluster_name", "")
+
+        # Capture kube service cluster
+        if name == "service_kube_node_x86_64":
+            kube_cluster = cluster
+
+        # Collect slurm clusters
+        if name in [
+            "slurm_control_node_x86_64",
+            "slurm_node_x86_64",
+            "slurm_node_aarch64",
+        ]:
+            if cluster:
+                slurm_clusters.add(cluster)
+
+    if kube_cluster:
+        if kube_cluster in slurm_clusters:
+            errors.append(
+                create_error_msg(
+                    "functional_groups_config.yml",
+                    kube_cluster,
+                    en_us_validation_msg.SLURM_KUBE_CLUSTER_OVERLAP_MSG.format(
+                        cluster=kube_cluster
+                    ),
+                )
+            )
+            return False
+    if slurm_clusters:
+        return True
+
+    return False
+
 def validate_telemetry_config(
     input_file_path,
     data,
@@ -1137,6 +1222,13 @@ def validate_telemetry_config(
             en_us_validation_msg.TELEMETRY_SERVICE_CLUSTER_ENTRY_MISSING_ROLES_CONFIG_MSG
             )    
         )
+
+    is_slurm_cluster_defined = check_is_slurm_cluster_functional_groups_defined(errors,
+                                input_file_path,
+                                omnia_base_dir,
+                                project_name,
+                                logger,
+                                module)
     
     # Determine LDMS support from software_config.json
     # software_config.json is in the same directory as telemetry_config.yml
@@ -1161,6 +1253,14 @@ def validate_telemetry_config(
             logger.warn(f"Could not load software_config.json: {e}")
     else:
         logger.info(f"software_config.json not found at: {software_config_file_path}")
+
+    if ldms_support_from_software_config and not (is_service_cluster_defined and is_slurm_cluster_defined):
+        errors.append(create_error_msg(
+            "LDMS entry in software_config.json set to ",
+            ldms_support_from_software_config,
+            en_us_validation_msg.TELEMETRY_SERVICE_CLUSTER_ENTRY_FOR_LDMS_MISSING_ROLES_CONFIG_MSG
+            )
+        )
     
     # Validate topic_partitions configuration
     kafka_config = data.get("kafka_configurations", {})
