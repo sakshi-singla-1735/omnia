@@ -15,23 +15,22 @@
 """
 This module contains functions for validating provision configuration.
 """
+import csv
 import json
 import os
 import re
-from ansible.module_utils.input_validation.common_utils import validation_utils
+import yaml
 from ansible.module_utils.input_validation.common_utils import config
 from ansible.module_utils.input_validation.common_utils import en_us_validation_msg
+from ansible.module_utils.input_validation.common_utils import validation_utils
 from ansible.module_utils.input_validation.validation_flows import common_validation
-import csv
-import yaml
-from io import StringIO
 
 file_names = config.files
 create_error_msg = validation_utils.create_error_msg
 create_file_path = validation_utils.create_file_path
 
 def load_oim_metadata(metadata_file_path):
-    with open(metadata_file_path, 'r') as file:
+    with open(metadata_file_path, "r", encoding="utf-8") as file:
         metadata = yaml.safe_load(file)
     return metadata
 
@@ -66,16 +65,17 @@ def validate_functional_groups_in_mapping_file(pxe_mapping_file_path):
     if not pxe_mapping_file_path or not os.path.isfile(pxe_mapping_file_path):
         raise ValueError(f"PXE mapping file not found: {pxe_mapping_file_path}")
 
-
     with open(pxe_mapping_file_path, "r", encoding="utf-8") as fh:
         raw_lines = fh.readlines()
     
     # Disallow any comment lines in the PXE mapping file
     comment_lines = [i + 1 for i, ln in enumerate(raw_lines) if ln.lstrip().startswith("#")]
     if comment_lines:
-        raise ValueError(
-            f"PXE mapping file must not contain comments. Comment lines found at: {', '.join(map(str, comment_lines))}"
+        msg = (
+            "PXE mapping file must not contain comments. Comment lines found at: "
+            f"{', '.join(map(str, comment_lines))}"
         )
+        raise ValueError(msg)
 
     # Remove blank lines only; after the check above there are no comment lines
     non_comment_lines = [ln for ln in raw_lines if ln.strip()]
@@ -94,7 +94,8 @@ def validate_functional_groups_in_mapping_file(pxe_mapping_file_path):
     missing = [h for h in required_headers if h not in fieldname_map]
     if missing:
         raise ValueError(
-            f"PXE mapping file missing required columns: {', '.join(missing)} (found: {', '.join(reader.fieldnames)})"
+            "PXE mapping file missing required columns: "
+            f"{', '.join(missing)} (found: {', '.join(reader.fieldnames)})"
         )
 
     # Validate functional group names present in rows
@@ -111,16 +112,20 @@ def validate_functional_groups_in_mapping_file(pxe_mapping_file_path):
             invalid_entries.append(f"empty functional group name at CSV row {row_idx}")
             continue
         if not fg_pattern.match(fg):
-            invalid_entries.append(f"invalid functional group name '{fg}' at CSV row {row_idx}")
+            invalid_entries.append(
+                f"invalid functional group name '{fg}' at CSV row {row_idx}"
+            )
             continue
-        elif fg not in config.FUNCTIONAL_GROUP_LAYER_MAP.keys():
-            invalid_entries.append(f"unrecognized functional group name '{fg}' at CSV row {row_idx}")
+        if fg not in config.FUNCTIONAL_GROUP_LAYER_MAP.keys():
+            invalid_entries.append(
+                f"unrecognized functional group name '{fg}' at CSV row {row_idx}"
+            )
 
     if invalid_entries:
-        raise ValueError("PXE mapping file functional group name validation errors: " + "; ".join(invalid_entries))
-
-    # No exception => file considered valid for functional group names
-    return None
+        raise ValueError(
+            "PXE mapping file functional group name validation errors: "
+            + "; ".join(invalid_entries)
+        )
 
 def validate_parent_service_tag_hierarchy(pxe_mapping_file_path):
     """
@@ -191,8 +196,6 @@ def validate_parent_service_tag_hierarchy(pxe_mapping_file_path):
     
     if hierarchy_errors:
         raise ValueError("PXE mapping file parent service tag hierarchy validation errors: " + "; ".join(hierarchy_errors))
-    
-    return None
 
 def validate_provision_config(
     input_file_path, data, logger, module, omnia_base_dir, module_utils_base, project_name
@@ -214,7 +217,8 @@ def validate_provision_config(
     """
     errors = []
     software_config_file_path = create_file_path(input_file_path, file_names["software_config"])
-    software_config_json = json.load(open(software_config_file_path, "r"))
+    with open(software_config_file_path, "r", encoding="utf-8") as software_cfg:
+        software_config_json = json.load(software_cfg)
 
     # Call validate_software_config from common_validation
     software_errors = common_validation.validate_software_config(
@@ -248,10 +252,12 @@ def validate_provision_config(
         try:
             validate_functional_groups_in_mapping_file(pxe_mapping_file_path)
             validate_parent_service_tag_hierarchy(pxe_mapping_file_path)
-        except ValueError as e:
+        except ValueError as exc:
             errors.append(
-                create_error_msg("pxe_mapping_file_path", pxe_mapping_file_path,
-                str(e),
+                create_error_msg(
+                    "pxe_mapping_file_path",
+                    pxe_mapping_file_path,
+                    str(exc),
                 )
             )
     else:
@@ -281,10 +287,18 @@ def validate_provision_config(
     if system_timezone.lower() != input_timezone.lower():
         errors.append(
             create_error_msg(
-                ""
-                "timezone_mismatch detected between OIM host and provision_config.yml.",
-                f"Provided input timezone : {input_timezone}, Detected oim timezone: {system_timezone}",
-                "Timezone mismatch detected. Please ensure both timezones match; refer to timezone.txt.",
+                (
+                    "timezone_mismatch detected between OIM host and "
+                    "provision_config.yml."
+                ),
+                (
+                    f"Provided input timezone : {input_timezone}, Detected oim "
+                    f"timezone: {system_timezone}"
+                ),
+                (
+                    "Timezone mismatch detected. Please ensure both timezones "
+                    "match; refer to timezone.txt."
+                ),
             )
         )
 
@@ -387,7 +401,6 @@ def _validate_admin_network(network):
     # Neither should be in the dynamic_range
     errors.extend(validate_admin_bmc_ip_not_in_dynamic_range(primary_oim_admin_ip, primary_oim_bmc_ip, dynamic_range))
 
-    # Ensure primary_oim_admin_ip matches actual NIC IP and netmask
     # Ensure primary_oim_admin_ip matches actual NIC IP and netmask
     if oim_nic_name and primary_oim_admin_ip and netmask_bits:
         nic_ips = validation_utils.get_interface_ips_and_netmasks(oim_nic_name)  # returns list of (ip, netmask_bits)
