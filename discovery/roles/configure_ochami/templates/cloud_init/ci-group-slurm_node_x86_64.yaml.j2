@@ -249,6 +249,115 @@
               echo "IP $IP not reachable yet (attempt $COUNT). Retrying in $TIMEOUT seconds..." | tee -a "$LOGFILE"
               sleep "$TIMEOUT"
               done
+        - path: /usr/local/bin/configure_dirs_and_mounts.sh
+          permissions: '{{ file_mode_755 }}'
+          content: |
+            #!/bin/bash
+            LOGFILE="/var/log/configure_dirs_and_mounts.log"
+            exec > >(tee -a "$LOGFILE") 2>&1
+
+            echo "[INFO] ===== Starting directory creation and NFS mounts for Slurm and Munge ====="
+
+            echo "[INFO] Creating base directories for Slurm and Munge"
+            mkdir -pv /var/log/slurm /var/run/slurm /var/spool /var/lib/slurm /etc/slurm/epilog.d /etc/munge
+
+            echo "[INFO] Updating /etc/fstab with NFS entries for Slurm and Munge paths"
+            echo "{{ cloud_init_nfs_path }}/$(hostname -s)/var/log/slurm  /var/log/slurm   nfs defaults,_netdev 0 0" >> /etc/fstab
+            echo "{{ cloud_init_nfs_path }}/$(hostname -s)/var/spool      /var/spool       nfs defaults,_netdev 0 0" >> /etc/fstab
+            echo "{{ cloud_init_nfs_path }}/$(hostname -s)/etc/slurm/epilog.d     /etc/slurm/epilog.d      nfs defaults,_netdev 0 0" >> /etc/fstab
+            echo "{{ cloud_init_nfs_path }}/$(hostname -s)/etc/munge      /etc/munge       nfs defaults,_netdev 0 0" >> /etc/fstab
+            chmod {{ file_mode }} /etc/fstab
+
+            echo "[INFO] Mounting all NFS entries from /etc/fstab"
+            mount -av
+
+            echo "[INFO] ===== Completed directory creation and NFS mounts for Slurm and Munge ====="
+
+        - path: /usr/local/bin/configure_slurmd_setup.sh
+          permissions: '{{ file_mode_755 }}'
+          content: |
+            #!/bin/bash
+            LOGFILE="/var/log/configure_slurmd_setup.log"
+            exec > >(tee -a "$LOGFILE") 2>&1
+
+            echo "[INFO] ===== Starting slurmd setup (service file, directories, epilog) ====="
+
+            echo "[INFO] Copying slurmd.service into /usr/lib/systemd/system/"
+            yes | cp /etc/slurm/epilog.d/slurmd.service /usr/lib/systemd/system/
+
+            echo "[INFO] Setting ownership for Slurm directories"
+            chown -R {{ user }}:{{ slurm_group_name }} /var/log/slurm
+            chown -R {{ user }}:{{ slurm_group_name }} /var/run/slurm
+            chown -R {{ user }}:{{ slurm_group_name }} /var/spool
+            chown -R {{ user }}:{{ slurm_group_name }} /var/lib/slurm
+
+            echo "[INFO] Setting permissions for Slurm directories"
+            chmod {{ file_mode_755 }} /var/log/slurm /var/run/slurm /var/spool /var/lib/slurm
+
+            echo "[INFO] Ensuring Slurm epilog directory and logout script permissions"
+            chmod {{ file_mode_755 }} /etc/slurm/epilog.d/
+            chmod {{ file_mode_755 }} /etc/slurm/epilog.d/logout_user.sh
+
+            echo "[INFO] Creating and configuring /var/spool/slurmd"
+            mkdir -p /var/spool/slurmd
+            chmod {{ file_mode_755 }} /var/spool/slurmd
+            chown -R {{ user }}:{{ slurm_group_name }} /var/spool/slurmd
+
+            echo "[INFO] ===== Completed slurmd setup ====="
+
+        - path: /usr/local/bin/configure_munge_and_pam.sh
+          permissions: '{{ file_mode_755 }}'
+          content: |
+            #!/bin/bash
+            LOGFILE="/var/log/configure_munge_and_pam.log"
+            exec > >(tee -a "$LOGFILE") 2>&1
+
+            echo "[INFO] ===== Starting Munge key and PAM configuration ====="
+
+            echo "[INFO] Setting ownership and permissions for Munge key"
+            chown -R {{ munge_user }}:{{ munge_group }} /etc/munge/munge.key
+            chmod {{ file_mode_400 }} /etc/munge/munge.key
+
+            echo "[INFO] Updating PAM configuration for pam_slurm_adopt in /etc/pam.d/sshd"
+            sed -i '/^password\s\+include\s\+password-auth/i account    required    pam_slurm_adopt.so action_no_jobs=deny' /etc/pam.d/sshd
+
+            echo "[INFO] ===== Completed Munge key and PAM configuration ====="
+
+            
+        - path: /usr/local/bin/configure_firewall_and_services.sh
+          permissions: '{{ file_mode_755 }}'
+          content: |
+            #!/bin/bash
+            LOGFILE="/var/log/configure_firewall_and_services.log"
+            exec > >(tee -a "$LOGFILE") 2>&1
+
+            echo "[INFO] ===== Starting firewall and service configuration ====="
+
+            echo "[INFO] Enabling and starting firewalld"
+            systemctl enable firewalld
+            systemctl start firewalld
+
+            echo "[INFO] Configuring firewall rules for SSH and Slurm ports"
+            firewall-cmd --permanent --add-service=ssh
+            firewall-cmd --permanent --add-port={{ slurm_conf_dict.SrunPortRange }}/tcp
+            firewall-cmd --permanent --add-port={{ slurm_conf_dict.SrunPortRange }}/udp
+            firewall-cmd --permanent --add-port={{  slurm_conf_dict.SlurmdPort }}/tcp
+            firewall-cmd --permanent --add-port={{ slurm_conf_dict.SlurmdPort }}/udp
+            firewall-cmd --reload
+
+            echo "[INFO] Enabling and starting core services: sshd, munge, slurmd"
+            systemctl enable sshd
+            systemctl start sshd
+            systemctl enable munge
+            systemctl start munge
+            systemctl enable slurmd
+            systemctl start slurmd
+
+            echo "[INFO] Reloading systemd daemon and restarting sshd"
+            systemctl daemon-reexec
+            systemctl restart sshd
+
+            echo "[INFO] ===== Completed firewall and service configuration ====="
       runcmd:
         - /usr/local/bin/set-ssh.sh
         - /root/install_nvidia_driver.sh
@@ -256,47 +365,12 @@
         - groupadd -r {{ slurm_group_name }}
         - useradd -r -g {{ slurm_group_name }} -d {{ home_dir }} -s /sbin/nologin {{ user }}
 
-        - mkdir -pv /var/log/slurm /var/run/slurm /var/spool /var/lib/slurm /etc/slurm/epilog.d /etc/munge
-        - echo "{{ cloud_init_nfs_path }}/$(hostname -s)/var/log/slurm  /var/log/slurm   nfs defaults,_netdev 0 0" >> /etc/fstab
-        - echo "{{ cloud_init_nfs_path }}/$(hostname -s)/var/spool      /var/spool       nfs defaults,_netdev 0 0" >> /etc/fstab
-        - echo "{{ cloud_init_nfs_path }}/$(hostname -s)/etc/slurm/epilog.d     /etc/slurm/epilog.d      nfs defaults,_netdev 0 0" >> /etc/fstab
-        - echo "{{ cloud_init_nfs_path }}/$(hostname -s)/etc/munge      /etc/munge       nfs defaults,_netdev 0 0" >> /etc/fstab
-        - chmod {{ file_mode }} /etc/fstab
-        - mount -av
-
-        - yes | cp /etc/slurm/epilog.d/slurmd.service /usr/lib/systemd/system/
-        - chown -R {{ user }}:{{ slurm_group_name }} /var/log/slurm
-        - chown -R {{ user }}:{{ slurm_group_name }} /var/run/slurm
-        - chown -R {{ user }}:{{ slurm_group_name }} /var/spool
-        - chown -R {{ user }}:{{ slurm_group_name }} /var/lib/slurm
-        - chown -R {{ munge_user }}:{{ munge_group }} /etc/munge/munge.key
-        - chmod {{ file_mode_755 }} /var/log/slurm /var/run/slurm /var/spool /var/lib/slurm
-        - chmod {{ file_mode_400 }} /etc/munge/munge.key
-        - chmod {{ file_mode_755 }} /etc/slurm/epilog.d/
-        - chmod {{ file_mode_755 }} /etc/slurm/epilog.d/logout_user.sh
-        - mkdir -p /var/spool/slurmd
-        - chmod {{ file_mode_755 }} /var/spool/slurmd
-        - chown -R {{ user }}:{{ slurm_group_name }} /var/spool/slurmd
-
-        - sed -i '/^password\s\+include\s\+password-auth/i account    required    pam_slurm_adopt.so action_no_jobs=deny' /etc/pam.d/sshd
+        - /usr/local/bin/configure_dirs_and_mounts.sh
+        - /usr/local/bin/configure_slurmd_setup.sh
+        - /usr/local/bin/configure_munge_and_pam.sh
 
         - setenforce 0
-        - systemctl enable firewalld
-        - systemctl start firewalld
-        - firewall-cmd --permanent --add-service=ssh
-        - firewall-cmd --permanent --add-port={{ slurm_conf_dict.SrunPortRange }}/tcp
-        - firewall-cmd --permanent --add-port={{ slurm_conf_dict.SrunPortRange }}/udp
-        - firewall-cmd --permanent --add-port={{  slurm_conf_dict.SlurmdPort }}/tcp
-        - firewall-cmd --permanent --add-port={{ slurm_conf_dict.SlurmdPort }}/udp
-        - firewall-cmd --reload
-        - systemctl enable sshd
-        - systemctl start sshd
-        - systemctl enable munge
-        - systemctl start munge
-        - systemctl enable slurmd
-        - systemctl start slurmd
-        - systemctl daemon-reexec
-        - systemctl restart sshd
+        - /usr/local/bin/configure_firewall_and_services.sh
 
 {% if hostvars['localhost']['openldap_support'] %}
         - /usr/local/bin/update_ldap_conf.sh
