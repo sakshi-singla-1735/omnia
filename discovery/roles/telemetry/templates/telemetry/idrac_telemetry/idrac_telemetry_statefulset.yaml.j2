@@ -47,10 +47,6 @@ spec:
         app: {{ idrac_telemetry_k8s_name }}
     spec:
       volumes:
-        - name: telemetry-reference-tools
-          hostPath:
-            path: {{ idrac_telemetry_reference_git_clone_path }}
-            type: Directory
 {% set types = hostvars['localhost']['idrac_telemetry_collection_type'].split(',') %}
 {% if 'kafka' in types %}
         # Mount Kafka cluster CA certificate for TLS verification
@@ -127,12 +123,8 @@ spec:
             - containerPort: {{ activemq_http_port_2 }}
 
         - name: idrac-telemetry-receiver
-          image: {{ go_image }}
+          image: {{ idrac_telemetry_receiver_image }}
           imagePullPolicy: IfNotPresent
-          volumeMounts:
-            - mountPath: /go/src/github.com/telemetry-reference-tools
-              name: telemetry-reference-tools
-          workingDir: /go/src/github.com/telemetry-reference-tools
           env:
             - name: MESSAGEBUS_HOST
               value: 127.0.0.1
@@ -156,16 +148,12 @@ spec:
               value: mysqldb
             - name: MYSQL_HOST_PORT
               value: "{{ mysqldb_container_port1 }}"
-          command: ["/bin/sh", "-c"]
-          args: ["./scripts/example/idrac-telemetry-receiver.sh"]
 
 {% if 'kafka' in types %}
         - name: kafka-pump
-          image: {{ go_image }}
+          image: {{ kafkapump_image }}
           imagePullPolicy: IfNotPresent
           volumeMounts:
-            - mountPath: /go/src/github.com/telemetry-reference-tools
-              name: telemetry-reference-tools
             # Mount kafkapump user certificates for mTLS (under /extrabin/certs/)
             - mountPath: /extrabin/certs/kafka-certs
               name: kafkapump-user-certs
@@ -174,7 +162,6 @@ spec:
             - mountPath: /extrabin/certs/cluster-ca
               name: kafka-cluster-ca-cert
               readOnly: true
-          workingDir: /go/src/github.com/telemetry-reference-tools
           env:
             - name: MESSAGEBUS_HOST
               value: 127.0.0.1
@@ -196,18 +183,12 @@ spec:
               value: "false"
             - name: KAFKA_PARTITION
               value: "0"
-          command: ["/bin/sh", "-c"]
-          args: ["go run cmd/kafkapump/kafkapump.go"]
 {% endif %}
 
 {% if 'victoria' in types %}
         - name: victoria-pump
-          image: {{ go_image }}
+          image: {{ victoriapump_image }}
           imagePullPolicy: IfNotPresent
-          volumeMounts:
-            - mountPath: /go/src/github.com/telemetry-reference-tools
-              name: telemetry-reference-tools
-          workingDir: /go/src/github.com/telemetry-reference-tools
           env:
             - name: MESSAGEBUS_HOST
               value: 127.0.0.1
@@ -218,8 +199,6 @@ spec:
           ports:
             - containerPort: 2112
               name: victoriapump
-          command: ["/bin/sh", "-c"]
-          args: ["go run cmd/victoriapump/victoriapump.go"]
 {% endif %}
 
   volumeClaimTemplates:

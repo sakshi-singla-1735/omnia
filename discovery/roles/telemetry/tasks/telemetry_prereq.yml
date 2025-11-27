@@ -47,43 +47,6 @@
     state: directory
     mode: "{{ hostvars['localhost']['dir_permissions_755'] }}"
 
-- name: Git checkout for iDRAC Telemetry Reference Tools
-  block:
-    - name: Checkout iDRAC Telemetry GitHub repo
-      ansible.builtin.git:
-        repo: "{{ idrac_telemetry_github_repo }}"
-        dest: "{{ idrac_telemetry_reference_git_clone_path }}"
-        version: "{{ reference_tools_stable_commit }}"
-        update: false
-      register: clone_idrac_telemetry
-      until: clone_idrac_telemetry is succeeded
-      retries: "{{ max_retries }}"
-      delay: "{{ delay_count }}"
-
-  rescue:
-    - name: Fail if iDRAC telemetry Git clone fails
-      ansible.builtin.fail:
-        msg: "{{ idrac_git_clone_error_msg.splitlines() | join(' ') }}"
-      when: clone_idrac_telemetry is failed
-
-- name: Git clone for iDRAC Telemetry script
-  block:
-    - name: Checkout iDRAC Telemetry GitHub repo
-      ansible.builtin.git:
-        repo: "{{ idrac_telemetry_scripting_repo }}"
-        dest: "{{ idrac_telemetry_scripting_git_clone_path }}"
-        version: "{{ idrac_telemetry_scripting_stable_commit }}"
-        update: false
-      register: clone_idrac_script
-      until: clone_idrac_script is succeeded
-      retries: "{{ max_retries }}"
-      delay: "{{ delay_count }}"
-  rescue:
-    - name: Fail if iDRAC telemetry Git clone fails
-      ansible.builtin.fail:
-        msg: "{{ idrac_script_git_clone_error_msg.splitlines() | join(' ') }}"
-      when: clone_idrac_script is failed
-
 - name: Set kafka_support to true
   ansible.builtin.set_fact:
     kafka_support: true
