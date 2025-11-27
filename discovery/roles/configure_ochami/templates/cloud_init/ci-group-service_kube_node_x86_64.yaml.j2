@@ -242,7 +242,8 @@
             JOIN_CMD="$(cat "$JOIN_CMD_FILE") --node-name ${NODE_NAME}"
             echo "Executing: $JOIN_CMD"
             eval $JOIN_CMD
-
+            systemctl restart nfs-client.target
+            systemctl restart rpcbind
             if [ -f /etc/kubernetes/kubelet.conf ]; then
               cp /etc/kubernetes/kubelet.conf /etc/kubernetes/kubelet.conf.bak
               sed -i "s#server: https://[^:]*:6443#server: https://{{ kube_vip }}:6443#" /etc/kubernetes/kubelet.conf
