@@ -64,7 +64,7 @@
           File: {{ input_file }}
           {{ json_check.stderr | default('Unknown jq error') }}
           Please fix the JSON syntax
-        when: json_check.rc != 0
+      when: json_check.rc != 0
 
     - name: Load software_config JSON
       ansible.builtin.set_fact:
