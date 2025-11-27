@@ -900,7 +900,8 @@
                 fi
               fi
             fi
-
+            systemctl restart nfs-client.target
+            systemctl restart rpcbind
             echo "Installing Necessary Python pip packages"
             python3 -m ensurepip
 
