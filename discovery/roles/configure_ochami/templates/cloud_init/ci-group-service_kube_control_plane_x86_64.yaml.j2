@@ -360,7 +360,8 @@
             else
               echo "WARNING: /etc/kubernetes/kubelet.conf not found. Kubelet may not be initialized yet."
             fi
-
+            systemctl restart nfs-client.target
+            systemctl restart rpcbind
             echo "Installing Necessary Python pip packages"
             python3 -m ensurepip
 
