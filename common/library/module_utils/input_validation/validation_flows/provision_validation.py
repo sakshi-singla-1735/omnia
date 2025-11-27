@@ -343,6 +343,7 @@ def validate_parent_service_tag_hierarchy(pxe_mapping_file_path):
         raw_lines = fh.readlines()
     non_comment_lines = [ln for ln in raw_lines if ln.strip()]
     reader = csv.DictReader(non_comment_lines)
+    
     fieldname_map = {fn.strip().upper(): fn for fn in reader.fieldnames}
     fg_col = fieldname_map.get("FUNCTIONAL_GROUP_NAME")
     parent_col = fieldname_map.get("PARENT_SERVICE_TAG")
@@ -354,11 +355,10 @@ def validate_parent_service_tag_hierarchy(pxe_mapping_file_path):
 
     # Detect if any row contains a kube control plane or kube node FG
     kube_cluster_present = any(
-        ("kube_control_plane" in (row.get(fg_col) or "").strip().lower())
-        or ("kube_node" in (row.get(fg_col) or "").strip().lower())
+        ("kube_" in (row.get(fg_col) or "").strip().lower())
         for row in rows
     )
-
+    kube_srv_tags = [row.get('SERVICE_TAG') for row in rows if 'kube_node' in row.get("FUNCTIONAL_GROUP_NAME")]
     # Replace reader with an iterator over the stored rows so the loop below can consume them
     reader_iter = iter(rows)
     for row_idx, row in enumerate(reader_iter, start=2):
@@ -380,6 +380,12 @@ def validate_parent_service_tag_hierarchy(pxe_mapping_file_path):
                     f"Compute node with functional group '{fg}' at CSV row {row_idx} "
                     f"must have a parent_service_tag configured"
                 )
+            elif parent not in kube_srv_tags:
+                hierarchy_errors.append(
+                    f"Compute node with functional group '{fg}' at CSV row {row_idx} "
+                    f"must have a valid parent_service_tag configured as service_kube_node"
+                )
+    
     if hierarchy_errors:
         raise ValueError("PXE mapping file parent service tag hierarchy validation errors: " + "; ".join(hierarchy_errors))
 

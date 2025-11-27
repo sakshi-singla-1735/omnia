@@ -149,6 +149,18 @@
             }
             chmod {{ file_mode_600 }} /etc/slurm/slurmdbd.conf
             chown {{ user }}:{{ slurm_group_name }} /etc/slurm/slurmdbd.conf
+            #file PidFile
+            PidFile=$(get_value_slurm_conf "PidFile" "/var/run/slurmdbd.pid")
+            mkdir -pv $(dirname "$PidFile")
+            touch $PidFile
+            chown -v "$SLURM_USER:$SLURM_GROUP" "$PidFile"
+            chmod -v 0755 $PidFile
+            #file LogFile
+            LogFile=$(get_value_slurm_conf "LogFile" "/var/log/slurmdbd.log")
+            mkdir -pv $(dirname "$LogFile")
+            touch $LogFile
+            chown -v "$SLURM_USER:$SLURM_GROUP" "$LogFile"
+            chmod -v 0755 $LogFile
             #firewall
             systemctl enable firewalld
             systemctl start firewalld
@@ -200,6 +212,7 @@
             firewall-cmd --reload
             systemctl enable slurmctld
             systemctl start slurmctld
+            systemctl restart slurmctld
 
       runcmd:
          - /usr/local/bin/set-ssh.sh
