@@ -620,6 +620,19 @@ validate_oim() {
         exit 1
     fi
 
+    # Detect OIM timezone from systemd in a stable, case‑independent way
+    oim_timezone=$(timedatectl show -p Timezone --value 2>/dev/null)
+
+    # Fallbacks if needed (non‑systemd or old timedatectl)
+    if [[ -z "$oim_timezone" ]]; then
+        if [[ -f /etc/timezone ]]; then
+            # Debian/Ubuntu style
+            oim_timezone=$(< /etc/timezone)
+        elif [[ -L /etc/localtime ]]; then
+            # Derive from /etc/localtime symlink
+            oim_timezone=$(readlink -f /etc/localtime | sed -n 's|^.*zoneinfo/||p')
+        fi
+    fi
 
     podman --version
 
@@ -740,6 +753,7 @@ EOF
             echo "oim_hostname: $(hostname)"
             echo "oim_node_name: $(hostname -s)"
             echo "domain_name: $domain_name"
+            echo "oim_timezone: $oim_timezone"
             echo "omnia_core_hashed_passwd: $hashed_passwd"
             echo "omnia_share_option: $share_option"
         } >> "$oim_metadata_file"
@@ -1078,4 +1092,3 @@ main() {
 
 # Call the main function
 main "$1"
-
