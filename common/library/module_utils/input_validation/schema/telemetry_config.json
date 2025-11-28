@@ -41,7 +41,11 @@
     },
     "ldms_sampler_configurations": {
     "type": "array",
-    "description": "LDMS-specific sampler configurations (string-based)",
+    "minItems": 1,
+    "description": "LDMS-specific sampler configurations (string-based). At least 1 plugin configuration is required.",
+    "errorMessage": {
+      "minItems": "At least 1 LDMS sampler plugin configuration is required. Please configure at least one of the supported plugins: meminfo, procstat2, vmstat, loadavg, slurm_sampler, procnetdev2"
+    },
     "items": {
       "type": "object",
       "properties": {
