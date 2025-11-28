@@ -47,7 +47,18 @@
       "properties": {
         "plugin_name": {
           "type": "string",
-          "description": "Name of the LDMS sampler plugin"
+          "enum": [
+            "meminfo",
+            "procstat2",
+            "vmstat",
+            "loadavg",
+            "slurm_sampler",
+            "procnetdev2"
+          ],
+          "description": "Name of the LDMS sampler plugin. Must be one of the 6 supported plugin types: meminfo (memory usage), procstat2 (process statistics), vmstat (virtual memory), loadavg (system load), slurm_sampler (HPC workload monitoring), procnetdev2 (network interface statistics).",
+          "errorMessage": {
+            "enum": "Invalid plugin_name. Only 6 plugins are supported: meminfo, procstat2, vmstat, loadavg, slurm_sampler, procnetdev2"
+          }
         },
         "config_parameters": {
           "type": "string",
@@ -101,7 +112,7 @@
     }
     }
   },
-  "required": ["idrac_telemetry_support"],
+  "required": ["idrac_telemetry_support", "ldms_sampler_configurations"],
   "$defs": {
     "kafka_configurations": {
       "type": "object",
