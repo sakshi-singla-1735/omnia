@@ -58,6 +58,7 @@
         jid: "{{ item.ansible_job_id }}"
       register: job_result
       until: job_result.finished
+      no_log: true
       retries: "{{ job_retry }}"
       delay: "{{ job_delay }}"
       loop: "{{ compute_image_build_job.results }}"
@@ -65,7 +66,7 @@
         label: "{{ item.item.key }}"
 
   rescue:
-    - name: Fail explicitly if job failed
+    - name: Failed to build the x86_64 compute image
       ansible.builtin.fail:
         msg: "{{ compute_image_failure_msg }}"
 
