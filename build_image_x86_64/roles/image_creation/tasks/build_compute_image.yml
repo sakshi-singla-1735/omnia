@@ -58,6 +58,7 @@
         jid: "{{ item.ansible_job_id }}"
       register: job_result
       until: job_result.finished
+      no_log: true
       retries: "{{ job_retry }}"
       delay: "{{ job_delay }}"
       loop: "{{ compute_image_build_job.results }}"
