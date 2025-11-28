@@ -41,11 +41,9 @@ stream:                   Specific auth for the stream pod. it listens to all Ag
 
 3. If needed create a k8s Secrets allowing the pods to pull the image from the image registry, and add to the ldms_machine_config.json in imagePullSecretsOption).
 
-4. Create a scripts to generate the host_map files.
+4. Create a script to generate the host_map files.
 
-* On a csm system, make_host_map.csm.py will discover nodes using the Shasta Hardware State Manager (HSM) and System Layout Service (SLS).
-
-* On a Dell system, make_host_map.dell.py just copies a manually created file, until we have a better solution.
+* Use make_host_map.dell.py to generate host_map.json from a manually created source file.
 
 5. Run Make
 
@@ -55,13 +53,8 @@ stream:                   Specific auth for the stream pod. it listens to all Ag
 3. Runs scripts to create ldmsd files, and bundles them into a Config Map
 4. Scales the Statefulset 
 
-For csm: make_host_map.csm.py:
-1. Discover all nodes using the Shasta Hardware State Manager (HSM) and System Layout Service (SLS).
-2. Group the nodes by Type (HPE EX Shasta Application, Compute, and Worker), then by sub-type (GPU, CPU), and finally by node count.
-3. Write to out_dir/host_map.json
-
-For dell: make_host_map.dell.py:
-1. Copy host_map.slurm-cluster.json to out_dir/host_map.json
+Use make_host_map.dell.py:
+1. Copy host_map.slurm-cluster.json (or another prepared host map) to out_dir/host_map.json
 
 Create ldms config and prepare chart (nersc_ldms_make_ldms_config.py)
 1. Create `ldmsd` config and environment variable files for each `ldmsd` to distribute the producers across daemons and enable daemons to find each other.
