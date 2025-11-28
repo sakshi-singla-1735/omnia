@@ -74,7 +74,7 @@
         label: "{{ item.item.key }}"
 
   rescue:
-    - name: Fail explicitly if job failed
+    - name: Failed to build the aarch64 compute image
       ansible.builtin.fail:
         msg: "{{ compute_image_failure_msg }}"
 
