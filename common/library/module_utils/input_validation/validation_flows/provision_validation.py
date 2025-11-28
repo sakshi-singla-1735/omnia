@@ -343,7 +343,6 @@ def validate_parent_service_tag_hierarchy(pxe_mapping_file_path):
         raw_lines = fh.readlines()
     non_comment_lines = [ln for ln in raw_lines if ln.strip()]
     reader = csv.DictReader(non_comment_lines)
-    
     fieldname_map = {fn.strip().upper(): fn for fn in reader.fieldnames}
     fg_col = fieldname_map.get("FUNCTIONAL_GROUP_NAME")
     parent_col = fieldname_map.get("PARENT_SERVICE_TAG")
