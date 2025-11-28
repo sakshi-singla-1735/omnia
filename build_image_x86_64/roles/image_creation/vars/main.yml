@@ -43,8 +43,8 @@ openchami_x86_64_base_image_log_path: "{{ openchami_log_dir }}/x86_64_base_image
 openchami_base_image_vars_template: "{{ role_path }}/templates/base_image_template.j2"
 openchami_x86_64_base_image_vars_path: "/opt/omnia/openchami/x86_64_base_image_template.yaml"
 base_image_failure_msg: "Base x86_64 image build job failed or timed out. Check logs at path {{ openchami_x86_64_base_image_log_path }} for details."
-compute_image_failure_msg: 
-  "x86_64 compute image build job did not complete successfully. 
+compute_image_failure_msg:
+  "x86_64 compute image build job did not complete successfully.
   Check logs at {{ openchami_log_dir }} for respective functional group for more details."
 
 # build_compute_image.yml
