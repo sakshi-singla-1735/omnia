@@ -40,7 +40,7 @@
       "description": "LDMS sampler port on compute nodes. Valid range: 10001-10100. Default: 10001"
     },
     "ldms_sampler_configurations": {
-    "type": ["array", "null"],
+    "type": "array",
     "minItems": 1,
     "description": "LDMS-specific sampler configurations (string-based). At least 1 plugin configuration is required.",
     "errorMessage": {
