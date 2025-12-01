@@ -20,6 +20,8 @@ import os
 import re
 import itertools
 import csv
+import yaml
+from io import StringIO
 from ansible.module_utils.input_validation.common_utils import validation_utils
 from ansible.module_utils.input_validation.common_utils import config
 from ansible.module_utils.input_validation.common_utils import en_us_validation_msg
@@ -28,6 +30,15 @@ from ansible.module_utils.input_validation.validation_flows import common_valida
 file_names = config.files
 create_error_msg = validation_utils.create_error_msg
 create_file_path = validation_utils.create_file_path
+
+def load_oim_metadata(metadata_file_path):
+    with open(metadata_file_path, 'r') as file:
+        metadata = yaml.safe_load(file)
+    return metadata
+
+metadata_file_path = '/opt/omnia/.data/oim_metadata.yml'
+metadata = load_oim_metadata(metadata_file_path)
+oim_timezone = metadata['oim_timezone']
 
 # Expected header columns (case-insensitive)
 required_headers = [
@@ -354,11 +365,10 @@ def validate_parent_service_tag_hierarchy(pxe_mapping_file_path):
 
     # Detect if any row contains a kube control plane or kube node FG
     kube_cluster_present = any(
-        ("kube_control_plane" in (row.get(fg_col) or "").strip().lower())
-        or ("kube_node" in (row.get(fg_col) or "").strip().lower())
+        ("kube_" in (row.get(fg_col) or "").strip().lower())
         for row in rows
     )
-
+    kube_srv_tags = [row.get('SERVICE_TAG') for row in rows if 'kube_node' in row.get("FUNCTIONAL_GROUP_NAME")]
     # Replace reader with an iterator over the stored rows so the loop below can consume them
     reader_iter = iter(rows)
     for row_idx, row in enumerate(reader_iter, start=2):
@@ -380,6 +390,12 @@ def validate_parent_service_tag_hierarchy(pxe_mapping_file_path):
                     f"Compute node with functional group '{fg}' at CSV row {row_idx} "
                     f"must have a parent_service_tag configured"
                 )
+            elif parent not in kube_srv_tags:
+                hierarchy_errors.append(
+                    f"Compute node with functional group '{fg}' at CSV row {row_idx} "
+                    f"must have a valid parent_service_tag configured as service_kube_node"
+                )
+    
     if hierarchy_errors:
         raise ValueError("PXE mapping file parent service tag hierarchy validation errors: " + "; ".join(hierarchy_errors))
 
@@ -459,7 +475,26 @@ def validate_provision_config(
     timezone = data["timezone"]
     if not validation_utils.validate_timezone(timezone, timezone_file_path):
         errors.append(
-            create_error_msg("timezone", timezone, en_us_validation_msg.TIMEZONE_FAIL_MSG)
+            create_error_msg(
+                "timezone",
+                timezone,
+                en_us_validation_msg.TIMEZONE_FAIL_MSG,
+            )
+        )
+
+    # Normalize input and system timezones for comparison
+    input_timezone = (timezone or "").strip()
+    system_timezone = (oim_timezone or "").strip()
+
+    # Compare both timezones (case-insensitive)
+    if system_timezone.lower() != input_timezone.lower():
+        errors.append(
+            create_error_msg(
+                ""
+                "timezone_mismatch detected between OIM host and provision_config.yml.",
+                f"Provided input timezone : {input_timezone}, Detected oim timezone: {system_timezone}",
+                "Timezone mismatch detected. Please ensure both timezones match; refer to timezone.txt.",
+            )
         )
 
     default_lease_time = data["default_lease_time"]
