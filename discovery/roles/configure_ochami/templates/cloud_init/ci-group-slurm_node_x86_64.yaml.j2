@@ -191,7 +191,39 @@
 
             echo "===== NVIDIA GPU setup completed ====="
 
+        - path: /root/install_nvidia_hpc_benchmarks.sh
+          permissions: '0755'
+          content: |
+            #!/bin/bash
+            LOGFILE="/var/log/nvidia_hpc_benchmarks_install.log"
+            exec > >(tee -a "$LOGFILE") 2>&1
 
+            echo "===== Starting NVIDIA GPU detection and driver installation ====="
+
+            # Check for NVIDIA GPU presence
+            echo "[INFO] Checking for NVIDIA GPU..."
+            if ! lspci | grep -i nvidia &>/dev/null; then
+                echo "[INFO] No NVIDIA GPU detected. Exiting."
+                exit 0
+            fi
+
+            echo "[INFO] NVIDIA GPU detected. Proceeding with checking NVIDIA driver install status"
+
+            # Check if NVIDIA driver is installed
+            if ! command -v nvidia-smi &>/dev/null; then
+                echo "[INFO] NVIDIA driver already installed. Skipping driver installation.
+                exit 0
+            fi
+            
+            echo "[INFO] Mounting NFS runfile directory for driver installation..."
+            mkdir -p /nvidia_benchmarks
+            mount -t nfs {{ cloud_init_nfs_path }}/hpc_benchmarks /nvidia_benchmarks
+
+            if [ $? -ne 0 ]; then
+                echo "[ERROR] Failed to mount NFS hpc_benchmarks share. Exiting."
+                exit 1
+            fi
+            echo 
 {% if hostvars['localhost']['openldap_support'] %}
         - path: /etc/sssd/sssd.conf
           owner: root:root

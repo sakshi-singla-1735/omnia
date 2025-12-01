@@ -4,7 +4,6 @@
     "repo_config": "always",
     "softwares": [
         {"name": "default_packages", "arch": ["x86_64","aarch64"]},
-        {"name": "cuda", "version": "13.0.1", "arch": ["x86_64","aarch64"]},
         {"name": "openldap", "arch": ["x86_64","aarch64"]},
         {"name": "nfs", "arch": ["x86_64","aarch64"]},
         {"name": "slurm_custom", "arch": ["x86_64","aarch64"]},
