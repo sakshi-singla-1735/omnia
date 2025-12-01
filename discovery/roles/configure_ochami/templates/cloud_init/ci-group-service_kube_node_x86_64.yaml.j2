@@ -178,7 +178,6 @@
         - sudo modprobe vxlan || true
         - sysctl --system
         - mkdir -p /tmp/crio-storage {{ k8s_client_mount_path }} /var/lib/kubelet /etc/kubernetes
-        - mount -a
         - |
           tmpfile=$(mktemp)
 
@@ -200,6 +199,7 @@
           if command -v chattr >/dev/null 2>&1; then
             chattr +i /etc/resolv.conf || true
           fi
+        - mount -a
         - systemctl start crio.service
         - systemctl enable crio.service
         - sudo systemctl enable --now kubelet
