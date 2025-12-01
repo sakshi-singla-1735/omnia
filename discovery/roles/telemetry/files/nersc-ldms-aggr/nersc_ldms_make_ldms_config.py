@@ -422,8 +422,6 @@ class LdmsdManager:  # pylint: disable=too-many-instance-attributes
             "scripts/ldmsd_stream.bash",
             "scripts/ldms_ls.bash",
             "scripts/ldms_stats.bash",
-            "scripts/ldms_exporter.bash",
-            "scripts/ldms_exporter.py",
             "scripts/start_munge.bash",
             "scripts/decomp.json",
             "scripts/kafka.conf"

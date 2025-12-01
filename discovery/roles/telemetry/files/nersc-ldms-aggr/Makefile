@@ -24,13 +24,8 @@ out_dir/nersc-ldmsd-port-map.json: out_dir/.generated
 
 # Marker target to run the init scripts only once
 out_dir/.generated:
-	@if ! grep -q dell ldms_machine_config.json; then \
-		echo "Running make_host_map.csm.py ('dell'  not found)"; \
-		./make_host_map.csm.py --config=ldms_machine_config.json; \
-	else \
-		echo "Running ./make_host_map.dell.py ('dell' found)"; \
-		./make_host_map.dell.py --config=ldms_machine_config.json; \
-	fi
+	@echo "Running ./make_host_map.dell.py"; \
+	./make_host_map.dell.py --config=ldms_machine_config.json; \
 	echo "Running ./nersc_ldms_make_ldms_config.py --config=ldms_machine_config.json"; \
 	./nersc_ldms_make_ldms_config.py --config=ldms_machine_config.json
 	touch $@

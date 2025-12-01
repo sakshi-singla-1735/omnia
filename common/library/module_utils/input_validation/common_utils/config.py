@@ -39,16 +39,16 @@ files = {
     "software_config": "software_config.json",
     "storage_config": "storage_config.yml",
     "telemetry_config": "telemetry_config.yml",
-    #"functional_groups_config": "functional_groups_config.yml",
     "high_availability_config": "high_availability_config.yml"
     # "additional_software": "additional_software.json"
 }
 
 # Tags and the files that will be run based off of it
 input_file_inventory = {
+    "build_image": [files["provision_config"]],
     "scheduler": [
         files["software_config"],
-        #files['functional_groups_config'],
+
         files["omnia_config"]
         # files["high_availability_config"]
     ],
@@ -56,7 +56,6 @@ input_file_inventory = {
         files["provision_config"],
         files["network_spec"],
         files["software_config"],
-       # files["functional_groups_config"]
         # files["high_availability_config"]
     ],
     "security": [
@@ -73,12 +72,10 @@ input_file_inventory = {
         files["omnia_config"],
         files["storage_config"],
         files["high_availability_config"],
-        #files["functional_groups_config"]
     ],
     "storage": [files["storage_config"]],
     "prepare_oim": [
         files["network_spec"],
-        #files["functional_groups_config"]
     ],
     # "high_availability": [files["high_availability_config"]],
     # "additional_software": [files["additional_software"]],
@@ -92,7 +89,6 @@ input_file_inventory = {
         files["software_config"],
         files["storage_config"],
         files["high_availability_config"],
-        #files["functional_groups_config"]
     ],
 }
 
@@ -102,10 +98,11 @@ expected_versions = {
     "ofed": "24.10-1.1.4.0",
     "beegfs": "7.4.5",
     "intel_benchmarks": "2024.1.0",
-    "ucx": "1.15.0",
-    "openmpi": "4.1.6",
-    "csi_driver_powerscale": "v2.11.0",
-    "rocm": "6.3.1"
+    "ucx": "1.19.0",
+    "openmpi": "5.0.8",
+    "csi_driver_powerscale": "v2.15.0",
+    "rocm": "6.3.1",
+    "service_k8s": "1.34.1"
 }
 
 # All of the passwords fields
@@ -155,6 +152,19 @@ TYPE_REQUIREMENTS = {
 }
 
 supported_telemetry_collection_type = ["victoria","kafka"]
+
+FUNCTIONAL_GROUP_LAYER_MAP = {
+    "service_kube_control_plane_first_x86_64": "management",
+    "service_kube_control_plane_x86_64": "management",
+    "service_kube_node_x86_64": "management",
+    "login_node_x86_64": "management",
+    "login_node_aarch64": "management",
+    "login_compiler_node_x86_64": "management",
+    "login_compiler_node_aarch64": "management",
+    "slurm_control_node_x86_64": "management",
+    "slurm_node_x86_64": "compute",
+    "slurm_node_aarch64": "compute"
+}
 
 # used for security_config.yml validation
 supported_ldap_connection_type = ["TLS","SLS"]

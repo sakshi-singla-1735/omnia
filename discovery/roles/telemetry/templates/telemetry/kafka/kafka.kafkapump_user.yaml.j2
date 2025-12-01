@@ -26,6 +26,39 @@ spec:
   authorization:
     type: simple
     acls:
+      # Global topic creation and management permissions for external clients
+      - resource:
+          type: topic
+          name: "*"
+          patternType: literal
+        operations:
+          - Create
+          - Delete
+          - Describe
+          - Read
+          - Write
+          - Alter
+          - AlterConfigs
+        host: "*"
+      
+      # Cluster-level permissions for topic management
+      - resource:
+          type: cluster
+        operations:
+          - Describe
+          - Create
+        host: "*"
+      
+      # Consumer group permissions for any group
+      - resource:
+          type: group
+          name: "*"
+          patternType: literal
+        operations:
+          - Read
+          - Describe
+        host: "*"
+
 {% if hostvars['localhost']['idrac_telemetry_support'] and 'kafka' in hostvars['localhost']['idrac_telemetry_collection_type'].split(',') %}
       # Producer and consumer permissions for idrac topic
       - resource:
