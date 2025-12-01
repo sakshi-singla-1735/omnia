@@ -32,11 +32,13 @@ nodes_yaml: "{{ hostvars['localhost']['oim_shared_path'] }}/omnia/openchami/work
 worker_components:
   - 'kubernetes'
   - 'kubelet'
+  - 'pod-logs'
 worker_ips: "{{ worker_ip_list | unique }}"
 cp_components:
   - 'etcd'
   - 'kubernetes'
   - 'kubelet'
+  - 'pod-logs'
 k8s_pip_packages: []
 cp_ips: "{{ (cp_first_ip_list + cp_ip_list) | unique }}"
 folder_mode: "0755"

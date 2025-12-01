@@ -78,10 +78,10 @@
       loop:
         - calico
         - metallb
-        - multus
+        # - multus
         - nfs-client-provisioner
         - helm
-        - whereabouts
+        # - whereabouts
 
     - name: Create subdirectories on NFS share
       ansible.builtin.file:
