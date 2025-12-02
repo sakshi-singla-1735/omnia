@@ -41,11 +41,41 @@
      | selectattr('Manufacturer', 'defined')
      | selectattr('Manufacturer', 'search', '(?i)nvidia') | list }}" # TODO: other GPUs also
 
+
+- name: Read Memory NodeParams
+  ansible.builtin.uri:
+    url: "https://{{ bmc_ip_map[item] }}/redfish/v1/Systems/System.Embedded.1"
+    user: "{{ bmc_username }}"
+    password: "{{ bmc_password }}"
+    method: GET
+    force_basic_auth: true
+    validate_certs: false
+    return_content: true
+    body_format: json
+    timeout: 60
+    headers:
+      Accept: "application/json"
+      Content-Type: "application/json"
+      OData-Version: "4.0"
+    status_code:
+      - 200
+  register: mem_info
+  failed_when: false
+
+- name: Calculate total memory in MB (GiB → MB)
+  ansible.builtin.set_fact:
+    total_memory_mb: "{{ (mem_info.json.MemorySummary.TotalSystemMemoryGiB | default(default_real_memory)) * 1024 | int }}"
+
+- name: Calculate 90% of real memory
+  ansible.builtin.set_fact:
+    real_memory: "{{ ((total_memory_mb | float) * 0.90) | int }}"
+
 - name: Calculate proc facts
   ansible.builtin.set_fact:
     proc_params: "{{ {} | combine({'Sockets': (1 if (cpus | length == 0) else (cpus | length))})
-     | combine({'CoresPerSocket': (cpus[0].TotalEnabledCores | default(1))})
-     | combine({'ThreadsPerCore': ((cpus[0].TotalThreads | default(1)) // (cpus[0].TotalCores | default(1)))})
+     | combine({'CoresPerSocket': (cpus[0].TotalEnabledCores | default(default_corespersocket))})
+     | combine({'ThreadsPerCore': ((cpus[0].TotalThreads | default(default_threadspercore)) // (cpus[0].TotalCores | default(1)))})
+     | combine({'RealMemory': total_mem_mb | default(default_realmemory) })
      | combine(
                 {'Gres': 'gpu:' ~ (gpus | default([1]) | length | string)}
                 if (gpus | default([]))
