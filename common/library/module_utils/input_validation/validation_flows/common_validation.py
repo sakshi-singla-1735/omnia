@@ -1127,7 +1127,7 @@ def check_is_service_cluster_functional_groups_defined(
         has_control_plane = False
         
         for row in reader:
-            functional_group = row.get('FUNCTIONAL_GROUP', '').strip()
+            functional_group = row.get('FUNCTIONAL_GROUP_NAME', '').strip()
             if functional_group.startswith('service_kube_node_'):
                 has_kube_node = True
                 logger.info(f"Service cluster functional group found: {functional_group}")
@@ -1233,7 +1233,7 @@ def check_is_slurm_cluster_functional_groups_defined(
         has_slurm_node = False
         
         for row in reader:
-            functional_group = row.get('FUNCTIONAL_GROUP', '').strip()
+            functional_group = row.get('FUNCTIONAL_GROUP_NAME', '').strip()
             if functional_group.startswith('slurm_control_node_'):
                 has_slurm_control = True
                 logger.info(f"Slurm cluster functional group found: {functional_group}")
