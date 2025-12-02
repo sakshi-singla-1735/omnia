@@ -70,8 +70,6 @@
   ansible.builtin.set_fact:
     real_memory: "{{ ((total_memory_mb | float) * 0.90) | int }}"
 
-
-
 - name: Calculate proc facts
   ansible.builtin.set_fact:
     proc_params: "{{ {} | combine({'Sockets': (1 if (cpus | length == 0) else (cpus | length))})
