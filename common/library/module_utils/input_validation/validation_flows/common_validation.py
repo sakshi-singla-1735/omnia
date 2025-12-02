@@ -1363,7 +1363,7 @@ def validate_telemetry_config(
         errors.append(create_error_msg(
             "ldms_sampler_configurations",
             "null/None",
-            "ldms_sampler_configurations is required and cannot be null. Please provide valid sampler configurations."
+            "ldms_sampler_configurations is required and cannot be null. Please provide valid sampler configurations with plugin_names."
         ))
     # Fail if ldms_sampler_configurations is an empty array
     elif isinstance(ldms_sampler_configurations, list):
@@ -1371,7 +1371,7 @@ def validate_telemetry_config(
             errors.append(create_error_msg(
                 "ldms_sampler_configurations",
                 "empty array []",
-                "ldms_sampler_configurations cannot be an empty array. Please provide at least one valid sampler configuration."
+                "ldms_sampler_configurations cannot be an empty array. Please provide at least one valid sampler configuration with plugin_names."
             ))
         else:
             # Validate each sampler configuration for empty plugin_name
