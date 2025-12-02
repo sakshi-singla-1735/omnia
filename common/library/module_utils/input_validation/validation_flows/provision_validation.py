@@ -21,7 +21,6 @@ import re
 import itertools
 import csv
 import yaml
-from io import StringIO
 from ansible.module_utils.input_validation.common_utils import validation_utils
 from ansible.module_utils.input_validation.common_utils import config
 from ansible.module_utils.input_validation.common_utils import en_us_validation_msg
@@ -395,9 +394,12 @@ def validate_parent_service_tag_hierarchy(pxe_mapping_file_path):
                     f"Compute node with functional group '{fg}' at CSV row {row_idx} "
                     f"must have a valid parent_service_tag configured as service_kube_node"
                 )
-    
+
     if hierarchy_errors:
-        raise ValueError("PXE mapping file parent service tag hierarchy validation errors: " + "; ".join(hierarchy_errors))
+        raise ValueError(
+            "PXE mapping file parent service tag hierarchy validation errors: " +
+            "; ".join(hierarchy_errors)
+        )
 
 def validate_admin_ips_against_network_spec(pxe_mapping_file_path, network_spec_path):
     """
@@ -412,38 +414,42 @@ def validate_admin_ips_against_network_spec(pxe_mapping_file_path, network_spec_
         ValueError: If any ADMIN_IP is outside the defined network ranges.
     """
     import ipaddress
-    
+
     if not os.path.isfile(network_spec_path):
         raise ValueError(f"network_spec.yml not found at: {network_spec_path}")
-    
+
     # Load network_spec.yml
     with open(network_spec_path, "r", encoding="utf-8") as f:
         network_spec = yaml.safe_load(f)
-    
+
     # Extract admin network configuration
     admin_network_config = None
     for network in network_spec.get("Networks", []):
         if "admin_network" in network:
             admin_network_config = network["admin_network"]
             break
-    
+
     if not admin_network_config:
         raise ValueError(en_us_validation_msg.ADMIN_NETWORK_NOT_FOUND_MSG)
-    
+
     # Get network parameters
     primary_oim_admin_ip = admin_network_config.get("primary_oim_admin_ip", "")
     netmask_bits = admin_network_config.get("netmask_bits", "")
     dynamic_range = admin_network_config.get("dynamic_range", "")
-    
+
     if not primary_oim_admin_ip or not netmask_bits:
         raise ValueError(en_us_validation_msg.PRIMARY_ADMIN_IP_NETMASK_REQUIRED_MSG)
-    
+
     # Calculate the network range
     try:
-        network = ipaddress.IPv4Network(f"{primary_oim_admin_ip}/{netmask_bits}", strict=False)
+        network = ipaddress.IPv4Network(
+            f"{primary_oim_admin_ip}/{netmask_bits}", strict=False
+        )
     except ValueError as e:
-        raise ValueError(f"{en_us_validation_msg.INVALID_NETWORK_CONFIG_MSG} Error: {e}")
-    
+        raise ValueError(
+            f"{en_us_validation_msg.INVALID_NETWORK_CONFIG_MSG} Error: {e}"
+        ) from e
+
     # Parse dynamic range if provided
     dynamic_ips = set()
     if dynamic_range:
@@ -457,44 +463,49 @@ def validate_admin_ips_against_network_spec(pxe_mapping_file_path, network_spec_
                     dynamic_ips.add(str(current_ip))
                     current_ip += 1
         except ValueError as e:
-            raise ValueError(f"{en_us_validation_msg.INVALID_DYNAMIC_RANGE_FORMAT_MSG} Error: {e}")
-    
+            raise ValueError(
+                f"{en_us_validation_msg.INVALID_DYNAMIC_RANGE_FORMAT_MSG} Error: {e}"
+            ) from e
+
     # Read and validate mapping file
     with open(pxe_mapping_file_path, "r", encoding="utf-8") as fh:
         raw_lines = fh.readlines()
-    
-    non_comment_lines = [ln for ln in raw_lines if ln.strip() and not ln.strip().startswith("#")]
-    
+
+    non_comment_lines = [
+        ln for ln in raw_lines if ln.strip() and not ln.strip().startswith("#")
+    ]
+
     if not non_comment_lines:
         return  # Empty file, nothing to validate
-    
+
     reader = csv.DictReader(non_comment_lines)
-    
+
     # Map header names case-insensitively to original names
     fieldname_map = {fn.strip().upper(): fn for fn in reader.fieldnames}
     admin_ip_col = fieldname_map.get("ADMIN_IP")
     hostname_col = fieldname_map.get("HOSTNAME")
-    
+
     if not admin_ip_col or not hostname_col:
         raise ValueError(en_us_validation_msg.ADMIN_IP_HOSTNAME_COLUMN_MISSING_MSG)
-    
+
     errors = []
-    
-    for row_idx, row in enumerate(reader, start=2):  # start=2 because row 1 is header
+
+    for row_idx, row in enumerate(reader, start=2):
         admin_ip = row.get(admin_ip_col, "").strip() if row.get(admin_ip_col) else ""
         hostname = row.get(hostname_col, "").strip() if row.get(hostname_col) else ""
-        
+
         if not admin_ip:
             continue
-        
+
         try:
             ip_addr = ipaddress.IPv4Address(admin_ip)
-            
+
             # Check if IP is within the network range
             if ip_addr not in network:
                 error_detail = (
-                    f"ADMIN_IP '{admin_ip}' for host '{hostname}' at row {row_idx} is outside "
-                    f"the admin network range {network}. {en_us_validation_msg.ADMIN_IP_OUTSIDE_NETWORK_RANGE_MSG}"
+                    f"ADMIN_IP '{admin_ip}' for host '{hostname}' at row {row_idx} "
+                    f"is outside the admin network range {network}. "
+                    f"{en_us_validation_msg.ADMIN_IP_OUTSIDE_NETWORK_RANGE_MSG}"
                 )
                 errors.append(error_detail)
             # Check if IP is in dynamic range (reserved for DHCP)
@@ -513,9 +524,8 @@ def validate_admin_ips_against_network_spec(pxe_mapping_file_path, network_spec_
                 )
                 errors.append(error_detail)
         except ValueError:
-            # Invalid IP format - already caught by validate_mapping_file_entries
             pass
-    
+
     if errors:
         raise ValueError("ADMIN_IP validation errors:\n" + "\n".join(errors))
 
@@ -577,15 +587,17 @@ def validate_provision_config(
             validate_duplicate_hostnames_in_mapping_file(pxe_mapping_file_path)
             validate_functional_groups_separation(pxe_mapping_file_path)
             validate_parent_service_tag_hierarchy(pxe_mapping_file_path)
-            
+
             # Validate ADMIN_IPs against network_spec.yml ranges
             network_spec_path = create_file_path(input_file_path, file_names["network_spec"])
             if os.path.isfile(network_spec_path):
                 validate_admin_ips_against_network_spec(pxe_mapping_file_path, network_spec_path)
         except ValueError as e:
             errors.append(
-                create_error_msg("pxe_mapping_file_path", pxe_mapping_file_path,
-                str(e),
+                create_error_msg(
+                    "pxe_mapping_file_path",
+                    pxe_mapping_file_path,
+                    str(e),
                 )
             )
     else:
@@ -615,10 +627,10 @@ def validate_provision_config(
     if system_timezone.lower() != input_timezone.lower():
         errors.append(
             create_error_msg(
-                ""
-                "timezone_mismatch detected between OIM host and provision_config.yml.",
-                f"Provided input timezone : {input_timezone}, Detected oim timezone: {system_timezone}",
-                "Timezone mismatch detected. Please ensure both timezones match; refer to timezone.txt.",
+                "timezone_mismatch",
+                f"Input: {input_timezone}, OIM: {system_timezone}",
+                "Timezone mismatch detected. Ensure both timezones match; "
+                "refer to timezone.txt.",
             )
         )
 
@@ -725,7 +737,10 @@ def _validate_admin_network(network):
         nic_ips = validation_utils.get_interface_ips_and_netmasks(oim_nic_name)  # returns list of (ip, netmask_bits)
 
         # Check if any IP/netmask pair matches
-        match_found = any(ip == primary_oim_admin_ip and nm == netmask_bits for ip, nm in nic_ips)
+        match_found = any(
+            ip == primary_oim_admin_ip and nm == netmask_bits
+            for ip, nm in nic_ips
+        )
 
         if not match_found:
             errors.append(
@@ -733,8 +748,8 @@ def _validate_admin_network(network):
                     "primary_oim_admin_ip",
                     primary_oim_admin_ip,
                     f"{en_us_validation_msg.PRIMARY_ADMIN_IP_INTERFACE_MISMATCH_MSG}: "
-                    f"The ip/netmask configured on {oim_nic_name} is {nic_ips}, "
-                    f"but in network_spec it is {primary_oim_admin_ip}/{netmask_bits}."
+                    f"IP/netmask on {oim_nic_name} is {nic_ips}, "
+                    f"but network_spec has {primary_oim_admin_ip}/{netmask_bits}."
                 )
             )
 
@@ -778,13 +793,18 @@ def validate_admin_bmc_ip_valid(primary_oim_admin_ip, primary_oim_bmc_ip):
         )
     return errors
 
-def validate_admin_bmc_ip_not_in_dynamic_range(primary_oim_admin_ip, primary_oim_bmc_ip, dynamic_range):
+def validate_admin_bmc_ip_not_in_dynamic_range(
+        primary_oim_admin_ip, primary_oim_bmc_ip, dynamic_range
+):
     """
-    Validates that neither primary_oim_admin_ip nor primary_oim_bmc_ip are within the dynamic_range.
+    Validates that neither primary_oim_admin_ip nor primary_oim_bmc_ip are
+    within the dynamic_range.
     """
     errors = []
     if dynamic_range:
-        if primary_oim_admin_ip and validation_utils.is_ip_within_range(dynamic_range, primary_oim_admin_ip):
+        if primary_oim_admin_ip and validation_utils.is_ip_within_range(
+                dynamic_range, primary_oim_admin_ip
+        ):
             errors.append(
                 create_error_msg(
                     "primary_oim_admin_ip",
@@ -792,7 +812,9 @@ def validate_admin_bmc_ip_not_in_dynamic_range(primary_oim_admin_ip, primary_oim
                     en_us_validation_msg.PRIMARY_ADMIN_IP_IN_DYNAMIC_RANGE_MSG
                 )
             )
-        if primary_oim_bmc_ip and validation_utils.is_ip_within_range(dynamic_range, primary_oim_bmc_ip):
+        if primary_oim_bmc_ip and validation_utils.is_ip_within_range(
+                dynamic_range, primary_oim_bmc_ip
+        ):
             errors.append(
                 create_error_msg(
                     "primary_oim_bmc_ip",
@@ -832,9 +854,10 @@ def _validate_ip_ranges(dynamic_range, network_type, netmask_bits):
     # Validate that IP ranges are within the netmask boundaries
     if netmask_bits:
         # Check dynamic range
-        if validation_utils.validate_ipv4_range(
-            dynamic_range
-        ) and not validation_utils.is_range_within_netmask(dynamic_range, netmask_bits):
+        if (validation_utils.validate_ipv4_range(dynamic_range) and
+                not validation_utils.is_range_within_netmask(
+                    dynamic_range, netmask_bits
+                )):
             errors.append(
                 create_error_msg(
                     f"{network_type}.dynamic_range",
