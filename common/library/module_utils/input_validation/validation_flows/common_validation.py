@@ -221,7 +221,7 @@ def validate_software_config(
             )
         )
     # Ensure ldms is not configured without a Slurm cluster package in softwares
-    if "ldms" in software_names and not any(sw in software_names for sw in ["slurm"]):
+    if "ldms" in software_names and not any(sw in software_names for sw in ["slurm_custom"]):
         errors.append(
             create_error_msg(
                 "Validation Error: ",
