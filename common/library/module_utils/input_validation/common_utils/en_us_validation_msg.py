@@ -288,6 +288,18 @@ ADMIN_NETWORK_MISSING_MSG = "Failed. admin_network configuration is mandatory in
 NETMASK_BITS_FAIL_MSG = "Netmask bit must be a valid number between 1 and 32"
 RANGE_NETMASK_BOUNDARY_FAIL_MSG = ("IP range is outside the valid address range for "
                                    "the specified netmask.")
+ADMIN_IP_OUTSIDE_NETWORK_RANGE_MSG = ("ADMIN_IP is outside the admin network range defined in "
+                                      "network_spec.yml. Please ensure all ADMIN_IP addresses fall "
+                                      "within the configured network range.")
+ADMIN_IP_IN_DYNAMIC_RANGE_MSG = ("ADMIN_IP falls within the dynamic_range which is reserved for DHCP. "
+                                "Please use a static IP address outside the dynamic range.")
+ADMIN_IP_CONFLICTS_WITH_PRIMARY_MSG = ("ADMIN_IP conflicts with the primary_oim_admin_ip defined in "
+                                      "network_spec.yml. Please use a different IP address.")
+ADMIN_NETWORK_NOT_FOUND_MSG = "admin_network configuration not found in network_spec.yml. Please ensure the Networks section contains admin_network."
+PRIMARY_ADMIN_IP_NETMASK_REQUIRED_MSG = "primary_oim_admin_ip and netmask_bits must be defined in network_spec.yml admin_network section."
+INVALID_NETWORK_CONFIG_MSG = "Invalid network configuration in network_spec.yml. Please verify primary_oim_admin_ip and netmask_bits are correct."
+INVALID_DYNAMIC_RANGE_FORMAT_MSG = "Invalid dynamic_range format in network_spec.yml. Expected format: 'start_ip-end_ip' (e.g., 192.168.1.10-192.168.1.50)."
+ADMIN_IP_HOSTNAME_COLUMN_MISSING_MSG = "ADMIN_IP or HOSTNAME column not found in PXE mapping file. Please ensure the CSV file has the required headers."
 
 # telemetry
 MANDATORY_FIELD_FAIL_MSG = "must not be empty"

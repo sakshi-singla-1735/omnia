@@ -399,6 +399,126 @@ def validate_parent_service_tag_hierarchy(pxe_mapping_file_path):
     if hierarchy_errors:
         raise ValueError("PXE mapping file parent service tag hierarchy validation errors: " + "; ".join(hierarchy_errors))
 
+def validate_admin_ips_against_network_spec(pxe_mapping_file_path, network_spec_path):
+    """
+    Validates that ADMIN_IP addresses in the mapping file fall within the network ranges
+    defined in network_spec.yml.
+
+    Args:
+        pxe_mapping_file_path (str): Path to the PXE mapping file.
+        network_spec_path (str): Path to the network_spec.yml file.
+
+    Raises:
+        ValueError: If any ADMIN_IP is outside the defined network ranges.
+    """
+    import ipaddress
+    
+    if not os.path.isfile(network_spec_path):
+        raise ValueError(f"network_spec.yml not found at: {network_spec_path}")
+    
+    # Load network_spec.yml
+    with open(network_spec_path, "r", encoding="utf-8") as f:
+        network_spec = yaml.safe_load(f)
+    
+    # Extract admin network configuration
+    admin_network_config = None
+    for network in network_spec.get("Networks", []):
+        if "admin_network" in network:
+            admin_network_config = network["admin_network"]
+            break
+    
+    if not admin_network_config:
+        raise ValueError(en_us_validation_msg.ADMIN_NETWORK_NOT_FOUND_MSG)
+    
+    # Get network parameters
+    primary_oim_admin_ip = admin_network_config.get("primary_oim_admin_ip", "")
+    netmask_bits = admin_network_config.get("netmask_bits", "")
+    dynamic_range = admin_network_config.get("dynamic_range", "")
+    
+    if not primary_oim_admin_ip or not netmask_bits:
+        raise ValueError(en_us_validation_msg.PRIMARY_ADMIN_IP_NETMASK_REQUIRED_MSG)
+    
+    # Calculate the network range
+    try:
+        network = ipaddress.IPv4Network(f"{primary_oim_admin_ip}/{netmask_bits}", strict=False)
+    except ValueError as e:
+        raise ValueError(f"{en_us_validation_msg.INVALID_NETWORK_CONFIG_MSG} Error: {e}")
+    
+    # Parse dynamic range if provided
+    dynamic_ips = set()
+    if dynamic_range:
+        try:
+            range_parts = dynamic_range.split("-")
+            if len(range_parts) == 2:
+                start_ip = ipaddress.IPv4Address(range_parts[0].strip())
+                end_ip = ipaddress.IPv4Address(range_parts[1].strip())
+                current_ip = start_ip
+                while current_ip <= end_ip:
+                    dynamic_ips.add(str(current_ip))
+                    current_ip += 1
+        except ValueError as e:
+            raise ValueError(f"{en_us_validation_msg.INVALID_DYNAMIC_RANGE_FORMAT_MSG} Error: {e}")
+    
+    # Read and validate mapping file
+    with open(pxe_mapping_file_path, "r", encoding="utf-8") as fh:
+        raw_lines = fh.readlines()
+    
+    non_comment_lines = [ln for ln in raw_lines if ln.strip() and not ln.strip().startswith("#")]
+    
+    if not non_comment_lines:
+        return  # Empty file, nothing to validate
+    
+    reader = csv.DictReader(non_comment_lines)
+    
+    # Map header names case-insensitively to original names
+    fieldname_map = {fn.strip().upper(): fn for fn in reader.fieldnames}
+    admin_ip_col = fieldname_map.get("ADMIN_IP")
+    hostname_col = fieldname_map.get("HOSTNAME")
+    
+    if not admin_ip_col or not hostname_col:
+        raise ValueError(en_us_validation_msg.ADMIN_IP_HOSTNAME_COLUMN_MISSING_MSG)
+    
+    errors = []
+    
+    for row_idx, row in enumerate(reader, start=2):  # start=2 because row 1 is header
+        admin_ip = row.get(admin_ip_col, "").strip() if row.get(admin_ip_col) else ""
+        hostname = row.get(hostname_col, "").strip() if row.get(hostname_col) else ""
+        
+        if not admin_ip:
+            continue
+        
+        try:
+            ip_addr = ipaddress.IPv4Address(admin_ip)
+            
+            # Check if IP is within the network range
+            if ip_addr not in network:
+                error_detail = (
+                    f"ADMIN_IP '{admin_ip}' for host '{hostname}' at row {row_idx} is outside "
+                    f"the admin network range {network}. {en_us_validation_msg.ADMIN_IP_OUTSIDE_NETWORK_RANGE_MSG}"
+                )
+                errors.append(error_detail)
+            # Check if IP is in dynamic range (reserved for DHCP)
+            elif admin_ip in dynamic_ips:
+                error_detail = (
+                    f"ADMIN_IP '{admin_ip}' for host '{hostname}' at row {row_idx}: "
+                    f"{en_us_validation_msg.ADMIN_IP_IN_DYNAMIC_RANGE_MSG} "
+                    f"(dynamic_range: {dynamic_range})"
+                )
+                errors.append(error_detail)
+            # Check if IP conflicts with primary OIM admin IP
+            elif admin_ip == primary_oim_admin_ip:
+                error_detail = (
+                    f"ADMIN_IP '{admin_ip}' for host '{hostname}' at row {row_idx}: "
+                    f"{en_us_validation_msg.ADMIN_IP_CONFLICTS_WITH_PRIMARY_MSG}"
+                )
+                errors.append(error_detail)
+        except ValueError:
+            # Invalid IP format - already caught by validate_mapping_file_entries
+            pass
+    
+    if errors:
+        raise ValueError("ADMIN_IP validation errors:\n" + "\n".join(errors))
+
 def validate_provision_config(
     input_file_path, data, logger, module, omnia_base_dir, module_utils_base, project_name
 ):
@@ -457,6 +577,11 @@ def validate_provision_config(
             validate_duplicate_hostnames_in_mapping_file(pxe_mapping_file_path)
             validate_functional_groups_separation(pxe_mapping_file_path)
             validate_parent_service_tag_hierarchy(pxe_mapping_file_path)
+            
+            # Validate ADMIN_IPs against network_spec.yml ranges
+            network_spec_path = create_file_path(input_file_path, file_names["network_spec"])
+            if os.path.isfile(network_spec_path):
+                validate_admin_ips_against_network_spec(pxe_mapping_file_path, network_spec_path)
         except ValueError as e:
             errors.append(
                 create_error_msg("pxe_mapping_file_path", pxe_mapping_file_path,
