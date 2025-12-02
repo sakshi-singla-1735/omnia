@@ -1374,6 +1374,38 @@ def validate_telemetry_config(
                 f"duplicate topics: {', '.join(set(duplicates))}",
                 "Each topic must be defined only once"
             ))
+
+    # Validate ldms_sampler_configurations - fail if it's None or empty array
+    ldms_sampler_configurations = data.get("ldms_sampler_configurations")
+
+    # Fail if ldms_sampler_configurations is None
+    if ldms_sampler_configurations is None:
+        errors.append(create_error_msg(
+            "ldms_sampler_configurations",
+            "null/None",
+            "ldms_sampler_configurations is required and cannot be null. Please provide valid sampler configurations with plugin names."
+        ))
+    # Fail if ldms_sampler_configurations is an empty array
+    elif isinstance(ldms_sampler_configurations, list):
+        if len(ldms_sampler_configurations) == 0:
+            errors.append(create_error_msg(
+                "ldms_sampler_configurations",
+                "empty array []",
+                "ldms_sampler_configurations cannot be an empty array. Please provide at least one valid sampler configuration with plugin names."
+            ))
+        else:
+            # Validate each sampler configuration for empty plugin_name
+            for idx, config in enumerate(ldms_sampler_configurations):
+                if not isinstance(config, dict):
+                    continue
+
+                plugin_name = config.get("plugin_name", "")
+                if not plugin_name or (isinstance(plugin_name, str) and plugin_name.strip() == ""):
+                    errors.append(create_error_msg(
+                        f"ldms_sampler_configurations[{idx}].plugin_name",
+                        f"'{plugin_name}'",
+                        "plugin_name cannot be empty. Must be one of: meminfo, procstat2, vmstat, loadavg, slurm_sampler, procnetdev2"
+                    ))
     
     return errors
 
