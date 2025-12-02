@@ -211,26 +211,6 @@ def validate_software_config(
             )
         )
 
-    # Ensure ldms is not configured without service_k8s in softwares
-    if "ldms" in software_names and "service_k8s" not in software_names:
-        errors.append(
-            create_error_msg(
-                "Validation Error: ",
-                "ldms",
-                "requires service_k8s to be present in the 'softwares' list in software_config.json."
-            )
-        )
-
-    # Ensure ldms is not configured without a Slurm cluster package in softwares
-    if "ldms" in software_names and not any(sw in software_names for sw in ["slurm", "slurm_custom"]):
-        errors.append(
-            create_error_msg(
-                "Validation Error: ",
-                "ldms",
-                "requires a Slurm package ('slurm' or 'slurm_custom') to be present in the 'softwares' list in software_config.json."
-            )
-        )
-
     for software_pkg in data['softwares']:
         software = software_pkg['name']
         arch_list = software_pkg.get('arch')
