@@ -40,68 +40,89 @@
       "description": "LDMS sampler port on compute nodes. Valid range: 10001-10100. Default: 10001"
     },
     "ldms_sampler_configurations": {
-    "type": "array",
-    "description": "LDMS-specific sampler configurations (string-based)",
-    "items": {
-      "type": "object",
-      "properties": {
-        "plugin_name": {
-          "type": "string",
-          "description": "Name of the LDMS sampler plugin"
-        },
-        "config_parameters": {
-          "type": "string",
-          "description": "Plugin-specific configuration parameters represented as a single string (e.g., 'component_id=2 stream=slurm job_count=8 task_count=8')"
-        },
-        "activation_parameters": {
-          "type": "string",
-          "description": "Activation parameters as a string (e.g., 'interval=1000000 offset=0'). Format: 'interval=<microseconds>' with optional 'offset=<microseconds>' separated by space.",
-          "pattern": "^interval=[1-9][0-9]*(?:\\s+offset=[0-9]+)?$",
-          "errorMessage": "Must be in format 'interval=<non-zero-number>' or 'interval=<non-zero-number> offset=<number>'. Example: 'interval=1000000' or 'interval=1000000 offset=0'"
-        }
-      },
-      "required": ["plugin_name", "activation_parameters"],
-      "allOf": [
+      "anyOf": [
         {
-          "if": {
-            "properties": {
-              "plugin_name": { "const": "slurm_sampler" }
-            }
-          },
-          "then": {
-            "required": ["config_parameters"],
-            "properties": {
-              "config_parameters": {
-                "type": "string",
-                "pattern": "^(?=.*\\bcomponent_id=\\b)(?=.*\\bstream=\\b)(?=.*\\bjob_count=\\b)(?=.*\\btask_count=\\b).*$",
-                "description": "Must include component_id, stream, job_count, and task_count in the string"
-              }
-            }
-          }
+          "type": "null",
+          "description": "LDMS sampler configurations can be null if no LDMS monitoring is needed"
         },
         {
-          "if": {
+          "type": "array",
+          "description": "LDMS-specific sampler configurations (string-based)",
+          "items": {
+            "type": "object",
             "properties": {
               "plugin_name": {
-                "pattern": "^procnetdev[0-9]*$"
-              }
-            }
-          },
-          "then": {
-            "properties": {
+                "type": "string",
+                "minLength": 1,
+                "enum": [
+                  "meminfo",
+                  "procstat2",
+                  "vmstat",
+                  "loadavg",
+                  "slurm_sampler",
+                  "procnetdev2"
+                ],
+                "description": "Name of the LDMS sampler plugin. Must be one of the 6 supported plugin types: meminfo (memory usage), procstat2 (process statistics), vmstat (virtual memory), loadavg (system load), slurm_sampler (HPC workload monitoring), procnetdev2 (network interface statistics). Cannot be empty.",
+                "errorMessage": {
+                  "enum": "Invalid plugin_name. Only 6 plugins are supported: meminfo, procstat2, vmstat, loadavg, slurm_sampler, procnetdev2",
+                  "minLength": "plugin_name cannot be empty. Must be one of: meminfo, procstat2, vmstat, loadavg, slurm_sampler, procnetdev2"
+                }
+              },
               "config_parameters": {
                 "type": "string",
-                "pattern": "^(|.*\\bifaces=[a-zA-Z0-9_,]+\\b.*)$",
-                "description": "Optional comma-separated list of network interfaces (e.g., 'ifaces=eth0,eth1')"
+                "description": "Plugin-specific configuration parameters represented as a single string (e.g., 'component_id=2 stream=slurm job_count=8 task_count=8')"
+              },
+              "activation_parameters": {
+                "type": "string",
+                "description": "Activation parameters as a string (e.g., 'interval=1000000 offset=0'). Format: 'interval=<microseconds>' with optional 'offset=<microseconds>' separated by space.",
+                "pattern": "^interval=[1-9][0-9]*(?:\\s+offset=[0-9]+)?$",
+                "errorMessage": "Must be in format 'interval=<non-zero-number>' or 'interval=<non-zero-number> offset=<number>'. Example: 'interval=1000000' or 'interval=1000000 offset=0'"
               }
-            }
+            },
+            "required": ["plugin_name", "activation_parameters"],
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "plugin_name": { "const": "slurm_sampler" }
+                  }
+                },
+                "then": {
+                  "required": ["config_parameters"],
+                  "properties": {
+                    "config_parameters": {
+                      "type": "string",
+                      "pattern": "^(?=.*\\bcomponent_id=\\b)(?=.*\\bstream=\\b)(?=.*\\bjob_count=\\b)(?=.*\\btask_count=\\b).*$",
+                      "description": "Must include component_id, stream, job_count, and task_count in the string"
+                    }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "plugin_name": {
+                      "pattern": "^procnetdev[0-9]*$"
+                    }
+                  }
+                },
+                "then": {
+                  "properties": {
+                    "config_parameters": {
+                      "type": "string",
+                      "pattern": "^(|.*\\bifaces=[a-zA-Z0-9_,]+\\b.*)$",
+                      "description": "Optional comma-separated list of network interfaces (e.g., 'ifaces=eth0,eth1')"
+                    }
+                  }
+                }
+              }
+            ]
           }
         }
       ]
     }
-    }
   },
-  "required": ["idrac_telemetry_support"],
+  "required": ["idrac_telemetry_support", "idrac_telemetry_collection_type", "ldms_sampler_configurations", "ldms_agg_port", "ldms_store_port", "ldms_sampler_port" ],
   "$defs": {
     "kafka_configurations": {
       "type": "object",

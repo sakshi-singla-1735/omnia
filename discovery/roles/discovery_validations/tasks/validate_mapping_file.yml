@@ -51,10 +51,9 @@
     dest: "{{ temp_pxe_file_path }}"
     mode: "0644"
 
-- name: Validate mapping file
-  validate_mapping_file:
+- name: Generate xnames in temporary mapping file
+  generate_xname_in_mapping_file:
     mapping_file_path: "{{ temp_pxe_file_path }}"
-    functional_groups_file_path: "{{ functional_groups_file_path }}"
 
 - name: Read host mapping file from CSV file and return a dictionary
   community.general.read_csv:
@@ -80,7 +79,6 @@
       - '"_" not in item'
       - '"." not in item'
       - '" " not in item'
-      - '"node-" not in item'
     quiet: true
     fail_msg: "{{ hostname_chars_fail_msg + item }}"
   with_items: "{{ list_of_hostnames }}"

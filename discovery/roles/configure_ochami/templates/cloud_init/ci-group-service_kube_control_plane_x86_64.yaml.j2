@@ -276,7 +276,6 @@
         - sudo modprobe vxlan || true
         - sysctl --system
         - mkdir -p /tmp/crio-storage {{ k8s_client_mount_path }} /var/lib/etcd  /var/lib/kubelet /etc/kubernetes
-        - mount -a
         - |
           tmpfile=$(mktemp)
 
@@ -298,6 +297,7 @@
           if command -v chattr >/dev/null 2>&1; then
             chattr +i /etc/resolv.conf || true
           fi
+        - mount -a
         - systemctl start crio.service
         - systemctl enable crio.service
         - sudo systemctl enable --now kubelet
@@ -360,7 +360,8 @@
             else
               echo "WARNING: /etc/kubernetes/kubelet.conf not found. Kubelet may not be initialized yet."
             fi
-
+            systemctl restart nfs-client.target
+            systemctl restart rpcbind
             echo "Installing Necessary Python pip packages"
             python3 -m ensurepip
 

@@ -211,6 +211,25 @@ def validate_software_config(
             )
         )
 
+    # Ensure ldms is not configured without service_k8s in softwares
+    if "ldms" in software_names and "service_k8s" not in software_names:
+        errors.append(
+            create_error_msg(
+                "Validation Error: ",
+                "ldms",
+                en_us_validation_msg.LDMS_REQUIRES_SERVICE_K8S_MSG
+            )
+        )
+    # Ensure ldms is not configured without a Slurm cluster package in softwares
+    if "ldms" in software_names and not any(sw in software_names for sw in ["slurm_custom"]):
+        errors.append(
+            create_error_msg(
+                "Validation Error: ",
+                "ldms",
+                en_us_validation_msg.LDMS_REQUIRES_SLURM_MSG
+            )
+        )
+
     for software_pkg in data['softwares']:
         software = software_pkg['name']
         arch_list = software_pkg.get('arch')
@@ -1115,7 +1134,7 @@ def check_is_slurm_cluster_functional_groups_defined(
     errors, input_file_path, omnia_base_dir, project_name, logger, module
 ):
     """
-    Checks if 'service_kube_node_x86_64' is configured in the functional_groups_config.yml file,
+    Checks if 'slurm_control_node_x86_64 and slurm_node' is configured in the functional_groups_config.yml file,
     and ensures its cluster_name does not overlap with any Slurm role.
 
     Args:
@@ -1127,7 +1146,7 @@ def check_is_slurm_cluster_functional_groups_defined(
         module (object): A module object for logging messages.
 
     Returns:
-        True if 'service_kube_node_x86_64' is defined and valid, else False
+        True if 'slurm_control_node_x86_64 and slurm_node' is defined and valid, else False
     """
     functional_groups_config_file_path = "/opt/omnia/.data/functional_groups_config.yml"
 
@@ -1333,7 +1352,7 @@ def validate_telemetry_config(
                     "missing 'idrac' topic",
                     "idrac topic is required when idrac_telemetry_support is true and 'kafka' is in idrac_telemetry_collection_type"
                 ))
-        
+
         # If LDMS software is configured in software_config.json, ldms topic is required
         logger.info(f"Checking LDMS topic requirement - ldms_support_from_software_config: {ldms_support_from_software_config}")
         if ldms_support_from_software_config and 'ldms' not in present_topics:
@@ -1354,6 +1373,38 @@ def validate_telemetry_config(
                 f"duplicate topics: {', '.join(set(duplicates))}",
                 "Each topic must be defined only once"
             ))
+
+    # Validate ldms_sampler_configurations - fail if it's None or empty array
+    ldms_sampler_configurations = data.get("ldms_sampler_configurations")
+
+    # Fail if ldms_sampler_configurations is None
+    if ldms_sampler_configurations is None:
+        errors.append(create_error_msg(
+            "ldms_sampler_configurations",
+            "null/None",
+            "ldms_sampler_configurations is required and cannot be null. Please provide valid sampler configurations with plugin names."
+        ))
+    # Fail if ldms_sampler_configurations is an empty array
+    elif isinstance(ldms_sampler_configurations, list):
+        if len(ldms_sampler_configurations) == 0:
+            errors.append(create_error_msg(
+                "ldms_sampler_configurations",
+                "empty array []",
+                "ldms_sampler_configurations cannot be an empty array. Please provide at least one valid sampler configuration with plugin names."
+            ))
+        else:
+            # Validate each sampler configuration for empty plugin_name
+            for idx, config in enumerate(ldms_sampler_configurations):
+                if not isinstance(config, dict):
+                    continue
+
+                plugin_name = config.get("plugin_name", "")
+                if not plugin_name or (isinstance(plugin_name, str) and plugin_name.strip() == ""):
+                    errors.append(create_error_msg(
+                        f"ldms_sampler_configurations[{idx}].plugin_name",
+                        f"'{plugin_name}'",
+                        "plugin_name cannot be empty. Must be one of: meminfo, procstat2, vmstat, loadavg, slurm_sampler, procnetdev2"
+                    ))
     
     return errors
 
