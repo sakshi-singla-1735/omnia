@@ -211,6 +211,25 @@ def validate_software_config(
             )
         )
 
+    # Ensure ldms is not configured without service_k8s in softwares
+    if "ldms" in software_names and "service_k8s" not in software_names:
+        errors.append(
+            create_error_msg(
+                "Validation Error: ",
+                "ldms",
+                en_us_validation_msg.LDMS_REQUIRES_SERVICE_K8S_MSG
+            )
+        )
+    # Ensure ldms is not configured without a Slurm cluster package in softwares
+    if "ldms" in software_names and not any(sw in software_names for sw in ["slurm_custom"]):
+        errors.append(
+            create_error_msg(
+                "Validation Error: ",
+                "ldms",
+                en_us_validation_msg.LDMS_REQUIRES_SLURM_MSG
+            )
+        )
+
     for software_pkg in data['softwares']:
         software = software_pkg['name']
         arch_list = software_pkg.get('arch')
@@ -1333,7 +1352,7 @@ def validate_telemetry_config(
                     "missing 'idrac' topic",
                     "idrac topic is required when idrac_telemetry_support is true and 'kafka' is in idrac_telemetry_collection_type"
                 ))
-        
+
         # If LDMS software is configured in software_config.json, ldms topic is required
         logger.info(f"Checking LDMS topic requirement - ldms_support_from_software_config: {ldms_support_from_software_config}")
         if ldms_support_from_software_config and 'ldms' not in present_topics:
@@ -1354,10 +1373,10 @@ def validate_telemetry_config(
                 f"duplicate topics: {', '.join(set(duplicates))}",
                 "Each topic must be defined only once"
             ))
-    
+
     # Validate ldms_sampler_configurations - fail if it's None or empty array
     ldms_sampler_configurations = data.get("ldms_sampler_configurations")
-    
+
     # Fail if ldms_sampler_configurations is None
     if ldms_sampler_configurations is None:
         errors.append(create_error_msg(
@@ -1378,7 +1397,7 @@ def validate_telemetry_config(
             for idx, config in enumerate(ldms_sampler_configurations):
                 if not isinstance(config, dict):
                     continue
-                
+
                 plugin_name = config.get("plugin_name", "")
                 if not plugin_name or (isinstance(plugin_name, str) and plugin_name.strip() == ""):
                     errors.append(create_error_msg(
