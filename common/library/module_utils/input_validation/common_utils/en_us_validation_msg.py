@@ -123,6 +123,20 @@ SLURM_KUBE_CLUSTER_OVERLAP_MSG = (
     "Cluster '{cluster}' is defined for both SLURM nodes and Kubernetes nodes. Overlap not allowed."
 )
 
+# Mapping File Validation Messages
+PROVISION_CONFIG_NOT_FOUND = (
+    "provision_config.yml not found."
+)
+PXE_MAPPING_FILE_NOT_FOUND = (
+    "PXE mapping file not found."
+)
+PXE_MAPPING_FILE_EMPTY_SERVICE_CLUSTER_MSG = (
+    "PXE mapping file does not have functional groups for service cluster."
+)
+PXE_MAPPING_FILE_EMPTY_SLURM_CLUSTER_MSG = (
+    "PXE mapping file does not have functional groups for slurm cluster."
+)
+
 # provision_config.yml
 PRIMARY_ADMIN_BMC_IP_SAME_MSG = "primary_oim_admin_ip and primary_oim_bmc_ip should not be the same."
 PRIMARY_ADMIN_IP_INVALID_MSG = "primary_oim_admin_ip is not a valid IPv4 address."
