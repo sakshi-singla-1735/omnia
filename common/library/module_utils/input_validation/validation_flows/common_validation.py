@@ -1353,7 +1353,7 @@ def validate_telemetry_config(
                     "missing 'idrac' topic",
                     "idrac topic is required when idrac_telemetry_support is true and 'kafka' is in idrac_telemetry_collection_type"
                 ))
-        
+
         # If LDMS software is configured in software_config.json, ldms topic is required
         logger.info(f"Checking LDMS topic requirement - ldms_support_from_software_config: {ldms_support_from_software_config}")
         if ldms_support_from_software_config and 'ldms' not in present_topics:
