@@ -148,6 +148,13 @@ REPO_STORE_PATH_MSG = "Please provide a valid repo_store_path value."
 OMNIA_REPO_URL_MSG = "Repo urls are empty. Please provide a url and corresponding key."
 RHEL_OS_URL_MSG = "is empty. Please provide a rhel_os_url value."
 UBUNTU_OS_URL_MSG = "ubuntu_os_url is empty. Please provide a ubuntu_os_url value."
+LDMS_REQUIRES_SERVICE_K8S_MSG = (
+    "requires service_k8s to be present in the 'softwares' list in software_config.json."
+)
+
+LDMS_REQUIRES_SLURM_MSG = (
+    "requires Slurm package 'slurm_custom' to be present in the 'softwares' list in software_config.json."
+)
 
 # omnia_config.yml
 INVALID_PASSWORD_MSG = ("Provided password is invalid. Password must meet the specified "
