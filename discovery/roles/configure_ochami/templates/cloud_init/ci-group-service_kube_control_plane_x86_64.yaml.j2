@@ -307,7 +307,7 @@
         - update-ca-trust extract
         - systemctl daemon-reload
         - systemctl restart crio
-        - kubeadm config images pull --kubernetes-version=1.34.1
+        - kubeadm config images pull --kubernetes-version={{ service_k8s_version }}
         - echo "Installing helm"
         - /usr/local/bin/install-helm.sh
 
