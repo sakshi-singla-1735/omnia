@@ -122,7 +122,7 @@
       ]
     }
   },
-  "required": ["idrac_telemetry_support", "idrac_telemetry_collection_type", "ldms_sampler_configurations", "ldms_agg_port", "ldms_store_port", "" ],
+  "required": ["idrac_telemetry_support", "idrac_telemetry_collection_type", "ldms_sampler_configurations", "ldms_agg_port", "ldms_store_port", "ldms_sampler_port" ],
   "$defs": {
     "kafka_configurations": {
       "type": "object",
