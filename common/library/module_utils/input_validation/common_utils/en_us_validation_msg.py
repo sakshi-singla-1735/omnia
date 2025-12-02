@@ -151,7 +151,6 @@ UBUNTU_OS_URL_MSG = "ubuntu_os_url is empty. Please provide a ubuntu_os_url valu
 LDMS_REQUIRES_SERVICE_K8S_MSG = (
     "requires service_k8s to be present in the 'softwares' list in software_config.json."
 )
-
 LDMS_REQUIRES_SLURM_MSG = (
     "requires Slurm package 'slurm_custom' to be present in the 'softwares' list in software_config.json."
 )
