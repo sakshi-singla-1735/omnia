@@ -1054,8 +1054,7 @@ def check_is_service_cluster_functional_groups_defined(
     errors, input_file_path, omnia_base_dir, project_name, logger, module
 ):
     """
-    Checks if 'service_kube_node_x86_64' is configured in the functional_groups_config.yml file,
-    and ensures its cluster_name does not overlap with any Slurm role.
+    Checks if 'service_kube_node_x86_64' is configured in the mapping file.
 
     Args:
         errors (list): A list to store error messages.
@@ -1066,57 +1065,102 @@ def check_is_service_cluster_functional_groups_defined(
         module (object): A module object for logging messages.
 
     Returns:
-        True if 'service_kube_node_x86_64' is defined and valid, else False
+        True if 'service_kube_node_x86_64' is defined and valid in mapping file, else False
     """
-    functional_groups_config_file_path = "/opt/omnia/.data/functional_groups_config.yml"
-
-    functional_groups_config_json = validation_utils.load_yaml_as_json(
-        functional_groups_config_file_path, omnia_base_dir, project_name, logger, module
-    )
-    functional_groups = functional_groups_config_json.get("functional_groups", [])
-
-    kube_cluster = None
-    slurm_clusters = set()
-
-    for group in functional_groups:
-        name = group.get("name", "")
-        cluster = group.get("cluster_name", "")
-
-        # Capture kube service cluster
-        if name == "service_kube_node_x86_64":
-            kube_cluster = cluster
-
-        # Collect slurm clusters
-        if name in [
-            "slurm_control_node_x86_64",
-            "slurm_node_x86_64",
-            "slurm_node_aarch64",
-        ]:
-            if cluster:
-                slurm_clusters.add(cluster)
-
-    if kube_cluster:
-        if kube_cluster in slurm_clusters:
+    # Get the directory containing the input file
+    input_dir = os.path.dirname(input_file_path)
+    provision_config_path = os.path.join(input_dir, "provision_config.yml")
+    
+    # Check if provision_config.yml exists
+    if not os.path.exists(provision_config_path):
+        errors.append(
+            create_error_msg(
+                "provision_config.yml",
+                provision_config_path,
+                en_us_validation_msg.PROVISION_CONFIG_NOT_FOUND
+            )
+        )
+        return False
+    
+    try:
+        # Load provision_config.yml to get pxe_mapping_file_path
+        with open(provision_config_path, 'r', encoding='utf-8') as f:
+            provision_config = yaml.safe_load(f)
+        
+        pxe_mapping_file_path = provision_config.get('pxe_mapping_file_path', '')
+        
+        if not pxe_mapping_file_path or not os.path.exists(pxe_mapping_file_path):
             errors.append(
                 create_error_msg(
-                    "functional_groups_config.yml",
-                    kube_cluster,
-                    en_us_validation_msg.SLURM_KUBE_CLUSTER_OVERLAP_MSG.format(
-                        cluster=kube_cluster
-                    ),
+                    "pxe_mapping_file_path",
+                    pxe_mapping_file_path,
+                    en_us_validation_msg.PXE_MAPPING_FILE_NOT_FOUND
                 )
             )
             return False
-        return True
-
-    return False
+        
+        # Read the mapping file and check for service_kube_node functional groups
+        with open(pxe_mapping_file_path, 'r', encoding='utf-8') as fh:
+            raw_lines = fh.readlines()
+        
+        # Remove blank lines
+        non_comment_lines = [ln for ln in raw_lines if ln.strip()]
+        
+        if not non_comment_lines:
+            errors.append(
+                create_error_msg(
+                    "pxe_mapping_file_path",
+                    pxe_mapping_file_path,
+                    en_us_validation_msg.PXE_MAPPING_FILE_EMPTY_SERVICE_CLUSTER_MSG
+                )
+            )
+            return False
+        
+        # Use csv.DictReader to parse the mapping file
+        reader = csv.DictReader(non_comment_lines)
+        
+        # Check if all required service cluster functional groups are present
+        # Required: service_kube_node_, service_kube_control_plane_
+        has_kube_node = False
+        has_control_plane = False
+        
+        for row in reader:
+            functional_group = row.get('FUNCTIONAL_GROUP', '').strip()
+            if functional_group.startswith('service_kube_node_'):
+                has_kube_node = True
+                logger.info(f"Service cluster functional group found: {functional_group}")
+            elif functional_group.startswith('service_kube_control_plane_'):
+                has_control_plane = True
+                logger.info(f"Service cluster functional group found: {functional_group}")
+        
+        # Both must be present for a complete service cluster
+        service_cluster_found = has_kube_node and has_control_plane
+        
+        if not service_cluster_found:
+            missing = []
+            if not has_kube_node:
+                missing.append('service_kube_node_*')
+            if not has_control_plane:
+                missing.append('service_kube_control_plane_*')
+            logger.info(f"Service cluster incomplete. Missing functional groups: {', '.join(missing)}")
+        
+        return service_cluster_found
+        
+    except (yaml.YAMLError, IOError, csv.Error) as e:
+        errors.append(
+            create_error_msg(
+                "pxe_mapping_file_path",
+                pxe_mapping_file_path if 'pxe_mapping_file_path' in locals() else "unknown",
+                f"Error reading mapping file: {str(e)}"
+            )
+        )
+        return False
 
 def check_is_slurm_cluster_functional_groups_defined(
     errors, input_file_path, omnia_base_dir, project_name, logger, module
 ):
     """
-    Checks if 'slurm_control_node_x86_64 and slurm_node' is configured in the functional_groups_config.yml file,
-    and ensures its cluster_name does not overlap with any Slurm role.
+    Checks if 'slurm_control_node_x86_64 and slurm_node' is configured in the mapping file.
 
     Args:
         errors (list): A list to store error messages.
@@ -1127,51 +1171,96 @@ def check_is_slurm_cluster_functional_groups_defined(
         module (object): A module object for logging messages.
 
     Returns:
-        True if 'slurm_control_node_x86_64 and slurm_node' is defined and valid, else False
+        True if 'slurm_control_node_x86_64 and slurm_node' is defined in mapping file, else False
     """
-    functional_groups_config_file_path = "/opt/omnia/.data/functional_groups_config.yml"
-
-    functional_groups_config_json = validation_utils.load_yaml_as_json(
-        functional_groups_config_file_path, omnia_base_dir, project_name, logger, module
-    )
-    functional_groups = functional_groups_config_json.get("functional_groups", [])
-
-    kube_cluster = None
-    slurm_clusters = set()
-
-    for group in functional_groups:
-        name = group.get("name", "")
-        cluster = group.get("cluster_name", "")
-
-        # Capture kube service cluster
-        if name == "service_kube_node_x86_64":
-            kube_cluster = cluster
-
-        # Collect slurm clusters
-        if name in [
-            "slurm_control_node_x86_64",
-            "slurm_node_x86_64",
-            "slurm_node_aarch64",
-        ]:
-            if cluster:
-                slurm_clusters.add(cluster)
-
-    if kube_cluster:
-        if kube_cluster in slurm_clusters:
+    # Get the directory containing the input file
+    input_dir = os.path.dirname(input_file_path)
+    provision_config_path = os.path.join(input_dir, "provision_config.yml")
+    
+    # Check if provision_config.yml exists
+    if not os.path.exists(provision_config_path):
+        errors.append(
+            create_error_msg(
+                "provision_config.yml",
+                provision_config_path,
+                en_us_validation_msg.PROVISION_CONFIG_NOT_FOUND
+            )
+        )
+        return False
+    
+    try:
+        # Load provision_config.yml to get pxe_mapping_file_path
+        with open(provision_config_path, 'r', encoding='utf-8') as f:
+            provision_config = yaml.safe_load(f)
+        
+        pxe_mapping_file_path = provision_config.get('pxe_mapping_file_path', '')
+        
+        if not pxe_mapping_file_path or not os.path.exists(pxe_mapping_file_path):
             errors.append(
                 create_error_msg(
-                    "functional_groups_config.yml",
-                    kube_cluster,
-                    en_us_validation_msg.SLURM_KUBE_CLUSTER_OVERLAP_MSG.format(
-                        cluster=kube_cluster
-                    ),
+                    "pxe_mapping_file_path",
+                    pxe_mapping_file_path,
+                    en_us_validation_msg.PXE_MAPPING_FILE_NOT_FOUND
                 )
             )
             return False
-    if slurm_clusters:
-        return True
-
-    return False
+        
+        # Read the mapping file and check for slurm functional groups
+        with open(pxe_mapping_file_path, 'r', encoding='utf-8') as fh:
+            raw_lines = fh.readlines()
+        
+        # Remove blank lines
+        non_comment_lines = [ln for ln in raw_lines if ln.strip()]
+        
+        if not non_comment_lines:
+            errors.append(
+                create_error_msg(
+                    "pxe_mapping_file_path",
+                    pxe_mapping_file_path,
+                    en_us_validation_msg.PXE_MAPPING_FILE_EMPTY_SLURM_CLUSTER_MSG
+                )
+            )
+            return False
+        
+        # Use csv.DictReader to parse the mapping file
+        reader = csv.DictReader(non_comment_lines)
+        
+        # Check if all required slurm cluster functional groups are present
+        # Required: slurm_control_node_, slurm_node
+        has_slurm_control = False
+        has_slurm_node = False
+        
+        for row in reader:
+            functional_group = row.get('FUNCTIONAL_GROUP', '').strip()
+            if functional_group.startswith('slurm_control_node_'):
+                has_slurm_control = True
+                logger.info(f"Slurm cluster functional group found: {functional_group}")
+            elif functional_group.startswith('slurm_node_'):
+                has_slurm_node = True
+                logger.info(f"Slurm cluster functional group found: {functional_group}")
+        
+        # Both must be present for a complete slurm cluster
+        slurm_cluster_found = has_slurm_control and has_slurm_node
+        
+        if not slurm_cluster_found:
+            missing = []
+            if not has_slurm_control:
+                missing.append('slurm_control_node_')
+            if not has_slurm_node:
+                missing.append('slurm_node_')
+            logger.info(f"Slurm cluster incomplete. Missing functional groups: {', '.join(missing)}")
+        
+        return slurm_cluster_found
+        
+    except (yaml.YAMLError, IOError, csv.Error) as e:
+        errors.append(
+            create_error_msg(
+                "pxe_mapping_file_path",
+                pxe_mapping_file_path if 'pxe_mapping_file_path' in locals() else "unknown",
+                f"Error reading mapping file: {str(e)}"
+            )
+        )
+        return False
 
 def validate_telemetry_config(
     input_file_path,

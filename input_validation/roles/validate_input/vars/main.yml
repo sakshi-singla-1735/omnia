@@ -15,8 +15,6 @@
 
 input_dir: "{{ hostvars['localhost']['input_project_dir'] }}"
 project_name: "{{ hostvars['localhost']['project_name'] }}"
-functional_groups_config_path: "/opt/omnia/.data/functional_groups_config.yml"
 
 messages:
   validation_success: "Successfully validated Omnia input config file(s)"
-  functional_groups_generation_fail: "Failed to create functional groups file at {{ functional_groups_config_path }}"
