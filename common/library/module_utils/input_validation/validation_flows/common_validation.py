@@ -12,28 +12,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # pylint: disable=import-error,no-name-in-module,too-many-arguments,unused-argument
+# pylint: disable=too-many-locals,too-many-branches,too-many-statements,too-many-lines
+# pylint: disable=too-many-positional-arguments,too-many-nested-blocks
 """
 This module contains functions for validating common configuration files.
 """
+import csv
+import ipaddress
 import json
 import os
-import yaml
-import ipaddress
-import subprocess
 from collections import Counter
-from ast import literal_eval
+
+import yaml
 import ansible.module_utils.input_validation.common_utils.data_fetch as fetch
 from ansible.module_utils.input_validation.validation_flows import csi_driver_validation
 import ansible.module_utils.input_validation.common_utils.data_validation as validate
-from ansible.module_utils.input_validation.common_utils import config
 from ansible.module_utils.input_validation.common_utils import (
-    validation_utils,
     config,
+    validation_utils,
     en_us_validation_msg,
     data_verification
 )
 
-from ansible.module_utils.input_validation.validation_flows import scheduler_validation
 from ansible.module_utils.local_repo.software_utils import (
     load_json,
     load_yaml,
@@ -253,11 +253,13 @@ def validate_software_config(
     return errors
 
 def is_version_valid(actual_version, expected):
+    """Check if the actual version matches the expected version."""
     if isinstance(expected, list):
         return actual_version in expected
     return actual_version == expected
 
 def validate_versions(data):
+    """Validate software versions against expected versions."""
     mismatches = []
     # Validate top-level 'softwares'
     for sw in data.get("softwares", []):
@@ -495,15 +497,15 @@ def validate_storage_config(
     software_config_file_path = create_file_path(input_file_path, file_names["software_config"])
     omnia_config_file_path = create_file_path(input_file_path, file_names["omnia_config"])
 
-    #read contents of omnia_config file in a variable
-    omnia_config_json = validation_utils.load_yaml_as_json(
+    # Read contents of omnia_config file in a variable
+    _ = validation_utils.load_yaml_as_json(
         omnia_config_file_path, omnia_base_dir, project_name, logger, module
     )
 
     software_config_json = None
     with open(software_config_file_path, "r", encoding="utf-8") as schema_file:
         software_config_json = json.load(schema_file)
-    softwares = software_config_json["softwares"]
+    _ = software_config_json["softwares"]
 
     allowed_options = {"nosuid", "rw", "sync", "hard", "intr"}
 
@@ -1329,7 +1331,7 @@ def validate_telemetry_config(
     
     if os.path.exists(software_config_file_path):
         try:
-            with open(software_config_file_path, 'r') as f:
+            with open(software_config_file_path, 'r', encoding='utf-8') as f:
                 software_config = json.load(f)
                 softwares = software_config.get("softwares", [])
                 ldms_support_from_software_config = any(
@@ -1474,14 +1476,18 @@ def validate_additional_software(
     if "additional_software" not in flattened_sub_groups:
         errors.append(
             create_error_msg(
-                "additional_software.json", None, en_us_validation_msg.ADDITIONAL_SOFTWARE_FAIL_MSG
+                "additional_software.json",
+                None,
+                en_us_validation_msg.ADDITIONAL_SOFTWARE_FAIL_MSG
             )
         )
         return errors
 
     # Get the roles config file
     config_file_path = omnia_base_dir.replace("../", "")
-    roles_config_file_path = create_file_path(config_file_path, file_names["roles_config"])
+    roles_config_file_path = create_file_path(
+        config_file_path, file_names["roles_config"]
+    )
 
     roles_config_json = validation_utils.load_yaml_as_json(
         roles_config_file_path, omnia_base_dir, project_name, logger, module
@@ -1508,8 +1514,11 @@ def validate_additional_software(
 
     # Validate subgroups defined for additional_software in software_config.json
     # also present in additioanl_software.json
-    software_config_file_path = create_file_path(config_file_path, file_names["software_config"])
-    software_config_json = json.load(open(software_config_file_path, "r"))
+    software_config_file_path = create_file_path(
+        config_file_path, file_names["software_config"]
+    )
+    with open(software_config_file_path, "r", encoding="utf-8") as f:
+        software_config_json = json.load(f)
 
     # check if additional_software is present in software_config.json
     if "addtional_software" not in software_config_json:
