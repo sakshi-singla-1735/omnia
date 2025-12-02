@@ -44,7 +44,7 @@
 
 - name: Read Memory NodeParams
   ansible.builtin.uri:
-    url: "https://{{ bmc_ip_map[item] }}/redfish/v1/Systems/System.Embedded.1/Memory?$expand=*($levels=1)"
+    url: "https://{{ bmc_ip_map[item] }}/redfish/v1/Systems/System.Embedded.1"
     user: "{{ bmc_username }}"
     password: "{{ bmc_password }}"
     method: GET
@@ -62,15 +62,14 @@
   register: mem_info
   failed_when: false
 
-- name: Calculate total memory in MB
+- name: Calculate total memory in MB (GiB → MB)
   ansible.builtin.set_fact:
-    total_mem_mb: >-
-      {{
-        mem_info.json.Members
-        | map(attribute='CapacityMiB')
-        | map('int')
-        | sum
-      }}
+    total_memory_mb: "{{ (mem_info.json.MemorySummary.TotalSystemMemoryGiB | default(default_real_memory)) * 1024 | int }}"
+
+- name: Calculate 90% of real memory
+  ansible.builtin.set_fact:
+    real_memory: "{{ ((total_memory_mb | float) * 0.90) | int }}"
+
 
 
 - name: Calculate proc facts
