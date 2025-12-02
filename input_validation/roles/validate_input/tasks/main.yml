@@ -16,7 +16,7 @@
   ansible.builtin.set_fact:
     omnia_run_tags: "{{ ansible_run_tags | default([]) }}"
   when: omnia_run_tags is not defined
-      
+
 - name: Validate omnia input config
   vars:
     # Note: When running a specific playbook without tags ansible run tags will default to ["all"], thus if two or more tags are present
