@@ -123,6 +123,20 @@ SLURM_KUBE_CLUSTER_OVERLAP_MSG = (
     "Cluster '{cluster}' is defined for both SLURM nodes and Kubernetes nodes. Overlap not allowed."
 )
 
+# Mapping File Validation Messages
+PROVISION_CONFIG_NOT_FOUND = (
+    "provision_config.yml not found."
+)
+PXE_MAPPING_FILE_NOT_FOUND = (
+    "PXE mapping file not found."
+)
+PXE_MAPPING_FILE_EMPTY_SERVICE_CLUSTER_MSG = (
+    "PXE mapping file does not have functional groups for service cluster."
+)
+PXE_MAPPING_FILE_EMPTY_SLURM_CLUSTER_MSG = (
+    "PXE mapping file does not have functional groups for slurm cluster."
+)
+
 # provision_config.yml
 PRIMARY_ADMIN_BMC_IP_SAME_MSG = "primary_oim_admin_ip and primary_oim_bmc_ip should not be the same."
 PRIMARY_ADMIN_IP_INVALID_MSG = "primary_oim_admin_ip is not a valid IPv4 address."
@@ -148,6 +162,12 @@ REPO_STORE_PATH_MSG = "Please provide a valid repo_store_path value."
 OMNIA_REPO_URL_MSG = "Repo urls are empty. Please provide a url and corresponding key."
 RHEL_OS_URL_MSG = "is empty. Please provide a rhel_os_url value."
 UBUNTU_OS_URL_MSG = "ubuntu_os_url is empty. Please provide a ubuntu_os_url value."
+LDMS_REQUIRES_SERVICE_K8S_MSG = (
+    "requires service_k8s to be present in the 'softwares' list in software_config.json."
+)
+LDMS_REQUIRES_SLURM_MSG = (
+    "requires Slurm package 'slurm_custom' to be present in the 'softwares' list in software_config.json."
+)
 
 # omnia_config.yml
 INVALID_PASSWORD_MSG = ("Provided password is invalid. Password must meet the specified "
