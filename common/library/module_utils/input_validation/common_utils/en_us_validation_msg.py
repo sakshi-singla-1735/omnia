@@ -321,6 +321,11 @@ ADMIN_IP_HOSTNAME_COLUMN_MISSING_MSG = (
     "ADMIN_IP or HOSTNAME column not found in PXE mapping file. "
     "Please ensure the CSV file has the required headers."
 )
+ADMIN_IP_VALIDATION_SUMMARY_MSG = (
+    "ADMIN_IP validation failed. Please check the mapping file and ensure all "
+    "IP addresses are within the configured network range."
+)
+NETWORK_SPEC_FILE_NOT_FOUND_MSG = "network_spec.yml file not found in input folder."
 
 # telemetry
 MANDATORY_FIELD_FAIL_MSG = "must not be empty"
