@@ -77,7 +77,7 @@
             {{ k8s_nfs_server_ip }}:{{ k8s_server_share_path }}/{% raw %}{{ ds.meta_data.instance_data.local_ipv4 }}{% endraw %}/kubelet   /var/lib/kubelet     nfs noatime,nolock 0 0
             {{ k8s_nfs_server_ip }}:{{ k8s_server_share_path }}/{% raw %}{{ ds.meta_data.instance_data.local_ipv4 }}{% endraw %}/kubernetes   /etc/kubernetes      nfs noatime,nolock 0 0
             {{ k8s_nfs_server_ip }}:{{ k8s_server_share_path }}/{% raw %}{{ ds.meta_data.instance_data.local_ipv4 }}{% endraw %}/pod-logs   /var/log/pods      nfs noatime,nolock 0 0
-            tmpfs   /tmp/crio-storage   tmpfs   size=8G,noatime,nodev,nosuid   0 0
+            tmpfs   /tmp/crio-storage   tmpfs   size={{ k8s_crio_storage_size }},noatime,nodev,nosuid   0 0
           permissions: '0644'
         - path: /etc/containers/storage.conf
           content: |
@@ -391,7 +391,10 @@
             yes | cp -i /etc/kubernetes/admin.conf /root/.kube/config
             kubectl get nodes -o wide || echo "Cluster not yet fully up"
             kubectl get pods --all-namespaces -o wide || echo "Pods may not be ready yet"
-
+            echo "Rollout and Restart coredns"
+            kubectl rollout restart deployment coredns -n kube-system
+            echo "Waiting for coredns pods to appear.."
+            kubectl wait --for=condition=Ready pod -l k8s-app=kube-dns -n kube-system --timeout=300s
             # Wait for all pods in all namespaces to be ready (status=Running or Completed)
             echo "Waiting for all pods to be Ready (Running/Completed)..."
             while true; do

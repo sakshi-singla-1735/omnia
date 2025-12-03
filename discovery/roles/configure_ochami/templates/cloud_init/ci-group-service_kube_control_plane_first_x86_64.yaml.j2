@@ -90,7 +90,7 @@
             {{ k8s_nfs_server_ip }}:{{ k8s_server_share_path }}/{% raw %}{{ ds.meta_data.instance_data.local_ipv4 }}{% endraw %}/kubelet   /var/lib/kubelet     nfs noatime,nolock 0 0
             {{ k8s_nfs_server_ip }}:{{ k8s_server_share_path }}/{% raw %}{{ ds.meta_data.instance_data.local_ipv4 }}{% endraw %}/kubernetes   /etc/kubernetes      nfs noatime,nolock 0 0
             {{ k8s_nfs_server_ip }}:{{ k8s_server_share_path }}/{% raw %}{{ ds.meta_data.instance_data.local_ipv4 }}{% endraw %}/pod-logs   /var/log/pods      nfs noatime,nolock 0 0
-            tmpfs   /tmp/crio-storage   tmpfs   size=8G,noatime,nodev,nosuid   0 0
+            tmpfs   /tmp/crio-storage   tmpfs   size={{ k8s_crio_storage_size }},noatime,nodev,nosuid   0 0
           permissions: '0644'
 
         - path: /etc/containers/storage.conf
@@ -240,6 +240,28 @@
               --control-plane-endpoint={% raw %}{{ ds.meta_data.instance_data.local_ipv4 }}{% endraw %}:6443 \
               --apiserver-cert-extra-sans {{ kube_vip }}
         
+        - path: /tmp/generate-control-plane-join.sh
+          permissions: '0644'
+          content: |
+            #!/bin/bash
+            set -e
+            # Shared mount path where the control-plane join command will be saved
+            K8S_CLIENT_MOUNT_PATH="{{ k8s_client_mount_path }}"
+            mkdir -p "$K8S_CLIENT_MOUNT_PATH"
+            echo "Generating Kubernetes control-plane join command..."
+            # Generate certificate key and control plane join command
+            CERT_KEY=$(kubeadm init phase upload-certs --upload-certs | tail -1 | tr -d '\r\n ')
+            if [ -n "$CERT_KEY" ]; then
+                CONTROL_PLANE_JOIN_CMD=$(kubeadm token create --ttl 0 --print-join-command --certificate-key "$CERT_KEY")
+                echo "$CONTROL_PLANE_JOIN_CMD" > "${K8S_CLIENT_MOUNT_PATH}/control-plane-join-command.sh"
+                chmod +x "${K8S_CLIENT_MOUNT_PATH}/control-plane-join-command.sh"
+                echo "Saved control-plane join command to: ${K8S_CLIENT_MOUNT_PATH}/control-plane-join-command.sh"
+            else
+                echo "ERROR: Certificate key is empty! Cannot generate control-plane join command."
+                exit 1
+            fi
+            echo "Control-plane join script is ready. You can rerun this script anytime to refresh the command."
+
         - path: /usr/local/bin/install-helm.sh
           permissions: '0755'
           content: |
@@ -373,6 +395,7 @@
         - systemctl enable crio.service
         - sudo systemctl enable --now kubelet
         - mv /tmp/crio.conf /etc/containers/registries.conf.d/crio.conf
+        - mv /tmp/generate-control-plane-join.sh {{ k8s_client_mount_path }}
         - cp {{ k8s_client_mount_path }}/pulp_webserver.crt /etc/pki/ca-trust/source/anchors
         - update-ca-trust extract
         - systemctl daemon-reload
@@ -601,6 +624,10 @@
             echo "Listing all Kubernetes pods in all namespaces:"
             kubectl get pods --all-namespaces -o wide
 
+            echo "Rollout and Restart coredns"
+            kubectl rollout restart deployment coredns -n kube-system
+            echo "Waiting for coredns pods to appear.."
+            kubectl wait --for=condition=Ready pod -l k8s-app=kube-dns -n kube-system --timeout=300s
 
             CSI_DRIVER_SUPPORT="{{ csi_driver_powerscale_support | lower }}"
             echo "===== Checking if PowerScale CSI driver support is enabled ====="
@@ -873,7 +900,11 @@
             yes | cp -i /etc/kubernetes/admin.conf /root/.kube/config
             kubectl get nodes -o wide || echo "Cluster not yet fully up"
             kubectl get pods --all-namespaces -o wide || echo "Pods may not be ready yet"
-
+            
+            echo "Rollout and Restart coredns"
+            kubectl rollout restart deployment coredns -n kube-system
+            echo "Waiting for coredns pods to appear.."
+            kubectl wait --for=condition=Ready pod -l k8s-app=kube-dns -n kube-system --timeout=300s
             # Wait for all pods in all namespaces to be ready (status=Running or Completed)
             echo "Waiting for all pods to be Ready (Running/Completed)..."
             while true; do
