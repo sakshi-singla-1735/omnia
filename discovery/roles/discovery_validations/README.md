@@ -17,8 +17,3 @@ Validates all discovery-related configuration files and inputs before the discov
 - **Validate Mapping File**: Validates node mapping file (MAC, IP, hostname uniqueness)
 - **Update Hosts File**: Updates `/etc/hosts` with node information
 - **Validate Telemetry**: Validates telemetry configuration when enabled
-
-## Dependencies
-- Omnia configuration files (`omnia_config.yml`, `omnia_config_credentials.yml`)
-- Software configuration (`software_config.json`)
-- Node mapping file (for mapping-based discovery)

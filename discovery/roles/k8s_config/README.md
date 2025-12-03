@@ -14,8 +14,3 @@ Creates Kubernetes configuration files for the service cluster and stores them i
 - **Generate Manifests**: Creates Namespaces, RBAC, ConfigMaps, Secrets, Services, Deployments
 - **Create Helm Values**: Generates Helm chart values files for services
 - **Set Permissions**: Sets appropriate file permissions and ownership
-
-## Dependencies
-- NFS server accessible and mounted
-- Software configuration (`software_config.json`)
-- Service K8s cluster support enabled

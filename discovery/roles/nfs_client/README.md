@@ -15,8 +15,3 @@ Configures NFS client mounts on cluster nodes based on their functional roles.
 - **Filter K8s Mounts**: Identifies NFS shares required for Kubernetes service nodes
 - **Install NFS Client**: Installs packages, creates mount points, updates `/etc/fstab`, mounts shares
 
-## Dependencies
-- NFS server running and accessible
-- Storage configuration (`storage_config.yml`)
-- Software configuration (`software_config.json`)
-

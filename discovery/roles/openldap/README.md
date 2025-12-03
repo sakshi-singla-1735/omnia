@@ -13,7 +13,3 @@ Configures OpenLDAP connection parameters for centralized authentication.
 - **Set Server IP**: Extracts OpenLDAP server IP from configuration
 - **Configure Connection**: Sets LDAP or LDAPS connection type
 - **Build Bind DN**: Constructs admin bind DN for authentication
-
-## Dependencies
-- OpenLDAP server deployed and accessible
-- Omnia configuration files with LDAP settings

@@ -12,8 +12,3 @@ Configures Slurm workload manager directory structures on NFS.
 - **Load Configuration**: Reads software configuration to check Slurm support
 - **Identify Nodes**: Gets Slurm controller, compute, and login node hostnames
 - **Create Directories**: Creates shared NFS directories for Slurm state, spool, and logs
-
-## Dependencies
-- NFS server accessible
-- Software configuration (`software_config.json`)
-- Omnia configuration (`omnia_config.yml`)

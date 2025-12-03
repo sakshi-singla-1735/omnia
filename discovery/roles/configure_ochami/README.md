@@ -14,7 +14,3 @@ Configures OpenCHAMI (Open Composable HPC Architecture Management Interface) for
 - **Configure BSS**: Sets boot parameters for node provisioning
 - **Configure Cloud-Init**: Creates cloud-init templates for node initialization
 - **Discovery Completion**: Finalizes the discovery process
-
-## Dependencies
-- OpenCHAMI CLI and services
-- Node mapping file with functional group definitions
