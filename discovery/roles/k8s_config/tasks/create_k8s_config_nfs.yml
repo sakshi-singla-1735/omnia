@@ -61,10 +61,11 @@
   ansible.builtin.set_fact:
     pulp_mirror: "{{ hostvars['localhost']['admin_nic_ip'] }}:2225"
 
-- name: Set fact for dns and csi driver support
+- name: Set fact for dns, csi driver support and service_k8s_version
   ansible.builtin.set_fact:
     dns: "{{ hostvars['localhost']['dns'] }}"
     csi_driver_powerscale_support: "{{ hostvars['localhost']['csi_driver_powerscale_support'] | string | lower }}"
+    service_k8s_version: "{{ hostvars['localhost']['service_k8s_version'] }}"
 
 - name: Create required share directories on NFS
   block:
@@ -78,10 +79,10 @@
       loop:
         - calico
         - metallb
-        - multus
+        # - multus
         - nfs-client-provisioner
         - helm
-        - whereabouts
+        # - whereabouts
 
     - name: Create subdirectories on NFS share
       ansible.builtin.file:

@@ -75,6 +75,7 @@
             {{ k8s_nfs_server_ip }}:{{ k8s_server_share_path }}   {{ k8s_client_mount_path }}        nfs    noatime,nolock     0 0
             {{ k8s_nfs_server_ip }}:{{ k8s_server_share_path }}/{% raw %}{{ ds.meta_data.instance_data.local_ipv4 }}{% endraw %}/kubelet   /var/lib/kubelet     nfs noatime,nolock 0 0
             {{ k8s_nfs_server_ip }}:{{ k8s_server_share_path }}/{% raw %}{{ ds.meta_data.instance_data.local_ipv4 }}{% endraw %}/kubernetes   /etc/kubernetes      nfs noatime,nolock 0 0
+            {{ k8s_nfs_server_ip }}:{{ k8s_server_share_path }}/{% raw %}{{ ds.meta_data.instance_data.local_ipv4 }}{% endraw %}/pod-logs   /var/log/pods      nfs noatime,nolock 0 0
             tmpfs   /tmp/crio-storage   tmpfs   size=8G,noatime,nodev,nosuid   0 0
           permissions: '0644'
         - path: /etc/containers/storage.conf
@@ -177,7 +178,7 @@
         - sudo modprobe nf_conntrack || true
         - sudo modprobe vxlan || true
         - sysctl --system
-        - mkdir -p /tmp/crio-storage {{ k8s_client_mount_path }} /var/lib/kubelet /etc/kubernetes
+        - mkdir -p /tmp/crio-storage {{ k8s_client_mount_path }} /var/lib/kubelet /etc/kubernetes /var/log/pods
         - |
           tmpfile=$(mktemp)
 
@@ -208,7 +209,7 @@
         - update-ca-trust extract
         - systemctl daemon-reload
         - systemctl restart crio
-        - kubeadm config images pull
+        - kubeadm config images pull --kubernetes-version={{ service_k8s_version }}
         - |
           set -e
           MARKER="/etc/kubernetes/.cluster_initialized"
