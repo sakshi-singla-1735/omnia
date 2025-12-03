@@ -75,7 +75,7 @@
     proc_params: "{{ {} | combine({'Sockets': (1 if (cpus | length == 0) else (cpus | length))})
      | combine({'CoresPerSocket': (cpus[0].TotalEnabledCores | default(default_corespersocket))})
      | combine({'ThreadsPerCore': ((cpus[0].TotalThreads | default(default_threadspercore)) // (cpus[0].TotalCores | default(1)))})
-     | combine({'RealMemory': total_mem_mb | default(default_realmemory) })
+     | combine({'RealMemory': real_memory | default(default_real_memory) })
      | combine(
                 {'Gres': 'gpu:' ~ (gpus | default([1]) | length | string)}
                 if (gpus | default([]))
