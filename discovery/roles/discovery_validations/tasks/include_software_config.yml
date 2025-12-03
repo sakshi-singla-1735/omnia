@@ -51,6 +51,11 @@
   ansible.builtin.set_fact:
     service_k8s_support: "{{ software_config.softwares | selectattr('name', 'equalto', 'service_k8s') | list | length > 0 }}"
 
+- name: Extract k8s version
+  ansible.builtin.set_fact:
+    service_k8s_version: "{{ software_config.softwares | selectattr('name', 'equalto', 'service_k8s') | map(attribute='version') | first }}"
+  when: service_k8s_support
+
 - name: Check if csi support is true
   ansible.builtin.set_fact:
     csi_driver_powerscale_support: "{{ software_config.softwares | selectattr('name', 'equalto', 'csi_driver_powerscale') | list | length > 0 }}"
