@@ -83,21 +83,35 @@
           | list }}
       when: job_result.results is defined
 
+    - name: Build failure message list
+      ansible.builtin.set_fact:
+        failure_msg_list:
+          - "x86_64 compute image build job did not complete successfully."
+          - "Check logs at {{ openchami_log_dir }} for respective functional group for more details."
+          - ""
+          - "Failed images:"
+
+    - name: Add failed image names to message
+      ansible.builtin.set_fact:
+        failure_msg_list: "{{ failure_msg_list + ['  - ' + item] }}"
+      loop: "{{ failed_images | default(['Unknown - check all logs']) }}"
+
+    - name: Add log paths section to message
+      ansible.builtin.set_fact:
+        failure_msg_list: "{{ failure_msg_list + ['', 'Check logs at ' + openchami_log_dir + ' for details:'] }}"
+
+    - name: Add log file paths to message
+      ansible.builtin.set_fact:
+        failure_msg_list: "{{ failure_msg_list + ['  - ' + openchami_log_dir + '/' + item + '_compute_image.log'] }}"
+      loop: "{{ failed_images | default([]) }}"
+
+    - name: Display x86_64 compute image build failure details
+      ansible.builtin.debug:
+        msg: "{{ failure_msg_list }}"
+
     - name: Failed to build the x86_64 compute image
       ansible.builtin.fail:
-        msg: |
-          x86_64 compute image build job did not complete successfully.
-          Check logs at {{ openchami_log_dir }} for respective functional group for more details.
-
-          Failed images:
-          {% for image in failed_images | default(['Unknown - check all logs']) %}
-            - {{ image }}
-          {% endfor %}
-
-          Check logs at {{ openchami_log_dir }} for details:
-          {% for image in failed_images | default([]) %}
-            - {{ openchami_log_dir }}/{{ image }}_compute_image.log
-          {% endfor %}
+        msg: "x86_64 compute image build failed. See details above."
 
   always:
     - name: Remove generated compute images templates
