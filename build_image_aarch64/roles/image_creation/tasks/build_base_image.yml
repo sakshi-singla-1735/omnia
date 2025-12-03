@@ -58,7 +58,8 @@
   rescue:
     - name: Fail the build if the base image build fails
       ansible.builtin.fail:
-        msg: "{{ base_image_failure_msg }}"
+        msg: |
+          {{ base_image_failure_msg }}
 
   always:
     - name: Remove generated base image vars file

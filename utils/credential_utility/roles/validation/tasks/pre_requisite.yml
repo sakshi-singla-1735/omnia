@@ -78,8 +78,7 @@
   fetch_telemetry_status:
     input_path: "{{ input_project_dir }}"
   register: result
-  when: "'telemetry' in (omnia_run_tags | default([]))
-        or 'prepare_oim' in (omnia_run_tags | default([]))"
+  when: "'telemetry' in (omnia_run_tags | default([]))"
 
 - name: Set run tags for telemetry
   ansible.builtin.set_fact:
