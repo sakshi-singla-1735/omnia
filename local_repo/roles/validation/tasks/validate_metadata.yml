@@ -29,7 +29,7 @@
       register: metadata_compare
       when: metadata_file.stat.exists
 
-    - name: Print metadat is identical or not
+    - name: Print metadata is identical or not
       ansible.builtin.debug:
         msg: "{{ metadata_compare.identical }}"
 

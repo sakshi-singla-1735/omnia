@@ -15,7 +15,6 @@
 
 # Usage: get_container_image_list.yml
 container_tag: "latest"
-kubespray_tag: "v2.28.0"
 squid_tag: "6.6-24.04_beta"
 pulp_tag: "3.80"
 mysql_tag: "9.3.0"

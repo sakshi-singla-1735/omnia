@@ -17,14 +17,3 @@
 python_version: "python3.12"
 oim_host_port: "22"
 oim_host_group: "oim"
-kubespray_ssh_port:
-  "v2.26.0": "2226"
-  "v2.27.0": "2227"
-  "v2.28.0": "2228"
-kubespray_container_hostname: "omnia_kubespray"
-kubespray_container_name: "omnia_kubespray_{{ hostvars['localhost']['matched_kubespray_version'] }}"
-
-# Usage: validate_kubespray_conatiner.yml
-kubespray_container_status_msg: "Kubespray container Status: {{ kubespray_container_status.containers[0].State.Status }}"
-kubespray_container_fail_msg: "Kubespray container is not running. Current Status: {{ kubespray_container_status.containers[0].State.Status }}"
-prepare_oim_kubespray_not_executed_msg: "Kubespray container not found. Please execute prepare_oim.yml to deploy all required containers."

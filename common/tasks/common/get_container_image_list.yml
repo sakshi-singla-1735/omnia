@@ -16,14 +16,6 @@
 - name: Include image variables
   ansible.builtin.include_vars: "../../vars/image_vars.yml"
 
-- name: Add kubespray to container image list if k8s_support is true
-  when: hostvars['localhost']['k8s_support'] | default(false)
-  ansible.builtin.set_fact:
-    container_images: "{{ container_images + ['omnia_kubespray:' + version] }}"
-  loop: "{{ hostvars['localhost']['kubespray_versions'] | default([]) }}"
-  loop_control:
-    loop_var: version
-
 - name: Add telemetry to container image list if telemetry_support is true
   when:
     - hostvars['localhost']['idrac_telemetry_support'] | default(false)
