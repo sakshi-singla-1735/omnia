@@ -75,19 +75,25 @@
   rescue:
     - name: Identify failed image builds
       ansible.builtin.set_fact:
-        failed_images: "{{ job_result.results | selectattr('failed', 'defined') | selectattr('failed', 'equalto', true) | map(attribute='item.item.key') | list }}"
+        failed_images: >
+          {{ job_result.results
+          | selectattr('failed', 'defined')
+          | selectattr('failed', 'equalto', true)
+          | map(attribute='item.item.key')
+          | list }}
       when: job_result.results is defined
 
     - name: Failed to build the x86_64 compute image
       ansible.builtin.fail:
         msg: |
-          {{ compute_image_failure_msg }}
-          
+          x86_64 compute image build job did not complete successfully.
+          Check logs at {{ openchami_log_dir }} for respective functional group for more details.
+
           Failed images:
           {% for image in failed_images | default(['Unknown - check all logs']) %}
             - {{ image }}
           {% endfor %}
-          
+
           Check logs at {{ openchami_log_dir }} for details:
           {% for image in failed_images | default([]) %}
             - {{ openchami_log_dir }}/{{ image }}_compute_image.log
