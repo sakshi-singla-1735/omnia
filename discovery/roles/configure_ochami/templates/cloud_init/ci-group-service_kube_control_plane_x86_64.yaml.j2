@@ -311,6 +311,17 @@
         - /usr/local/bin/install-helm.sh
 
         - |
+          echo "Installing Necessary Python pip packages"
+          python3 -m ensurepip
+
+          PACKAGES=({% for pkg in k8s_pip_packages %}"{{ pkg }}"{% if not loop.last %} {% endif %}{% endfor %})
+
+          for pkg in "${PACKAGES[@]}"; do
+              echo "Installing $pkg from offline repo..."
+              pip3 install "$pkg" \
+                    --find-links="{{ offline_pip_module_path }}/${pkg}/" \
+                    --trusted-host "{{ pulp_server_ip }}" \
+                    --no-index
           MARKER="/etc/kubernetes/.cluster_initialized"
           export KUBECONFIG="/etc/kubernetes/admin.conf"
           set -e
@@ -362,17 +373,6 @@
             fi
             systemctl restart nfs-client.target
             systemctl restart rpcbind
-            echo "Installing Necessary Python pip packages"
-            python3 -m ensurepip
-
-            PACKAGES=({% for pkg in k8s_pip_packages %}"{{ pkg }}"{% if not loop.last %} {% endif %}{% endfor %})
-
-            for pkg in "${PACKAGES[@]}"; do
-                echo "Installing $pkg from offline repo..."
-                pip3 install "$pkg" \
-                    --find-links="{{ offline_pip_module_path }}/${pkg}/" \
-                    --trusted-host "{{ pulp_server_ip }}" \
-                    --no-index
             done
               # Mark initialization complete so all of above is skipped on reboot!
             touch "$MARKER"
