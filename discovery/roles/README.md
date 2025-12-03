@@ -101,27 +101,6 @@ Configures Slurm workload manager settings and creates necessary directory struc
 
 ---
 
-## Placeholder/Empty Roles
-
-The following roles currently have subdirectory structure but no implemented tasks. They may be:
-- Reserved for future features
-- Platform-specific implementations
-- Alternative discovery mechanisms
-
-### Empty/Placeholder Roles:
-- **configure_os_image**: OS image configuration (subdirs: common, mapping, switch_based)
-- **configure_synclist**: Synchronization list configuration
-- **configure_xcat**: xCAT provisioning configuration
-- **db_operations**: Database operations
-- **discovery_mechanism**: Discovery mechanisms (subdirs: common, mapping, mtms, switch_based)
-- **metadata_creation**: Node metadata creation
-- **metadata_update**: Node metadata updates
-- **monitor_thread**: Monitoring thread operations
-- **os_update**: OS update management
-- **postscripts**: Post-installation scripts
-
----
-
 ## Role Execution Order
 
 Typical discovery workflow role sequence:
@@ -259,4 +238,4 @@ For issues or questions:
 
 **Last Updated**: December 2025  
 **Omnia Version**: 2.0+  
-**Documentation Status**: Active roles documented, placeholder roles identified
+**Documentation Status**: Active roles documented
