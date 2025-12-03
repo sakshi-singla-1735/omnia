@@ -22,7 +22,7 @@ Configures telemetry services for HPC cluster monitoring, including iDRAC teleme
 - **iDRAC Telemetry**: Collects hardware metrics (temperature, power, fan speeds) from iDRAC
 - **LDMS**: Collects OS-level metrics (CPU, memory, network, disk) from compute nodes
 - **Kafka**: Streams telemetry data
-- **Time-Series Database**: Stores metrics (TimescaleDB/InfluxDB)
+- **Time-Series Database**: Stores metrics (VictoriaMetrics)
 
 ## Dependencies
 - Kubernetes service cluster
