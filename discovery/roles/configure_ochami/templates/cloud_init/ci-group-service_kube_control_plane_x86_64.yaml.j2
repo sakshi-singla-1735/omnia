@@ -323,6 +323,7 @@
                     --find-links="{{ offline_pip_module_path }}/${pkg}/" \
                     --trusted-host "{{ pulp_server_ip }}" \
                     --no-index
+          done
           MARKER="/etc/kubernetes/.cluster_initialized"
           export KUBECONFIG="/etc/kubernetes/admin.conf"
           set -e
@@ -376,7 +377,6 @@
             fi
             systemctl restart nfs-client.target
             systemctl restart rpcbind
-            done
               # Mark initialization complete so all of above is skipped on reboot!
             touch "$MARKER"
           else
