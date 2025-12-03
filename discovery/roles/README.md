@@ -38,7 +38,6 @@ Configures telemetry services for comprehensive HPC cluster monitoring, includin
 - iDRAC telemetry streamer deployment
 - LDMS sampler/aggregator/storage configuration
 - Kafka and time-series database setup
-- Grafana dashboard deployment
 - Service cluster telemetry infrastructure
 
 [View Detailed README](./telemetry/README.md)
@@ -142,14 +141,12 @@ All roles reference these common configuration files:
 
 ## Dependencies
 
-### Software Prerequisites
-- Ansible 2.9+
-- Python 3.6+
+### Prerequisites
 - NFS server configured and accessible
 - OpenCHAMI installed (for node provisioning)
 - Kubernetes cluster (for service deployments)
 
-### Network Prerequisites
+### Network Requirements
 - All nodes accessible via admin network
 - NFS server reachable from all nodes
 - DNS resolution configured
