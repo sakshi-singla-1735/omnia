@@ -61,6 +61,13 @@
 
 - name: Wait for all OpenCHAMI jobs to finish and remove generated compute images templates
   block:
+    - name: Display image build jobs status
+      ansible.builtin.debug:
+        msg: "Waiting for image build: {{ item.item.key }} (Job ID: {{ item.ansible_job_id }})"
+      loop: "{{ compute_image_build_job.results }}"
+      loop_control:
+        label: "{{ item.item.key }}"
+
     - name: Wait for all OpenCHAMI jobs to finish
       ansible.builtin.async_status:
         jid: "{{ item.ansible_job_id }}"
@@ -71,12 +78,28 @@
       delay: "{{ job_delay }}"
       loop: "{{ compute_image_build_job.results }}"
       loop_control:
-        label: "{{ item.item.key }}"
+        label: "Building: {{ item.item.key }}"
 
   rescue:
+    - name: Identify failed image builds
+      ansible.builtin.set_fact:
+        failed_images: "{{ job_result.results | selectattr('failed', 'defined') | selectattr('failed', 'equalto', true) | map(attribute='item.item.key') | list }}"
+      when: job_result.results is defined
+
     - name: Failed to build the aarch64 compute image
       ansible.builtin.fail:
-        msg: "{{ compute_image_failure_msg }}"
+        msg: |
+          {{ compute_image_failure_msg }}
+          
+          Failed images:
+          {% for image in failed_images | default(['Unknown - check all logs']) %}
+            - {{ image }}
+          {% endfor %}
+          
+          Check logs at {{ openchami_log_dir }} for details:
+          {% for image in failed_images | default([]) %}
+            - {{ openchami_log_dir }}/{{ image }}_compute_image.log
+          {% endfor %}
 
   always:
     - name: Remove generated compute images templates
