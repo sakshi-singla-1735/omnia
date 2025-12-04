@@ -487,30 +487,34 @@
                 sleep 5
               fi
             done
+
             set -e
             echo "Updating the arguments for kube-controller-manager"
             MANIFEST="/etc/kubernetes/manifests/kube-controller-manager.yaml"
-            BACKUP="/etc/kubernetes/manifests/kube-controller-manager.yaml.bak.$(date +%F-%H%M%S)"
+            BACKUP="/tmp/kube-controller-manager.yaml"
 
             ARGS=(
-              "--node-monitor-period=5s"
-              "--node-monitor-grace-period=60s"
-              "--node-eviction-rate=0.3"
-              "--secondary-node-eviction-rate=0.1"
-              "--terminated-pod-gc-threshold=2000"
+              "--node-monitor-period=2s"
+              "--node-monitor-grace-period=20s"
+              "--node-eviction-rate=1"
+              "--secondary-node-eviction-rate=1"
+              "--terminated-pod-gc-threshold=0"
             )
 
             echo "Backing up kube-controller-manager manifest..."
             cp -a "$MANIFEST" "$BACKUP"
 
             for ARG in "${ARGS[@]}"; do
-              if grep -Fq -- "$ARG" "$MANIFEST"; then
+              if grep -Fq -- "$ARG" "$BACKUP"; then
                 echo "Already present: $ARG"
               else
                 echo "Adding: $ARG"
-                sed -i "/- kube-controller-manager/a \ \ \ \ - $ARG" "$MANIFEST"
+                sed -i "/- kube-controller-manager/a \ \ \ \ - $ARG" "$BACKUP"
               fi
             done
+            yes | cp -i  "$BACKUP" "$MANIFEST"
+
+
             echo "All arguments processed successfully."
             echo "kubelet will auto-restart kube-controller-manager within 30-60 seconds."
 
@@ -846,8 +850,8 @@
 
                 if [ "$POWERSCALE_DEPLOYMENT_FAILED" -eq 0 ]; then
                   echo "===== Waiting for CSI pods ====="
-                  MAX_ATTEMPTS=30
-                  WAIT_TIME=10
+                  MAX_ATTEMPTS=10
+                  WAIT_TIME=60
                   CSI_READY=0
                   for ((i=1; i<=MAX_ATTEMPTS; i++)); do
                     if kubectl get pods -n isilon --no-headers 2>/dev/null | grep -q '^isilon-'; then
@@ -859,6 +863,8 @@
                       fi
                     fi
                     echo "Attempt $i/$MAX_ATTEMPTS: Waiting for CSI pods to be Running..."
+                    kubectl rollout restart deployment isilon-controller -n isilon
+                    kubectl rollout restart daemonset isilon-node -n isilon
                     sleep $WAIT_TIME
                   done
 

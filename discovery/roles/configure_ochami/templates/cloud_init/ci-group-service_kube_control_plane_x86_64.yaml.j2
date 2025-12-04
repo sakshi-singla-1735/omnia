@@ -375,31 +375,41 @@
             else
               echo "WARNING: /etc/kubernetes/kubelet.conf not found. Kubelet may not be initialized yet."
             fi
+            set -e
             echo "Updating the arguments for kube-controller-manager"
             MANIFEST="/etc/kubernetes/manifests/kube-controller-manager.yaml"
-            BACKUP="/etc/kubernetes/manifests/kube-controller-manager.yaml.bak.$(date +%F-%H%M%S)"
+            BACKUP="/tmp/kube-controller-manager.yaml"
 
             ARGS=(
-              "--node-monitor-period=5s"
-              "--node-monitor-grace-period=60s"
-              "--node-eviction-rate=0.3"
-              "--secondary-node-eviction-rate=0.1"
-              "--terminated-pod-gc-threshold=2000"
+              "--node-monitor-period=2s"
+              "--node-monitor-grace-period=20s"
+              "--node-eviction-rate=1"
+              "--secondary-node-eviction-rate=1"
+              "--terminated-pod-gc-threshold=0"
             )
 
             echo "Backing up kube-controller-manager manifest..."
             cp -a "$MANIFEST" "$BACKUP"
 
             for ARG in "${ARGS[@]}"; do
-              if grep -Fq -- "$ARG" "$MANIFEST"; then
+              if grep -Fq -- "$ARG" "$BACKUP"; then
                 echo "Already present: $ARG"
               else
                 echo "Adding: $ARG"
-                sed -i "/- kube-controller-manager/a \ \ \ \ - $ARG" "$MANIFEST"
+                sed -i "/- kube-controller-manager/a \ \ \ \ - $ARG" "$BACKUP"
               fi
             done
+            yes | cp -i  "$BACKUP" "$MANIFEST"
+
+
             echo "All arguments processed successfully."
             echo "kubelet will auto-restart kube-controller-manager within 30-60 seconds."
+
+            echo "Waiting for Kubernetes API..."
+            until kubectl get nodes >/dev/null 2>&1; do
+              sleep 10
+            done
+
             kubectl -n kube-system wait pod/kube-controller-manager-{% raw %}{{ ds.meta_data.instance_data.local_ipv4 }}{% endraw %} --for=condition=Ready --timeout=300s
             systemctl restart nfs-client.target
             systemctl restart rpcbind
