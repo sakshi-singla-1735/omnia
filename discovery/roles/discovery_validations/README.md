@@ -1,7 +1,7 @@
 # Discovery Validations Role
 
 ## Overview
-Validates all discovery-related configuration files and inputs before the discovery process begins.
+Validates all node discovery-related configuration files and inputs before the discovery process begins.
 
 ## Purpose
 - Validates discovery input files syntax and structure

@@ -18,7 +18,7 @@ Configures OpenCHAMI (Open Composable HPC Architecture Management Interface) for
 ---
 
 ### 2. **discovery_validations**
-Validates all discovery-related configuration files and inputs before the discovery process begins. Acts as a gatekeeper to prevent misconfigured deployments.
+Validates all node discovery-related configuration files and inputs before the discovery process begins. Acts as a gatekeeper to prevent misconfigured deployments.
 
 **Key Functions**:
 - Discovery input file validation
