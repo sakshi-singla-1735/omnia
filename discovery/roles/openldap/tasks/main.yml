@@ -32,6 +32,7 @@
     - name: Set the password required by LDAP
       ansible.builtin.set_fact:
         password: "{{ hostvars['localhost']['openldap_db_password'] }}"
+      no_log: true
 
     - name: Set the ldap_connection_type required by LDAP
       ansible.builtin.set_fact:
