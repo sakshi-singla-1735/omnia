@@ -128,15 +128,6 @@
   when:
     - final_status == 'SUCCESS'
 
-- name: Update metadata for each software type if final_status is SUCCESS
-  ansible.builtin.include_tasks: create_k8s_local_repo_metadata.yml
-  loop: "{{ software_cleanup_list }}"
-  loop_control:
-    loop_var: software_entry
-  when:
-    - final_status == 'SUCCESS'
-    - software_entry.enabled
-
 - name: Show updated keys
   ansible.builtin.debug:
     var: policy_result.diff
@@ -155,6 +146,15 @@
 - name: Print overall software status
   ansible.builtin.debug:
     msg: "{{ status_results.msg.split('\n') if status_results.msg is defined else sw_download_msg }}"
+
+- name: Display total playbook execution time in minutes and seconds
+  ansible.builtin.debug:
+    msg: >
+      Total playbook execution time: {{
+        ((lookup('pipe', 'date +%s') | int - playbook_start_time | int) // 60)
+      }} min and {{
+        ((lookup('pipe', 'date +%s') | int - playbook_start_time | int) % 60)
+      }} sec
 
 - name: Local repository status
   ansible.builtin.debug:

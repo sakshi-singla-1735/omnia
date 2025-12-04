@@ -47,7 +47,6 @@ podman_login_fail_msg: "Podman login failed. Please ensure the podman login cred
 
 # Usage: add_known_hosts.yml
 ssh_config: "/root/.ssh/config"
-kubespray_versions: "{{ hostvars['localhost']['kubespray_versions'] | default([]) }}"
 
 # Usage: omnia_service.yml
 omnia_service_path:
@@ -55,3 +54,7 @@ omnia_service_path:
 network_services:
   - network-online.target
   - NetworkManager-wait-online.service
+
+# Usage: configure_chrony.yml
+chrony_conf_path: "/etc/chrony.conf"
+chrony_no_sources_msg: "No chrony sources are reachable. Please give a valid NTP server configuration in network_spec.yml and re-run prepare_oim playbook."

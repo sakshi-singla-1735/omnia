@@ -33,7 +33,8 @@ from ansible.module_utils.local_repo.software_utils  import (
     parse_repo_urls,
     set_version_variables,
     get_subgroup_dict,
-    get_new_packages_not_in_status
+    get_new_packages_not_in_status,
+    remove_duplicates_from_trans
 )
 
 # Import configuration constants individually (excluding fresh_installation_status)
@@ -42,7 +43,6 @@ from ansible.module_utils.local_repo.config import (
     USER_JSON_FILE_DEFAULT,
     LOG_DIR_DEFAULT,
     LOCAL_REPO_CONFIG_PATH_DEFAULT,
-    FUNCTIONAL_GROUPS_CONFIG_PATH_DEFAULT,
     SOFTWARE_CSV_FILENAME,
     ARCH_SUFFIXES
 )
@@ -62,7 +62,6 @@ def main():
         "csv_file_path": {"type": "str", "required": False, "default": CSV_FILE_PATH_DEFAULT},
         "user_json_file": {"type": "str", "required": False, "default": USER_JSON_FILE_DEFAULT},
         "local_repo_config_path": {"type": "str", "required": False, "default": LOCAL_REPO_CONFIG_PATH_DEFAULT},
-        "functional_groups_config_path": {"type": "str", "required": False, "default": FUNCTIONAL_GROUPS_CONFIG_PATH_DEFAULT},
         "log_dir": {"type": "str", "required": False, "default": LOG_DIR_DEFAULT},
         "key_path": {"type": "str", "required": True},
         "sub_urls": {"type": "dict","required": False,"default": {}}
@@ -74,7 +73,6 @@ def main():
     user_json_file = module.params["user_json_file"]
     csv_file_path = module.params["csv_file_path"]
     local_repo_config_path = module.params["local_repo_config_path"]
-    functional_groups_config_path = module.params["functional_groups_config_path"]
     vault_key_path = module.params["key_path"]
     sub_urls =  module.params["sub_urls"]
     logger = setup_standard_logger(log_dir)
@@ -83,7 +81,6 @@ def main():
 
     try:
         user_data = load_json(user_json_file)
-        functional_groups_config_data = load_yaml(functional_groups_config_path)
         cluster_os_type = user_data['cluster_os_type']
         cluster_os_version = user_data['cluster_os_version']
         repo_config = user_data['repo_config']
@@ -108,7 +105,7 @@ def main():
             logger.info(f"sub rhel urls : {sub_urls}")
             logger.info(f"fresh_installation dict: {fresh_installation}")
             logger.info(f"software_csv_path: {software_csv_path}")
-            software_list[arch] = get_software_names_and_arch(user_data,functional_groups_config_data,arch)
+            software_list[arch] = get_software_names_and_arch(user_data,arch)
             logger.info(f"software_list: {software_list}")
             if not fresh_installation[arch]:
                 csv_softwares[arch] = get_csv_software(software_csv_path[arch])
@@ -118,8 +115,8 @@ def main():
             logger.info(f"Existing softwares in {arch} software csv: {csv_softwares}")
             logger.info(f"New software list for {arch}: {new_softwares}")
             # Build a dictionary mapping software names to subgroup data, if available
-            subgroup_dict, software_names = get_subgroup_dict(user_data)
-            version_variables = set_version_variables(user_data, software_names, cluster_os_version)
+            subgroup_dict, software_names = get_subgroup_dict(user_data,logger)
+            version_variables = set_version_variables(user_data, software_names, cluster_os_version,logger)
 
             logger.info("Preparing package lists...")
             for software in software_list[arch]:
@@ -141,14 +138,14 @@ def main():
                 logger.info(f"failed softwares: {failed_softwares}")
                 tasks, failed_packages = process_software(software, is_fresh_software, json_path[arch],
                                                            status_csv_path[arch],
-                                                           subgroup_dict.get(software, None))
+                                                           subgroup_dict.get(software, None),logger)
                 logger.info(f"tasks to be processed: {tasks}")
                 logger.info(f"failed_packages : {failed_packages}")
 
                 if not is_fresh_software:
                     pkgs = get_new_packages_not_in_status(json_path[arch],
                                                           status_csv_path[arch],
-                                                          subgroup_dict.get(software, None))
+                                                          subgroup_dict.get(software, None),logger)
 
                     if pkgs:
                         logger.info(f"Additional software packages for {software}: {pkgs}")
@@ -156,10 +153,11 @@ def main():
 
                 if tasks:
                     tasks_dict[software] = tasks
-                    trans=transform_package_dict(tasks_dict, arch)
+                    trans=transform_package_dict(tasks_dict, arch,logger)
+                    trans = remove_duplicates_from_trans(trans)
                     logger.info(f"Final tasklist to process: {trans}")
                     final_tasks_dict.update(trans)
-        local_config, url_result = parse_repo_urls(repo_config, local_repo_config_path , version_variables, vault_key_path,sub_urls)
+        local_config, url_result = parse_repo_urls(repo_config, local_repo_config_path , version_variables, vault_key_path,sub_urls,logger)
         if not url_result:
             module.fail_json(f"{local_config} is either unreachable, invalid or has incorrect SSL certificates, please verify and provide correct details")
 

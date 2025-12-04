@@ -16,29 +16,33 @@
 - name: Define project input path
   ansible.builtin.set_fact:
     project_input_path: "{{ hostvars['localhost']['input_project_dir'] }}"
+  tags: always
 
 - name: Ensure firewalld is installed and running
   ansible.builtin.dnf:
     name: firewalld
     state: present
+  tags: always
 
 - name: Start and enable firewalld
   ansible.builtin.service:
     name: firewalld
     state: started
     enabled: true
+  tags: always
 
 - name: Cleanup pulp container
   ansible.builtin.import_tasks: cleanup_pulp.yml
-
-- name: Cleanup kubespray container
-  ansible.builtin.import_tasks: cleanup_kubespray.yml
+  tags: pulp
 
 - name: Cleanup openchami container
   ansible.builtin.import_tasks: cleanup_openchami.yml
+  tags: openchami
 
 - name: Cleanup auth container
   ansible.builtin.include_tasks: cleanup_auth.yml
+  tags: auth
 
 - name: Cleanup common configuration
   ansible.builtin.include_tasks: cleanup_common.yml
+  tags: common

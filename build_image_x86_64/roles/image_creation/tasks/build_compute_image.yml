@@ -41,8 +41,6 @@
     ansible-playbook {{ openchami_clone_path }}/dell/podman-quadlets/image.yaml \
       -i {{ openchami_clone_path }}/dell/podman-quadlets/inventory -v \
       --extra-vars '@{{ openchami_dir }}/{{ item.key }}_compute_images.yaml' \
-      -e "minio_s3_username={{ minio_s3_username }}" \
-      -e "minio_s3_password={{ minio_s3_password }}" \
       --tags compute_image -v | \
       /usr/bin/tee '{{ openchami_log_dir }}/{{ item.key }}_compute_image.log'
   async: 3600   # Set async timeout (e.g., 1 hour)
@@ -55,21 +53,65 @@
 
 - name: Wait for all OpenCHAMI jobs to finish and remove generated compute images templates
   block:
+    - name: Display image build jobs status
+      ansible.builtin.debug:
+        msg: "Waiting for image build: {{ item.item.key }} (Job ID: {{ item.ansible_job_id }})"
+      loop: "{{ compute_image_build_job.results }}"
+      loop_control:
+        label: "{{ item.item.key }}"
+
     - name: Wait for all OpenCHAMI jobs to finish
       ansible.builtin.async_status:
         jid: "{{ item.ansible_job_id }}"
       register: job_result
       until: job_result.finished
+      no_log: true
       retries: "{{ job_retry }}"
       delay: "{{ job_delay }}"
       loop: "{{ compute_image_build_job.results }}"
       loop_control:
-        label: "{{ item.item.key }}"
+        label: "Building: {{ item.item.key }}"
 
   rescue:
-    - name: Fail explicitly if job failed
+    - name: Identify failed image builds
+      ansible.builtin.set_fact:
+        failed_images: >
+          {{ job_result.results
+          | selectattr('failed', 'defined')
+          | selectattr('failed', 'equalto', true)
+          | map(attribute='item.item.key')
+          | list }}
+      when: job_result.results is defined
+
+    - name: Build failure message list
+      ansible.builtin.set_fact:
+        failure_msg_list:
+          - "x86_64 compute image build job did not complete successfully."
+          - "Check logs at {{ openchami_log_dir }} for respective functional group for more details."
+          - ""
+          - "Failed images:"
+
+    - name: Add failed image names to message
+      ansible.builtin.set_fact:
+        failure_msg_list: "{{ failure_msg_list + ['  - ' + item] }}"
+      loop: "{{ failed_images | default(['Unknown - check all logs']) }}"
+
+    - name: Add log paths section to message
+      ansible.builtin.set_fact:
+        failure_msg_list: "{{ failure_msg_list + ['', 'Check logs at ' + openchami_log_dir + ' for details:'] }}"
+
+    - name: Add log file paths to message
+      ansible.builtin.set_fact:
+        failure_msg_list: "{{ failure_msg_list + ['  - ' + openchami_log_dir + '/' + item + '_compute_image.log'] }}"
+      loop: "{{ failed_images | default([]) }}"
+
+    - name: Display x86_64 compute image build failure details
+      ansible.builtin.debug:
+        msg: "{{ failure_msg_list }}"
+
+    - name: Failed to build the x86_64 compute image
       ansible.builtin.fail:
-        msg: "{{ compute_image_failure_msg }}"
+        msg: "x86_64 compute image build failed. See details above."
 
   always:
     - name: Remove generated compute images templates

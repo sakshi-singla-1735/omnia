@@ -9,8 +9,8 @@ SlurmctldHost={{ ctld }}
 SlurmctldParameters={{ slurm_ctld_parameters | join(',') }}
 {% endif %}
 PluginDir={{ installroot }}{{ plugin_slurm_dir }}
-{% for key in slurm_conf_dict | sort %}
-{% set val = slurm_conf_dict[key] %}
+{% for key in apply_config['slurm'] | sort %}
+{% set val = apply_config['slurm'][key] %}
 {% if val is not none and val != omit %}
 {{ key }}={{ 'yes' if val is sameas true else ('no' if val is sameas false else val) }}
 {% endif %}

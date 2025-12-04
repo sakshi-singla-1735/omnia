@@ -20,10 +20,15 @@ import multiprocessing
 import subprocess
 import time
 import threading
+import traceback
 import yaml
 import requests
 from jinja2 import Template
-from ansible.module_utils.local_repo.common_functions import load_yaml_file, is_encrypted, process_file
+from ansible.module_utils.local_repo.common_functions import (
+    load_yaml_file,
+    is_encrypted,
+    process_file
+)
 from ansible.module_utils.local_repo.config import (
     OMNIA_CREDENTIALS_YAML_PATH,
     OMNIA_CREDENTIALS_VAULT_PATH,
@@ -49,12 +54,15 @@ def load_docker_credentials(vault_yml_path, vault_password_file):
         RuntimeError: If decryption, parsing, or Docker login fails (when credentials are provided).
     """
     try:
-        # Decrypt the vault file
+        env = os.environ.copy()
+        env["ANSIBLE_VAULT_PASSWORD_FILE"] = vault_password_file
+
         result = subprocess.run(
-            ["ansible-vault", "view", vault_yml_path, "--vault-password-file", vault_password_file],
-            check=True,
+            ["ansible-vault", "view", vault_yml_path],
             capture_output=True,
-            text=True
+            text=True,
+            check=True,
+            env=env
         )
         data = yaml.safe_load(result.stdout)
         docker_username = data.get("docker_username")
@@ -257,12 +265,11 @@ def worker_process(task, determine_function, user_data, version_variables, arc, 
     except Exception as e:
         # Log any errors encountered during task execution
         with log_lock:
-            # logger.error(
-            # f"Worker process {multiprocessing.current_process().name} 
-            # encountered an error: {str(e)}")
-            logger.error(f"Worker process {os.getpid()} encountered an error: {str(e)}")
+            logger.error("Worker process %s encountered an internal error.", os.getpid())
         # If an error occurs, put a failure result in the queue indicating task failure
-        result_queue.put({"task": task, "status": "FAILED", "output": "", "error": str(e)})
+        # Return a safe, generic error message to caller
+        safe_error_message = "Task execution failed due to an internal error."
+        result_queue.put({"task": task, "status": "FAILED", "output": "", "error": safe_error_message })
 
 def execute_parallel(
     tasks,

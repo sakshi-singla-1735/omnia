@@ -25,7 +25,7 @@ csv_base_path:
   - "{{ nfs_shared_path }}/log/local_repo/aarch64"
 local_repo_config_path: "{{ project_input_path }}/local_repo_config.yml"
 sw_config_json_path: "{{ project_input_path }}/software_config.json"
-functional_groups_config_path: "{{ project_input_path }}/functional_groups_config.yml"
+functional_groups_config_path: "{{ nfs_shared_path }}/.data/functional_groups_config.yml"
 user_json_file: "{{ project_input_path }}/software_config.json"
 user_reg_cred_input: "{{ project_input_path }}/user_registry_credential.yml"
 user_reg_key_path: "{{ project_input_path }}/.local_repo_credentials_key"
@@ -35,80 +35,30 @@ clean_rpms: true
 rpm_dir_path: "{{ repo_store_path }}/offline_repo/cluster/{{ item }}/rhel/10.0/rpm"
 localrepo_completion_msg1: |
   The playbook local_repo.yml has completed successfully.
-  Next step, run the playbook `utils/connect_external_server.yml -i <inv>` to prepare for the Kubernetes deployment.
-  Execute omnia.yml -i <inv> playbook.
-  Replace `<inv>` with your inventory file as specified in documentation.
   To build the node images, execute the appropriate playbook based on the target architecture:
-  - For **x86_64** nodes, run:  `build_image_x86_64/build_image_x86_64.yml`
-
-localrepo_completion_msg2: |
-  The playbook local_repo.yml has completed successfully.
-  To build the node images, execute the appropriate playbook based on the target architecture as next step:
   - For **x86_64** nodes, run:  `build_image_x86_64/build_image_x86_64.yml`
 
 local_repo_py_module_vars:
   default_vars: &sw_defaults
-    timeout: 2000  # Timeout in seconds for each thread
+    timeout: 7200  # Timeout in seconds for each thread
     nthreads: 8 # Number of threads
   amdgpu:
     <<: *sw_defaults
-  cuda:
-    timeout: 7200
-    nthreads: 2
-  ofed:
+  default_packages:
     timeout: 7200
     nthreads: 1
-  freeipa:
-    timeout: 7200
-    nthreads: 3
   openldap:
     timeout: 7200
     nthreads: 2
   nfs:
     timeout: 7200
     nthreads: 1
-  beegfs:
-    timeout: 7200
-    nthreads: 1
-  compute_k8s:
-    timeout: 7200
-    nthreads: 8
   service_k8s:
     timeout: 7200
     nthreads: 8
-  slurm:
+  slurm_custom:
     timeout: 7200
-    nthreads: 1
-  jupyter:
-    timeout: 7200
-    nthreads: 8
-  kubeflow:
-    timeout: 7200
-    nthreads: 8
-  kserve:
-    timeout: 7200
-    nthreads: 8
-  pytorch:
-    timeout: 7200
-    nthreads: 4
-  tensorflow:
-    timeout: 7200
-    nthreads: 4
-  vllm:
-    timeout: 7200
-    nthreads: 5
-  telemetry:
-    timeout: 7200
-    nthreads: 8
-  intel_benchmarks:
-    timeout: 7200
-    nthreads: 1
-  amd_benchmarks:
-    timeout: 7200
-    nthreads: 1
-  utils:
-    timeout: 7200
-    nthreads: 1
+    nthreads: 3
   ucx:
     timeout: 7200
     nthreads: 2
@@ -124,8 +74,6 @@ sw_download_msg: "The specified software packages have already been downloaded."
 meta_dest: "{{ nfs_shared_path }}/offline_repo/.data"
 metadata_file_path: "{{ meta_dest }}/localrepo_metadata.yml"
 metadata_warn_msg: "Warning: Metadata has changed since the last run! execution may fail if there is no internet on OIM , still you want to continue..."
-
-# Usage: create_k8s_local_repo_metadata.yml
-k8s_local_repo_metadata_file_path: "/opt/omnia/log/local_repo/k8s_local_repo_metadata.yml"
+metadata_identical_msg: "Metadata is identical. No changes detected."
 file_mode: "0644"
 folder_mode: "0755"

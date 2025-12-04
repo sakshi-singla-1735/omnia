@@ -13,9 +13,6 @@
 # limitations under the License.
 ---
 
-- name: Include software_config.yml
-  ansible.builtin.include_tasks: fetch_software_config.yml
-
 - name: Include omnia_config.yml
   ansible.builtin.include_tasks: include_omnia_config.yml
   tags: 'omnia_config'
@@ -23,10 +20,6 @@
 - name: Include omnia_config_credentials.yml
   ansible.builtin.include_tasks: include_omnia_config_credentials.yml
   tags: 'credentials_config'
-
-- name: Validate k8s metadata file
-  ansible.builtin.include_tasks: validate_k8s_metadata.yml
-  when: validate_k8s | default(true)
 
 - name: Include storage_config.yml
   tags: 'storage_config'

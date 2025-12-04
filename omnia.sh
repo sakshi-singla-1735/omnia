@@ -130,7 +130,7 @@ setup_omnia_core() {
 # It removes the container and performs the necessary cleanup steps.
 cleanup_omnia_core() {
     # Block if critical service containers exist
-    critical_running=$(podman ps --format '{{.Names}}' | grep -E 'pulp|kubespray|registry|minio-server|postgres|step-ca|hydra|smd|opaal-idp|bss|opaal|cloud-init-server|haproxy|coresmd')
+    critical_running=$(podman ps --format '{{.Names}}' | grep -E 'pulp|registry|minio-server|postgres|step-ca|hydra|smd|opaal-idp|bss|opaal|cloud-init-server|haproxy|coresmd')
     if [ -n "$critical_running" ]; then
         echo -e "${RED}Failed to intiatiate omnia_core container cleanup. There are other critical service containers still running:${NC}"
         echo "$critical_running"
@@ -204,7 +204,7 @@ cleanup_config(){
 
     # Remove the Omnia core configuration.
     echo -e "${BLUE} Removing Omnia core configuration.${NC}"
-    rm -rf $omnia_path/omnia/{hosts,input,log,pulp,provision,kubespray,pcs,ssh_config,tmp,.data}
+    rm -rf $omnia_path/omnia/{hosts,input,log,pulp,provision,pcs,ssh_config,tmp,.data}
 
     # Unmount the NFS shared path if the share option is NFS.
     if [ "$share_option" = "NFS" ] && [ "$nfs_type" = "external" ]; then
@@ -238,7 +238,7 @@ cleanup_config(){
 # Otherwise, it prints an error message.
 remove_container() {
     # Block if critical service containers exist
-    critical_running=$(podman ps --format '{{.Names}}' | grep -E 'pulp|kubespray|registry|minio-server|postgres|step-ca|hydra|smd|opaal-idp|bss|opaal|cloud-init-server|haproxy|coresmd')
+    critical_running=$(podman ps --format '{{.Names}}' | grep -E 'pulp|registry|minio-server|postgres|step-ca|hydra|smd|opaal-idp|bss|opaal|cloud-init-server|haproxy|coresmd')
     if [ -n "$critical_running" ]; then
         echo -e "${RED}Failed to intiatiate omnia_core container cleanup. There are other critical service containers still running:${NC}"
         echo "$critical_running"
@@ -620,6 +620,19 @@ validate_oim() {
         exit 1
     fi
 
+    # Detect OIM timezone from systemd in a stable, case‑independent way
+    oim_timezone=$(timedatectl show -p Timezone --value 2>/dev/null)
+
+    # Fallbacks if needed (non‑systemd or old timedatectl)
+    if [[ -z "$oim_timezone" ]]; then
+        if [[ -f /etc/timezone ]]; then
+            # Debian/Ubuntu style
+            oim_timezone=$(< /etc/timezone)
+        elif [[ -L /etc/localtime ]]; then
+            # Derive from /etc/localtime symlink
+            oim_timezone=$(readlink -f /etc/localtime | sed -n 's|^.*zoneinfo/||p')
+        fi
+    fi
 
     podman --version
 
@@ -740,6 +753,7 @@ EOF
             echo "oim_hostname: $(hostname)"
             echo "oim_node_name: $(hostname -s)"
             echo "domain_name: $domain_name"
+            echo "oim_timezone: $oim_timezone"
             echo "omnia_core_hashed_passwd: $hashed_passwd"
             echo "omnia_share_option: $share_option"
         } >> "$oim_metadata_file"
@@ -982,7 +996,7 @@ install_omnia_core() {
             # If the user wants to reinstall, call the remove_container function, and then call the setup_omnia_core function
             if [ "$choice" = "2" ]; then
                 # Block if critical service containers exist
-                critical_running=$(podman ps --format '{{.Names}}' | grep -E 'pulp|kubespray|registry|minio-server|postgres|step-ca|hydra|smd|opaal-idp|bss|opaal|cloud-init-server|haproxy|coresmd')
+                critical_running=$(podman ps --format '{{.Names}}' | grep -E 'pulp|registry|minio-server|postgres|step-ca|hydra|smd|opaal-idp|bss|opaal|cloud-init-server|haproxy|coresmd')
                 if [ -n "$critical_running" ]; then
                     echo -e "${RED}Failed to intiatiate omnia_core container cleanup. There are other critical service containers still running:${NC}"
                     echo "$critical_running"

@@ -17,6 +17,10 @@
   hosts: localhost
   connection: local
   tasks:
+    - name: Set start time
+      ansible.builtin.set_fact:
+        playbook_start_time: "{{ lookup('pipe', 'date +%s') }}"
+
     - name: Set dynamic run tags including 'local_repo'
       ansible.builtin.set_fact:
         omnia_run_tags: "{{ (ansible_run_tags | default([]) + ['local_repo']) | unique }}"
@@ -37,6 +41,38 @@
   ansible.builtin.import_playbook: ../utils/create_container_group.yml
   vars:
     oim_group: true
+
+- name: Set_fact for fetch cluster os version
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    input_file: "{{ hostvars['localhost']['input_project_dir'] }}/software_config.json"
+  tasks:
+    - name: Validate JSON before loading
+      ansible.builtin.command: "jq . {{ input_file }}"
+      register: json_check
+      changed_when: false
+      failed_when: false
+      ignore_errors: true
+      no_log: true
+
+    - name: Fail if JSON is invalid
+      ansible.builtin.fail:
+        msg: |
+          JSON validation failed for software_config.json.
+          File: {{ input_file }}
+          {{ json_check.stderr | default('Unknown jq error') }}
+          Please fix the JSON syntax
+      when: json_check.rc != 0
+
+    - name: Load software_config JSON
+      ansible.builtin.set_fact:
+        software_config: "{{ lookup('file', input_file) | from_json }}"
+
+    - name: Set cluster OS version
+      ansible.builtin.set_fact:
+        cluster_os_version: "{{ software_config.cluster_os_version }}"
 
 - name: Check rhel subscription enabled or not
   hosts: oim

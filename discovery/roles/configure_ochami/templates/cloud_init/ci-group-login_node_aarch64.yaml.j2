@@ -70,6 +70,14 @@
             {{ lookup('template', 'templates/openldap/update_ldap_conf.sh.j2') | indent(12) }}
 {% endif %}
 
+{% if hostvars['localhost']['ldms_support'] %}
+        - path: /root/ldms_sampler.sh
+          owner: root:root
+          permissions: '0755'
+          content: |
+            {{ lookup('template', 'templates/ldms/ldms_sampler.sh.j2') | indent(12) }}
+{% endif %}
+
         - path: /etc/hosts
           append: true
           content: |
@@ -143,4 +151,15 @@
         - sudo systemctl restart sssd
         - systemctl restart sshd
 
+{% endif %}
+
+{% if hostvars['localhost']['ldms_support'] %}
+        - echo " Starting LDMS setup " | tee -a /var/log/ldms-cloudinit.log
+
+        # Add NFS entry and mount
+        - mkdir -p {{ client_mount_path }}
+        - echo "{{ cloud_init_slurm_nfs_path }} {{ client_mount_path }} nfs defaults,_netdev 0 0" >> /etc/fstab
+        - mount -a
+
+        - /root/ldms_sampler.sh
 {% endif %}

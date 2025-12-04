@@ -5,50 +5,263 @@
   "properties": {
     "idrac_telemetry_support": {
       "type": "boolean"
+    },
+    "idrac_telemetry_collection_type": {
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": ["kafka", "victoria"]
+        },
+        {
+          "type": "string",
+          "pattern": "(?i)^(kafka|victoria)(,(kafka|victoria))*$"
+        }
+      ]
+    },
+    "ldms_agg_port": {
+      "type": "integer",
+      "minimum": 6001,
+      "maximum": 6100,
+      "default": 6001,
+      "description": "LDMS Aggregator port on service k8s cluster. Valid range: 6001-6100. Default: 6001"
+    },
+    "ldms_store_port": {
+      "type": "integer",
+      "minimum": 6001,
+      "maximum": 6100,
+      "default": 6001,
+      "description": "LDMS store daemon port on service k8s cluster. Valid range: 6001-6100. Can be the same as ldms_agg_port (isolated by pod). Default: 6001"
+    },
+    "ldms_sampler_port": {
+      "type": "integer",
+      "minimum": 10001,
+      "maximum": 10100,
+      "default": 10001,
+      "description": "LDMS sampler port on compute nodes. Valid range: 10001-10100. Default: 10001"
+    },
+    "ldms_sampler_configurations": {
+      "anyOf": [
+        {
+          "type": "null",
+          "description": "LDMS sampler configurations can be null if no LDMS monitoring is needed"
+        },
+        {
+          "type": "array",
+          "description": "LDMS-specific sampler configurations (string-based)",
+          "items": {
+            "type": "object",
+            "properties": {
+              "plugin_name": {
+                "type": "string",
+                "minLength": 1,
+                "enum": [
+                  "meminfo",
+                  "procstat2",
+                  "vmstat",
+                  "loadavg",
+                  "slurm_sampler",
+                  "procnetdev2"
+                ],
+                "description": "Name of the LDMS sampler plugin. Must be one of the 6 supported plugin types: meminfo (memory usage), procstat2 (process statistics), vmstat (virtual memory), loadavg (system load), slurm_sampler (HPC workload monitoring), procnetdev2 (network interface statistics). Cannot be empty.",
+                "errorMessage": {
+                  "enum": "Invalid plugin_name. Only 6 plugins are supported: meminfo, procstat2, vmstat, loadavg, slurm_sampler, procnetdev2",
+                  "minLength": "plugin_name cannot be empty. Must be one of: meminfo, procstat2, vmstat, loadavg, slurm_sampler, procnetdev2"
+                }
+              },
+              "config_parameters": {
+                "type": "string",
+                "description": "Plugin-specific configuration parameters represented as a single string (e.g., 'component_id=2 stream=slurm job_count=8 task_count=8')"
+              },
+              "activation_parameters": {
+                "type": "string",
+                "description": "Activation parameters as a string (e.g., 'interval=1000000 offset=0'). Format: 'interval=<microseconds>' with optional 'offset=<microseconds>' separated by space.",
+                "pattern": "^interval=[1-9][0-9]*(?:\\s+offset=[0-9]+)?$",
+                "errorMessage": "Must be in format 'interval=<non-zero-number>' or 'interval=<non-zero-number> offset=<number>'. Example: 'interval=1000000' or 'interval=1000000 offset=0'"
+              }
+            },
+            "required": ["plugin_name", "activation_parameters"],
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "plugin_name": { "const": "slurm_sampler" }
+                  }
+                },
+                "then": {
+                  "required": ["config_parameters"],
+                  "properties": {
+                    "config_parameters": {
+                      "type": "string",
+                      "pattern": "^(?=.*\\bcomponent_id=\\b)(?=.*\\bstream=\\b)(?=.*\\bjob_count=\\b)(?=.*\\btask_count=\\b).*$",
+                      "description": "Must include component_id, stream, job_count, and task_count in the string"
+                    }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "plugin_name": {
+                      "pattern": "^procnetdev[0-9]*$"
+                    }
+                  }
+                },
+                "then": {
+                  "properties": {
+                    "config_parameters": {
+                      "type": "string",
+                      "pattern": "^(|.*\\bifaces=[a-zA-Z0-9_,]+\\b.*)$",
+                      "description": "Optional comma-separated list of network interfaces (e.g., 'ifaces=eth0,eth1')"
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        }
+      ]
     }
   },
-  "required": ["idrac_telemetry_support"],
+  "required": ["idrac_telemetry_support", "idrac_telemetry_collection_type", "ldms_sampler_configurations", "ldms_agg_port", "ldms_store_port", "ldms_sampler_port" ],
+  "$defs": {
+    "kafka_configurations": {
+      "type": "object",
+      "properties": {
+        "persistence_size": {
+          "type": "string",
+          "pattern": "^[0-9]+(Ki|Mi|Gi|Ti|Pi|Ei)$"
+        },
+        "log_retention_hours": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "log_retention_bytes": {
+          "type": "integer"
+        },
+        "log_segment_bytes": {
+          "type": "integer"
+        },
+        "topic_partitions": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 2,
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "enum": ["idrac", "ldms"],
+                "description": "CONSTANT: Fixed topic names that cannot be changed. Only 'idrac' and 'ldms' are allowed.",
+                "errorMessage": {
+                  "enum": "Invalid topic name. Only 'idrac' and 'ldms' are allowed as Kafka topic names. Custom topic names are not supported."
+                }
+              },
+              "partitions": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 100,
+                "description": "Number of partitions for the topic (1-100). This is the only configurable parameter."
+              }
+            },
+            "required": ["name", "partitions"],
+            "additionalProperties": false,
+            "errorMessage": {
+              "required": {
+                "name": "Topic 'name' is required and must be one of: 'idrac', 'ldms'",
+                "partitions": "Topic 'partitions' is required and must be between 1-100"
+              }
+            }
+          },
+          "uniqueItems": true,
+          "description": "IMPORTANT: At least one Kafka topic must be defined. Topic names 'idrac' and 'ldms' are CONSTANTS. 'idrac' is required if idrac_telemetry_support is true and kafka is in idrac_telemetry_collection_type. 'ldms' is required if LDMS software is configured in software_config.json (automatic detection). Only partition counts can be changed.",
+          "errorMessage": {
+            "minItems": "At least 1 Kafka topic must be defined. Configure based on enabled features.",
+            "maxItems": "Maximum 2 topics allowed: 'idrac' and 'ldms'",
+            "uniqueItems": "Each topic (idrac, ldms) must appear only once"
+          }
+        }
+      },
+      "required": [
+        "persistence_size",
+        "log_retention_hours",
+        "log_retention_bytes",
+        "log_segment_bytes",
+        "topic_partitions"
+      ],
+      "additionalProperties": false
+    },
+    "victoria_configurations": {
+      "type": "object",
+      "properties": {
+        "deployment_mode": {
+          "type": "string",
+          "enum": ["single-node", "cluster"],
+          "default": "cluster",
+          "description": "VictoriaMetrics deployment mode. 'single-node' for simple deployment (1 pod), 'cluster' for high-availability deployment (7 pods). Default: 'cluster'",
+          "errorMessage": {
+            "enum": "deployment_mode must be either 'single-node' or 'cluster'"
+          }
+        },
+        "persistence_size": {
+          "type": "string",
+          "pattern": "^[0-9]+(Ki|Mi|Gi|Ti|Pi|Ei)$"
+        },
+        "retention_period": {
+          "type": "integer",
+          "minimum": 24
+        }
+      },
+      "required": [
+        "deployment_mode",
+        "persistence_size",
+        "retention_period"
+      ],
+      "additionalProperties": false
+    }
+  },
   "allOf": [
     {
       "if": {
         "properties": {
-          "idrac_telemetry_support": { "const": true }
+            "idrac_telemetry_support": { "const": true },
+            "idrac_telemetry_collection_type": { "pattern": "(?i)^kafka$" }
         }
       },
       "then": {
         "required": ["kafka_configurations"],
         "properties": {
-          "kafka_configurations": {
-            "type": "object",
-            "properties": {
-              "persistence_size": {
-                "type": "string",
-                "pattern": "^[0-9]+(Ki|Mi|Gi|Ti|Pi|Ei)$"
-              },
-              "log_retention_hours": {
-                "type": "integer",
-                "minimum": 1
-              },
-              "log_retention_bytes": {
-                "type": "integer"
-              },
-              "log_segment_bytes": {
-                "type": "integer"
-              },
-              "topic_partitions": {
-                "type": "integer",
-                "minimum": 1
-              }
-            },
-            "required": [
-              "persistence_size",
-              "log_retention_hours",
-              "log_retention_bytes",
-              "log_segment_bytes",
-              "topic_partitions"
-            ],
-            "additionalProperties": false
+            "kafka_configurations": { "$ref": "#/$defs/kafka_configurations" }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "idrac_telemetry_support": { "const": true },
+          "idrac_telemetry_collection_type": { "pattern": "(?i)^victoria$" }
+        }
+      },
+      "then": {
+        "required": ["victoria_configurations"],
+        "properties": {
+          "victoria_configurations": { "$ref": "#/$defs/victoria_configurations" }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "idrac_telemetry_support": { "const": true },
+          "idrac_telemetry_collection_type": {
+            "pattern": "(?i)^(victoria,kafka|kafka,victoria)$"
           }
+        }
+      },
+      "then": {
+        "required": ["kafka_configurations", "victoria_configurations"],
+        "properties": {
+          "kafka_configurations": { "$ref": "#/$defs/kafka_configurations" },
+          "victoria_configurations": { "$ref": "#/$defs/victoria_configurations" }
         }
       }
     }
