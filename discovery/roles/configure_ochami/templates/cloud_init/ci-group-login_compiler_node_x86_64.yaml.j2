@@ -54,7 +54,7 @@
             fi
 
 
-        - path: /root/install_cuda_toolkit.sh
+        - path: /usr/local/bin/install_cuda_toolkit.sh
           permissions: '0755'
           content: |
             #!/bin/bash
@@ -219,7 +219,7 @@
 
       runcmd:
         - /usr/local/bin/set-ssh.sh
-        - /root/install_cuda_toolkit.sh
+        - /usr/local/bin/install_cuda_toolkit.sh
         - groupadd -r {{ slurm_group_name }}
         - useradd -r -g {{ slurm_group_name }} -d {{ home_dir }} -s /sbin/nologin {{ user }}
 
