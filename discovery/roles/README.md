@@ -1,6 +1,6 @@
 # Discovery Roles Overview
 
-This directory contains Ansible roles for the Omnia discovery and provisioning process. Each role handles a specific aspect of cluster node discovery, configuration, and service deployment.
+This directory contains Ansible roles for the Omnia node discovery and provisioning process. Each role handles a specific aspect of cluster node discovery, configuration, and service deployment.
 
 ## Active Roles
 
