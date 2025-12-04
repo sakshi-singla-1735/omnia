@@ -241,7 +241,7 @@
               --apiserver-cert-extra-sans {{ kube_vip }}
         
         - path: /tmp/generate-control-plane-join.sh
-          permissions: '0644'
+          permissions: '0744'
           content: |
             #!/bin/bash
             set -e
@@ -475,7 +475,50 @@
                 sleep 5
               fi
             done
+            # Wait for all pods in all namespaces to be ready (status=Running or Completed)
+            echo "Waiting for all pods to be Ready (Running/Completed)..."
+            while true; do
+              not_ready=$(kubectl get pods --all-namespaces --no-headers 2>/dev/null | awk '{ print $4 }' | grep -vE '^(Running|Completed)$' | wc -l)
+              if [ "${not_ready}" -eq 0 ]; then
+                echo "All pods are Running or Completed."
+                break
+              else
+                echo "$not_ready pods not yet ready, waiting 5s ..."
+                sleep 5
+              fi
+            done
+            set -e
+            echo "Updating the arguments for kube-controller-manager"
+            MANIFEST="/etc/kubernetes/manifests/kube-controller-manager.yaml"
+            BACKUP="/etc/kubernetes/manifests/kube-controller-manager.yaml.bak.$(date +%F-%H%M%S)"
 
+            ARGS=(
+              "--node-monitor-period=5s"
+              "--node-monitor-grace-period=60s"
+              "--node-eviction-rate=0.3"
+              "--secondary-node-eviction-rate=0.1"
+              "--terminated-pod-gc-threshold=2000"
+            )
+
+            echo "Backing up kube-controller-manager manifest..."
+            cp -a "$MANIFEST" "$BACKUP"
+
+            for ARG in "${ARGS[@]}"; do
+              if grep -Fq -- "$ARG" "$MANIFEST"; then
+                echo "Already present: $ARG"
+              else
+                echo "Adding: $ARG"
+                sed -i "/- kube-controller-manager/a \ \ \ \ - $ARG" "$MANIFEST"
+              fi
+            done
+            echo "All arguments processed successfully."
+            echo "kubelet will auto-restart kube-controller-manager within 30-60 seconds."
+
+            echo "Waiting for Kubernetes API..."
+            until kubectl get nodes >/dev/null 2>&1; do
+              sleep 10
+            done
+                
             # Wait for all pods in all namespaces to be ready (status=Running or Completed)
             echo "Waiting for all pods to be Ready (Running/Completed)..."
             while true; do
@@ -550,7 +593,7 @@
             echo "$WORKER_JOIN_CMD" > "${K8S_CLIENT_MOUNT_PATH}/worker-join-command.sh"
             echo "Saved worker join command to:       ${K8S_CLIENT_MOUNT_PATH}/worker-join-command.sh"
 
-            set -e
+            
             export KUBECONFIG=/etc/kubernetes/admin.conf
 
             echo "Waiting for at least one READY Kubernetes worker node ..."
@@ -627,6 +670,7 @@
             echo "Rollout and Restart coredns"
             kubectl rollout restart deployment coredns -n kube-system
             echo "Waiting for coredns pods to appear.."
+            sleep 30
             kubectl wait --for=condition=Ready pod -l k8s-app=kube-dns -n kube-system --timeout=300s
 
             CSI_DRIVER_SUPPORT="{{ csi_driver_powerscale_support | lower }}"
@@ -883,6 +927,7 @@
 {% endif %}
             echo "Rollout and Restart coredns"
             kubectl rollout restart deployment coredns -n kube-system
+            sleep 30
             echo "Waiting for coredns pods to appear.."
             kubectl wait --for=condition=Ready pod -l k8s-app=kube-dns -n kube-system --timeout=300s
             # Mark initialization complete so all of above is skipped on reboot!
@@ -904,6 +949,7 @@
             echo "Rollout and Restart coredns"
             kubectl rollout restart deployment coredns -n kube-system
             echo "Waiting for coredns pods to appear.."
+            sleep 30
             kubectl wait --for=condition=Ready pod -l k8s-app=kube-dns -n kube-system --timeout=300s
             # Wait for all pods in all namespaces to be ready (status=Running or Completed)
             echo "Waiting for all pods to be Ready (Running/Completed)..."
