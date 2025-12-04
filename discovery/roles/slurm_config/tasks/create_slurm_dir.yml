@@ -58,6 +58,8 @@
     group: root
     mode: "{{ common_mode }}"
 
+# This directory is created to store the controller track file in NFS
+# The track file is generated only after the Slurm controller has been fully configured in a fresh deployment
 - name: Create directory for controller init track file in share
   ansible.builtin.file:
     path: "{{ controller_trackfile_path }}"

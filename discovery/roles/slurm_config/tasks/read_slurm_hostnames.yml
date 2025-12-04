@@ -65,10 +65,6 @@
                    | selectattr('key', 'match', '^login_compiler_node_')
                    | map(attribute='value') | list | flatten }}"
 
-- name: Extract slurm controller hostname
-  ansible.builtin.set_fact:
-    controller_hostname: "{{ grouped_nodes.slurm_control_node_x86_64 | first }}"
-
 - name: Extract slurm controller IP
   ansible.builtin.set_fact:
-    controller_ip: "{{ ip_name_map[controller_hostname] }}"
+    controller_ip: "{{ ip_name_map[grouped_nodes.slurm_control_node_x86_64 | first] }}"

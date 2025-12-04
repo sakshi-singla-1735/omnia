@@ -219,34 +219,6 @@
             {{ ip_name_map[key] }} {{ key }}
 {% endfor %}
 
-        - path: /usr/local/bin/wait_for_ip.sh
-          permissions: '{{ file_mode_755 }}'
-          content: |
-            #!/bin/bash
-            LOGFILE="/var/log/wait_for_ip.log"
-            IP="$1"
-            TIMEOUT={{ ip_timeout }}
-            MAX_RETRIES={{ ip_wait_loop }}
-            COUNT=0
-            echo "Waiting for $IP to become reachable..." | tee -a "$LOGFILE"
-            if [[ $# -eq 0 || -z "${1:-}" ]]; then
-              echo "Usage: $0 <TARGET_IP>" | tee -a "$LOGFILE"
-              echo "No argument provided. continuing" | tee -a "$LOGFILE"
-              exit 0
-            fi
-            while true; do
-              if ping -c1 -W1 "$IP" &>/dev/null; then
-                  echo "$IP is up — proceeding." | tee -a "$LOGFILE"
-                  exit 0
-              fi
-              ((COUNT++))
-              if [ "$COUNT" -ge "$MAX_RETRIES" ]; then
-                echo "IP $IP not reachable after $MAX_RETRIES attempts, giving up." | tee -a "$LOGFILE"
-                exit 1
-              fi
-              echo "IP $IP not reachable yet (attempt $COUNT). Retrying in $TIMEOUT seconds..." | tee -a "$LOGFILE"
-              sleep "$TIMEOUT"
-              done
         - path: /usr/local/bin/configure_dirs_and_mounts.sh
           permissions: '{{ file_mode_755 }}'
           content: |
@@ -400,18 +372,7 @@
             MARKER="/var/log/track/slurm_controller_track"
             SERVICE_FILE="/usr/lib/systemd/system/slurmd.service"
 
-            echo "Waiting for Slurm controller at $CONTROLLER_IP to become reachable..."
-            while true; do
-                if ping -c1 -W1 "$CONTROLLER_IP" &>/dev/null; then
-                    echo "Slurm controller ($CONTROLLER_IP) is reachable."
-                    break
-                else
-                    echo "Slurm controller unreachable. Retrying in 5 seconds..."
-                    sleep 5
-                fi
-            done
-
-            echo "Reading controller port from $SERVICE_FILE ..."
+            echo "Reading slurm controller port from $SERVICE_FILE ..."
             EXEC_LINE=$(grep -E "^ExecStart=" "$SERVICE_FILE")
             CONTROLLER_PORT=$(echo "$EXEC_LINE" | grep -oP '(?<=--conf-server\s)[^ ]+' | cut -d':' -f2)
 
@@ -419,17 +380,17 @@
                 echo "WARNING: Could not parse port from service file. Defaulting to 6817."
                 CONTROLLER_PORT=6817
             fi
-
             echo "Controller port identified as $CONTROLLER_PORT"
 
-            echo "Waiting for controller port $CONTROLLER_PORT to open..."
+            echo "Waiting for slurm controller to be reachable..."
 
             while true; do
-                if bash -c "cat < /dev/tcp/$CONTROLLER_IP/$CONTROLLER_PORT" &>/dev/null; then
-                    echo "Controller port $CONTROLLER_PORT is open."
+                if ping -c1 -W1 "$CONTROLLER_IP" &>/dev/null && \
+                  bash -c "cat < /dev/tcp/$CONTROLLER_IP/$CONTROLLER_PORT" &>/dev/null; then
+                    echo "Slurm controller reachable and port $CONTROLLER_PORT is open."
                     break
                 else
-                    echo "Port $CONTROLLER_PORT is not open. Retrying in 5 seconds..."
+                    echo "Controller not ready. Retrying in 5 seconds..."
                     sleep 5
                 fi
             done
