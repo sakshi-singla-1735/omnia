@@ -39,6 +39,6 @@
 
 - name: Validate telemetry config
   ansible.builtin.include_tasks: validate_telemetry_config.yml
-  when: 
+  when:
     - idrac_telemetry_support | lower == 'true' | default('false') or
       ldms_support | default('false')
