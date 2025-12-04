@@ -20,6 +20,7 @@ import multiprocessing
 import subprocess
 import time
 import threading
+import requests
 import traceback
 import yaml
 from jinja2 import Template
@@ -80,8 +81,6 @@ def load_docker_credentials(vault_yml_path, vault_password_file):
 
         # Validate credentials using Docker Hub API
         try:
-            import requests
-
             response = requests.post(
                 "https://hub.docker.com/v2/users/login/",
                 json={"username": docker_username, "password": docker_password},
