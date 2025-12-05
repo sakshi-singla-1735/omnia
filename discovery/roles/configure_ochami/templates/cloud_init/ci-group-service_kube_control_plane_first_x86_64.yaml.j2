@@ -522,7 +522,27 @@
             until kubectl get nodes >/dev/null 2>&1; do
               sleep 10
             done
-                
+            echo "Updating the kubelet arguments."
+            grep -q "^shutdownGracePeriod:" /var/lib/kubelet/config.yaml || echo "shutdownGracePeriod: 30s" >> /var/lib/kubelet/config.yaml
+            grep -q "^shutdownGracePeriodCriticalPods:" /var/lib/kubelet/config.yaml || echo "shutdownGracePeriodCriticalPods: 10s" >> /var/lib/kubelet/config.yaml
+            systemctl daemon-reload
+            systemctl restart kubelet
+
+            echo "Updating coredns config map"
+            cfg="/tmp/coredns-config.yml"
+
+            # Export CoreDNS ConfigMap into the file
+            kubectl -n kube-system get configmap coredns -o yaml > "$cfg"
+
+            # Patch: append nameservers after /etc/resolv.conf using Jinja list "dns"
+            sed -i 's|/etc/resolv.conf|/etc/resolv.conf{% for ns in dns %} {{ ns }}{% endfor %}|' "$cfg"
+
+            # Apply the patched ConfigMap
+            kubectl apply -f "$cfg"
+
+            # Restart CoreDNS deployment
+            kubectl -n kube-system rollout restart deployment coredns
+
             # Wait for all pods in all namespaces to be ready (status=Running or Completed)
             echo "Waiting for all pods to be Ready (Running/Completed)..."
             while true; do

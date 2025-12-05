@@ -410,6 +410,12 @@
               sleep 10
             done
 
+            echo "Updating the kubelet arguments."
+            grep -q "^shutdownGracePeriod:" /var/lib/kubelet/config.yaml || echo "shutdownGracePeriod: 30s" >> /var/lib/kubelet/config.yaml
+            grep -q "^shutdownGracePeriodCriticalPods:" /var/lib/kubelet/config.yaml || echo "shutdownGracePeriodCriticalPods: 10s" >> /var/lib/kubelet/config.yaml
+            systemctl daemon-reload
+            systemctl restart kubelet
+
             kubectl -n kube-system wait pod/kube-controller-manager-{% raw %}{{ ds.meta_data.instance_data.local_ipv4 }}{% endraw %} --for=condition=Ready --timeout=300s
             systemctl restart nfs-client.target
             systemctl restart rpcbind
