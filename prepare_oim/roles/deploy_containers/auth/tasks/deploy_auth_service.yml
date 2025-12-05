@@ -73,17 +73,19 @@
   containers.podman.podman_image_info:
     name: "{{ auth_service_image_name }}:{{ auth_service_image_tag }}"
   register: local_auth_image_check
-  ignore_errors: true
+  failed_when: false
 
 - name: Check if local auth service image exists with latest tag (backward compatibility)
   containers.podman.podman_image_info:
     name: "{{ auth_service_image_name }}:latest"
   register: local_auth_image_latest_check
-  ignore_errors: true
+  failed_when: false
   when: local_auth_image_check.images | length == 0
 
-- name: Tag latest as {{ auth_service_image_tag }} for consistency
-  ansible.builtin.command: podman tag {{ auth_service_image_name }}:latest {{ auth_service_image_name }}:{{ auth_service_image_tag }}
+- name: Tag latest for consistency - {{ auth_service_image_tag }}
+  ansible.builtin.command: >
+    podman tag {{ auth_service_image_name }}:latest
+    {{ auth_service_image_name }}:{{ auth_service_image_tag }}
   when:
     - local_auth_image_check.images | length == 0
     - local_auth_image_latest_check.images | length > 0
@@ -94,24 +96,26 @@
     name: "{{ auth_service_registry }}/{{ auth_service_image_name }}:{{ auth_service_image_tag }}"
     state: present
   register: dockerhub_pull_result
-  ignore_errors: true
-  when: 
+  failed_when: false
+  when:
     - local_auth_image_check.images | length == 0
     - (local_auth_image_latest_check.images | default([]) | length == 0)
 
 - name: Tag Docker Hub image as local image for use
-  ansible.builtin.command: podman tag {{ auth_service_registry }}/{{ auth_service_image_name }}:{{ auth_service_image_tag }} {{ auth_service_image_name }}:{{ auth_service_image_tag }}
+  ansible.builtin.command: >
+    podman tag {{ auth_service_registry }}/{{ auth_service_image_name }}:{{ auth_service_image_tag }}
+    {{ auth_service_image_name }}:{{ auth_service_image_tag }}
   when:
     - local_auth_image_check.images | length == 0
     - dockerhub_pull_result is defined
-    - not dockerhub_pull_result.failed
+    - dockerhub_pull_result is not failed
   changed_when: true
 
 - name: Verify final auth service image availability
   containers.podman.podman_image_info:
     name: "{{ auth_service_image_name }}:{{ auth_service_image_tag }}"
   register: final_auth_image_check
-  ignore_errors: true
+  failed_when: false
 
 - name: Fail if the auth service image is not available
   ansible.builtin.fail:
