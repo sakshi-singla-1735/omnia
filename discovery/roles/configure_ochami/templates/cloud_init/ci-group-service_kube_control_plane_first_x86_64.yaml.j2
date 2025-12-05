@@ -90,7 +90,7 @@
             {{ k8s_nfs_server_ip }}:{{ k8s_server_share_path }}/{% raw %}{{ ds.meta_data.instance_data.local_ipv4 }}{% endraw %}/kubelet   /var/lib/kubelet     nfs noatime,nolock 0 0
             {{ k8s_nfs_server_ip }}:{{ k8s_server_share_path }}/{% raw %}{{ ds.meta_data.instance_data.local_ipv4 }}{% endraw %}/kubernetes   /etc/kubernetes      nfs noatime,nolock 0 0
             {{ k8s_nfs_server_ip }}:{{ k8s_server_share_path }}/{% raw %}{{ ds.meta_data.instance_data.local_ipv4 }}{% endraw %}/pod-logs   /var/log/pods      nfs noatime,nolock 0 0
-            tmpfs   /tmp/crio-storage   tmpfs   size=8G,noatime,nodev,nosuid   0 0
+            tmpfs   /tmp/crio-storage   tmpfs   size={{ k8s_crio_storage_size }},noatime,nodev,nosuid   0 0
           permissions: '0644'
 
         - path: /etc/containers/storage.conf
@@ -240,6 +240,28 @@
               --control-plane-endpoint={% raw %}{{ ds.meta_data.instance_data.local_ipv4 }}{% endraw %}:6443 \
               --apiserver-cert-extra-sans {{ kube_vip }}
         
+        - path: /tmp/generate-control-plane-join.sh
+          permissions: '0744'
+          content: |
+            #!/bin/bash
+            set -e
+            # Shared mount path where the control-plane join command will be saved
+            K8S_CLIENT_MOUNT_PATH="{{ k8s_client_mount_path }}"
+            mkdir -p "$K8S_CLIENT_MOUNT_PATH"
+            echo "Generating Kubernetes control-plane join command..."
+            # Generate certificate key and control plane join command
+            CERT_KEY=$(kubeadm init phase upload-certs --upload-certs | tail -1 | tr -d '\r\n ')
+            if [ -n "$CERT_KEY" ]; then
+                CONTROL_PLANE_JOIN_CMD=$(kubeadm token create --ttl 0 --print-join-command --certificate-key "$CERT_KEY")
+                echo "$CONTROL_PLANE_JOIN_CMD" > "${K8S_CLIENT_MOUNT_PATH}/control-plane-join-command.sh"
+                chmod 644 "${K8S_CLIENT_MOUNT_PATH}/control-plane-join-command.sh"
+                echo "Saved control-plane join command to: ${K8S_CLIENT_MOUNT_PATH}/control-plane-join-command.sh"
+            else
+                echo "ERROR: Certificate key is empty! Cannot generate control-plane join command."
+                exit 1
+            fi
+            echo "Control-plane join script is ready. You can rerun this script anytime to refresh the command."
+
         - path: /usr/local/bin/install-helm.sh
           permissions: '0755'
           content: |
@@ -373,6 +395,7 @@
         - systemctl enable crio.service
         - sudo systemctl enable --now kubelet
         - mv /tmp/crio.conf /etc/containers/registries.conf.d/crio.conf
+        - mv /tmp/generate-control-plane-join.sh {{ k8s_client_mount_path }}
         - cp {{ k8s_client_mount_path }}/pulp_webserver.crt /etc/pki/ca-trust/source/anchors
         - update-ca-trust extract
         - systemctl daemon-reload
@@ -452,6 +475,73 @@
                 sleep 5
               fi
             done
+            # Wait for all pods in all namespaces to be ready (status=Running or Completed)
+            echo "Waiting for all pods to be Ready (Running/Completed)..."
+            while true; do
+              not_ready=$(kubectl get pods --all-namespaces --no-headers 2>/dev/null | awk '{ print $4 }' | grep -vE '^(Running|Completed)$' | wc -l)
+              if [ "${not_ready}" -eq 0 ]; then
+                echo "All pods are Running or Completed."
+                break
+              else
+                echo "$not_ready pods not yet ready, waiting 5s ..."
+                sleep 5
+              fi
+            done
+
+            set -e
+            echo "Updating the arguments for kube-controller-manager"
+            MANIFEST="/etc/kubernetes/manifests/kube-controller-manager.yaml"
+            BACKUP="/tmp/kube-controller-manager.yaml"
+
+            ARGS=(
+              "--node-monitor-period=2s"
+              "--node-monitor-grace-period=20s"
+              "--node-eviction-rate=1"
+              "--secondary-node-eviction-rate=1"
+              "--terminated-pod-gc-threshold=0"
+            )
+
+            echo "Backing up kube-controller-manager manifest..."
+            cp -a "$MANIFEST" "$BACKUP"
+
+            for ARG in "${ARGS[@]}"; do
+              if grep -Fq -- "$ARG" "$BACKUP"; then
+                echo "Already present: $ARG"
+              else
+                echo "Adding: $ARG"
+                sed -i "/- kube-controller-manager/a \ \ \ \ - $ARG" "$BACKUP"
+              fi
+            done
+            yes | cp -i  "$BACKUP" "$MANIFEST"
+
+
+            echo "All arguments processed successfully."
+            echo "kubelet will auto-restart kube-controller-manager within 30-60 seconds."
+
+            echo "Waiting for Kubernetes API..."
+            until kubectl get nodes >/dev/null 2>&1; do
+              sleep 10
+            done
+            echo "Updating the kubelet arguments."
+            sed -i 's/^shutdownGracePeriod:.*/shutdownGracePeriod: 30s/' /var/lib/kubelet/config.yaml
+            sed -i 's/^shutdownGracePeriodCriticalPods:.*/shutdownGracePeriodCriticalPods: 10s/' /var/lib/kubelet/config.yaml
+            systemctl daemon-reload
+            systemctl restart kubelet
+
+            echo "Updating coredns config map"
+            cfg="/tmp/coredns-config.yml"
+
+            # Export CoreDNS ConfigMap into the file
+            kubectl -n kube-system get configmap coredns -o yaml > "$cfg"
+
+            # Patch: append nameservers after /etc/resolv.conf using Jinja list "dns"
+            sed -i 's|/etc/resolv.conf|/etc/resolv.conf{% for ns in dns %} {{ ns }}{% endfor %}|' "$cfg"
+
+            # Apply the patched ConfigMap
+            kubectl apply -f "$cfg"
+
+            # Restart CoreDNS deployment
+            kubectl -n kube-system rollout restart deployment coredns
 
             # Wait for all pods in all namespaces to be ready (status=Running or Completed)
             echo "Waiting for all pods to be Ready (Running/Completed)..."
@@ -527,7 +617,7 @@
             echo "$WORKER_JOIN_CMD" > "${K8S_CLIENT_MOUNT_PATH}/worker-join-command.sh"
             echo "Saved worker join command to:       ${K8S_CLIENT_MOUNT_PATH}/worker-join-command.sh"
 
-            set -e
+            
             export KUBECONFIG=/etc/kubernetes/admin.conf
 
             echo "Waiting for at least one READY Kubernetes worker node ..."
@@ -601,6 +691,11 @@
             echo "Listing all Kubernetes pods in all namespaces:"
             kubectl get pods --all-namespaces -o wide
 
+            echo "Rollout and Restart coredns"
+            kubectl rollout restart deployment coredns -n kube-system
+            echo "Waiting for coredns pods to appear.."
+            sleep 30
+            kubectl wait --for=condition=Ready pod -l k8s-app=kube-dns -n kube-system --timeout=300s
 
             CSI_DRIVER_SUPPORT="{{ csi_driver_powerscale_support | lower }}"
             echo "===== Checking if PowerScale CSI driver support is enabled ====="
@@ -775,8 +870,8 @@
 
                 if [ "$POWERSCALE_DEPLOYMENT_FAILED" -eq 0 ]; then
                   echo "===== Waiting for CSI pods ====="
-                  MAX_ATTEMPTS=30
-                  WAIT_TIME=10
+                  MAX_ATTEMPTS=10
+                  WAIT_TIME=60
                   CSI_READY=0
                   for ((i=1; i<=MAX_ATTEMPTS; i++)); do
                     if kubectl get pods -n isilon --no-headers 2>/dev/null | grep -q '^isilon-'; then
@@ -788,6 +883,8 @@
                       fi
                     fi
                     echo "Attempt $i/$MAX_ATTEMPTS: Waiting for CSI pods to be Running..."
+                    kubectl rollout restart deployment isilon-controller -n isilon
+                    kubectl rollout restart daemonset isilon-node -n isilon
                     sleep $WAIT_TIME
                   done
 
@@ -856,11 +953,12 @@
 {% endif %}
             echo "Rollout and Restart coredns"
             kubectl rollout restart deployment coredns -n kube-system
+            sleep 30
             echo "Waiting for coredns pods to appear.."
             kubectl wait --for=condition=Ready pod -l k8s-app=kube-dns -n kube-system --timeout=300s
             # Mark initialization complete so all of above is skipped on reboot!
             touch "$MARKER"
-
+            echo "Cloud-Init has completed successfully."
           else
             # SUBSEQUENT BOOT - SKIP INIT
             echo "service_kube_control_plane_first_x86_64 is already part of cluster."
@@ -873,7 +971,12 @@
             yes | cp -i /etc/kubernetes/admin.conf /root/.kube/config
             kubectl get nodes -o wide || echo "Cluster not yet fully up"
             kubectl get pods --all-namespaces -o wide || echo "Pods may not be ready yet"
-
+            
+            echo "Rollout and Restart coredns"
+            kubectl rollout restart deployment coredns -n kube-system
+            echo "Waiting for coredns pods to appear.."
+            sleep 30
+            kubectl wait --for=condition=Ready pod -l k8s-app=kube-dns -n kube-system --timeout=300s
             # Wait for all pods in all namespaces to be ready (status=Running or Completed)
             echo "Waiting for all pods to be Ready (Running/Completed)..."
             while true; do
@@ -891,5 +994,6 @@
             kubectl get nodes -o wide
             echo "Listing all Kubernetes pods in all namespaces:"
             kubectl get pods --all-namespaces -o wide
+            echo "Cloud-Init finished successfully after the reboot."
 
           fi

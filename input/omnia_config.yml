@@ -86,6 +86,12 @@ slurm_cluster:
 # csi_powerscale_driver_values_file_path: User need to download values.yaml file and fill required data in values.yaml file. Provided the path of the values.yaml file here.
 # mention configurable values
 
+# - k8s_crio_storage_size: Specifies the disk size allocated for CRI-O container storage.
+# This storage is used to store container images, writable layers, and runtime data.
+# Acceptable formats: "10G", "15G", "50G" (Only positive values in Gigabytes are allowed)
+# Default value is "20G"
+
+
 service_k8s_cluster:
   - cluster_name: service_cluster
     deployment: true
@@ -96,3 +102,4 @@ service_k8s_cluster:
     nfs_storage_name: "nfs_k8s"
     csi_powerscale_driver_secret_file_path: ""
     csi_powerscale_driver_values_file_path: ""
+    k8s_crio_storage_size: "20G"
