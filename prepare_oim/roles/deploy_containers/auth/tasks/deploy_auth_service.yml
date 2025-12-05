@@ -97,6 +97,9 @@
     state: present
   register: dockerhub_pull_result
   failed_when: false
+  retries: 3
+  delay: 5
+  until: dockerhub_pull_result is not failed
   when:
     - local_auth_image_check.images | length == 0
     - (local_auth_image_latest_check.images | default([]) | length == 0)
