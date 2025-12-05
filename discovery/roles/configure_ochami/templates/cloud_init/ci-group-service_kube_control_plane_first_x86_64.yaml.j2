@@ -958,7 +958,7 @@
             kubectl wait --for=condition=Ready pod -l k8s-app=kube-dns -n kube-system --timeout=300s
             # Mark initialization complete so all of above is skipped on reboot!
             touch "$MARKER"
-
+            echo "Cloud-Init has completed successfully."
           else
             # SUBSEQUENT BOOT - SKIP INIT
             echo "service_kube_control_plane_first_x86_64 is already part of cluster."
@@ -994,5 +994,6 @@
             kubectl get nodes -o wide
             echo "Listing all Kubernetes pods in all namespaces:"
             kubectl get pods --all-namespaces -o wide
+            echo "Cloud-Init finished successfully after the reboot."
 
           fi

@@ -260,10 +260,12 @@
             fi
             # Mark initialization complete so all of above is skipped on reboot!
             touch "$MARKER"
+            echo "Cloud-Init has completed successfully."
           else
             # SUBSEQUENT BOOT - SKIP JOIN
             echo "service_kube_node_x86_64 is already part of cluster."
             echo "Cluster already initialized. Performing node reboot procedures."
             # CRI and kubelet already enabled above
             systemctl status kubelet
+            echo "Cloud-Init finished successfully after the reboot."
           fi
