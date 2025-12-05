@@ -89,7 +89,7 @@ slurm_cluster:
 # - k8s_crio_storage_size: Specifies the disk size allocated for CRI-O container storage.
 # This storage is used to store container images, writable layers, and runtime data.
 # Acceptable formats: "10G", "15G", "50G" (Only positive values in Gigabytes are allowed)
-# Default value is "20GB"
+# Default value is "20G"
 
 
 service_k8s_cluster:
