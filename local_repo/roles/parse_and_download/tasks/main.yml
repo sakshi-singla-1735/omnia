@@ -158,5 +158,5 @@
 
 - name: Local repository status
   ansible.builtin.debug:
-    msg: "{{ 'localrepository SUCCESS' if final_status == 'SUCCESS' else 'localrepository failed. because some of the packages status are FAILED' }}"
+    msg: "{{ 'localrepository SUCCESS' if final_status == 'SUCCESS' else 'Local repo setup failed — some packages didn’t download, and dependent scripts/playbooks may also fail. Refer to the localrepo logs for more details. Rerun local_repo.yml.' }}" # noqa: yaml[line-length]
   failed_when: final_status != 'SUCCESS'
