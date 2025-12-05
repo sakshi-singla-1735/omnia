@@ -91,6 +91,12 @@
     - local_auth_image_latest_check.images | length > 0
   changed_when: true
 
+- name: Check if local auth service image exists with tag {{ auth_service_image_tag }}
+  containers.podman.podman_image_info:
+    name: "{{ auth_service_image_name }}:{{ auth_service_image_tag }}"
+  register: local_auth_image_check
+  failed_when: false
+
 - name: Pull auth service image from Docker Hub with retry and error handling
   when:
     - local_auth_image_check.images | length == 0
