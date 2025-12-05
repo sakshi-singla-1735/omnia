@@ -20,9 +20,9 @@ import multiprocessing
 import subprocess
 import time
 import threading
+import requests
 import traceback
 import yaml
-import requests
 from jinja2 import Template
 from ansible.module_utils.local_repo.common_functions import (
     load_yaml_file,
@@ -41,7 +41,12 @@ log_lock = multiprocessing.Lock()
 def load_docker_credentials(vault_yml_path, vault_password_file):
     """
     Decrypts an Ansible Vault YAML file, extracts docker_username and docker_password,
-    and optionally validates them by logging in to Docker Hub if both are present.
+    and validates them using Docker Hub API.
+
+    Validation Logic:
+        - Validates credentials via Docker Hub REST API
+        - Returns credentials if authentication succeeds (HTTP 200)
+        - Raises RuntimeError for all authentication failures
 
     Args:
         vault_yml_path (str): Path to the encrypted Ansible Vault YAML file.
@@ -51,7 +56,9 @@ def load_docker_credentials(vault_yml_path, vault_password_file):
         tuple: (docker_username, docker_password) or (None, None) if not provided.
 
     Raises:
-        RuntimeError: If decryption, parsing, or Docker login fails (when credentials are provided).
+        RuntimeError: If vault decryption fails, YAML parsing fails, Docker Hub API 
+                     authentication fails, network errors occur, or requests module 
+                     is not installed.
     """
     try:
         env = os.environ.copy()
@@ -72,24 +79,48 @@ def load_docker_credentials(vault_yml_path, vault_password_file):
         if not docker_username or not docker_password:
             return None, None
 
-        # Validate Docker Hub credentials
-        response = requests.post(
-            "https://hub.docker.com/v2/users/login/",
-            json={"username": docker_username, "password": docker_password},
-            timeout=10
-        )
+        # Validate credentials using Docker Hub API
+        try:
+            response = requests.post(
+                "https://hub.docker.com/v2/users/login/",
+                json={"username": docker_username, "password": docker_password},
+                timeout=30
+            )
 
-        if response.status_code != 200:
-            raise RuntimeError("Docker Hub authentication failed: Invalid username or password.")
+            if response.status_code == 200:
+                return docker_username, docker_password
+            
+            if response.status_code == 429:
+                raise RuntimeError("Docker Hub rate limit exceeded. Please try again later.")
 
-        return docker_username, docker_password
+            # Handle authentication failures
+            if response.status_code == 401:
+                raise RuntimeError("Invalid Docker Hub username or password.")
+
+            # Handle malformed client request
+            if response.status_code == 400:
+                raise RuntimeError("Bad request sent to Docker Hub. Check username/password format.")
+
+            # Handle server-side errors (5xx)
+            if 500 <= response.status_code < 600:
+                raise RuntimeError(
+                    f"Docker Hub server error (status {response.status_code}). Try again later."
+                )
+
+            # Catch-all for other unexpected statuses
+            raise RuntimeError(
+                f"Docker Hub authentication failed with unexpected status {response.status_code}."
+            )
+
+        except requests.RequestException as error:
+            raise RuntimeError(
+                "Unable to reach Docker Hub (network DNS/timeout/SSL issue)."
+            ) from error
 
     except subprocess.CalledProcessError as error:
         raise RuntimeError(f"Vault decryption failed: {error.stderr.strip()}") from error
     except yaml.YAMLError as error:
         raise RuntimeError(f"Failed to parse decrypted YAML: {error}") from error
-    except requests.RequestException as error:
-        raise RuntimeError(f"Failed to contact Docker Hub: {error}") from error
 
 def log_table_output(table_output, log_file):
     """
