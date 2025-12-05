@@ -34,6 +34,10 @@ auth_service_image_pull_fail_msg:
   - git clone https://github.com/dell/omnia-artifactory -b omnia-container
   - Navigate to the repository directory and Build the auth image locally
   - ./build_images.sh auth
+auth_service_image_pull_warning_msg: |
+  Failed to pull {{ auth_service_image_name }}:{{ auth_service_image_tag }} from Docker Hub after 3 attempts.
+  This may be due to network issues or the image not being available on Docker Hub.
+  The deployment will continue, but the final image verification will determine if the image is available.
 auth_service_quadlet_mode: "0644"
 
 auth_service_container_success_msg: "The {{ auth_service_container_name }} container has been successfully deployed."
