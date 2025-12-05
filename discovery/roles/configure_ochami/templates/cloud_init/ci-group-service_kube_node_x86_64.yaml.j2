@@ -208,6 +208,7 @@
         - cp {{ k8s_client_mount_path }}/pulp_webserver.crt /etc/pki/ca-trust/source/anchors
         - update-ca-trust extract
         - systemctl daemon-reload
+        - sed -i 's/^gpgcheck=1/gpgcheck=0/' /etc/dnf/dnf.conf
         - systemctl restart crio
         - kubeadm config images pull --kubernetes-version={{ service_k8s_version }}
         - |

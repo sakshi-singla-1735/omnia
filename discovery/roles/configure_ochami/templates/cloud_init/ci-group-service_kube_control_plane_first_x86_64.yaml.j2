@@ -398,6 +398,7 @@
         - mv /tmp/generate-control-plane-join.sh {{ k8s_client_mount_path }}
         - cp {{ k8s_client_mount_path }}/pulp_webserver.crt /etc/pki/ca-trust/source/anchors
         - update-ca-trust extract
+        - sed -i 's/^gpgcheck=1/gpgcheck=0/' /etc/dnf/dnf.conf
         - systemctl daemon-reload
         - systemctl restart crio
         - kubeadm config images pull --kubernetes-version={{ service_k8s_version }}
@@ -586,7 +587,19 @@
             cp /etc/kubernetes/admin.conf $HOME/.kube/config
             mkdir -p /root/.kube
             cp /etc/kubernetes/admin.conf /root/.kube/config
- 
+            
+            # Update kube-proxy configmap
+            kubectl -n kube-system get configmap kube-proxy -o yaml > /tmp/kube-proxy.yaml
+
+            # Update API server endpoint inside kubeconfig
+            sed -i "s|server: https://.*:6443|server: https://${kube_vip}:6443|" /tmp/kube-proxy.yaml
+
+            # Apply updated configmap
+            kubectl apply -f /tmp/kube-proxy.yaml
+
+            # Restart kube-proxy pods to load new config
+            kubectl delete pod -n kube-system -l k8s-app=kube-proxy
+
             systemctl restart kubelet
 
             KUBE_VIP="{{ kube_vip }}"

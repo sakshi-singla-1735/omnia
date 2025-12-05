@@ -307,6 +307,7 @@
         - update-ca-trust extract
         - systemctl daemon-reload
         - systemctl restart crio
+        - sed -i 's/^gpgcheck=1/gpgcheck=0/' /etc/dnf/dnf.conf
         - kubeadm config images pull --kubernetes-version={{ service_k8s_version }}
         - echo "Installing helm"
         - /usr/local/bin/install-helm.sh
