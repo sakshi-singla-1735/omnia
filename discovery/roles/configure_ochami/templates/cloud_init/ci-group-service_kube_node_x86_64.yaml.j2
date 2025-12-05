@@ -245,8 +245,8 @@
             eval $JOIN_CMD
             sleep 30
             echo "Updating the kubelet arguments."
-            grep -q "^shutdownGracePeriod:" /var/lib/kubelet/config.yaml || echo "shutdownGracePeriod: 30s" >> /var/lib/kubelet/config.yaml
-            grep -q "^shutdownGracePeriodCriticalPods:" /var/lib/kubelet/config.yaml || echo "shutdownGracePeriodCriticalPods: 10s" >> /var/lib/kubelet/config.yaml
+            sed -i 's/^shutdownGracePeriod:.*/shutdownGracePeriod: 30s/' /var/lib/kubelet/config.yaml
+            sed -i 's/^shutdownGracePeriodCriticalPods:.*/shutdownGracePeriodCriticalPods: 10s/' /var/lib/kubelet/config.yaml
             systemctl daemon-reload
             systemctl restart kubelet
             systemctl restart nfs-client.target
