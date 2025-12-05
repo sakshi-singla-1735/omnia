@@ -927,14 +927,32 @@ install_omnia_core() {
         # Tag it as 1.0 for consistency
         podman tag omnia_core:latest omnia_core:${omnia_core_tag}
     else
-        # Try pulling from Docker Hub
+        # Try pulling from Docker Hub with retry logic
         echo -e "${BLUE}Omnia core image not found locally. Attempting to pull from Docker Hub...${NC}"
-        if podman pull ${omnia_core_registry}/omnia_core:${omnia_core_tag} 2>/dev/null; then
-            echo -e "${GREEN}✓ Successfully pulled omnia_core:${omnia_core_tag} from Docker Hub.${NC}"
-            # Tag it without registry prefix for local use
-            podman tag ${omnia_core_registry}/omnia_core:${omnia_core_tag} omnia_core:${omnia_core_tag}
-        else
-            echo -e "${RED}ERROR: Omnia core image not found locally or on Docker Hub.${NC}"
+        pull_success=false
+        max_retries=3
+        retry_count=0
+        
+        while [ $retry_count -lt $max_retries ]; do
+            retry_count=$((retry_count + 1))
+            echo -e "${BLUE}Attempt $retry_count of $max_retries...${NC}"
+            
+            if podman pull ${omnia_core_registry}/omnia_core:${omnia_core_tag} 2>/dev/null; then
+                echo -e "${GREEN}✓ Successfully pulled omnia_core:${omnia_core_tag} from Docker Hub.${NC}"
+                # Tag it without registry prefix for local use
+                podman tag ${omnia_core_registry}/omnia_core:${omnia_core_tag} omnia_core:${omnia_core_tag}
+                pull_success=true
+                break
+            else
+                if [ $retry_count -lt $max_retries ]; then
+                    echo -e "${YELLOW}Pull failed. Retrying in 5 seconds...${NC}"
+                    sleep 5
+                fi
+            fi
+        done
+        
+        if [ "$pull_success" = false ]; then
+            echo -e "${RED}ERROR: Failed to pull omnia_core image after $max_retries attempts.${NC}"
             echo ""
             echo -e "${YELLOW}To resolve this, please follow these steps:${NC}"
             echo -e "1. Clone the Omnia Artifactory repository:"
