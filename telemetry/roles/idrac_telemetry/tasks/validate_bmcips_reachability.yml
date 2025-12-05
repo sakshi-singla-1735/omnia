@@ -87,19 +87,30 @@
     - filter_idrac_output.telemetry_idrac is defined
     - filter_idrac_output.telemetry_idrac_count is defined
 
+# - name: Enable telemetry collection on iDRAC
+#   when: telemetry_idrac is defined and (telemetry_idrac | length > 0)
+#   block:
+#     - name: Enable telemetry collection on iDRACs
+#       ansible.builtin.command: >-
+#         python3 {{ idrac_telemetry_scripting_folder }}/ConfigurationScripts/EnableOrDisableAllTelemetryReports.py -ip "{{ item }}"
+#         -u "{{ hostvars['localhost']['bmc_username'] }}" -p "{{ hostvars['localhost']['bmc_password'] }}" -s Enabled
+#       args:
+#         chdir: "{{ idrac_telemetry_scripting_folder }}"
+#       with_items: "{{ telemetry_idrac }}"
+#       changed_when: false
+#       no_log: true
+#   rescue:
+#     - name: Failed to enable the iDRAC telemetry
+#       ansible.builtin.debug:
+#         msg: "{{ idrac_telemetry_enable_fail_msg | replace('\n', ' '-) }}"
+
 - name: Enable telemetry collection on iDRAC
-  when: telemetry_idrac is defined and (telemetry_idrac | length > 0)
-  block:
-    - name: Enable telemetry collection on iDRACs
-      ansible.builtin.command: >-
-        python3 {{ idrac_telemetry_scripting_folder }}/ConfigurationScripts/EnableOrDisableAllTelemetryReports.py -ip "{{ item }}"
-        -u "{{ hostvars['localhost']['bmc_username'] }}" -p "{{ hostvars['localhost']['bmc_password'] }}" -s Enabled
-      args:
-        chdir: "{{ idrac_telemetry_scripting_folder }}"
-      with_items: "{{ telemetry_idrac }}"
-      changed_when: false
-      no_log: true
-  rescue:
-    - name: Failed to enable the iDRAC telemetry
-      ansible.builtin.debug:
-        msg: "{{ idrac_telemetry_enable_fail_msg | replace('\n', ' ') }}"
+  enable_telemetry_service:
+    idrac_ips: "{{ telemetry_idrac }}"
+    username: "{{ hostvars['localhost']['bmc_username'] }}"
+    password: "{{ hostvars['localhost']['bmc_password'] }}"
+  register: enable_telemetry_output
+
+- name: Show Enable Telemetry Service Output
+  ansible.builtin.debug:
+    var: enable_telemetry_output
