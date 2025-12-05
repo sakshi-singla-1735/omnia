@@ -254,7 +254,7 @@
             if [ -n "$CERT_KEY" ]; then
                 CONTROL_PLANE_JOIN_CMD=$(kubeadm token create --ttl 0 --print-join-command --certificate-key "$CERT_KEY")
                 echo "$CONTROL_PLANE_JOIN_CMD" > "${K8S_CLIENT_MOUNT_PATH}/control-plane-join-command.sh"
-                chmod +x "${K8S_CLIENT_MOUNT_PATH}/control-plane-join-command.sh"
+                chmod 644 "${K8S_CLIENT_MOUNT_PATH}/control-plane-join-command.sh"
                 echo "Saved control-plane join command to: ${K8S_CLIENT_MOUNT_PATH}/control-plane-join-command.sh"
             else
                 echo "ERROR: Certificate key is empty! Cannot generate control-plane join command."
