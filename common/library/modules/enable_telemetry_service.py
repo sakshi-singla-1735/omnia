@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-#!/usr/bin/env python3
 # Copyright 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,7 +24,6 @@ import argparse
 
 import sys
 import time
-import logging
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Dict, List, Optional, Any, Tuple
@@ -37,20 +35,6 @@ from ansible.module_utils.basic import AnsibleModule
 # Disable SSL warnings
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-# Logging configuration
-logging.basicConfig(
-    format='%(message)s',
-    stream=sys.stdout,
-    level=logging.INFO
-)
-
-#####################################################
-# CONFIGURATION
-#####################################################
-
-PARALLEL_JOBS: int = 250
-REPORT_WORKERS: int = 10
-TIMEOUT: int = 30
 
 #####################################################
 # ALL 37 TELEMETRY REPORTS (iDRAC 9 & 10)
@@ -71,7 +55,6 @@ ALL_REPORTS: List[str] = [
     "OME-Telemetry-GPU-Aggregate", "OME-Telemetry-GPU-Aggregate-1",
     "OME-Telemetry-NIC-Statistics", "OME-Telemetry-SMARTData",
 ]
-
 
 def get_report_definitions(
     ip_address: str,
@@ -99,66 +82,10 @@ def get_report_definitions(
     return None
 
 
-def enable_report(
-    session: requests.Session,
-    url: str,
-    user: str,
-    password: str
-) -> bool:
-    """Enable a single telemetry report."""
-    try:
-        data = {
-            "MetricReportDefinitionEnabled": True,
-            "Status": {"State": "Enabled"}
-        }
-        response = session.patch(
-            url,
-            json=data,
-            auth=(user, password),
-            verify=False,
-            timeout=TIMEOUT
-        )
-        return response.status_code in [200, 202, 204]
-    except requests.exceptions.RequestException:
-        return False
-
-
-def enable_reports_parallel(
-    session: requests.Session,
-    base_url: str,
-    reports_to_enable: List[str],
-    user: str,
-    password: str
-) -> Tuple[List[str], List[str]]:
-    """Enable multiple reports in parallel."""
-    enabled_reports: List[str] = []
-    failed_reports: List[str] = []
-
-    report_urls = {
-        report: f"{base_url}/MetricReportDefinitions/{report}"
-        for report in reports_to_enable
-    }
-
-    with ThreadPoolExecutor(max_workers=REPORT_WORKERS) as executor:
-        future_to_report = {
-            executor.submit(enable_report, session, url, user, password): report
-            for report, url in report_urls.items()
-        }
-        for future in as_completed(future_to_report):
-            report_name = future_to_report[future]
-            if future.result():
-                enabled_reports.append(report_name)
-            else:
-                failed_reports.append(report_name)
-
-    return enabled_reports, failed_reports
-
-
 def configure_server(
     ip_address: str,
     user: str,
     password: str,
-    exclude_reports: List[str]
 ) -> Dict[str, Any]:
     """Configure telemetry for a single server."""
     session = requests.Session()
@@ -191,20 +118,10 @@ def configure_server(
                 "message": "Cannot get reports"
             }
 
-        # Filter excluded reports
-        reports_to_enable = [r for r in available_reports if r not in exclude_reports]
-
-        # Enable reports
-        enabled_reports, failed_reports = enable_reports_parallel(
-            session, base_url, reports_to_enable, user, password
-        )
-
         return {
             "ip": ip_address,
             "status": "success",
-            "enabled_reports": enabled_reports,
-            "failed_reports": failed_reports,
-            "skipped_reports": [r for r in available_reports if r in exclude_reports]
+            "enabled_reports": available_reports,
         }
 
     except requests.exceptions.RequestException as e:
@@ -213,34 +130,39 @@ def configure_server(
             "status": "failed",
             "message": str(e)
         }
+  
     finally:
-        session.close()
-
+        try:
+            session.close()
+        except Exception as close_error:
+            module_warn(f"Warning: failed to close session: {close_error}")
 
 def run_parallel(
     idrac_ips: List[str],
     username: str,
     password: str,
-    exclude_reports: List[str],
     parallel_jobs: int
 ) -> Tuple[List[Dict], List[Dict]]:
     """Run telemetry configuration in parallel."""
     success_results = []
     failed_results = []
 
-    with ThreadPoolExecutor(max_workers=parallel_jobs) as executor:
-        future_to_ip = {
-            executor.submit(
-                configure_server, ip, username, password, exclude_reports
-            ): ip for ip in idrac_ips
-        }
+    try:
+        with ThreadPoolExecutor(max_workers=parallel_jobs) as executor:
+            future_to_ip = {
+                executor.submit(
+                    configure_server, ip, username, password
+                ): ip for ip in idrac_ips
+            }
 
-        for future in as_completed(future_to_ip):
-            result = future.result()
-            if result.get("status") == "success":
-                success_results.append(result)
-            else:
-                failed_results.append(result)
+            for future in as_completed(future_to_ip):
+                result = future.result()
+                if result.get("status") == "success":
+                    success_results.append(result)
+                else:
+                    failed_results.append(result)
+    except Exception as e:
+        module_warn(f"Error during parallel execution: {e}")
 
     return success_results, failed_results
 
@@ -269,13 +191,11 @@ def main():
         module.exit_json(changed=False, msg="Check mode - no changes made")
 
     if not idrac_ips:
-        module.fail_json(msg="No iDRAC IPs provided")
+        module.exit_json(msg="No iDRAC IPs provided")
 
     start_time = time.time()
-
     success_results, failed_results = run_parallel(
-        idrac_ips, username, password, parallel_jobs
-    )
+        idrac_ips, username, password, parallel_jobs)
 
     duration = time.time() - start_time
 
