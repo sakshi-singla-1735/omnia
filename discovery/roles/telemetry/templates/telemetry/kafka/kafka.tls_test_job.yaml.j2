@@ -31,7 +31,13 @@ data:
     echo "=========================================="
     echo "Bootstrap Server: kafka-kafka-bootstrap:9093"
     echo "Certificates: kafkapump (for all TLS topics)"
-    echo "Testing: idrac and ldms topics"
+    echo "Testing topics based on enabled telemetry support:"
+{% if hostvars['localhost']['idrac_telemetry_support'] and 'kafka' in hostvars['localhost']['idrac_telemetry_collection_type'].split(',') %}
+    echo "  - iDRAC telemetry topic ({{ kafka.topics.idrac.name }})"
+{% endif %}
+{% if hostvars['localhost']['ldms_support'] %}
+    echo "  - LDMS telemetry topic ({{ kafka.topics.ldms.name }})"
+{% endif %}
     echo "Note: All topics use port 9093 with mTLS for testing"
     echo ""
     
@@ -74,6 +80,7 @@ data:
     echo "✓ mTLS connection successful"
     echo ""
     
+{% if hostvars['localhost']['idrac_telemetry_support'] and 'kafka' in hostvars['localhost']['idrac_telemetry_collection_type'].split(',') %}
     # Test iDRAC telemetry topic consumer
     echo "Step 5: Testing consumer on {{ kafka.topics.idrac.name }} topic (kafkapump user)..."
     timeout 30 /opt/kafka/bin/kafka-console-consumer.sh \
@@ -84,7 +91,9 @@ data:
       --from-beginning \
       --max-messages 10 || echo "No messages or timeout (this is normal for {{ kafka.topics.idrac.name }})"
     echo ""
+{% endif %}
     
+{% if hostvars['localhost']['ldms_support'] %}
     # Test LDMS topic consumer
     echo "Step 6: Testing consumer on {{ kafka.topics.ldms.name }} topic (kafkapump user via TLS)..."
     timeout 30 /opt/kafka/bin/kafka-console-consumer.sh \
@@ -95,6 +104,7 @@ data:
       --from-beginning \
       --max-messages 10 || echo "No messages or timeout (this is normal for {{ kafka.topics.ldms.name }})"
     echo ""
+{% endif %}
     
     echo ""
     echo "=== All tests completed ==="
@@ -104,8 +114,12 @@ data:
     echo "  ✓ kafkapump keystore created"
     echo "  ✓ mTLS connection established"
     echo "  ✓ Topics listed successfully"
+{% if hostvars['localhost']['idrac_telemetry_support'] and 'kafka' in hostvars['localhost']['idrac_telemetry_collection_type'].split(',') %}
     echo "  ✓ {{ kafka.topics.idrac.name }} topic tested (kafkapump user)"
+{% endif %}
+{% if hostvars['localhost']['ldms_support'] %}
     echo "  ✓ {{ kafka.topics.ldms.name }} topic tested via TLS (kafkapump user)"
+{% endif %}
     echo ""
 
 ---
