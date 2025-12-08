@@ -901,6 +901,20 @@
                   fi
                 fi
 
+                FILE="/opt/omnia/csi-driver-powerscale/values.yaml"   # <-- update with actual path
+
+                echo "Updating arrayConnectivityPollRate in: $FILE"
+
+                if grep -Fq -- "--arrayConnectivityPollRate=60" "$FILE"; then
+                  echo "Found existing poll rate 60. Updating to 20..."
+                  sed -i 's/--arrayConnectivityPollRate=60/--arrayConnectivityPollRate=20/g' "$FILE"
+                else
+                  echo "No poll rate value 60 found. Nothing to change."
+                fi
+
+                echo "Done updating poll rate."
+
+
                 if [ "$POWERSCALE_DEPLOYMENT_FAILED" -eq 0 ]; then
                   echo "===== Running CSI PowerScale installation script ====="
                   INSTALL_SCRIPT="/opt/omnia/csi-driver-powerscale/csi-powerscale/dell-csi-helm-installer/csi-install.sh"
