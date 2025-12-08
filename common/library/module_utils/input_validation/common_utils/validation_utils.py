@@ -374,26 +374,6 @@ def validate_default_lease_time(default_lease_time):
     return 21600 <= int(default_lease_time) <= 31536000
 
 
-# validate timezone (input_tz: str, available_timezone_file_path: str) -> bool
-def validate_timezone(input_tz, available_timezone_file_path):
-    """
-    Validates the timezone.
-
-    Args:
-        input_tz (str): The input timezone.
-        available_timezone_file_path (str): The path to the file containing available timezones.
-
-    Returns:
-        bool: True if the timezone is valid, False otherwise.
-    """
-    all_timezones = []
-    with open(available_timezone_file_path, "r") as file:
-        content = file.read()
-        for line in content.splitlines():
-            all_timezones.append(line)
-    return input_tz in all_timezones
-
-
 # Checks if the password meets the specified requirements:
 # Length of at least 8 characters. Does not contain '-', '\', "'", or '"'.
 def is_valid_password(password):

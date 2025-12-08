@@ -144,8 +144,6 @@ PRIMARY_BMC_IP_INVALID_MSG = "primary_oim_bmc_ip is not a valid IPv4 address."
 PRIMARY_ADMIN_IP_IN_DYNAMIC_RANGE_MSG = "primary_oim_admin_ip should not be within the dynamic_range."
 PRIMARY_BMC_IP_IN_DYNAMIC_RANGE_MSG = "primary_oim_bmc_ip should not be within the dynamic_range."
 DEFAULT_LEASE_TIME_FAIL_MSG = "Please provide a valid default_lease_time."
-TIMEZONE_FAIL_MSG = ("Unsupported Timezone. Please check the timezone.txt file "
-                    "for a list of valid timezones.")
 ENABLE_SWITCH_BASED_FAIL_MSG = "enable_switch_based must be set to either true or false."
 LANGUAGE_FAIL_MSG = "Only en_US.UTF-8 language supported"
 LANGUAGE_EMPTY_MSG = "Language setting cannot be empty"
@@ -321,7 +319,7 @@ INVALID_NETWORK_CONFIG_MSG = (
 )
 INVALID_DYNAMIC_RANGE_FORMAT_MSG = (
     "Invalid dynamic_range format in network_spec.yml. "
-    "Expected format: 'start_ip-end_ip' (e.g., 192.168.1.10-192.168.1.50)."
+    "Expected format: 'start_ip-end_ip' (e.g., 10.1.1.10-10.1.1.50)."
 )
 ADMIN_IP_HOSTNAME_COLUMN_MISSING_MSG = (
     "ADMIN_IP or HOSTNAME column not found in PXE mapping file. "
