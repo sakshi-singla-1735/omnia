@@ -19,11 +19,9 @@ Optimized with parallel processing and connection pooling.
 Supports iDRAC 9 and iDRAC 10.
 """
 
-import argparse
+import logging
 import os
-import sys
 import time
-from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Dict, List, Optional, Any, Tuple
 import requests
@@ -32,8 +30,6 @@ from ansible.module_utils.basic import AnsibleModule
 
 # Disable SSL warnings
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
-
 #####################################################
 # ALL 37 TELEMETRY REPORTS (iDRAC 9 & 10)
 #####################################################
@@ -58,7 +54,8 @@ def get_report_definitions(
     ip_address: str,
     user: str,
     password: str,
-    session: requests.Session
+    session: requests.Session,
+    timeout: int,
 ) -> Optional[List[str]]:
     """Fetch available report definitions from iDRAC."""
     url = f"https://{ip_address}/redfish/v1/TelemetryService/MetricReportDefinitions"
@@ -67,7 +64,7 @@ def get_report_definitions(
             url,
             auth=(user, password),
             verify=False,
-            timeout=TIMEOUT
+            timeout=timeout,
         )
         if response.status_code == 200:
             data = response.json()
@@ -84,6 +81,7 @@ def configure_server(
     ip_address: str,
     user: str,
     password: str,
+    timeout: int,
 ) -> Dict[str, Any]:
     """Configure telemetry for a single server."""
     session = requests.Session()
@@ -97,7 +95,7 @@ def configure_server(
             base_url,
             json={"ServiceEnabled": True},
             auth=(user, password),
-            timeout=TIMEOUT
+            timeout=timeout,
         )
 
         if response.status_code not in [200, 202, 204]:
@@ -108,7 +106,9 @@ def configure_server(
             }
 
         # Get available reports
-        available_reports = get_report_definitions(ip_address, user, password, session)
+        available_reports = get_report_definitions(
+            ip_address, user, password, session, timeout
+        )
         if not available_reports:
             return {
                 "ip": ip_address,
@@ -128,18 +128,19 @@ def configure_server(
             "status": "failed",
             "message": str(e)
         }
-  
+
     finally:
         try:
             session.close()
-        except Exception as close_error:
-            module_warn(f"Warning: failed to close session: {close_error}")
+        except OSError as close_error:
+            logging.warning("Warning: failed to close session for %s: %s", ip_address, close_error)
 
 def run_parallel(
     idrac_ips: List[str],
     username: str,
     password: str,
-    parallel_jobs: int
+    parallel_jobs: int,
+    timeout: int,
 ) -> Tuple[List[Dict], List[Dict]]:
     """Run telemetry configuration in parallel."""
     success_results = []
@@ -150,7 +151,7 @@ def run_parallel(
         with ThreadPoolExecutor(max_workers=workers) as executor:
             future_to_ip = {
                 executor.submit(
-                    configure_server, ip, username, password
+                    configure_server, ip, username, password, timeout
                 ): ip for ip in idrac_ips
             }
 
@@ -160,11 +161,10 @@ def run_parallel(
                     success_results.append(result)
                 else:
                     failed_results.append(result)
-    except Exception as e:
-        module_warn(f"Error during parallel execution: {e}")
+    except (OSError, ValueError, requests.exceptions.RequestException) as exc:
+        logging.warning("Error during parallel execution: %s", exc)
 
     return success_results, failed_results
-
 
 def main():
     """Main function for Ansible module."""
@@ -182,9 +182,7 @@ def main():
     username = module.params["username"]
     password = module.params["password"]
     parallel_jobs = module.params["parallel_jobs"]
-
-    global TIMEOUT
-    TIMEOUT = module.params["timeout"]
+    timeout = module.params["timeout"]
 
     if module.check_mode:
         module.exit_json(changed=False, msg="Check mode - no changes made")
@@ -194,7 +192,8 @@ def main():
 
     start_time = time.time()
     success_results, failed_results = run_parallel(
-        idrac_ips, username, password, parallel_jobs)
+        idrac_ips, username, password, parallel_jobs, timeout
+    )
 
     duration = time.time() - start_time
 
