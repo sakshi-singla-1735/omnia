@@ -66,6 +66,15 @@
   roles:
     - discovery_validations
 
+- name: Validate OIM timezone
+  hosts: oim
+  connection: ssh
+  tasks:
+    - name: Validate OIM timezone has not changed
+      ansible.builtin.include_role:
+        name: discovery_validations
+        tasks_from: validate_oim_timezone.yml
+
 - name: Validate discovery parameters
   hosts: oim
   connection: ssh
