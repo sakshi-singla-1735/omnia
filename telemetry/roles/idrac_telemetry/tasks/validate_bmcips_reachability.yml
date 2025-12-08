@@ -89,7 +89,7 @@
 
 - name: Enable telemetry collection on iDRAC
   enable_telemetry_service:
-    idrac_ips: ["172.16.107.14"]
+    idrac_ips: "{{ telemetry_idrac }}"
     username: "{{ hostvars['localhost']['bmc_username'] }}"
     password: "{{ hostvars['localhost']['bmc_password'] }}"
   register: enable_telemetry_output
