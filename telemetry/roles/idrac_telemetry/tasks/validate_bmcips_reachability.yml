@@ -97,4 +97,4 @@
 - name: Show Enable Telemetry Service Output
   ansible.builtin.debug:
     var: enable_telemetry_output
-  verbosity: 2
+    verbosity: 2

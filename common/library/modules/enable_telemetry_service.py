@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # Copyright 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,13 +20,12 @@ Supports iDRAC 9 and iDRAC 10.
 """
 
 import argparse
-
+import os
 import sys
 import time
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Dict, List, Optional, Any, Tuple
-
 import requests
 import urllib3
 from ansible.module_utils.basic import AnsibleModule
@@ -148,7 +146,8 @@ def run_parallel(
     failed_results = []
 
     try:
-        with ThreadPoolExecutor(max_workers=parallel_jobs) as executor:
+        workers = max(1, min(os.cpu_count() + 1, parallel_jobs))
+        with ThreadPoolExecutor(max_workers=workers) as executor:
             future_to_ip = {
                 executor.submit(
                     configure_server, ip, username, password
@@ -173,7 +172,7 @@ def main():
         "idrac_ips": {"type": "list", "required": True, "elements": "str"},
         "username": {"type": "str", "required": True},
         "password": {"type": "str", "required": True, "no_log": True},
-        "parallel_jobs": {"type": "int", "default": 50},
+        "parallel_jobs": {"type": "int", "default": 64},
         "timeout": {"type": "int", "default": 30},
     }
 
