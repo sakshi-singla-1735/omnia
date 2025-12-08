@@ -48,18 +48,6 @@
     - (stored_oim_timezone | trim | lower)
       != (current_oim_timezone | trim | lower)
 
-- name: Update OIM metadata timezone if changed
-  ansible.builtin.lineinfile:
-    path: "{{ oim_metadata_file_path }}"
-    regexp: '^oim_timezone:'
-    line: "oim_timezone: {{ current_oim_timezone | trim }}"
-    create: false
-  when:
-    - stored_oim_timezone | length > 0
-    - current_oim_timezone | length > 0
-    - (stored_oim_timezone | trim | lower)
-      != (current_oim_timezone | trim | lower)
-
 - name: Update OIM metadata vars
   ansible.builtin.include_vars: "{{ oim_metadata_file_path }}"
   register: include_oim_metadata
