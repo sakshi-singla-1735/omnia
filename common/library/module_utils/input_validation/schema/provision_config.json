@@ -6,11 +6,6 @@
       "type": "string",
       "description": "Path to the PXE mapping file."
     },
-    "timezone": {
-      "type": "string",
-      "description": "Timezone setting.",
-      "default": "GMT"
-    },
     "language": {
       "type": "string",
       "description": "Language setting.",
@@ -25,7 +20,6 @@
   },
   "required": [
     "pxe_mapping_file_path",
-    "timezone",
     "language",
     "default_lease_time"
   ]
