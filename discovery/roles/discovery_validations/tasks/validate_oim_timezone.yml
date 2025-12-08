@@ -57,7 +57,6 @@
         line: "oim_timezone: {{ current_oim_timezone | trim }}"
         create: false
 
-
 - name: Update OIM metadata vars
   ansible.builtin.include_vars: "{{ oim_metadata_file_path }}"
   register: include_oim_metadata
