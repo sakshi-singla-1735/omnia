@@ -207,6 +207,5 @@ def main():
         msg=f"Telemetry enabled on {len(success_results)}/{len(idrac_ips)} servers"
     )
 
-
 if __name__ == "__main__":
     main()
