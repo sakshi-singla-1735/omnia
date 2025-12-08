@@ -504,6 +504,26 @@
 
             echo "Backing up kube-controller-manager manifest..."
             cp -a "$MANIFEST" "$BACKUP"
+            
+            # -----------------------------------------
+            # Update --controllers= argument
+            # -----------------------------------------
+            OLD="--controllers=*,bootstrapsigner,tokencleaner"
+            NEW="--controllers=*,nodeipam,nodelifecycle,bootstrapsigner,tokencleaner"
+
+            echo "Checking and updating controllers argument in: $BACKUP"
+
+            # Detect ANY existing --controllers= line (with or without OLD)
+            if grep -Fq -- "--controllers=" "$BACKUP"; then
+              echo "Existing controllers line found. Updating..."
+              # Replace entire existing controllers argument safely
+              sed -i "s|.*--controllers=.*|    - $NEW|" "$BACKUP"
+            else
+              echo "No controllers line found. Adding new one..."
+              # Insert after the kube-controller-manager entry
+              sed -i "/- kube-controller-manager/a \ \ \ \ - $NEW" "$BACKUP"
+            fi
+
 
             for ARG in "${ARGS[@]}"; do
               if grep -Fq -- "$ARG" "$BACKUP"; then
@@ -644,7 +664,22 @@
                 sleep 10
               fi
             done
-          
+
+            #update the kubelet config.yaml
+            CONFIG_FILE="/var/lib/kubelet/config.yaml"
+
+            # Update or add the parameters
+            sed -i 's|^nodeStatusUpdateFrequency:.*|nodeStatusUpdateFrequency: 5s|' $CONFIG_FILE
+            sed -i 's|^nodeStatusReportFrequency:.*|nodeStatusReportFrequency: 10s|' $CONFIG_FILE
+            sed -i 's|^syncFrequency:.*|syncFrequency: 10s|' $CONFIG_FILE
+
+            # If a key is missing, append it
+            grep -q "^nodeStatusUpdateFrequency:" $CONFIG_FILE || echo "nodeStatusUpdateFrequency: 5s" >> $CONFIG_FILE
+            grep -q "^nodeStatusReportFrequency:" $CONFIG_FILE || echo "nodeStatusReportFrequency: 10s" >> $CONFIG_FILE
+            grep -q "^syncFrequency:" $CONFIG_FILE || echo "syncFrequency: 10s" >> $CONFIG_FILE
+
+            # Restart kubelet to apply changes
+            systemctl restart kubelet
 
             echo "Installing plugins"
             echo "Installing nfs-client-provisioner"
@@ -865,6 +900,20 @@
                     echo "Snapshot Controller deployment completed (or timed out safely)."
                   fi
                 fi
+
+                FILE="/opt/omnia/csi-driver-powerscale/values.yaml"   # <-- update with actual path
+
+                echo "Updating arrayConnectivityPollRate in: $FILE"
+
+                if grep -Fq -- "--arrayConnectivityPollRate=60" "$FILE"; then
+                  echo "Found existing poll rate 60. Updating to 20..."
+                  sed -i 's/--arrayConnectivityPollRate=60/--arrayConnectivityPollRate=20/g' "$FILE"
+                else
+                  echo "No poll rate value 60 found. Nothing to change."
+                fi
+
+                echo "Done updating poll rate."
+
 
                 if [ "$POWERSCALE_DEPLOYMENT_FAILED" -eq 0 ]; then
                   echo "===== Running CSI PowerScale installation script ====="
