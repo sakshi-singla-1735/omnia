@@ -39,6 +39,11 @@
     current_oim_timezone: "{{ current_oim_tz_cmd.stdout | default('') }}"
 
 - name: Handle OIM timezone change
+  when:
+    - stored_oim_timezone | length > 0
+    - current_oim_timezone | length > 0
+    - (stored_oim_timezone | trim | lower)
+      != (current_oim_timezone | trim | lower)
   block:
     - name: Warn if OIM timezone changed after omnia_core deployment
       ansible.builtin.pause:
@@ -51,11 +56,7 @@
         regexp: '^oim_timezone:'
         line: "oim_timezone: {{ current_oim_timezone | trim }}"
         create: false
-  when:
-    - stored_oim_timezone | length > 0
-    - current_oim_timezone | length > 0
-    - (stored_oim_timezone | trim | lower)
-      != (current_oim_timezone | trim | lower)
+
 
 - name: Update OIM metadata vars
   ansible.builtin.include_vars: "{{ oim_metadata_file_path }}"
