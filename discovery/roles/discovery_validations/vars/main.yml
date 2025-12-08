@@ -70,3 +70,10 @@ warning_idrac_telemetry_support_true: |
   Also, ensure that the firmware version is greater than 4 for iDRAC9 or greater than 1 for iDRAC10."
 pause_time_15: 15
 bmc_group_data_filename: "/opt/omnia/telemetry/bmc_group_data.csv"
+
+# Usage: validate_oim_timezone.yml
+oim_timezone_changed_warning_msg: |
+  WARNING: OIM timezone has changed from '{{ stored_oim_timezone }}' to '{{ current_oim_timezone }}' after omnia_core container was deployed.
+  Please change it back to the initial value stored in oim_metadata.yml.
+
+oim_metadata_file_path: "/opt/omnia/.data/oim_metadata.yml"
