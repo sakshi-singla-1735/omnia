@@ -69,17 +69,73 @@
   loop: "{{ openldap_ports }}"
   when: auth_service_container_info.containers | length == 0
 
-- name: Pull the auth service image
-  containers.podman.podman_image:
-    name: "{{ auth_service_image_name }}"
-    state: present
-  register: image_pull_result
-  ignore_errors: true
+- name: Check if local auth service image exists with tag {{ auth_service_image_tag }}
+  containers.podman.podman_image_info:
+    name: "{{ auth_service_image_name }}:{{ auth_service_image_tag }}"
+  register: local_auth_image_check
+  failed_when: false
 
-- name: Fail if the auth service image pull fails
+- name: Check if local auth service image exists with latest tag (backward compatibility)
+  containers.podman.podman_image_info:
+    name: "{{ auth_service_image_name }}:latest"
+  register: local_auth_image_latest_check
+  failed_when: false
+  when: local_auth_image_check.images | length == 0
+
+- name: Tag latest for consistency - {{ auth_service_image_tag }}
+  ansible.builtin.command: >
+    podman tag {{ auth_service_image_name }}:latest
+    {{ auth_service_image_name }}:{{ auth_service_image_tag }}
+  when:
+    - local_auth_image_check.images | length == 0
+    - local_auth_image_latest_check.images | length > 0
+  changed_when: true
+
+- name: Check if local auth service image exists with tag {{ auth_service_image_tag }}
+  containers.podman.podman_image_info:
+    name: "{{ auth_service_image_name }}:{{ auth_service_image_tag }}"
+  register: local_auth_image_check
+  failed_when: false
+
+- name: Pull auth service image from Docker Hub with retry and error handling
+  when:
+    - local_auth_image_check.images | length == 0
+    - (local_auth_image_latest_check.images | default([]) | length == 0)
+  block:
+    - name: Try pulling auth service image from Docker Hub
+      containers.podman.podman_image:
+        name: "{{ auth_service_registry }}/{{ auth_service_image_name }}:{{ auth_service_image_tag }}"
+        state: present
+      register: dockerhub_pull_result
+      retries: 3
+      delay: 5
+      until: dockerhub_pull_result is not failed
+
+  rescue:
+    - name: Log Docker Hub pull failure
+      ansible.builtin.debug:
+        msg: "{{ auth_service_image_pull_warning_msg }}"
+
+- name: Tag Docker Hub image as local image for use
+  ansible.builtin.command: >
+    podman tag {{ auth_service_registry }}/{{ auth_service_image_name }}:{{ auth_service_image_tag }}
+    {{ auth_service_image_name }}:{{ auth_service_image_tag }}
+  when:
+    - local_auth_image_check.images | length == 0
+    - dockerhub_pull_result is defined
+    - dockerhub_pull_result is not failed
+  changed_when: true
+
+- name: Verify final auth service image availability
+  containers.podman.podman_image_info:
+    name: "{{ auth_service_image_name }}:{{ auth_service_image_tag }}"
+  register: final_auth_image_check
+  failed_when: false
+
+- name: Fail if the auth service image is not available
   ansible.builtin.fail:
     msg: "{{ auth_service_image_pull_fail_msg }}"
-  when: image_pull_result.failed
+  when: final_auth_image_check.images | length == 0
 
 - name: Deploy auth service container and check deployment status
   block:
