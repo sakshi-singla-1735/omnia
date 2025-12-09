@@ -22,6 +22,7 @@ import time
 import threading
 import traceback
 import yaml
+import json
 import requests
 from jinja2 import Template
 from ansible.module_utils.local_repo.common_functions import (
@@ -81,9 +82,14 @@ def load_docker_credentials(vault_yml_path, vault_password_file):
 
         # Validate credentials using Docker Hub API
         try:
+            payload = json.dumps({"username": docker_username, "password": docker_password})
             response = requests.post(
                 "https://hub.docker.com/v2/users/login/",
-                json={"username": docker_username, "password": docker_password},
+                data=payload,
+                headers={
+                    "Content-Type": "application/json",
+                    "User-Agent": "curl/8.0"
+                },
                 timeout=30
             )
 
