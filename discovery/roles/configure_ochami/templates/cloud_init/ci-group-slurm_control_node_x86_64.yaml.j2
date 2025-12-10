@@ -243,9 +243,8 @@
          - useradd -r -g {{ slurm_group_name }} -d {{ home_dir }} -s /sbin/nologin {{ user }}
 
         # Create directories for nfs and mount all
-         - mkdir -p /var/log/slurm /etc/slurm {{ home_dir }} /etc/my.cnf.d /etc/munge /var/lib/mysql /var/log/mariadb /cert
+         - mkdir -p /var/log/slurm /etc/slurm {{ home_dir }} /etc/my.cnf.d /etc/munge /var/lib/mysql /var/log/mariadb /cert /var/log/track
          - echo "{{ cloud_init_nfs_path }}/cert  /cert   nfs defaults,_netdev 0 0" >> /etc/fstab
-         - mkdir -p /var/log/slurm /etc/slurm {{ home_dir }} /etc/my.cnf.d /etc/munge /var/lib/mysql /var/log/mariadb /var/log/track
          - echo "{{ cloud_init_nfs_path }}/$(hostname -s)/etc/slurm      /etc/slurm       nfs defaults,_netdev 0 0" >> /etc/fstab
          - echo "{{ cloud_init_nfs_path }}/$(hostname -s)/etc/my.cnf.d   /etc/my.cnf.d    nfs defaults,_netdev 0 0" >> /etc/fstab
          - echo "{{ cloud_init_nfs_path }}/$(hostname -s)/var/lib/mysql  /var/lib/mysql   nfs defaults,_netdev 0 0" >> /etc/fstab
