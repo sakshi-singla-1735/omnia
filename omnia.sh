@@ -716,7 +716,7 @@ Description=${container_name^} Container
 [Container]
 ContainerName=${container_name}
 HostName=${container_name}
-Image=${container_name}:latest
+Image=${container_name}:1.0
 Network=host
 
 # Capabilities
@@ -915,31 +915,56 @@ show_help() {
 }
 
 install_omnia_core() {
-    # Print message for pulling the Omnia core docker image.
-    # echo -e "${BLUE} Pulling the Omnia core image.${NC}"
-
-    # Pull the Omnia core docker image.
-    # if podman pull omnia_core:latest; then
-    #     echo -e "${GREEN} Omnia core image has been pulled.${NC}"
-    # else
-    #     echo -e "${RED} Failed to pull Omnia core image.${NC}"
-    # fi
-    # Fail if image is not found. podman inspect can be used to check if image exists locally.
-    if podman inspect omnia_core:latest >/dev/null 2>&1; then
-        echo -e "${BLUE} Omnia core image already exists locally, skipping pull.${NC}"
+    local omnia_core_tag="1.0"
+    local omnia_core_registry="docker.io/dellhpcomniaaisolution"
+    
+    # Check if local omnia_core:1.0 exists
+    if podman inspect omnia_core:${omnia_core_tag} >/dev/null 2>&1; then
+        echo -e "${GREEN}✓ Omnia core image (omnia_core:${omnia_core_tag}) found locally.${NC}"
+    # Check if latest exists for backward compatibility
+    elif podman inspect omnia_core:latest >/dev/null 2>&1; then
+        echo -e "${GREEN}✓ Omnia core image (omnia_core:latest) found locally.${NC}"
+        # Tag it as 1.0 for consistency
+        podman tag omnia_core:latest omnia_core:${omnia_core_tag}
     else
-        echo -e "${RED}ERROR: Omnia core image not found locally.${NC}"
-        echo ""
-        echo -e "${YELLOW}To resolve this, please follow these steps:${NC}"
-        echo -e "1. Clone the Omnia Artifactory repository:"
-        echo -e "   git clone https://github.com/dell/omnia-artifactory -b omnia-container"
-        echo -e "2. Navigate to the repository directory:"
-        echo -e "   cd omnia-artifactory"
-        echo -e "3. Build the core image locally:"
-        echo -e "   ./build_images.sh core omnia_branch=<version/branch_name>"
-        echo -e "4. After building the image, re-run this script:"
-        echo -e "   ./omnia.sh --install"
-        exit 1
+        # Try pulling from Docker Hub with retry logic
+        echo -e "${BLUE}Omnia core image not found locally. Attempting to pull from Docker Hub...${NC}"
+        pull_success=false
+        max_retries=3
+        retry_count=0
+        
+        while [ $retry_count -lt $max_retries ]; do
+            retry_count=$((retry_count + 1))
+            echo -e "${BLUE}Attempt $retry_count of $max_retries...${NC}"
+            
+            if podman pull ${omnia_core_registry}/omnia_core:${omnia_core_tag} 2>/dev/null; then
+                echo -e "${GREEN}✓ Successfully pulled omnia_core:${omnia_core_tag} from Docker Hub.${NC}"
+                # Tag it without registry prefix for local use
+                podman tag ${omnia_core_registry}/omnia_core:${omnia_core_tag} omnia_core:${omnia_core_tag}
+                pull_success=true
+                break
+            else
+                if [ $retry_count -lt $max_retries ]; then
+                    echo -e "${YELLOW}Pull failed. Retrying in 5 seconds...${NC}"
+                    sleep 5
+                fi
+            fi
+        done
+        
+        if [ "$pull_success" = false ]; then
+            echo -e "${RED}ERROR: Failed to pull omnia_core image after $max_retries attempts.${NC}"
+            echo ""
+            echo -e "${YELLOW}To resolve this, please follow these steps:${NC}"
+            echo -e "1. Clone the Omnia Artifactory repository:"
+            echo -e "   git clone https://github.com/dell/omnia-artifactory -b omnia-container"
+            echo -e "2. Navigate to the repository directory:"
+            echo -e "   cd omnia-artifactory"
+            echo -e "3. Build the core image locally:"
+            echo -e "   ./build_images.sh core omnia_branch=<version/branch_name>"
+            echo -e "4. After building the image, re-run this script:"
+            echo -e "   ./omnia.sh --install"
+            exit 1
+        fi
     fi
 
     # Check if any other containers with 'omnia' in their name are running
