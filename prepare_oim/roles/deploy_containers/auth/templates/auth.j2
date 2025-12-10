@@ -2,7 +2,7 @@
 Description=OpenLDAP container managed by systemd
 
 [Container]
-Image={{ auth_service_image_name }}
+Image={{ auth_service_image_name }}:{{ auth_service_image_tag }}
 ContainerName={{ auth_service_container_name }}
 
 # Publish ports

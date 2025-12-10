@@ -23,7 +23,7 @@
         - path: /usr/local/bin/set-ssh.sh
           permissions: '{{ file_mode_755 }}'
           content: |
-            timedatectl set-timezone {{ hostvars['localhost']['timezone'] }}
+            timedatectl set-timezone {{ hostvars['oim']['oim_timezone'] }}
             sed -i 's/^#PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config
             sed -i 's/^#PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config
             sed -i 's/^PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config.d/50-cloud-init.conf
@@ -214,6 +214,28 @@
             systemctl start slurmctld
             systemctl restart slurmctld
 
+        - path: /root/omnia_slurm_scripts/04_track_file.sh
+          permissions: '{{ file_mode_755 }}'
+          content: |
+            #!/bin/bash
+            MARKER="/var/log/track/slurm_controller_track"
+            if [ -f "$MARKER" ]; then
+              echo "Slurm controller track file already exists. Skipping."
+              exit 0
+            fi
+
+            echo "Waiting for slurmctld to become active..."
+            while true; do
+              if systemctl is-active --quiet slurmctld; then
+                echo "Slurm controller is active."
+                touch "$MARKER"
+                exit 0
+              else
+                echo "slurmctld is not active yet. Retrying in 5 seconds."
+              fi
+              sleep 5
+            done
+
       runcmd:
          - /usr/local/bin/set-ssh.sh
          - useradd -mG wheel -p '$6$VHdSKZNm$O3iFYmRiaFQCemQJjhfrpqqV7DdHBi5YpY6Aq06JSQpABPw.3d8PQ8bNY9NuZSmDv7IL/TsrhRJ6btkgKaonT.' testuser # Required??
@@ -223,6 +245,7 @@
         # Create directories for nfs and mount all
          - mkdir -p /var/log/slurm /etc/slurm {{ home_dir }} /etc/my.cnf.d /etc/munge /var/lib/mysql /var/log/mariadb /cert
          - echo "{{ cloud_init_nfs_path }}/cert  /cert   nfs defaults,_netdev 0 0" >> /etc/fstab
+         - mkdir -p /var/log/slurm /etc/slurm {{ home_dir }} /etc/my.cnf.d /etc/munge /var/lib/mysql /var/log/mariadb /var/log/track
          - echo "{{ cloud_init_nfs_path }}/$(hostname -s)/etc/slurm      /etc/slurm       nfs defaults,_netdev 0 0" >> /etc/fstab
          - echo "{{ cloud_init_nfs_path }}/$(hostname -s)/etc/my.cnf.d   /etc/my.cnf.d    nfs defaults,_netdev 0 0" >> /etc/fstab
          - echo "{{ cloud_init_nfs_path }}/$(hostname -s)/var/lib/mysql  /var/lib/mysql   nfs defaults,_netdev 0 0" >> /etc/fstab
@@ -230,6 +253,7 @@
          - echo "{{ cloud_init_nfs_path }}/$(hostname -s)/var/log/slurm  /var/log/slurm   nfs defaults,_netdev 0 0" >> /etc/fstab
          - echo "{{ cloud_init_nfs_path }}/$(hostname -s)/var/spool      /var/spool       nfs defaults,_netdev 0 0" >> /etc/fstab
          - echo "{{ cloud_init_nfs_path }}/$(hostname -s)/etc/munge      /etc/munge       nfs defaults,_netdev 0 0" >> /etc/fstab
+         - echo "{{ trackfile_nfs_path }}    /var/log/track       nfs defaults,_netdev 0 0" >> /etc/fstab
          - chmod {{ file_mode }} /etc/fstab
          - mount -a
 
@@ -246,6 +270,7 @@
          - ['bash', '/root/omnia_slurm_scripts/01_mariadb_setup.sh']
          - ['bash', '/root/omnia_slurm_scripts/02_slurmdbd_setup.sh']
          - ['bash', '/root/omnia_slurm_scripts/03_slurmctld_setup.sh']
+         - ['bash', '/root/omnia_slurm_scripts/04_track_file.sh']
 
          - sed -i 's/^PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config.d/50-cloud-init.conf
          - firewall-cmd --permanent --add-service=ssh
@@ -289,3 +314,4 @@
 
          - /root/ldms_sampler.sh
 {% endif %}
+         - echo "Cloud-Init has completed successfully."
