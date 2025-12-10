@@ -55,9 +55,7 @@
                 done
             fi
 
-
-
-        - path: /root/install_nvidia_driver.sh
+        - path: /usr/local/bin/install_nvidia_driver.sh
           permissions: '0755'
           content: |
             #!/bin/bash
@@ -221,34 +219,6 @@
             {{ ip_name_map[key] }} {{ key }}
 {% endfor %}
 
-        - path: /usr/local/bin/wait_for_ip.sh
-          permissions: '{{ file_mode_755 }}'
-          content: |
-            #!/bin/bash
-            LOGFILE="/var/log/wait_for_ip.log"
-            IP="$1"
-            TIMEOUT={{ ip_timeout }}
-            MAX_RETRIES={{ ip_wait_loop }}
-            COUNT=0
-            echo "Waiting for $IP to become reachable..." | tee -a "$LOGFILE"
-            if [[ $# -eq 0 || -z "${1:-}" ]]; then
-              echo "Usage: $0 <TARGET_IP>" | tee -a "$LOGFILE"
-              echo "No argument provided. continuing" | tee -a "$LOGFILE"
-              exit 0
-            fi
-            while true; do
-              if ping -c1 -W1 "$IP" &>/dev/null; then
-                  echo "$IP is up — proceeding." | tee -a "$LOGFILE"
-                  exit 0
-              fi
-              ((COUNT++))
-              if [ "$COUNT" -ge "$MAX_RETRIES" ]; then
-                echo "IP $IP not reachable after $MAX_RETRIES attempts, giving up." | tee -a "$LOGFILE"
-                exit 1
-              fi
-              echo "IP $IP not reachable yet (attempt $COUNT). Retrying in $TIMEOUT seconds..." | tee -a "$LOGFILE"
-              sleep "$TIMEOUT"
-              done
         - path: /usr/local/bin/configure_dirs_and_mounts.sh
           permissions: '{{ file_mode_755 }}'
           content: |
@@ -259,13 +229,14 @@
             echo "[INFO] ===== Starting directory creation and NFS mounts for Slurm and Munge ====="
 
             echo "[INFO] Creating base directories for Slurm and Munge"
-            mkdir -pv /var/log/slurm /var/run/slurm /var/spool /var/lib/slurm /etc/slurm/epilog.d /etc/munge
+            mkdir -pv /var/log/slurm /var/run/slurm /var/spool /var/lib/slurm /etc/slurm/epilog.d /etc/munge /var/log/track
 
             echo "[INFO] Updating /etc/fstab with NFS entries for Slurm and Munge paths"
             echo "{{ cloud_init_nfs_path }}/$(hostname -s)/var/log/slurm  /var/log/slurm   nfs defaults,_netdev 0 0" >> /etc/fstab
             echo "{{ cloud_init_nfs_path }}/$(hostname -s)/var/spool      /var/spool       nfs defaults,_netdev 0 0" >> /etc/fstab
             echo "{{ cloud_init_nfs_path }}/$(hostname -s)/etc/slurm/epilog.d     /etc/slurm/epilog.d      nfs defaults,_netdev 0 0" >> /etc/fstab
             echo "{{ cloud_init_nfs_path }}/$(hostname -s)/etc/munge      /etc/munge       nfs defaults,_netdev 0 0" >> /etc/fstab
+            echo "{{ trackfile_nfs_path }}    /var/log/track       nfs defaults,_netdev 0 0" >> /etc/fstab
             chmod {{ file_mode }} /etc/fstab
 
             echo "[INFO] Mounting all NFS entries from /etc/fstab"
@@ -284,6 +255,7 @@
 
             echo "[INFO] Copying slurmd.service into /usr/lib/systemd/system/"
             yes | cp /etc/slurm/epilog.d/slurmd.service /usr/lib/systemd/system/
+            bash /usr/local/bin/check_slurm_controller_status.sh
 
             echo "[INFO] Setting ownership for Slurm directories"
             chown -R {{ user }}:{{ slurm_group_name }} /var/log/slurm
@@ -391,9 +363,16 @@
             systemctl restart slurmd
 
             echo "[INFO] ===== Completed firewall and service configuration ====="
+
+        - path: /usr/local/bin/check_slurm_controller_status.sh
+          owner: root:root
+          permissions: '{{ file_mode_755 }}'
+          content: |
+            {{ lookup('template', 'templates/slurm/check_slurm_controller_status.sh.j2') | indent(12) }}
+
       runcmd:
         - /usr/local/bin/set-ssh.sh
-        - /root/install_nvidia_driver.sh
+        - /usr/local/bin/install_nvidia_driver.sh
         - useradd -mG wheel -p '$6$VHdSKZNm$O3iFYmRiaFQCemQJjhfrpqqV7DdHBi5YpY6Aq06JSQpABPw.3d8PQ8bNY9NuZSmDv7IL/TsrhRJ6btkgKaonT.' testuser
         - groupadd -r {{ slurm_group_name }}
         - useradd -r -g {{ slurm_group_name }} -d {{ home_dir }} -s /sbin/nologin {{ user }}
@@ -442,3 +421,4 @@
 
         - /root/ldms_sampler.sh
 {% endif %}
+        - echo "Cloud-Init has completed successfully."

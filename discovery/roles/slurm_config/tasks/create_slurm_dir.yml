@@ -33,6 +33,7 @@
     cluster_name: "{{ slurm_cluster[0].cluster_name }}"
     configs_input: "{{ slurm_cluster[0].config_sources | default({}) | dict2items | rejectattr('value', 'falsy') | list | items2dict }}"
     slurm_config_path: "{{ share_path }}/{{ slurm_dir_name }}"
+    controller_trackfile_path: "{{ share_path }}/ctld_track"
 
 - name: Configure openldap if supported
   ansible.builtin.include_tasks: openldap_config.yml
@@ -52,6 +53,16 @@
 - name: Create the slurm directory in share
   ansible.builtin.file:
     path: "{{ slurm_config_path }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "{{ common_mode }}"
+
+# This directory is created to store the controller track file in NFS
+# The track file is generated only after the Slurm controller has been fully configured in a fresh deployment
+- name: Create directory for controller init track file in share
+  ansible.builtin.file:
+    path: "{{ controller_trackfile_path }}"
     state: directory
     owner: root
     group: root
@@ -259,6 +270,10 @@
 - name: NFS path for cloud init
   ansible.builtin.set_fact:
     cloud_init_nfs_path: "{{ nfs_server_ip }}:{{ nfs_server_path }}/slurm"
+
+- name: NFS path for controller trackfile
+  ansible.builtin.set_fact:
+    trackfile_nfs_path: "{{ nfs_server_ip }}:{{ nfs_server_path }}/ctld_track"
 
 - name: NFS path for cloud init
   ansible.builtin.set_fact:

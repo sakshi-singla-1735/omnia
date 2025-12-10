@@ -64,3 +64,7 @@
     compiler_login_list: "{{ grouped_nodes | dict2items
                    | selectattr('key', 'match', '^login_compiler_node_')
                    | map(attribute='value') | list | flatten }}"
+
+- name: Extract slurm controller IP
+  ansible.builtin.set_fact:
+    controller_ip: "{{ ip_name_map[grouped_nodes.slurm_control_node_x86_64 | first] }}"
