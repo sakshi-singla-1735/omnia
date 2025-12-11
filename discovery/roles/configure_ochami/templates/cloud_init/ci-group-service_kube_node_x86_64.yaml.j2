@@ -200,6 +200,7 @@
           if command -v chattr >/dev/null 2>&1; then
             chattr +i /etc/resolv.conf || true
           fi
+        - systemctl restart rpcbind
         - mount -a
         - systemctl start crio.service
         - systemctl enable crio.service
@@ -251,7 +252,6 @@
             systemctl daemon-reload
             systemctl restart kubelet
             systemctl restart nfs-client.target
-            systemctl restart rpcbind
             if [ -f /etc/kubernetes/kubelet.conf ]; then
               cp /etc/kubernetes/kubelet.conf /etc/kubernetes/kubelet.conf.bak
               sed -i "s#server: https://[^:]*:6443#server: https://{{ kube_vip }}:6443#" /etc/kubernetes/kubelet.conf
