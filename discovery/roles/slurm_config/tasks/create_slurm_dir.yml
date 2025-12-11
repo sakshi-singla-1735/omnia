@@ -269,3 +269,4 @@
 - name: NFS path for ucx, openmpi and ldms cloud init
   ansible.builtin.set_fact:
     cloud_init_slurm_nfs_path: "{{ nfs_server_ip }}:{{ nfs_server_path }}"
+    client_mount_path: "{{ share_path }}"
