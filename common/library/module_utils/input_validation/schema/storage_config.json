@@ -31,11 +31,11 @@
             },
             "server_share_path": {
               "type": "string",
-              "pattern": "^/(?:[^/]+(?:/[^/]+)*)?$"
+              "pattern": "^/(?:[^/]+(?:/[^/]+)*)?/?$"
             },
             "client_share_path": {
               "type": "string",
-              "pattern": "^/(?:[^/]+(?:/[^/]+)*)?$"
+              "pattern": "^/(?:[^/]+(?:/[^/]+)*)?/?$"
             },
             "client_mount_options": {
               "type": "string"
