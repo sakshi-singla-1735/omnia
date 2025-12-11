@@ -20,7 +20,6 @@ import multiprocessing
 import subprocess
 import time
 import threading
-import requests
 import traceback
 import yaml
 import json
