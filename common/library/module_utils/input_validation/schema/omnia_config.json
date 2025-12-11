@@ -86,12 +86,18 @@
             "type": "string",
             "pattern": "^(|/?([a-zA-Z0-9._-]+/)*[a-zA-Z0-9._-]+\\.yaml)$"
 
+          },
+          "k8s_crio_storage_size": {
+            "description": "Storage size for CRI-O in Gigabytes only (example: 10G, 15G, 100G)",
+            "type": "string",
+            "pattern": "^[1-9][0-9]*G$"
           }
         },
         "required": [
           "cluster_name",
           "k8s_cni",
-          "k8s_service_addresses"
+          "k8s_service_addresses",
+          "k8s_crio_storage_size"
         ],
         "allOf": [
         {

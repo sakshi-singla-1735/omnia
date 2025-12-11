@@ -76,7 +76,7 @@
             {{ k8s_nfs_server_ip }}:{{ k8s_server_share_path }}/{% raw %}{{ ds.meta_data.instance_data.local_ipv4 }}{% endraw %}/kubelet   /var/lib/kubelet     nfs noatime,nolock 0 0
             {{ k8s_nfs_server_ip }}:{{ k8s_server_share_path }}/{% raw %}{{ ds.meta_data.instance_data.local_ipv4 }}{% endraw %}/kubernetes   /etc/kubernetes      nfs noatime,nolock 0 0
             {{ k8s_nfs_server_ip }}:{{ k8s_server_share_path }}/{% raw %}{{ ds.meta_data.instance_data.local_ipv4 }}{% endraw %}/pod-logs   /var/log/pods      nfs noatime,nolock 0 0
-            tmpfs   /tmp/crio-storage   tmpfs   size=8G,noatime,nodev,nosuid   0 0
+            tmpfs   /tmp/crio-storage   tmpfs   size={{ k8s_crio_storage_size }},noatime,nodev,nosuid   0 0
           permissions: '0644'
         - path: /etc/containers/storage.conf
           content: |
@@ -200,6 +200,7 @@
           if command -v chattr >/dev/null 2>&1; then
             chattr +i /etc/resolv.conf || true
           fi
+        - systemctl restart rpcbind
         - mount -a
         - systemctl start crio.service
         - systemctl enable crio.service
@@ -208,6 +209,7 @@
         - cp {{ k8s_client_mount_path }}/pulp_webserver.crt /etc/pki/ca-trust/source/anchors
         - update-ca-trust extract
         - systemctl daemon-reload
+        - sed -i 's/^gpgcheck=1/gpgcheck=0/' /etc/dnf/dnf.conf
         - systemctl restart crio
         - kubeadm config images pull --kubernetes-version={{ service_k8s_version }}
         - |
@@ -243,8 +245,13 @@
             JOIN_CMD="$(cat "$JOIN_CMD_FILE") --node-name ${NODE_NAME}"
             echo "Executing: $JOIN_CMD"
             eval $JOIN_CMD
+            sleep 30
+            echo "Updating the kubelet arguments."
+            sed -i 's/^shutdownGracePeriod:.*/shutdownGracePeriod: 30s/' /var/lib/kubelet/config.yaml
+            sed -i 's/^shutdownGracePeriodCriticalPods:.*/shutdownGracePeriodCriticalPods: 10s/' /var/lib/kubelet/config.yaml
+            systemctl daemon-reload
+            systemctl restart kubelet
             systemctl restart nfs-client.target
-            systemctl restart rpcbind
             if [ -f /etc/kubernetes/kubelet.conf ]; then
               cp /etc/kubernetes/kubelet.conf /etc/kubernetes/kubelet.conf.bak
               sed -i "s#server: https://[^:]*:6443#server: https://{{ kube_vip }}:6443#" /etc/kubernetes/kubelet.conf
@@ -252,12 +259,31 @@
             else
               echo "WARNING: /etc/kubernetes/kubelet.conf not found. Kubelet may not be initialized yet."
             fi
+            
+            #update the kubelet config.yaml
+            CONFIG_FILE="/var/lib/kubelet/config.yaml"
+
+            # Update or add the parameters
+            sed -i 's|^nodeStatusUpdateFrequency:.*|nodeStatusUpdateFrequency: 5s|' $CONFIG_FILE
+            sed -i 's|^nodeStatusReportFrequency:.*|nodeStatusReportFrequency: 10s|' $CONFIG_FILE
+            sed -i 's|^syncFrequency:.*|syncFrequency: 10s|' $CONFIG_FILE
+
+            # If a key is missing, append it
+            grep -q "^nodeStatusUpdateFrequency:" $CONFIG_FILE || echo "nodeStatusUpdateFrequency: 5s" >> $CONFIG_FILE
+            grep -q "^nodeStatusReportFrequency:" $CONFIG_FILE || echo "nodeStatusReportFrequency: 10s" >> $CONFIG_FILE
+            grep -q "^syncFrequency:" $CONFIG_FILE || echo "syncFrequency: 10s" >> $CONFIG_FILE
+
+            # Restart kubelet to apply changes
+            systemctl restart kubelet
             # Mark initialization complete so all of above is skipped on reboot!
             touch "$MARKER"
+            echo "Cloud-Init has completed successfully."
+
           else
             # SUBSEQUENT BOOT - SKIP JOIN
             echo "service_kube_node_x86_64 is already part of cluster."
             echo "Cluster already initialized. Performing node reboot procedures."
             # CRI and kubelet already enabled above
             systemctl status kubelet
+            echo "Cloud-Init finished successfully after the reboot."
           fi
