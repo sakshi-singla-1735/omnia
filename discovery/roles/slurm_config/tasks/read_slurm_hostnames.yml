@@ -75,4 +75,3 @@
   ansible.builtin.set_fact:
     controller_ip: "{{ ip_name_map[ctld_list | first] }}"
   when: ctld_list | length > 0
-
