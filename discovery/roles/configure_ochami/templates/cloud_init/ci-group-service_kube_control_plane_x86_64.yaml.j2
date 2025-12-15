@@ -382,11 +382,11 @@
             BACKUP="/tmp/kube-controller-manager.yaml"
 
             ARGS=(
-              "--node-monitor-period=2s"
-              "--node-monitor-grace-period=20s"
+              "--node-monitor-period=5s"
+              "--node-monitor-grace-period=40s"
               "--node-eviction-rate=1"
               "--secondary-node-eviction-rate=1"
-              "--terminated-pod-gc-threshold=0"
+              "--terminated-pod-gc-threshold=50"
             )
 
             echo "Backing up kube-controller-manager manifest..."
@@ -438,14 +438,14 @@
             CONFIG_FILE="/var/lib/kubelet/config.yaml"
 
             # Update or add the parameters
-            sed -i 's|^nodeStatusUpdateFrequency:.*|nodeStatusUpdateFrequency: 5s|' $CONFIG_FILE
-            sed -i 's|^nodeStatusReportFrequency:.*|nodeStatusReportFrequency: 10s|' $CONFIG_FILE
-            sed -i 's|^syncFrequency:.*|syncFrequency: 10s|' $CONFIG_FILE
+            sed -i 's|^nodeStatusUpdateFrequency:.*|nodeStatusUpdateFrequency: 10s|' $CONFIG_FILE
+            sed -i 's|^nodeStatusReportFrequency:.*|nodeStatusReportFrequency: 60s|' $CONFIG_FILE
+            sed -i 's|^syncFrequency:.*|syncFrequency: 60s|' $CONFIG_FILE
 
             # If a key is missing, append it
-            grep -q "^nodeStatusUpdateFrequency:" $CONFIG_FILE || echo "nodeStatusUpdateFrequency: 5s" >> $CONFIG_FILE
-            grep -q "^nodeStatusReportFrequency:" $CONFIG_FILE || echo "nodeStatusReportFrequency: 10s" >> $CONFIG_FILE
-            grep -q "^syncFrequency:" $CONFIG_FILE || echo "syncFrequency: 10s" >> $CONFIG_FILE
+            grep -q "^nodeStatusUpdateFrequency:" $CONFIG_FILE || echo "nodeStatusUpdateFrequency: 10s" >> $CONFIG_FILE
+            grep -q "^nodeStatusReportFrequency:" $CONFIG_FILE || echo "nodeStatusReportFrequency: 60s" >> $CONFIG_FILE
+            grep -q "^syncFrequency:" $CONFIG_FILE || echo "syncFrequency: 60s" >> $CONFIG_FILE
 
             systemctl daemon-reload
             systemctl restart kubelet
