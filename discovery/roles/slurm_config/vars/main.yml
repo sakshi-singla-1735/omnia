@@ -102,3 +102,4 @@ omnia_run_tags: "{{ hostvars['localhost']['omnia_run_tags'] }}"
 auth_tls_certs_path: "/opt/omnia/auth/tls_certs/ldapserver.crt"
 slurm_installation_type: configless
 pulp_webserver_cert_path: "/opt/omnia/pulp/settings/certs/pulp_webserver.crt"
+controller_empty_msg: "Slurm controller functional group is missing from PXE mapping file. Please update the file and rerun discovery.yml."
