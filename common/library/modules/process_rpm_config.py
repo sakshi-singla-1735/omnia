@@ -26,7 +26,9 @@ from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.local_repo.standard_logger import setup_standard_logger
 from ansible.module_utils.local_repo.config import (
     pulp_rpm_commands,
-    STANDARD_LOG_FILE_PATH
+    STANDARD_LOG_FILE_PATH,
+    PULP_SYNC_CONCURRENCY,
+    PULP_PUBLISH_CONCURRENCY
 )
 
 def execute_command(cmd_string, log,type_json=None, seconds=None):
@@ -481,6 +483,20 @@ def manage_rpm_repositories_multiprocess(rpm_config, log):
     process = min(cpu_count, len(rpm_config))
     log.info(f"Number of processes = {process}")
 
+    # Use configurable concurrency from config.py for resource-intensive operations
+    # This prevents overwhelming the Pulp server, especially on NFS storage
+    # Adjust PULP_SYNC_CONCURRENCY and PULP_PUBLISH_CONCURRENCY in config.py:
+    #   - For NFS storage: Use 1 (prevents 500/502/504 errors)
+    #   - For local storage: Use 2 for optimal performance
+    #   - For high-performance SAN: Can try 3-4 (monitor for errors)
+    sync_process = min(PULP_SYNC_CONCURRENCY, process)
+    publish_process = min(PULP_PUBLISH_CONCURRENCY, process)
+
+    log.info(f"Configured sync concurrency: {PULP_SYNC_CONCURRENCY}")
+    log.info(f"Configured publish concurrency: {PULP_PUBLISH_CONCURRENCY}")
+    log.info(f"Actual sync processes (capped by repo count): {sync_process}")
+    log.info(f"Actual publish processes (capped by repo count): {publish_process}")
+
     # Step 1: Concurrent repository creation
     log.info("Step 1: Starting concurrent RPM repository creation")
     with multiprocessing.Pool(processes=process) as pool:
@@ -501,21 +517,21 @@ def manage_rpm_repositories_multiprocess(rpm_config, log):
 
     # Step 3: Concurrent synchronization
     log.info("Step 3: Starting concurrent RPM repository synchronization")
-    with multiprocessing.Pool(processes=process) as pool:
+    with multiprocessing.Pool(processes=sync_process) as pool:
         result = pool.map(partial(sync_rpm_repository, log=log), rpm_config)
     failed = [name for success, name in result if not success]
     if failed:
         log.error("Failed during synchronization of RPM repository for: %s", ", ".join(failed))
-        return False, f"During synchronization of RPM repository for: {', '.join(failed)}"
+        return False, f"During synchronization of RPM repository for: {', '.join(failed)}. Please refer to the troubleshooting guide for more information."
 
     # Step 4: Concurrent publication creation
     log.info("Step 4: Starting concurrent RPM publication creation")
-    with multiprocessing.Pool(processes=process) as pool:
+    with multiprocessing.Pool(processes=publish_process) as pool:
         result = pool.map(partial(create_publication, log=log), rpm_config)
     failed = [name for success, name in result if not success]
     if failed:
         log.error("Failed during publication of RPM repository for: %s", ", ".join(failed))
-        return False, f"During publication of RPM repository for: {', '.join(failed)}"
+        return False, f"During publication of RPM repository for: {', '.join(failed)}. Please refer to the troubleshooting guide for more information."
 
     # Step 5: Concurrent distribution creation
     log.info("Step 5: Starting concurrent RPM distribution creation")
