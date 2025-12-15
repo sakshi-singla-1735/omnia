@@ -205,7 +205,7 @@ spec:
     - metadata:
         name: mysqldb-pvc
       spec:
-        accessModes: ["ReadWriteOnce"]
+        accessModes: ["ReadWriteMany"]
         resources:
           requests:
             storage: {{ mysqldb_storage }}
