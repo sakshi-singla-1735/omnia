@@ -64,3 +64,14 @@
     compiler_login_list: "{{ grouped_nodes | dict2items
                    | selectattr('key', 'match', '^login_compiler_node_')
                    | map(attribute='value') | list | flatten }}"
+
+- name: Fail if Slurm controller list is empty
+  ansible.builtin.fail:
+    msg: "{{ controller_empty_msg }}"
+  when:
+    - ctld_list | length == 0
+
+- name: Extract slurm controller IP
+  ansible.builtin.set_fact:
+    controller_ip: "{{ ip_name_map[ctld_list | first] }}"
+  when: ctld_list | length > 0
