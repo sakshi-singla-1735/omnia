@@ -57,7 +57,7 @@ spec:
                       values:
                         - {{ victoria.app_name }}
                 topologyKey: "kubernetes.io/hostname"
-      terminationGracePeriodSeconds: 10
+      terminationGracePeriodSeconds: 30
       initContainers:
         # Clean up stale VictoriaMetrics lock files from previous ungraceful shutdowns
         - name: cleanup-victoria-locks
@@ -76,11 +76,11 @@ spec:
         - effect: NoExecute
           key: node.kubernetes.io/not-ready
           operator: Exists
-          tolerationSeconds: 5
+          tolerationSeconds: 60
         - effect: NoExecute
           key: node.kubernetes.io/unreachable
           operator: Exists
-          tolerationSeconds: 5
+          tolerationSeconds: 60
       volumes:
         - name: victoria-tls-certs
           secret:

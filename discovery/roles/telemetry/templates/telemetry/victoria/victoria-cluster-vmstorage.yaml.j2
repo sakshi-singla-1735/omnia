@@ -90,11 +90,11 @@ spec:
         - effect: NoExecute
           key: node.kubernetes.io/not-ready
           operator: Exists
-          tolerationSeconds: 5
+          tolerationSeconds: 60
         - effect: NoExecute
           key: node.kubernetes.io/unreachable
           operator: Exists
-          tolerationSeconds: 5
+          tolerationSeconds: 60
 {% if victoria_cluster.tls_enabled %}
       volumes:
         - name: victoria-tls-certs

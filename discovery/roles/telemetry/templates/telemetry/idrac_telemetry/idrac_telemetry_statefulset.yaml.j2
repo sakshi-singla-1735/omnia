@@ -72,7 +72,7 @@ spec:
         - ip: "127.0.0.1"
           hostnames:
             - "mysqldb"
-      terminationGracePeriodSeconds: 10
+      terminationGracePeriodSeconds: 30
       initContainers:
         # Clean up stale MySQL lock files from previous ungraceful shutdowns
         - name: cleanup-mysql-locks
@@ -91,11 +91,11 @@ spec:
       - effect: NoExecute
         key: node.kubernetes.io/not-ready
         operator: Exists
-        tolerationSeconds: 5
+        tolerationSeconds: 60
       - effect: NoExecute
         key: node.kubernetes.io/unreachable
         operator: Exists
-        tolerationSeconds: 5
+        tolerationSeconds: 60
       containers:
         - name: mysqldb
           image: {{ mysql_image }}
