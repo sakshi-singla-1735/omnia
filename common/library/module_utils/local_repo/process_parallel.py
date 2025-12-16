@@ -20,10 +20,11 @@ import multiprocessing
 import subprocess
 import time
 import threading
-import requests
 import traceback
 import json
 import yaml
+import json
+import requests
 from jinja2 import Template
 from ansible.module_utils.local_repo.common_functions import (
     load_yaml_file,
