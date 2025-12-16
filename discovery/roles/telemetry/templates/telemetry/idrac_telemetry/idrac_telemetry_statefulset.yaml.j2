@@ -72,7 +72,7 @@ spec:
         - ip: "127.0.0.1"
           hostnames:
             - "mysqldb"
-      terminationGracePeriodSeconds: 30
+      terminationGracePeriodSeconds: 10
       initContainers:
         # Clean up stale MySQL lock files from previous ungraceful shutdowns
         - name: cleanup-mysql-locks

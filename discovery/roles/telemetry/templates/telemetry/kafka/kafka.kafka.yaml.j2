@@ -19,7 +19,6 @@ spec:
         deleteClaim: false
   template:
     pod:
-      terminationGracePeriodSeconds: 120
       initContainers:
         # Clean up stale Kafka lock files from previous ungraceful shutdowns
         - name: cleanup-kafka-locks

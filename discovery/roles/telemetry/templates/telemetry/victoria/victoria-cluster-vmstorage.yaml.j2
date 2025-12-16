@@ -71,7 +71,7 @@ spec:
                       values:
                         - vmstorage
                 topologyKey: "kubernetes.io/hostname"
-      terminationGracePeriodSeconds: 60
+      terminationGracePeriodSeconds: 30
       initContainers:
         # Clean up stale VictoriaMetrics lock files from previous ungraceful shutdowns
         - name: cleanup-vmstorage-locks
