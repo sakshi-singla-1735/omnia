@@ -229,7 +229,6 @@ ldms_sampler_port: 10001
 #   - procstat2: Process statistics
 #   - vmstat: Virtual memory statistics
 #   - loadavg: System load average
-#   - slurm_sampler: Slurm job/task monitoring (HPC workloads)
 #   - procnetdev2: Network interface statistics
 ldms_sampler_configurations:
   # Memory usage statistics (free, used, buffers, cached, etc.)
@@ -251,16 +250,6 @@ ldms_sampler_configurations:
   - plugin_name: loadavg
     config_parameters: ""
     activation_parameters: "interval=1000000"  # interval=1000000 microseconds
-
-  # Slurm job and task monitoring (HPC workload telemetry)
-  # Config parameters:
-  #   - component_id=2: Component identifier (default: 0)
-  #   - stream=slurm: Data stream type
-  #   - job_count=8: Number of jobs to monitor (default: 8)
-  #   - task_count=8: Number of tasks to monitor per job (default: 8)
-  - plugin_name: slurm_sampler
-    config_parameters: "component_id=2 stream=slurm job_count=8 task_count=8"
-    activation_parameters: "interval=1000000 offset=0"  # interval=1000000 microseconds, offset=0
 
   # Network interface statistics (bytes, packets, errors, drops per interface)
   # Config parameters (optional):
