@@ -104,9 +104,9 @@ spec:
             - name: mysqldb-pvc
               mountPath: /var/lib/mysql/
           lifecycle:
-                preStop:
-                  exec:
-                    command: ["/bin/sh", "-c", "mysqladmin shutdown -uroot -p${MYSQL_ROOT_PASSWORD}"]
+            preStop:
+              exec:
+                command: ["/bin/sh", "-c", "mysqladmin shutdown -uroot -p${MYSQL_ROOT_PASSWORD} 2>/dev/null || true"]
           env:
             - name: MYSQL_DATABASE
               value: {{ mysqldb_name }}
