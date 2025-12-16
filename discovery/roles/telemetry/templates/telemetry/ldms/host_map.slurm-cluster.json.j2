@@ -1,5 +1,5 @@
 [
-{% set filtered_nodes = nodes | rejectattr('value.FUNCTIONAL_GROUP_NAME', 'search', '^service_kube') | list %}
+{% set filtered_nodes = nodes | sort(attribute='value.XNAME') | rejectattr('value.FUNCTIONAL_GROUP_NAME', 'search', '^service_kube') | list %}
 {% for item in filtered_nodes %}
     {
         "hostname": "{{ item.value.HOSTNAME }}.{{ hostvars['localhost']['domain_name'] }}",
