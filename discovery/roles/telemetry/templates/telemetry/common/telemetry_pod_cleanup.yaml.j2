@@ -51,6 +51,53 @@ spec:
                 fi
               done
               echo "Cleanup complete"
+              
+              # Additional cleanup: Remove lock files from orphaned PVCs (atomic approach)
+              echo "Checking for orphaned PVCs..."
+              
+              # Get all PVCs in telemetry namespace
+              all_pvcs=$(kubectl get pvc -n telemetry -o jsonpath='{.items[*].metadata.name}')
+              
+              # Collect orphaned PVCs
+              orphaned_pvcs=""
+              for pvc in $all_pvcs; do
+                pod_using_pvc=$(kubectl get pods -n telemetry -o jsonpath="{.items[?(@.spec.volumes[*].persistentVolumeClaim.claimName=='$pvc')].metadata.name}" 2>/dev/null)
+                if [ -z "$pod_using_pvc" ]; then
+                  orphaned_pvcs="$orphaned_pvcs $pvc"
+                  echo "  → $pvc (orphaned)"
+                else
+                  echo "  → $pvc (in use by $pod_using_pvc)"
+                fi
+              done
+              
+              # Clean all orphaned PVCs at once if any found
+              if [ -n "$orphaned_pvcs" ]; then
+                echo "Creating atomic cleanup job for orphaned PVCs..."
+                
+                # Build volumeMounts and volumes JSON arrays
+                volume_mounts=""
+                volumes=""
+                idx=0
+                for pvc in $orphaned_pvcs; do
+                  volume_mounts="$volume_mounts{\\\"name\\\":\\\"vol$idx\\\",\\\"mountPath\\\":\\\"/mnt/vol$idx\\\"},"
+                  volumes="$volumes{\\\"name\\\":\\\"vol$idx\\\",\\\"persistentVolumeClaim\\\":{\\\"claimName\\\":\\\"$pvc\\\"}},"
+                  idx=$((idx + 1))
+                done
+                # Remove trailing commas
+                volume_mounts="${volume_mounts%,}"
+                volumes="${volumes%,}"
+                
+                # Create single cleanup job that mounts all orphaned PVCs
+                cleanup_job="pvc-cleanup-$(date +%s)"
+                kubectl run $cleanup_job --image=busybox:1.36 -n telemetry --rm --restart=Never \
+                  --overrides="{\\\"spec\\\":{\\\"containers\\\":[{\\\"name\\\":\\\"cleanup\\\",\\\"image\\\":\\\"busybox:1.36\\\",\\\"command\\\":[\\\"/bin/sh\\\",\\\"-c\\\",\\\"echo Cleaning all orphaned PVCs...; for dir in /mnt/*; do find \$dir \\\\\\\\( -name .lock -o -name '*.sock' -o -name '*.pid' \\\\\\\\) -type f -exec rm -f {} \\\\\\\\; 2>/dev/null || true; done; echo Done\\\"],\\\"volumeMounts\\\":[$volume_mounts]}],\\\"volumes\\\":[$volumes]}}" \
+                  --timeout=120s 2>/dev/null && echo "✓ Cleaned all orphaned PVCs atomically" || echo "✗ Cleanup failed (PVCs might have been claimed)"
+              else
+                echo "No orphaned PVCs found. Skipping cleanup."
+              fi
+              
+              echo "PVC lock file cleanup complete"
+              
               exit 0
           restartPolicy: Never
           serviceAccountName: telemetry-cleaner
