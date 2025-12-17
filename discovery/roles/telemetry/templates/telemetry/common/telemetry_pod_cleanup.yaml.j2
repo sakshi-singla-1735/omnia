@@ -33,6 +33,12 @@ spec:
               now=$(date +%s)
               echo "$pods" | while IFS="|" read -r pod deletion_ts; do
                 if [ -n "$deletion_ts" ]; then
+                  # Skip Kafka pods - let Strimzi operator handle them
+                  if echo "$pod" | grep -q "kafka"; then
+                    echo "Skipping Kafka pod $pod - managed by Strimzi operator"
+                    continue
+                  fi
+                  
                   deletion_time=$(date -d "$deletion_ts" +%s || echo 0)
                   age=$((now - deletion_time))
                   if [ $age -gt 60 ]; then
