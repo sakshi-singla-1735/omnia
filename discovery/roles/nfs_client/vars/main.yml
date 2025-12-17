@@ -27,7 +27,7 @@ nfs_packages:
   Debian:
     - nfs-common
     - nfs4-acl-tools
-slurm_nfs_fail_msg: "Failed to mount NFS share for slurm. Please check if the NFS server is reachable or NFS is configured properly."
+slurm_nfs_fail_msg: "Failed to mount NFS share. Please check if the NFS server is reachable or NFS is configured properly."
 
 omnia_config_vars: "{{ hostvars['localhost']['input_project_dir'] }}/omnia_config.yml"
 omnia_run_tags: "{{ hostvars['localhost']['omnia_run_tags'] }}"
