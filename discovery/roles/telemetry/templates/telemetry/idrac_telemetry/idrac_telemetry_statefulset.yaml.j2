@@ -104,6 +104,14 @@ spec:
             - name: mysqldb-pvc
               mountPath: /var/lib/mysql/
           lifecycle:
+            postStart:
+              exec:
+                command:
+                  - /bin/sh
+                  - -c
+                  - |
+                    # Clean up stale lock files before MySQL starts
+                    rm -f /var/lib/mysql/*.sock /var/lib/mysql/*.pid 2>/dev/null || true
             preStop:
               exec:
                 command: ["/bin/sh", "-c", "mysqladmin shutdown -uroot -p${MYSQL_ROOT_PASSWORD} 2>/dev/null || true"]
