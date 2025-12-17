@@ -62,16 +62,6 @@ spec:
                     # Get PVCs BEFORE deleting pod
                     pvcs=$(kubectl get pod "$pod" -n telemetry -o jsonpath='{.spec.volumes[*].persistentVolumeClaim.claimName}' 2>/dev/null)
                     
-                    # For Kafka: scale down to prevent immediate recreation
-                    if echo "$pod" | grep -q "kafka-broker"; then
-                      broker_num=$(echo "$pod" | sed 's/.*-\([0-9]*\)$/\1/')
-                      echo "  Scaling down Kafka broker nodepool temporarily..."
-                      kubectl patch kafkanodepool broker -n telemetry --type=merge -p "{\"spec\":{\"replicas\":0}}" 2>/dev/null || true
-                    elif echo "$pod" | grep -q "kafka-controller"; then
-                      echo "  Scaling down Kafka controller nodepool temporarily..."
-                      kubectl patch kafkanodepool controller -n telemetry --type=merge -p "{\"spec\":{\"replicas\":0}}" 2>/dev/null || true
-                    fi
-                    
                     # Delete pod
                     if ! echo "$pod" | grep -q "kafka"; then
                       kubectl patch pod "$pod" -n telemetry -p '{"metadata":{"finalizers":[]}}' --type=merge 2>/dev/null || true
@@ -82,27 +72,13 @@ spec:
                     if [ -n "$pvcs" ]; then
                       for pvc in $pvcs; do
                         echo "  → Cleaning $pvc..."
-                        cleanup_pod="clean-$RANDOM"
+                        cleanup_pod="pvc-clean-$RANDOM"
                         
-                        kubectl run $cleanup_pod --image=busybox:1.36 -n telemetry --restart=Never \
-                          --overrides="{\"spec\":{\"containers\":[{\"name\":\"cleanup\",\"image\":\"busybox:1.36\",\"command\":[\"/bin/sh\",\"-c\",\"find /data -type f \\\\( -name .lock -o -name '*.sock' -o -name '*.pid' \\\\) -exec rm -fv {} \\\\; || true\"],\"volumeMounts\":[{\"name\":\"data\",\"mountPath\":\"/data\"}]}],\"volumes\":[{\"name\":\"data\",\"persistentVolumeClaim\":{\"claimName\":\"$pvc\"}}]}}" \
-                          2>/dev/null || echo "  ✗ Failed to create cleanup pod"
-                        
-                        # Wait for cleanup to complete (max 15s)
-                        kubectl wait --for=condition=Ready pod/$cleanup_pod -n telemetry --timeout=15s 2>/dev/null || echo "  ⚠ Cleanup pod still pending"
-                        kubectl logs $cleanup_pod -n telemetry 2>/dev/null || true
-                        kubectl delete pod $cleanup_pod -n telemetry 2>/dev/null || true
+                        kubectl run $cleanup_pod --image=busybox:1.36 -n telemetry -it --rm --restart=Never \
+                          --overrides="{\"spec\":{\"containers\":[{\"name\":\"cleanup\",\"image\":\"busybox:1.36\",\"command\":[\"sh\",\"-c\",\"find /data -type f \\\\( -name .lock -o -name '*.sock' -o -name '*.pid' \\\\) -exec rm -fv {} \\\\; && echo Done\"],\"volumeMounts\":[{\"name\":\"data\",\"mountPath\":\"/data\"}]}],\"volumes\":[{\"name\":\"data\",\"persistentVolumeClaim\":{\"claimName\":\"$pvc\"}}]}}" \
+                          2>/dev/null || echo "  ✗ Cleanup failed for $pvc"
                       done
                       echo "  ✓ Cleaned PVCs for $pod"
-                      
-                      # Scale Kafka back up
-                      if echo "$pod" | grep -q "kafka-broker"; then
-                        echo "  Scaling Kafka broker nodepool back up..."
-                        kubectl patch kafkanodepool broker -n telemetry --type=merge -p '{"spec":{"replicas":{{ kafka.node_pools.broker.replicas }}}}' 2>/dev/null || true
-                      elif echo "$pod" | grep -q "kafka-controller"; then
-                        echo "  Scaling Kafka controller nodepool back up..."
-                        kubectl patch kafkanodepool controller -n telemetry --type=merge -p '{"spec":{"replicas":{{ kafka.node_pools.controller.replicas }}}}' 2>/dev/null || true
-                      fi
                     fi
               else
                     echo "→ Pod $pod terminating for $age seconds (threshold: ${threshold}s). Skipping."
