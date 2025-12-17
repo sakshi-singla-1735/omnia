@@ -59,8 +59,10 @@
         state: mounted # This is needed to add entry to fstab
         fstype: nfs
 
-    - name: Mount all fstab # TODO: only required mounts
-      ansible.builtin.command: "mount -a" # noqa: command-instead-of-module
+    - name: Mount only the current nfs item # noqa: command-instead-of-module
+      ansible.builtin.command: >
+        mount -t nfs -o {{ item.client_mount_options | default(default_client_mount_options) }}
+        {{ nfs_src }} {{ client_mount_path }}
       register: mount_result
       changed_when: mount_result.rc == 0
       failed_when: mount_result.rc != 0

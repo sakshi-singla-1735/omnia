@@ -88,6 +88,21 @@
   when: cmpt_list or login_list or compiler_login_list
   loop: "{{ (cmpt_list + login_list + compiler_login_list) | product(cmpt_dir) }}"
 
+- name: Create the cert directory on share
+  ansible.builtin.file:
+    path: "{{ slurm_config_path }}/cert"
+    state: directory
+    owner: root
+    group: root
+    mode: "{{ common_mode }}"
+
+- name: Copy pulp webserver certificate to client_share_path
+  ansible.builtin.copy:
+    src: "{{ pulp_webserver_cert_path }}"
+    dest: "{{ slurm_config_path }}/cert"
+    mode: "{{ file_mode }}"
+  become: true
+
 - name: Create the cuda directory on share
   ansible.builtin.file:
     path: "{{ slurm_config_path }}/cuda"
@@ -284,3 +299,4 @@
 - name: NFS path for ucx, openmpi and ldms cloud init
   ansible.builtin.set_fact:
     cloud_init_slurm_nfs_path: "{{ nfs_server_ip }}:{{ nfs_server_path }}"
+    client_mount_path: "{{ share_path }}"

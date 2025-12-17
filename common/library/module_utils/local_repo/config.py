@@ -119,6 +119,16 @@ OMNIA_CREDENTIALS_VAULT_PATH = "/opt/omnia/input/project_default/.omnia_config_c
 # Used by process_rpm_config.py
 # ----------------------------
 
+# Pulp Sync Concurrency Settings
+# Controls the number of concurrent sync/publish operations
+# For NFS storage: Use 1 for maximum reliability (prevents 500/502/504 errors)
+# For local storage: Use 2 for optimal performance
+# For high-performance SAN: Can try 3-4 (monitor for errors)
+# Note :  PULP_SYNC_CONCURRENCY & PULP_PUBLISH_CONCURRENCY should have same values [ Recommeded]
+# If you face more sync /publication issues update the PULP_SYNC_CONCURRENCY & PULP_PUBLISH_CONCURRENCY to 1
+PULP_SYNC_CONCURRENCY = 2
+PULP_PUBLISH_CONCURRENCY = 2
+
 pulp_rpm_commands = {
     "create_repository": "pulp rpm repository create --name %s",
     "pulp_cleanup": "pulp orphan cleanup",
