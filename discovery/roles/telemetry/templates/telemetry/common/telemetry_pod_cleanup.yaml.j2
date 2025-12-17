@@ -11,7 +11,7 @@ spec:
   jobTemplate:
     spec:
       ttlSecondsAfterFinished: 60 # Auto-delete job and pod after 60s
-      activeDeadlineSeconds: 300 # Kill job if it runs longer than 5 minutes (multiple PVCs)
+      activeDeadlineSeconds: 180 # Kill job if it runs longer than 3 minutes
       template:
         spec:
           tolerations:
@@ -32,87 +32,85 @@ spec:
             - |
               apk add --no-cache coreutils
               set -e
-              pods=$(kubectl get pods -n telemetry \
-                -o jsonpath='{range .items[*]}{.metadata.name}{"|"}{.metadata.deletionTimestamp}{"\n"}{end}')
 
-              if [ -z "$pods" ]; then
+              # Get all terminating pods
+              terminating=$(kubectl get pods -n telemetry -o jsonpath='{range .items[?(@.metadata.deletionTimestamp)]}{.metadata.name}{"\n"}{end}')
+              
+              if [ -z "$terminating" ]; then
                 echo "No terminating pods found"
-                exit 0
-              fi
-
+              else
               now=$(date +%s)
-              echo "$pods" | while IFS="|" read -r pod deletion_ts; do
-                if [ -n "$deletion_ts" ]; then
+                
+                for pod in $terminating; do
+                  deletion_ts=$(kubectl get pod "$pod" -n telemetry -o jsonpath='{.metadata.deletionTimestamp}' 2>/dev/null)
+                  if [ -z "$deletion_ts" ]; then
+                    continue
+                  fi
+                  
                   deletion_time=$(date -d "$deletion_ts" +%s || echo 0)
                   age=$((now - deletion_time))
                   
-                  # Kafka pods: wait 5 minutes before cleanup (no patch)
+                  # Check age threshold (300s for Kafka, 60s for others)
+                  threshold=60
                   if echo "$pod" | grep -q "kafka"; then
-                    if [ $age -gt 300 ]; then
-                      echo "Kafka pod $pod stuck for $age seconds (threshold: 300s). Force deleting..."
-                      kubectl delete pod "$pod" -n telemetry --grace-period=0 --force || true
-                    else
-                      echo "Kafka pod $pod terminating for $age seconds. Waiting for Strimzi..."
-                    fi
-                  # Other pods: wait 60 seconds, patch finalizers then delete
-                  else
-                    if [ $age -gt 60 ]; then
-                      echo "Pod $pod has been terminating for $age seconds. Cleaning up..."
-                      kubectl patch pod "$pod" -n telemetry -p '{"metadata":{"finalizers":[]}}' --type=merge || true
-                      kubectl delete pod "$pod" -n telemetry --grace-period=0 --force || true
-                    else
-                      echo "Pod $pod is terminating but only for $age seconds. Skipping."
-                    fi
+                    threshold=300
                   fi
-                fi
-              done
-              echo "Pod cleanup complete"
-              
-              # Additional cleanup: Remove lock files from orphaned PVCs (atomic approach)
-              echo "Checking for orphaned PVCs..."
-              
-              # Get all PVCs in telemetry namespace
-              all_pvcs=$(kubectl get pvc -n telemetry -o jsonpath='{.items[*].metadata.name}')
-              
-              # Collect orphaned PVCs
-              orphaned_pvcs=""
-              for pvc in $all_pvcs; do
-                pod_using_pvc=$(kubectl get pods -n telemetry -o jsonpath="{.items[?(@.spec.volumes[*].persistentVolumeClaim.claimName=='$pvc')].metadata.name}" 2>/dev/null)
-                if [ -z "$pod_using_pvc" ]; then
-                  orphaned_pvcs="$orphaned_pvcs $pvc"
-                  echo "  → $pvc (orphaned)"
-                else
-                  echo "  → $pvc (in use by $pod_using_pvc)"
-                fi
-              done
-              
-              # Clean all orphaned PVCs at once if any found
-              if [ -n "$orphaned_pvcs" ]; then
-                echo "Creating atomic cleanup job for orphaned PVCs..."
-                
-                # Build volumeMounts and volumes JSON arrays
-                volume_mounts=""
-                volumes=""
-                idx=0
-                for pvc in $orphaned_pvcs; do
-                  volume_mounts="$volume_mounts{\\\"name\\\":\\\"vol$idx\\\",\\\"mountPath\\\":\\\"/mnt/vol$idx\\\"},"
-                  volumes="$volumes{\\\"name\\\":\\\"vol$idx\\\",\\\"persistentVolumeClaim\\\":{\\\"claimName\\\":\\\"$pvc\\\"}},"
-                  idx=$((idx + 1))
-                done
-                # Remove trailing commas
-                volume_mounts="${volume_mounts%,}"
-                volumes="${volumes%,}"
-                
-                # Create single cleanup job that mounts all orphaned PVCs with recursive search
-                cleanup_job="pvc-cleanup-$(date +%s)"
-                kubectl run $cleanup_job --image=busybox:1.36 -n telemetry --rm --restart=Never \
-                  --overrides="{\\\"spec\\\":{\\\"containers\\\":[{\\\"name\\\":\\\"cleanup\\\",\\\"image\\\":\\\"busybox:1.36\\\",\\\"command\\\":[\\\"/bin/sh\\\",\\\"-c\\\",\\\"echo Cleaning all orphaned PVCs...; for dir in /mnt/*; do echo Checking \$dir...; find \$dir -type f \\\\\\\\( -name .lock -o -name '*.sock' -o -name '*.pid' \\\\\\\\) -exec rm -fv {} \\\\\\\\; 2>&1 || true; done; echo Done\\\"],\\\"volumeMounts\\\":[$volume_mounts]}],\\\"volumes\\\":[$volumes]}}" \
-                  --timeout=120s 2>/dev/null && echo "✓ Cleaned all orphaned PVCs atomically" || echo "✗ Cleanup failed (PVCs might have been claimed)"
+                  
+                  if [ $age -gt $threshold ]; then
+                    echo "→ Pod $pod stuck for $age seconds. Processing..."
+                    
+                    # Get PVCs BEFORE deleting pod
+                    pvcs=$(kubectl get pod "$pod" -n telemetry -o jsonpath='{.spec.volumes[*].persistentVolumeClaim.claimName}' 2>/dev/null)
+                    
+                    # For Kafka: scale down to prevent immediate recreation
+                    if echo "$pod" | grep -q "kafka-broker"; then
+                      broker_num=$(echo "$pod" | sed 's/.*-\([0-9]*\)$/\1/')
+                      echo "  Scaling down Kafka broker nodepool temporarily..."
+                      kubectl patch kafkanodepool broker -n telemetry --type=merge -p "{\"spec\":{\"replicas\":0}}" 2>/dev/null || true
+                    elif echo "$pod" | grep -q "kafka-controller"; then
+                      echo "  Scaling down Kafka controller nodepool temporarily..."
+                      kubectl patch kafkanodepool controller -n telemetry --type=merge -p "{\"spec\":{\"replicas\":0}}" 2>/dev/null || true
+                    fi
+                    
+                    # Delete pod
+                    if ! echo "$pod" | grep -q "kafka"; then
+                      kubectl patch pod "$pod" -n telemetry -p '{"metadata":{"finalizers":[]}}' --type=merge 2>/dev/null || true
+                    fi
+                    kubectl delete pod "$pod" -n telemetry --grace-period=0 --force 2>/dev/null || true
+                    
+                    # Clean PVCs if any
+                    if [ -n "$pvcs" ]; then
+                      for pvc in $pvcs; do
+                        echo "  → Cleaning $pvc..."
+                        cleanup_pod="clean-$RANDOM"
+                        
+                        kubectl run $cleanup_pod --image=busybox:1.36 -n telemetry --restart=Never \
+                          --overrides="{\"spec\":{\"containers\":[{\"name\":\"cleanup\",\"image\":\"busybox:1.36\",\"command\":[\"/bin/sh\",\"-c\",\"find /data -type f \\\\( -name .lock -o -name '*.sock' -o -name '*.pid' \\\\) -exec rm -fv {} \\\\; || true\"],\"volumeMounts\":[{\"name\":\"data\",\"mountPath\":\"/data\"}]}],\"volumes\":[{\"name\":\"data\",\"persistentVolumeClaim\":{\"claimName\":\"$pvc\"}}]}}" \
+                          2>/dev/null || echo "  ✗ Failed to create cleanup pod"
+                        
+                        # Wait for cleanup to complete (max 15s)
+                        kubectl wait --for=condition=Ready pod/$cleanup_pod -n telemetry --timeout=15s 2>/dev/null || echo "  ⚠ Cleanup pod still pending"
+                        kubectl logs $cleanup_pod -n telemetry 2>/dev/null || true
+                        kubectl delete pod $cleanup_pod -n telemetry 2>/dev/null || true
+                      done
+                      echo "  ✓ Cleaned PVCs for $pod"
+                      
+                      # Scale Kafka back up
+                      if echo "$pod" | grep -q "kafka-broker"; then
+                        echo "  Scaling Kafka broker nodepool back up..."
+                        kubectl patch kafkanodepool broker -n telemetry --type=merge -p '{"spec":{"replicas":{{ kafka.node_pools.broker.replicas }}}}' 2>/dev/null || true
+                      elif echo "$pod" | grep -q "kafka-controller"; then
+                        echo "  Scaling Kafka controller nodepool back up..."
+                        kubectl patch kafkanodepool controller -n telemetry --type=merge -p '{"spec":{"replicas":{{ kafka.node_pools.controller.replicas }}}}' 2>/dev/null || true
+                      fi
+                    fi
               else
-                echo "No orphaned PVCs found. Skipping cleanup."
+                    echo "→ Pod $pod terminating for $age seconds (threshold: ${threshold}s). Skipping."
+                  fi
+                done
               fi
               
-              echo "PVC lock file cleanup complete"
+              echo "Cleanup complete"
               
               exit 0
           restartPolicy: Never
