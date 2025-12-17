@@ -5,14 +5,24 @@ metadata:
   name: pod-cleanup
   namespace: telemetry
 spec:
-  schedule: "*/5 * * * *" # Every 5 minutes
+  schedule: "*/3 * * * *" # Every 3 minutes
   successfulJobsHistoryLimit: 1   # Keep only 1 successful job
   failedJobsHistoryLimit: 1       # Keep only 1 failed job
   jobTemplate:
     spec:
       ttlSecondsAfterFinished: 60 # Auto-delete job and pod after 60s
+      activeDeadlineSeconds: 180 # Kill job if it runs longer than 3 minutes
       template:
         spec:
+          tolerations:
+          - effect: NoExecute
+            key: node.kubernetes.io/not-ready
+            operator: Exists
+            tolerationSeconds: 30  # Evict after 30s if node is not ready
+          - effect: NoExecute
+            key: node.kubernetes.io/unreachable
+            operator: Exists
+            tolerationSeconds: 30  # Evict after 30s if node is unreachable
           containers:
           - name: kubectl-cleanup
             image: docker.io/alpine/kubectl:1.34.1
@@ -33,20 +43,26 @@ spec:
               now=$(date +%s)
               echo "$pods" | while IFS="|" read -r pod deletion_ts; do
                 if [ -n "$deletion_ts" ]; then
-                  # Skip Kafka pods - let Strimzi operator handle them
-                  if echo "$pod" | grep -q "kafka"; then
-                    echo "Skipping Kafka pod $pod - managed by Strimzi operator"
-                    continue
-                  fi
-                  
                   deletion_time=$(date -d "$deletion_ts" +%s || echo 0)
                   age=$((now - deletion_time))
-                  if [ $age -gt 60 ]; then
-                    echo "Pod $pod has been terminating for $age seconds. Cleaning up..."
-                    kubectl patch pod "$pod" -n telemetry -p '{"metadata":{"finalizers":[]}}' --type=merge || true
-                    kubectl delete pod "$pod" -n telemetry --grace-period=0 --force || true
+                  
+                  # Kafka pods: wait 5 minutes before cleanup (no patch)
+                  if echo "$pod" | grep -q "kafka"; then
+                    if [ $age -gt 300 ]; then
+                      echo "Kafka pod $pod stuck for $age seconds (threshold: 300s). Force deleting..."
+                      kubectl delete pod "$pod" -n telemetry --grace-period=0 --force || true
+                    else
+                      echo "Kafka pod $pod terminating for $age seconds. Waiting for Strimzi..."
+                    fi
+                  # Other pods: wait 60 seconds, patch finalizers then delete
                   else
-                    echo "Pod $pod is terminating but only for $age seconds. Skipping."
+                    if [ $age -gt 60 ]; then
+                      echo "Pod $pod has been terminating for $age seconds. Cleaning up..."
+                      kubectl patch pod "$pod" -n telemetry -p '{"metadata":{"finalizers":[]}}' --type=merge || true
+                      kubectl delete pod "$pod" -n telemetry --grace-period=0 --force || true
+                    else
+                      echo "Pod $pod is terminating but only for $age seconds. Skipping."
+                    fi
                   fi
                 fi
               done
