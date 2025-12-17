@@ -1,5 +1,5 @@
 nodes:
-{% for item in nodes %}
+{% for item in nodes | sort(attribute='value.XNAME') %}
 - name: {{ item.value.HOSTNAME }}
   xname: {{ item.value.XNAME }}
   description: {{ item.value.SERVICE_TAG }}
