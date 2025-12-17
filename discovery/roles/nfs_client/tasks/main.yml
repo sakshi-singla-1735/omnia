@@ -43,10 +43,28 @@
     - name: Select the nfs client parameters for slurm
       ansible.builtin.set_fact:
         slurm_nfs: "{{ nfs_client_params | selectattr('nfs_name', 'in', filter_slurm_nfs) | list }}"
+    - name: Select workloads NFS for slurm if defined
+      ansible.builtin.set_fact:
+        slurm_workloads_nfs: "{{ nfs_client_params | selectattr('nfs_name', 'equalto', 'nfs_slurm_workloads') | list }}"
+
+    - name: Validate workloads NFS server matches slurm NFS server
+      ansible.builtin.assert:
+        that:
+          - slurm_workloads_nfs | length == 0
+            or (slurm_nfs | length > 0
+                and (slurm_workloads_nfs | first).server_ip == (slurm_nfs | first).server_ip)
+        fail_msg: >
+          nfs_slurm_workloads is defined in storage_config.yml but its server_ip
+          does not match the server_ip of the Slurm NFS ({{ (slurm_nfs | first).nfs_name }}).
+      when: slurm_workloads_nfs is defined
 
     - name: Add the slurm nfs
       ansible.builtin.set_fact:
         storage_to_be_mounted: "{{ storage_to_be_mounted + slurm_nfs }}"
+
+    - name: Add the slurm workloads nfs
+      ansible.builtin.set_fact:
+        storage_to_be_mounted: "{{ storage_to_be_mounted + slurm_workloads_nfs }}"
 
 - name: Block for filtering service_k8s mounts
   when: ('service_k8s' in omnia_run_tags) and (service_k8s_support)

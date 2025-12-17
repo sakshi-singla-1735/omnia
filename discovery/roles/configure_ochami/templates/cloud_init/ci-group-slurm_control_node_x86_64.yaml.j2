@@ -241,7 +241,28 @@
          - useradd -mG wheel -p '$6$VHdSKZNm$O3iFYmRiaFQCemQJjhfrpqqV7DdHBi5YpY6Aq06JSQpABPw.3d8PQ8bNY9NuZSmDv7IL/TsrhRJ6btkgKaonT.' testuser # Required??
          - groupadd -r {{ slurm_group_name }}
          - useradd -r -g {{ slurm_group_name }} -d {{ home_dir }} -s /sbin/nologin {{ user }}
+         # add dns entries for powerscale
+         - |
+          tmpfile=$(mktemp)
+          # Extract the first 'search' line only (ignore duplicates)
+          search_line=$(grep '^search' /etc/resolv.conf | head -n1)
+          [ -n "$search_line" ] && echo "$search_line" > "$tmpfile"
 
+          # Add your new nameserver entries
+          {% for ns in dns %}
+          echo "nameserver {{ ns }}" >> "$tmpfile"
+          {% endfor %}
+
+          # Add remaining lines except search and empty lines
+          grep -v '^search' /etc/resolv.conf | grep -v '^$' >> "$tmpfile"
+
+          # Remove duplicate lines
+          awk '!seen[$0]++' "$tmpfile" > /etc/resolv.conf
+        - |
+          if command -v chattr >/dev/null 2>&1; then
+            chattr +i /etc/resolv.conf || true
+          fi
+        
         # Create directories for nfs and mount all
          - mkdir -p /var/log/slurm /etc/slurm {{ home_dir }} /etc/my.cnf.d /etc/munge /var/lib/mysql /var/log/mariadb /cert /var/log/track
          - echo "{{ cloud_init_nfs_path }}/cert  /cert   nfs defaults,_netdev 0 0" >> /etc/fstab

@@ -44,6 +44,13 @@ nfs_client_params:
     client_share_path: /share_omnia
     client_mount_options: "nosuid,rw,sync,hard,intr"
     nfs_name: nfs_slurm
+  
+  # New workloads NFS for images + logs (same server_ip as nfs_slurm)
+  - server_ip: "172.16.107.168" # Must match nfs_slurm for validation to pass
+    server_share_path: "/mnt/share/omnia_workloads" # Export for images + logs
+    client_share_path: /share_omnia_workloads       # Mounted on controller/login/worker
+    client_mount_options: "nosuid,rw,sync,hard,intr"
+    nfs_name: nfs_slurm_workloads
 
   - server_ip: "172.16.107.121" # Provide the IP of the NFS server
     server_share_path: "/mnt/share/omnia_k8s" # Provide server share path of the NFS Server

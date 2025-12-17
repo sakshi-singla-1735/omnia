@@ -401,7 +401,28 @@
         - firewall-cmd --permanent --add-port={{ ldap_starttls_port }}/tcp
         - firewall-cmd --permanent --add-port={{ ldap_ssl_port }}/tcp
         - firewall-cmd --reload
+        # add dns entries for powerscale
+        - |
+          tmpfile=$(mktemp)
+          # Extract the first 'search' line only (ignore duplicates)
+          search_line=$(grep '^search' /etc/resolv.conf | head -n1)
+          [ -n "$search_line" ] && echo "$search_line" > "$tmpfile"
 
+          # Add your new nameserver entries
+          {% for ns in dns %}
+          echo "nameserver {{ ns }}" >> "$tmpfile"
+          {% endfor %}
+
+          # Add remaining lines except search and empty lines
+          grep -v '^search' /etc/resolv.conf | grep -v '^$' >> "$tmpfile"
+
+          # Remove duplicate lines
+          awk '!seen[$0]++' "$tmpfile" > /etc/resolv.conf
+        - |
+          if command -v chattr >/dev/null 2>&1; then
+            chattr +i /etc/resolv.conf || true
+          fi
+      
         - setenforce 0
         - authselect select sssd with-mkhomedir --force
         - sudo systemctl enable --now oddjobd.service
