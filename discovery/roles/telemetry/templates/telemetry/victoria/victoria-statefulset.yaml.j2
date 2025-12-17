@@ -118,7 +118,7 @@ spec:
     - metadata:
         name: victoria-metrics-pvc
       spec:
-        accessModes: ["ReadWriteMany"]
+        accessModes: ["ReadWriteOnce"]
         resources:
           requests:
             storage: "{{ hostvars['localhost']['victoria_configurations']['persistence_size'] }}"
