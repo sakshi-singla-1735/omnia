@@ -19,7 +19,6 @@
       { "package": "docker.io/victoriametrics/vmselect", "type": "image", "tag": "v1.128.0-cluster" },
       { "package": "docker.io/alpine/kubectl", "tag": "1.34.1", "type": "image" },
       { "package": "docker.io/curlimages/curl", "type": "image", "tag": "8.17.0" },
-      { "package": "docker.io/library/golang", "type": "image", "tag": "1.24" },
       { "package": "docker.io/rmohr/activemq", "type": "image", "tag": "5.15.9" },
       { "package": "docker.io/library/mysql", "type": "image", "tag": "9.3.0" },
       { "package": "docker.io/dellhpcomniaaisolution/idrac_telemetry_receiver", "type": "image", "tag": "1.0" },
