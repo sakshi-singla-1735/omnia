@@ -395,6 +395,7 @@
         - echo "{{ cloud_init_nfs_path_openldap }}/ldapuser             /home            nfs defaults,_netdev 0 0" >> /etc/fstab
         - chmod {{ file_mode }} /etc/fstab
         - mount -a
+        
         - yes | cp /ldapcerts/* /etc/openldap/certs
         - umount /ldapcerts
 

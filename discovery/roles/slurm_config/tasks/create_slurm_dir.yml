@@ -82,6 +82,33 @@
     group: root
     mode: "{{ common_mode }}"
 
+# Create the certificate directory on share
+- name: Create the cert directory on share
+  ansible.builtin.file:
+    path: "{{ slurm_config_path }}/cert"
+    state: directory
+    owner: root
+    group: root
+    mode: "{{ common_mode }}"
+
+- name: Copy OIM SSH public key to cert directory on share
+  ansible.builtin.copy:
+    src: "{{ ssh_public_key_path }}"
+    dest: "{{ slurm_config_path }}/cert/oim_rsa.pub"
+    owner: root
+    group: root
+    mode: "{{ file_mode }}"
+  become: true
+
+- name: Copy OIM SSH private key to cert directory on share
+  ansible.builtin.copy:
+    src: "{{ ssh_private_key_path }}"
+    dest: "{{ slurm_config_path }}/cert/oim_rsa"
+    owner: root
+    group: root
+    mode: "{{ file_mode }}"
+  become: true
+
 # This directory is created to store the controller track file in NFS
 # The track file is generated only after the Slurm controller has been fully configured in a fresh deployment
 - name: Create directory for controller init track file in share

@@ -274,8 +274,34 @@
          - echo "{{ cloud_init_nfs_path }}/$(hostname -s)/var/spool      /var/spool       nfs defaults,_netdev 0 0" >> /etc/fstab
          - echo "{{ cloud_init_nfs_path }}/$(hostname -s)/etc/munge      /etc/munge       nfs defaults,_netdev 0 0" >> /etc/fstab
          - echo "{{ trackfile_nfs_path }}    /var/log/track       nfs defaults,_netdev 0 0" >> /etc/fstab
+         - echo "{{ cloud_init_nfs_path }}/cert  /cert   nfs defaults,_netdev 0 0" >> /etc/fstab
          - chmod {{ file_mode }} /etc/fstab
          - mount -a
+         # === SSH key setup from /cert (added) ===
+         - |
+           mkdir -p /root/.ssh
+           chmod 700 /root/.ssh
+
+           # Copy public key if present on NFS
+           if [ -f /cert/oim_rsa.pub ]; then
+             cp /cert/oim_rsa.pub /root/.ssh/oim_rsa.pub
+           fi
+
+           # Copy private key if present on NFS and use it as default identity
+           if [ -f /cert/oim_rsa ]; then
+             cp /cert/oim_rsa /root/.ssh/oim_rsa
+             chmod 600 /root/.ssh/oim_rsa
+             ln -sf /root/.ssh/oim_rsa /root/.ssh/id_rsa
+           fi
+         - |
+           # Populate known_hosts for Slurm peers (optional)
+           mkdir -p /root/.ssh
+           touch /root/.ssh/known_hosts
+           chmod 600 /root/.ssh/known_hosts
+{% for key in ip_name_map | sort %}
+           ssh-keyscan -T 5 {{ ip_name_map[key] }} {{ key }} 2>/dev/null >> /root/.ssh/known_hosts
+{% endfor %}
+         # === end SSH key setup ===
 
          - chown -R {{ user }}:{{ slurm_group_name }} {{ home_dir }}
          - chmod {{ file_mode_755 }} {{ home_dir }}
@@ -308,6 +334,9 @@
          - echo "{{ cloud_init_nfs_path_openldap }}/ldapuser             /home            nfs defaults,_netdev 0 0" >> /etc/fstab
          - chmod {{ file_mode }} /etc/fstab
          - mount -a
+         - chown -R {{ user }}:{{ slurm_group_name }} {{ home_dir }}
+         # ssh-key pair addition
+
          - yes | cp /ldapcerts/* /etc/openldap/certs
          - umount /ldapcerts
 

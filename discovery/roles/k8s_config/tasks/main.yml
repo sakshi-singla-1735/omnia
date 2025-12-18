@@ -16,3 +16,27 @@
 - name: Creating the configuration files required for service_k8s in nfs share
   ansible.builtin.include_tasks: create_k8s_config_nfs.yml
   when: hostvars['localhost']['service_k8s_support']
+
+- name: Ensure ssh_keys directory exists on K8s NFS share
+  ansible.builtin.file:
+    path: "{{ k8s_server_share_path }}/ssh_keys"
+    state: directory
+    owner: root
+    group: root
+    mode: "0700"
+
+- name: Copy OIM SSH public key to K8s NFS share
+  ansible.builtin.copy:
+    src: "/root/.ssh/oim_rsa.pub"
+    dest: "{{ k8s_server_share_path }}/ssh_keys/oim_rsa.pub"
+    owner: root
+    group: root
+    mode: "0600"
+
+- name: Copy OIM SSH private key to K8s NFS share
+  ansible.builtin.copy:
+    src: "/root/.ssh/oim_rsa"
+    dest: "{{ k8s_server_share_path }}/ssh_keys/oim_rsa"
+    owner: root
+    group: root
+    mode: "0600"

@@ -202,6 +202,23 @@
           fi
         - systemctl restart rpcbind
         - mount -a
+        # === SSH key setup from /cert (added) ===
+        - |
+           mkdir -p /root/.ssh
+           chmod 700 /root/.ssh
+
+           # Copy public key if present on NFS
+           if [ -f /cert/oim_rsa.pub ]; then
+             cp /cert/oim_rsa.pub /root/.ssh/oim_rsa.pub
+           fi
+
+           # Copy private key if present on NFS and use it as default identity
+           if [ -f /cert/oim_rsa ]; then
+             cp /cert/oim_rsa /root/.ssh/oim_rsa
+             chmod 600 /root/.ssh/oim_rsa
+             ln -sf /root/.ssh/oim_rsa /root/.ssh/id_rsa
+           fi
+        # === SSH key setup end ===
         - systemctl start crio.service
         - systemctl enable crio.service
         - sudo systemctl enable --now kubelet
