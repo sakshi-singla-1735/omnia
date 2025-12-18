@@ -24,6 +24,7 @@
     owner: root
     group: root
     mode: "0700"
+  when: hostvars['localhost']['service_k8s_support']
 
 - name: Copy OIM SSH public key to K8s NFS share
   ansible.builtin.copy:
@@ -32,6 +33,7 @@
     owner: root
     group: root
     mode: "0600"
+  when: hostvars['localhost']['service_k8s_support']
 
 - name: Copy OIM SSH private key to K8s NFS share
   ansible.builtin.copy:
@@ -40,3 +42,4 @@
     owner: root
     group: root
     mode: "0600"
+  when: hostvars['localhost']['service_k8s_support']
