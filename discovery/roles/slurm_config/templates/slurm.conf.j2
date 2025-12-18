@@ -9,6 +9,13 @@ SlurmctldHost={{ ctld }}
 SlurmctldParameters={{ slurm_ctld_parameters | join(',') }}
 {% endif %}
 PluginDir={{ installroot }}{{ plugin_slurm_dir }}
+
+{# Job completion logs on workloads NFS, only if workloads share is defined #}
+{% if slurm_workloads_logs_path is defined %}
+JobCompType=jobcomp/filetxt
+JobCompLoc={{ slurm_workloads_logs_path }}/slurm_jobs.log
+{% endif %}
+
 {% for key in apply_config['slurm'] | sort %}
 {% set val = apply_config['slurm'][key] %}
 {% if val is not none and val != omit %}

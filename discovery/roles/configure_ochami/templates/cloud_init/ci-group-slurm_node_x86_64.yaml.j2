@@ -393,6 +393,10 @@
         - mkdir /ldapcerts
         - echo "{{ cloud_init_nfs_path_openldap }}/certs                /ldapcerts       nfs defaults,_netdev 0 0" >> /etc/fstab
         - echo "{{ cloud_init_nfs_path_openldap }}/ldapuser             /home            nfs defaults,_netdev 0 0" >> /etc/fstab
+{% if slurm_workloads_logs_path is defined %}
+         - mkdir -p /slurm_workloads/logs
+         - echo "{{ slurm_workloads_logs_path }}  /slurm_workloads/logs   none bind  0 0" >> /etc/fstab
+{% endif %}
         - chmod {{ file_mode }} /etc/fstab
         - mount -a
         
