@@ -98,6 +98,7 @@
     owner: root
     group: root
     mode: "{{ file_mode }}"
+    remote_src: true
   become: true
 
 - name: Copy OIM SSH private key to cert directory on share
@@ -107,6 +108,7 @@
     owner: root
     group: root
     mode: "{{ file_mode }}"
+    remote_src: true
   become: true
 
 # This directory is created to store the controller track file in NFS
