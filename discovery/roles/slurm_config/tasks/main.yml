@@ -21,6 +21,19 @@
   ansible.builtin.set_fact:
     slurm_support: "{{ software_config.softwares | selectattr('name', 'in', ['slurm', 'slurm_custom']) | list | length > 0 }}"
 
+- name: Check if csi driver support is true
+  ansible.builtin.set_fact:
+    csi_slurm_support: >-
+      {{ software_config.softwares
+         | selectattr('name', 'in', ['csi_driver_powerscale'])
+         | list
+         | length > 0 }}
+
+- name: Copy DNS from localhost when CSI is enabled
+  ansible.builtin.set_fact:
+    dns: "{{ hostvars['localhost']['dns'] | default([]) }}"
+  when: csi_slurm_support
+
 - name: Get the slurm hostnames
   ansible.builtin.include_tasks: read_slurm_hostnames.yml
   when: slurm_support

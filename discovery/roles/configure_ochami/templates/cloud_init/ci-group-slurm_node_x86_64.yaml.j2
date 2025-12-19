@@ -381,7 +381,29 @@
         - /usr/local/bin/configure_dirs_and_mounts.sh
         - /usr/local/bin/configure_slurmd_setup.sh
         - /usr/local/bin/configure_munge_and_pam.sh
+        # add dns entries for powerscale
+{% if csi_slurm_support %}
+        - |
+          tmpfile=$(mktemp)
+          # Extract the first 'search' line only (ignore duplicates)
+          search_line=$(grep '^search' /etc/resolv.conf | head -n1)
+          [ -n "$search_line" ] && echo "$search_line" > "$tmpfile"
 
+          # Add your new nameserver entries
+          {% for ns in dns %}
+          echo "nameserver {{ ns }}" >> "$tmpfile"
+          {% endfor %}
+
+          # Add remaining lines except search and empty lines
+          grep -v '^search' /etc/resolv.conf | grep -v '^$' >> "$tmpfile"
+
+          # Remove duplicate lines
+          awk '!seen[$0]++' "$tmpfile" > /etc/resolv.conf
+        - |
+          if command -v chattr >/dev/null 2>&1; then
+            chattr +i /etc/resolv.conf || true
+          fi
+{% endif %}
         - cp /cert/pulp_webserver.crt /etc/pki/ca-trust/source/anchors && update-ca-trust
         - sed -i 's/^gpgcheck=1/gpgcheck=0/' /etc/dnf/dnf.conf
 

@@ -104,6 +104,29 @@
         - echo "{{ cloud_init_nfs_path }}/$(hostname -s)/etc/munge      /etc/munge       nfs defaults,_netdev 0 0" >> /etc/fstab
         - echo "{{ trackfile_nfs_path }}    /var/log/track       nfs defaults,_netdev 0 0" >> /etc/fstab
         - chmod {{ file_mode }} /etc/fstab
+        # add dns entries for powerscale
+{% if csi_slurm_support %}
+        - |
+          tmpfile=$(mktemp)
+          # Extract the first 'search' line only (ignore duplicates)
+          search_line=$(grep '^search' /etc/resolv.conf | head -n1)
+          [ -n "$search_line" ] && echo "$search_line" > "$tmpfile"
+
+          # Add your new nameserver entries
+          {% for ns in dns %}
+          echo "nameserver {{ ns }}" >> "$tmpfile"
+          {% endfor %}
+
+          # Add remaining lines except search and empty lines
+          grep -v '^search' /etc/resolv.conf | grep -v '^$' >> "$tmpfile"
+
+          # Remove duplicate lines
+          awk '!seen[$0]++' "$tmpfile" > /etc/resolv.conf
+        - |
+          if command -v chattr >/dev/null 2>&1; then
+            chattr +i /etc/resolv.conf || true
+          fi
+{% endif %}
         - mount -a
         - yes | cp /etc/slurm/epilog.d/slurmd.service /usr/lib/systemd/system/
         - /usr/local/bin/check_slurm_controller_status.sh
