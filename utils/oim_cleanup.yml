@@ -46,3 +46,13 @@
   roles:
     - oim_cleanup/omnia_credential_cleanup # noqa:role-name[path]
   tags: credentials
+
+- name: Show cleanup instructions
+  hosts: oim
+  connection: ssh
+  gather_facts: false
+  tasks:
+    - name: Display Omnia post-cleanup notes
+      ansible.builtin.include_role:
+        name: oim_cleanup/oim_container_cleanup
+        tasks_from: cleanup_note.yml
