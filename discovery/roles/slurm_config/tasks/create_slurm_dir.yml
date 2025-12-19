@@ -28,6 +28,45 @@
     nfs_server_ip: "{{ (nfs_client_params | selectattr('nfs_name', 'equalto', nfs_storage_name) | first).server_ip }}"
     nfs_server_path: "{{ (nfs_client_params | selectattr('nfs_name', 'equalto', nfs_storage_name) | first).server_share_path }}"
 
+- name: Read the slurm workloads mount point if defined
+  ansible.builtin.set_fact:
+    slurm_workloads_share_path: >-
+      {{ (nfs_client_params | selectattr('nfs_name', 'equalto', 'nfs_slurm_workloads') | first).client_share_path }}
+  when: nfs_client_params | selectattr('nfs_name', 'equalto', 'nfs_slurm_workloads') | list | length > 0
+
+- name: Set workloads paths for templates
+  ansible.builtin.set_fact:
+    slurm_workloads_images_path: "{{ slurm_workloads_share_path }}/images"
+    slurm_workloads_logs_path: "{{ slurm_workloads_share_path }}/logs"
+  when: slurm_workloads_share_path is defined
+
+- name: NFS path for workloads cloud init
+  ansible.builtin.set_fact:
+    cloud_init_workloads_nfs_path: >-
+      {{
+        (nfs_client_params
+         | selectattr('nfs_name', 'equalto', 'nfs_slurm_workloads')
+         | first).server_ip
+      }}:{{ 
+        (nfs_client_params
+         | selectattr('nfs_name', 'equalto', 'nfs_slurm_workloads')
+         | first).server_share_path
+      }}
+  when: nfs_client_params | selectattr('nfs_name', 'equalto', 'nfs_slurm_workloads') | list | length > 0
+
+- name: Create workloads directories for images and logs
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "{{ common_mode }}"
+  when: slurm_workloads_share_path is defined
+  loop:
+    - "{{ slurm_workloads_share_path }}/images"
+    - "{{ slurm_workloads_share_path }}/logs"
+    - "{{ slurm_workloads_logs_path }}/job_completion"
+
 - name: Set facts for slurm
   ansible.builtin.set_fact:
     cluster_name: "{{ slurm_cluster[0].cluster_name }}"
@@ -57,6 +96,35 @@
     owner: root
     group: root
     mode: "{{ common_mode }}"
+
+# Create the certificate directory on share
+#- name: Create the cert directory on share
+ # ansible.builtin.file:
+  #  path: "{{ slurm_config_path }}/cert"
+   # state: directory
+    #owner: root
+    #group: root
+    #mode: "{{ common_mode }}"
+
+#- name: Copy OIM SSH public key to cert directory on share
+ # ansible.builtin.copy:
+  #  src: "{{ ssh_public_key_path }}"
+   # dest: "{{ slurm_config_path }}/cert/oim_rsa.pub"
+    #owner: root
+    #group: root
+    #mode: "{{ file_mode }}"
+    #remote_src: true
+  #become: true
+
+#- name: Copy OIM SSH private key to cert directory on share
+ # ansible.builtin.copy:
+  #  src: "{{ ssh_private_key_path }}"
+   # dest: "{{ slurm_config_path }}/cert/oim_rsa"
+    #owner: root
+    #group: root
+    #mode: "{{ file_mode }}"
+    #remote_src: true
+  #become: true
 
 # This directory is created to store the controller track file in NFS
 # The track file is generated only after the Slurm controller has been fully configured in a fresh deployment
@@ -95,6 +163,16 @@
     owner: root
     group: root
     mode: "{{ common_mode }}"
+
+- name: Create the slurm prolog.d directory on share
+  ansible.builtin.file:
+    path: "{{ slurm_config_path }}/{{ item }}/etc/slurm/prolog.d"
+    state: directory
+    owner: root
+    group: root
+    mode: "{{ common_mode }}"
+  when: ctld_list
+  loop: "{{ ctld_list }}"
 
 - name: Copy pulp webserver certificate to client_share_path
   ansible.builtin.copy:
@@ -300,3 +378,4 @@
   ansible.builtin.set_fact:
     cloud_init_slurm_nfs_path: "{{ nfs_server_ip }}:{{ nfs_server_path }}"
     client_mount_path: "{{ share_path }}"
+

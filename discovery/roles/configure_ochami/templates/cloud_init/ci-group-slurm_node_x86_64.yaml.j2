@@ -238,6 +238,12 @@
             echo "{{ cloud_init_nfs_path }}/$(hostname -s)/etc/slurm/epilog.d     /etc/slurm/epilog.d      nfs defaults,_netdev 0 0" >> /etc/fstab
             echo "{{ cloud_init_nfs_path }}/$(hostname -s)/etc/munge      /etc/munge       nfs defaults,_netdev 0 0" >> /etc/fstab
             echo "{{ trackfile_nfs_path }}    /var/log/track       nfs defaults,_netdev 0 0" >> /etc/fstab
+            # Mount share_omnia_workloads for Slurm job logs
+            mkdir -p {{ slurm_workloads_share_path }}
+            echo "{{ cloud_init_workloads_nfs_path }} {{ slurm_workloads_share_path }} nfs defaults,_netdev 0 0" >> /etc/fstab
+
+            echo "[INFO] Mounted /share_omnia_workloads for Slurm job logs"
+
             chmod {{ file_mode }} /etc/fstab
 
             echo "[INFO] Mounting all NFS entries from /etc/fstab"
@@ -371,6 +377,31 @@
           content: |
             {{ lookup('template', 'templates/slurm/check_slurm_controller_status.sh.j2') | indent(12) }}
 
+{% if slurm_workloads_logs_path is defined %}
+        - path: /etc/slurm/prolog.d/20-workload-logs.sh
+          owner: root:root
+          permissions: '0755'
+          content: |
+            #!/bin/bash
+            # SAFE Slurm Prolog — must never fail
+
+            BASE_DIR="{{ slurm_workloads_logs_path }}"
+
+            JOB_ID="${SLURM_JOB_ID:-}"
+            JOB_USER="${SLURM_JOB_USER:-}"
+
+            # Not a real job context
+            [ -z "$JOB_ID" ] && exit 0
+            [ -z "$JOB_USER" ] && exit 0
+
+            JOB_DIR="${BASE_DIR}/${JOB_USER}/${JOB_ID}"
+
+            mkdir -p "$JOB_DIR/images" "$JOB_DIR/tmp" 2>/dev/null || true
+            chmod 700 "$JOB_DIR" 2>/dev/null || true
+
+            exit 0
+{% endif %}
+
       runcmd:
         - /usr/local/bin/set-ssh.sh
         - /usr/local/bin/install_nvidia_driver.sh
@@ -409,6 +440,10 @@
 
         - setenforce 0
         - /usr/local/bin/configure_firewall_and_services.sh
+
+{% if slurm_workloads_logs_path is defined %}
+         - /usr/local/bin/setup_workload_prolog.sh
+{% endif %}
 
 {% if hostvars['localhost']['openldap_support'] %}
         - /usr/local/bin/update_ldap_conf.sh

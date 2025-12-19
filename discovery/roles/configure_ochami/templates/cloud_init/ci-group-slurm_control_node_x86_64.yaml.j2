@@ -96,7 +96,7 @@
 
         - path: /root/omnia_slurm_scripts/00_munge_setup.sh
           permissions: '{{ file_mode_755 }}'
-          content: |        
+          content: |
             chown -R {{ munge_user }}:{{ munge_group }} /etc/munge
             chmod 700 /etc/munge
             chmod {{ file_mode_400 }} /etc/munge/munge.key
@@ -110,7 +110,7 @@
             SLURMDBD_CONF="/etc/slurm/slurmdbd.conf"
             SLURM_USER="{{ user }}"
             SLURM_GROUP="{{ slurm_group_name }}"
-            # Function to extract value from slurm.conf 
+            # Function to extract value from slurm.conf
             get_value_slurm_conf() {
                 local key="$1"
                 local default="$2"
@@ -120,7 +120,7 @@
             }
             chown -R {{ mysql_user }}:{{ mysql_group }} /var/lib/mysql
             chown -R {{ user }}:{{ slurm_group_name }} /var/log/mariadb
-            chown -R {{ user }}:{{ slurm_group_name }} /etc/my.cnf.d # Required? why slurm user for my.cnf?? 
+            chown -R {{ user }}:{{ slurm_group_name }} /etc/my.cnf.d # Required? why slurm user for my.cnf??
             chmod {{ file_mode_755 }} /etc/my.cnf.d /var/lib/mysql /var/log/mariadb
             #firewall
             systemctl enable firewalld
@@ -130,7 +130,7 @@
             firewall-cmd --reload
             systemctl enable --now mariadb
             systemctl start mariadb
-            mysql -u root < /root/init_slurm_db.sql                 
+            mysql -u root < /root/init_slurm_db.sql
 
         - path: /root/omnia_slurm_scripts/02_slurmdbd_setup.sh
           permissions: '{{ file_mode_755 }}'
@@ -139,7 +139,7 @@
             SLURMDBD_CONF="/etc/slurm/slurmdbd.conf"
             SLURM_USER="{{ user }}"
             SLURM_GROUP="{{ slurm_group_name }}"
-            # Function to extract value from slurm.conf 
+            # Function to extract value from slurm.conf
             get_value_slurm_conf() {
                 local key="$1"
                 local default="$2"
@@ -177,7 +177,7 @@
             SLURM_CONF="/etc/slurm/slurm.conf"
             SLURM_USER="{{ user }}"
             SLURM_GROUP="{{ slurm_group_name }}"
-            # Function to extract value from slurm.conf 
+            # Function to extract value from slurm.conf
             get_value_slurm_conf() {
                 local key="$1"
                 local default="$2"
@@ -202,6 +202,16 @@
             touch $SlurmctldLogFile
             chown -v "$SLURM_USER:$SLURM_GROUP" "$SlurmctldLogFile"
             chmod -v 0755 $SlurmctldLogFile
+            # Job completion log file (JobCompLoc is a FILE)
+            JobCompLoc=$(get_value_slurm_conf "JobCompLoc" "")
+            if [ -n "$JobCompLoc" ]; then
+               mkdir -pv "$(dirname "$JobCompLoc")"
+               touch "$JobCompLoc"
+               chown -v "$SLURM_USER:$SLURM_GROUP" "$JobCompLoc"
+               chmod -v 0644 "$JobCompLoc"
+            fi
+
+
             #firewall
             systemctl enable firewalld
             systemctl start firewalld
@@ -236,6 +246,31 @@
               sleep 5
             done
 
+{% if slurm_workloads_logs_path is defined %}
+        - path: /etc/slurm/prolog.d/20-workload-logs.sh
+          owner: root:root
+          permissions: '0755'
+          content: |
+            #!/bin/bash
+            # SAFE Slurm Prolog — must never fail
+
+            BASE_DIR="{{ slurm_workloads_logs_path }}"
+
+            JOB_ID="${SLURM_JOB_ID:-}"
+            JOB_USER="${SLURM_JOB_USER:-}"
+
+            # Not a real job context
+            [ -z "$JOB_ID" ] && exit 0
+            [ -z "$JOB_USER" ] && exit 0
+
+            JOB_DIR="${BASE_DIR}/${JOB_USER}/${JOB_ID}"
+
+            mkdir -p "$JOB_DIR/images" "$JOB_DIR/tmp" 2>/dev/null || true
+            chmod 700 "$JOB_DIR" 2>/dev/null || true
+
+            exit 0
+{% endif %}
+
       runcmd:
          - /usr/local/bin/set-ssh.sh
          - useradd -mG wheel -p '$6$VHdSKZNm$O3iFYmRiaFQCemQJjhfrpqqV7DdHBi5YpY6Aq06JSQpABPw.3d8PQ8bNY9NuZSmDv7IL/TsrhRJ6btkgKaonT.' testuser # Required??
@@ -253,6 +288,20 @@
          - echo "{{ cloud_init_nfs_path }}/$(hostname -s)/var/spool      /var/spool       nfs defaults,_netdev 0 0" >> /etc/fstab
          - echo "{{ cloud_init_nfs_path }}/$(hostname -s)/etc/munge      /etc/munge       nfs defaults,_netdev 0 0" >> /etc/fstab
          - echo "{{ trackfile_nfs_path }}    /var/log/track       nfs defaults,_netdev 0 0" >> /etc/fstab
+
+{% if slurm_workloads_share_path is defined and cloud_init_workloads_nfs_path is defined %}
+         # Mount workloads NFS using values from storage_config.yml
+         - mkdir -p {{ slurm_workloads_share_path }}
+         - echo "{{ cloud_init_workloads_nfs_path }} {{ slurm_workloads_share_path }} nfs defaults,_netdev 0 0" >> /etc/fstab
+
+         - mkdir -p {{ slurm_workloads_logs_path }}/job_completion
+         - touch {{ slurm_workloads_logs_path }}/job_completion/jobcomp.log
+         - chown -R {{ user }}:{{ slurm_group_name }} {{ slurm_workloads_logs_path }}/job_completion
+         - chmod 0755 {{ slurm_workloads_logs_path }}/job_completion
+         - chmod 0644 {{ slurm_workloads_logs_path }}/job_completion/jobcomp.log
+
+{% endif %}
+
          - chmod {{ file_mode }} /etc/fstab
          # add dns entries for powerscale
 {% if csi_slurm_support %}
@@ -278,6 +327,9 @@
            fi
 {% endif %}
          - mount -a
+{% if slurm_workloads_logs_path is defined %}
+         - /usr/local/bin/setup_workload_prolog.sh
+{% endif %}
 
          - chown -R {{ user }}:{{ slurm_group_name }} {{ home_dir }}
          - chmod {{ file_mode_755 }} {{ home_dir }}
@@ -337,3 +389,4 @@
          - /root/ldms_sampler.sh
 {% endif %}
          - echo "Cloud-Init has completed successfully."
+
