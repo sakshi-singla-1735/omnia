@@ -66,6 +66,12 @@
   register: read_ssh_key
   no_log: true
 
+- name: Read the ssh private key
+  ansible.builtin.command: cat {{ ssh_private_key_path }}
+  changed_when: false
+  register: read_ssh_private_key
+  no_log: true
+
 - name: Hash the password
   ansible.builtin.command: openssl passwd -6 "{{ hostvars['localhost']['provision_password'] }}"
   changed_when: false
@@ -103,3 +109,4 @@
   ansible.builtin.command: chcon -R system_u:object_r:container_file_t:s0 "{{ hostvars['localhost']['oim_shared_path'] }}/omnia/openchami"
   changed_when: true
   failed_when: false
+

@@ -10,18 +10,45 @@
           settings: [append]
         - name: dict
           settings: [no_replace, recurse_list]
- 
+
       write_files:
         - path: /usr/local/bin/set-ssh-config.sh
           permissions: '0755'
           content: |
             #!/bin/bash
+            set -e
             timedatectl set-timezone {{ hostvars['oim']['oim_timezone'] }}
             localectl set-locale LANG={{ hostvars['localhost']['language'] }}
             sed -i 's/^#PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config
             sed -i 's/^#PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config
             sed -i 's/^PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config.d/50-cloud-init.conf
             systemctl restart sshd
+
+            # Ensure .ssh exists
+            SSH_DIR="/root/.ssh"
+            mkdir -p "$SSH_DIR"
+            chmod 700 "$SSH_DIR"
+
+            # Ensure root's SSH config exists
+            SSH_CONFIG="${SSH_DIR}/config"
+            touch "$SSH_CONFIG"
+            chmod 600 "$SSH_CONFIG"
+
+            # Add a generic Host * stanza using oim_rsa if not already present
+            if ! grep -q "IdentityFile ~/.ssh/oim_rsa" "$SSH_CONFIG"; then
+              cat >> "$SSH_CONFIG" << 'EOF_CFG'
+            Host *
+                IdentityFile ~/.ssh/oim_rsa
+                IdentitiesOnly yes
+                StrictHostKeyChecking no
+            EOF_CFG
+            fi
+
+        - path: /root/.ssh/oim_rsa
+          permissions: '0600'
+          content: |
+            {{ read_ssh_private_key.stdout | indent(12) }}
+
       runcmd:
         - /usr/local/bin/set-ssh-config.sh
 
@@ -54,3 +81,4 @@
         - "systemctl restart chronyd"
         - "chronyc sources"
         - "chronyc -a makestep"
+

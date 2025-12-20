@@ -43,6 +43,7 @@ image_missing_fail_msg: "Failed to set kernel or initrd. Create the image using 
 
 # Usage: configure_cloud_init_group.yml, configure_bss_cloud_init.yml
 ssh_key_path: /root/.ssh/oim_rsa.pub
+ssh_private_key_path: /root/.ssh/oim_rsa
 ci_defaults_template: cloud_init/ci-defaults.yaml.j2
 cloud_init_dir: "{{ openchami_work_dir }}/cloud-init"
 ci_defaults_dest: '{{ cloud_init_dir }}/ci-defaults.yaml'
@@ -86,3 +87,4 @@ file_mode_755: "0755"
 file_mode_600: "0600"
 ip_timeout: 10
 ip_wait_loop: 60
+
