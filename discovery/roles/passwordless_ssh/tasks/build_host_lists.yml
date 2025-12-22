@@ -33,7 +33,7 @@
     slurm_cluster_ip_patterns: []
     omnia_cluster_ip_patterns: []
     omnia_hosts_map: {}
-
+  when: inventory_hostname == 'localhost'
 
 - name: Build per-stack hostname lists and IP wildcard patterns from PXE mapping
   ansible.builtin.set_fact:
