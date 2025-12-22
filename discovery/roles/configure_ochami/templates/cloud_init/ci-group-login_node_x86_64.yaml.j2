@@ -63,6 +63,10 @@
                 IdentityFile ~/.ssh/oim_rsa
                 IdentitiesOnly yes
 
+            Host *
+                IdentityFile ~/.ssh/oim_rsa
+                IdentitiesOnly yes
+
 {% if hostvars['localhost']['openldap_support'] %}
         - path: /etc/sssd/sssd.conf
           owner: root:root

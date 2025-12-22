@@ -32,6 +32,8 @@
     k8s_cluster_ip_patterns: []
     slurm_cluster_ip_patterns: []
     omnia_cluster_ip_patterns: []
+    omnia_hosts_map: {}
+
 
 - name: Build per-stack hostname lists and IP wildcard patterns from PXE mapping
   ansible.builtin.set_fact:
@@ -75,6 +77,17 @@
         )
         else omnia_cluster_ip_patterns
       }}
+    omnia_hosts_map: >-
+      {{
+        (omnia_hosts_map | default({}))
+        | combine(
+            ({ (item.value.HOSTNAME): item.value.ADMIN_IP }
+             if (item.value.HOSTNAME | default('') | length > 0 and
+                 item.value.ADMIN_IP | default('') | length > 0)
+             else {}),
+            recursive=False
+          )
+      }}
   loop: "{{ pxe_mapping_dict.dict | dict2items }}"
   loop_control:
     label: "{{ item.value.FUNCTIONAL_GROUP_NAME }} -> {{ item.value.HOSTNAME }} ({{ item.value.ADMIN_IP | default('no-ip') }})"
@@ -83,13 +96,24 @@
   ansible.builtin.set_fact:
     k8s_cluster_hostnames: "{{ k8s_cluster_hostnames | unique }}"
     slurm_cluster_hostnames: "{{ slurm_cluster_hostnames | unique }}"
-    k8s_cluster_ip_patterns: "{{ k8s_cluster_ip_patterns | unique }}"
-    slurm_cluster_ip_patterns: "{{ slurm_cluster_ip_patterns | unique }}"
-    omnia_cluster_ip_patterns: "{{ omnia_cluster_ip_patterns | unique }}"
-    cacheable: true
-
-
-
-#host * 
-#172.5.255.0/24 - not supported
-#ip range - not supported
+    k8s_cluster_ip_patterns: >-
+      {{
+        (k8s_cluster_ip_patterns | default([]))
+        | map('regex_replace', '\\.[0-9]+$', '.*')
+        | list
+        | unique
+      }}
+    slurm_cluster_ip_patterns: >-
+      {{
+        (slurm_cluster_ip_patterns | default([]))
+        | map('regex_replace', '\\.[0-9]+$', '.*')
+        | list
+        | unique
+      }}
+    omnia_cluster_ip_patterns: >-
+      {{
+        (omnia_cluster_ip_patterns | default([]))
+        | map('regex_replace', '\\.[0-9]+$', '.*')
+        | list
+        | unique
+      }}
