@@ -18,7 +18,17 @@
   ansible.builtin.set_fact:
     k8s_cluster_hostnames: "{{ hostvars['localhost']['k8s_cluster_hostnames'] | default([]) }}"
     slurm_cluster_hostnames: "{{ hostvars['localhost']['slurm_cluster_hostnames'] | default([]) }}"
-    omnia_cluster_ip_patterns: "{{ hostvars['localhost']['omnia_cluster_ip_patterns'] | default([]) }}"
+    omnia_cluster_ip_patterns_raw: "{{ hostvars['localhost']['omnia_cluster_ip_patterns'] | default([]) }}"
+
+- name: Normalize OIM cluster IP patterns to wildcard subnets (x.x.x.*)
+  ansible.builtin.set_fact:
+    omnia_cluster_ip_patterns: >-
+      {{
+        (omnia_cluster_ip_patterns_raw | default([]))
+        | map('regex_replace', '\\.[0-9]+$', '.*')
+        | list
+        | unique
+      }}
 
 - name: Build hostname wildcard patterns for k8s and slurm/login stacks
   ansible.builtin.set_fact:
