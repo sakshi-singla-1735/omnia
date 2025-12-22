@@ -55,6 +55,13 @@
                 done
             fi
 
+        - path: /root/.ssh/config
+          permissions: '0600'
+          content: |
+            Host {{ k8s_cluster_hostnames | join(' ') }}
+                IdentityFile ~/.ssh/oim_rsa
+                IdentitiesOnly yes
+
         - path: /etc/modules-load.d/k8s.conf
           content: |
             br_netfilter

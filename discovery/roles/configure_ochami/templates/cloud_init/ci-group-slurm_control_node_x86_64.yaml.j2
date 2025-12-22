@@ -54,6 +54,13 @@
                 done
             fi
 
+        - path: /root/.ssh/config
+          permissions: '0600'
+          content: |
+            Host {{ slurm_cluster_hostnames | join(' ') }}
+                IdentityFile ~/.ssh/oim_rsa
+                IdentitiesOnly yes
+
 {% if hostvars['localhost']['openldap_support'] %}
         - path: /etc/sssd/sssd.conf
           owner: root:root

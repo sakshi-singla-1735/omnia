@@ -54,6 +54,13 @@
             fi
 
 
+        - path: /root/.ssh/config
+          permissions: '0600'
+          content: |
+            Host {{ slurm_cluster_hostnames | join(' ') }}
+                IdentityFile ~/.ssh/oim_rsa
+                IdentitiesOnly yes
+
         - path: /usr/local/bin/install_cuda_toolkit.sh
           permissions: '0755'
           content: |

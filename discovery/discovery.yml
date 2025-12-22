@@ -75,6 +75,16 @@
         name: discovery_validations
         tasks_from: validate_oim_timezone.yml
 
+- name: Configure passwordless SSH (OIM↔nodes + node↔node host lists)
+  hosts: "{{ item }}"
+  connection: "{{ 'local' if item == 'localhost' else 'ssh' }}"
+  gather_facts: false
+  roles:
+    - passwordless_ssh
+  loop:
+    - localhost
+    - oim
+
 - name: Validate discovery parameters
   hosts: oim
   connection: ssh
