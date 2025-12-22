@@ -25,12 +25,15 @@
     key: ADMIN_MAC
   register: pxe_mapping_dict
 
-- name: Initialize per-stack hostname lists
+- name: Initialize per-stack hostname lists and IP wildcard patterns
   ansible.builtin.set_fact:
     k8s_cluster_hostnames: []
     slurm_cluster_hostnames: []
+    k8s_cluster_ip_patterns: []
+    slurm_cluster_ip_patterns: []
+    omnia_cluster_ip_patterns: []
 
-- name: Build per-stack hostname lists from PXE mapping
+- name: Build per-stack hostname lists and IP wildcard patterns from PXE mapping
   ansible.builtin.set_fact:
     k8s_cluster_hostnames: >-
       {{
@@ -44,12 +47,49 @@
         if item.value.FUNCTIONAL_GROUP_NAME in slurm_functional_groups
         else slurm_cluster_hostnames
       }}
+    k8s_cluster_ip_patterns: >-
+      {{
+        (k8s_cluster_ip_patterns + [ (item.value.ADMIN_IP | regex_replace('\\.[0-9]+$', '.*')) ])
+        if (
+          item.value.ADMIN_IP | default('') | length > 0 and
+          item.value.FUNCTIONAL_GROUP_NAME in k8s_functional_groups
+        )
+        else k8s_cluster_ip_patterns
+      }}
+    slurm_cluster_ip_patterns: >-
+      {{
+        (slurm_cluster_ip_patterns + [ (item.value.ADMIN_IP | regex_replace('\\.[0-9]+$', '.*')) ])
+        if (
+          item.value.ADMIN_IP | default('') | length > 0 and
+          item.value.FUNCTIONAL_GROUP_NAME in slurm_functional_groups
+        )
+        else slurm_cluster_ip_patterns
+      }}
+    omnia_cluster_ip_patterns: >-
+      {{
+        (omnia_cluster_ip_patterns + [ (item.value.ADMIN_IP | regex_replace('\\.[0-9]+$', '.*')) ])
+        if (
+          item.value.ADMIN_IP | default('') | length > 0 and
+          (item.value.FUNCTIONAL_GROUP_NAME in k8s_functional_groups or
+           item.value.FUNCTIONAL_GROUP_NAME in slurm_functional_groups)
+        )
+        else omnia_cluster_ip_patterns
+      }}
   loop: "{{ pxe_mapping_dict.dict | dict2items }}"
   loop_control:
-    label: "{{ item.value.FUNCTIONAL_GROUP_NAME }} -> {{ item.value.HOSTNAME }}"
+    label: "{{ item.value.FUNCTIONAL_GROUP_NAME }} -> {{ item.value.HOSTNAME }} ({{ item.value.ADMIN_IP | default('no-ip') }})"
 
-- name: Deduplicate host lists
+- name: Deduplicate host lists and IP wildcard patterns
   ansible.builtin.set_fact:
     k8s_cluster_hostnames: "{{ k8s_cluster_hostnames | unique }}"
     slurm_cluster_hostnames: "{{ slurm_cluster_hostnames | unique }}"
+    k8s_cluster_ip_patterns: "{{ k8s_cluster_ip_patterns | unique }}"
+    slurm_cluster_ip_patterns: "{{ slurm_cluster_ip_patterns | unique }}"
+    omnia_cluster_ip_patterns: "{{ omnia_cluster_ip_patterns | unique }}"
     cacheable: true
+
+
+
+#host * 
+#172.5.255.0/24 - not supported
+#ip range - not supported

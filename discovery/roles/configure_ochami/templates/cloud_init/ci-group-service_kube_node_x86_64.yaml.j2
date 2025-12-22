@@ -58,7 +58,7 @@
         - path: /root/.ssh/config
           permissions: '0600'
           content: |
-            Host {{ k8s_cluster_hostnames | join(' ') }}
+            Host {{ (['service_kube*'] + k8s_cluster_ip_patterns) | unique | join(' ') }}
                 IdentityFile ~/.ssh/oim_rsa
                 IdentitiesOnly yes
 

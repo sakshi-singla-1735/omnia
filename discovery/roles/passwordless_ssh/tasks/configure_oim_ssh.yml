@@ -14,16 +14,28 @@
 ---
 # tasks/configure_oim_ssh.yml
 
-- name: Gather cluster host lists from localhost facts
+- name: Gather cluster hostnames and IP wildcard patterns from localhost facts
   ansible.builtin.set_fact:
     k8s_cluster_hostnames: "{{ hostvars['localhost']['k8s_cluster_hostnames'] | default([]) }}"
     slurm_cluster_hostnames: "{{ hostvars['localhost']['slurm_cluster_hostnames'] | default([]) }}"
+    omnia_cluster_ip_patterns: "{{ hostvars['localhost']['omnia_cluster_ip_patterns'] | default([]) }}"
 
-- name: Build combined OIM SSH host list (all cluster nodes)
+- name: Build hostname wildcard patterns for k8s and slurm/login stacks
   ansible.builtin.set_fact:
-    omnia_cluster_ssh_hosts: >-
+    omnia_cluster_hostname_patterns: >-
       {{
-        (k8s_cluster_hostnames + slurm_cluster_hostnames)
+        (
+          (['service_kube*'] if (k8s_cluster_hostnames | length > 0) else [])
+          +
+          (['slurm-*', 'login-*', 'login_compiler-*'] if (slurm_cluster_hostnames | length > 0) else [])
+        )
+      }}
+
+- name: Build combined OIM SSH match list (hostname patterns + IP wildcard patterns)
+  ansible.builtin.set_fact:
+    omnia_cluster_ssh_matches: >-
+      {{
+        (omnia_cluster_hostname_patterns + omnia_cluster_ip_patterns)
         | unique
       }}
 
@@ -34,7 +46,11 @@
     mode: '0600'
     marker: "# {mark} OMNIA_CLUSTER_SSH"
     block: |
-      Host {{ omnia_cluster_ssh_hosts | join(' ') }}
+      Host {{ omnia_cluster_ssh_matches | join(' ') }}
           IdentityFile ~/.ssh/oim_rsa
           IdentitiesOnly yes
-  when: omnia_cluster_ssh_hosts | length > 0
+
+      Host *
+          IdentityFile ~/.ssh/oim_rsa
+          IdentitiesOnly yes
+  when: omnia_cluster_ssh_matches | length > 0
