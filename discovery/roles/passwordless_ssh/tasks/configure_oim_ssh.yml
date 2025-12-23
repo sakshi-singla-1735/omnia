@@ -20,23 +20,37 @@
     slurm_cluster_hostnames: "{{ hostvars['localhost']['slurm_cluster_hostnames'] | default([]) }}"
     omnia_cluster_ip_patterns_raw: "{{ hostvars['localhost']['omnia_cluster_ip_patterns'] | default([]) }}"
     omnia_hosts_map: "{{ hostvars['localhost']['omnia_hosts_map'] | default({}) }}"
-    omnia_passwordless_mode: "{{ hostvars['localhost']['omnia_passwordless_mode'] | default('host_star') }}"
-    omnia_nodes_hostname_patterns: "{{ hostvars['localhost']['omnia_nodes_hostname_patterns'] | default([]) }}"
-    omnia_nodes_ip_patterns: "{{ hostvars['localhost']['omnia_nodes_ip_patterns'] | default([]) }}"
 
-- name: Build hostname patterns from nodes.yaml (derived mode)
+- name: Normalize OIM cluster IP patterns to wildcard subnets (x.x.x.*)
   ansible.builtin.set_fact:
-    omnia_cluster_hostname_patterns: "{{ omnia_nodes_hostname_patterns | default([]) }}"
-  when: omnia_passwordless_mode == 'derived'
+    omnia_cluster_ip_patterns: >-
+      {{
+        (omnia_cluster_ip_patterns_raw | default([]))
+        | map('regex_replace', '\\.[0-9]+$', '.*')
+        | list
+        | unique
+      }}
 
-- name: Build combined OIM SSH match list (nodes.yaml hostname + IP wildcard patterns) for derived mode
+- name: Build hostname wildcard patterns for k8s and slurm/login stacks
+  ansible.builtin.set_fact:
+    omnia_cluster_hostname_patterns: >-
+      {{
+        (
+          (['service_kube*'] if (k8s_cluster_hostnames | length > 0) else [])
+          +
+          (['slurm-*', 'login-*', 'login_compiler-*'] if (slurm_cluster_hostnames | length > 0) else [])
+        )
+      }}
+
+- name: Build combined OIM SSH match list (hostname patterns + IP wildcard patterns)
   ansible.builtin.set_fact:
     omnia_cluster_ssh_matches: >-
       {{
-        (omnia_nodes_hostname_patterns + omnia_nodes_ip_patterns)
+        (omnia_cluster_hostname_patterns + omnia_cluster_ip_patterns)
+        | map('regex_replace', '\.[0-9]+$', '.*')
+        | list
         | unique
       }}
-  when: omnia_passwordless_mode == 'derived'
 
 - name: DEBUG OIM SSH match list
   ansible.builtin.debug:
@@ -54,19 +68,7 @@
       {% endfor %}
   when: omnia_hosts_map | default({}) | length > 0
 
-- name: Configure SSH on OIM for passwordless access (host_star mode)
-  ansible.builtin.blockinfile:
-    path: /root/.ssh/config
-    create: true
-    mode: '0600'
-    marker: "# {mark} OMNIA_CLUSTER_SSH"
-    block: |
-      Host *
-          IdentityFile ~/.ssh/oim_rsa
-          IdentitiesOnly yes
-  when: omnia_passwordless_mode == 'host_star'
-
-- name: Configure SSH on OIM for passwordless access (derived mode, no Host *)
+- name: Configure SSH on OIM for passwordless access to all cluster nodes
   ansible.builtin.blockinfile:
     path: /root/.ssh/config
     create: true
@@ -74,12 +76,13 @@
     marker: "# {mark} OMNIA_CLUSTER_SSH"
     block: |
       Host {{ omnia_cluster_ssh_matches
-               | map('regex_replace', '\\.[0-9]+$', '.*')
                | list
                | unique
                | join(' ') }}
           IdentityFile ~/.ssh/oim_rsa
           IdentitiesOnly yes
-  when:
-    - omnia_cluster_ssh_matches | length > 0
-    - omnia_passwordless_mode == 'derived'
+
+      Host *
+          IdentityFile ~/.ssh/oim_rsa
+          IdentitiesOnly yes
+  when: omnia_cluster_ssh_matches | length > 0

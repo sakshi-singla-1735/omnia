@@ -14,18 +14,16 @@
 ---
 # tasks/build_host_lists.yml
 
-- name: Set nodes.yaml path for passwordless SSH logic
-  ansible.builtin.set_fact:
-    omnia_nodes_yaml_path: "{{ hostvars['localhost']['oim_shared_path'] }}/omnia/openchami/workdir/nodes/nodes.yaml"
+- name: Ensure PXE mapping file path is set
+  ansible.builtin.assert:
+    that: pxe_mapping_file_path is defined
+    fail_msg: "pxe_mapping_file_path is not defined. Check provision_config.yml."
 
-- name: Read nodes.yaml for group and host data
-  ansible.builtin.slurp:
-    src: "{{ omnia_nodes_yaml_path }}"
-  register: omnia_nodes_yaml_raw
-
-- name: Parse nodes.yaml content
-  ansible.builtin.set_fact:
-    omnia_nodes_data: "{{ omnia_nodes_yaml_raw.content | b64decode | from_yaml }}"
+- name: Read PXE mapping file (FUNCTIONAL_GROUP_NAME, HOSTNAME, ...)
+  community.general.read_csv:
+    path: "{{ pxe_mapping_file_path }}"
+    key: ADMIN_MAC
+  register: pxe_mapping_dict
 
 - name: Initialize per-stack hostname lists and IP wildcard patterns
   ansible.builtin.set_fact:
@@ -35,47 +33,47 @@
     slurm_cluster_ip_patterns: []
     omnia_cluster_ip_patterns: []
     omnia_hosts_map: {}
+  when: inventory_hostname == 'localhost'
 
-- name: Build per-stack hostname lists, IP wildcard patterns and hosts map from nodes.yaml
+- name: Build per-stack hostname lists and IP wildcard patterns from PXE mapping
   ansible.builtin.set_fact:
     k8s_cluster_hostnames: >-
       {{
-        (k8s_cluster_hostnames + [item.name])
-        if item.group in k8s_functional_groups
+        (k8s_cluster_hostnames + [item.value.HOSTNAME])
+        if item.value.FUNCTIONAL_GROUP_NAME in k8s_functional_groups
         else k8s_cluster_hostnames
       }}
     slurm_cluster_hostnames: >-
       {{
-        (slurm_cluster_hostnames + [item.name])
-        if item.group in slurm_functional_groups
+        (slurm_cluster_hostnames + [item.value.HOSTNAME])
+        if item.value.FUNCTIONAL_GROUP_NAME in slurm_functional_groups
         else slurm_cluster_hostnames
       }}
     k8s_cluster_ip_patterns: >-
       {{
-        (k8s_cluster_ip_patterns + [ (item.interfaces[0].ip_addrs[0].ip_addr | regex_replace('\\.[0-9]+$', '.*')) ])
+        (k8s_cluster_ip_patterns + [ (item.value.ADMIN_IP | regex_replace('\\.[0-9]+$', '.*')) ])
         if (
-          item.interfaces | length > 0 and
-          item.interfaces[0].ip_addrs | length > 0 and
-          item.group in k8s_functional_groups
+          item.value.ADMIN_IP | default('') | length > 0 and
+          item.value.FUNCTIONAL_GROUP_NAME in k8s_functional_groups
         )
         else k8s_cluster_ip_patterns
       }}
     slurm_cluster_ip_patterns: >-
       {{
-        (slurm_cluster_ip_patterns + [ (item.interfaces[0].ip_addrs[0].ip_addr | regex_replace('\\.[0-9]+$', '.*')) ])
+        (slurm_cluster_ip_patterns + [ (item.value.ADMIN_IP | regex_replace('\\.[0-9]+$', '.*')) ])
         if (
-          item.interfaces | length > 0 and
-          item.interfaces[0].ip_addrs | length > 0 and
-          item.group in slurm_functional_groups
+          item.value.ADMIN_IP | default('') | length > 0 and
+          item.value.FUNCTIONAL_GROUP_NAME in slurm_functional_groups
         )
         else slurm_cluster_ip_patterns
       }}
     omnia_cluster_ip_patterns: >-
       {{
-        (omnia_cluster_ip_patterns + [ (item.interfaces[0].ip_addrs[0].ip_addr | regex_replace('\\.[0-9]+$', '.*')) ])
+        (omnia_cluster_ip_patterns + [ (item.value.ADMIN_IP | regex_replace('\\.[0-9]+$', '.*')) ])
         if (
-          item.interfaces | length > 0 and
-          item.interfaces[0].ip_addrs | length > 0
+          item.value.ADMIN_IP | default('') | length > 0 and
+          (item.value.FUNCTIONAL_GROUP_NAME in k8s_functional_groups or
+           item.value.FUNCTIONAL_GROUP_NAME in slurm_functional_groups)
         )
         else omnia_cluster_ip_patterns
       }}
@@ -83,19 +81,16 @@
       {{
         (omnia_hosts_map | default({}))
         | combine(
-            ({ (item.name): item.interfaces[0].ip_addrs[0].ip_addr }
-             if (
-               item.name | default('') | length > 0 and
-               item.interfaces | length > 0 and
-               item.interfaces[0].ip_addrs | length > 0
-             )
+            ({ (item.value.HOSTNAME): item.value.ADMIN_IP }
+             if (item.value.HOSTNAME | default('') | length > 0 and
+                 item.value.ADMIN_IP | default('') | length > 0)
              else {}),
             recursive=False
           )
       }}
-  loop: "{{ omnia_nodes_data.nodes | default([]) }}"
+  loop: "{{ pxe_mapping_dict.dict | dict2items }}"
   loop_control:
-    label: "{{ item.group }} -> {{ item.name }} ({{ (item.interfaces[0].ip_addrs[0].ip_addr | default('no-ip')) if (item.interfaces | length > 0 and item.interfaces[0].ip_addrs | length > 0) else 'no-ip' }} )"
+    label: "{{ item.value.FUNCTIONAL_GROUP_NAME }} -> {{ item.value.HOSTNAME }} ({{ item.value.ADMIN_IP | default('no-ip') }})"
 
 - name: Deduplicate host lists and IP wildcard patterns
   ansible.builtin.set_fact:
@@ -122,68 +117,3 @@
         | list
         | unique
       }}
-
-- name: Build per-stack hostname wildcard patterns from nodes.yaml hostnames
-  ansible.builtin.set_fact:
-    k8s_cluster_hostname_patterns: >-
-      {{
-        (k8s_cluster_hostnames | default([]))
-        | map('regex_replace', '[0-9]+$', '*')
-        | list
-        | unique
-      }}
-    slurm_cluster_hostname_patterns: >-
-      {{
-        (slurm_cluster_hostnames | default([]))
-        | map('regex_replace', '[0-9]+$', '*')
-        | list
-        | unique
-      }}
-
-- name: Collect unique groups from nodes.yaml
-  ansible.builtin.set_fact:
-    omnia_nodes_groups: >-
-      {{
-        (omnia_nodes_data.nodes | default([]))
-        | map(attribute='group')
-        | list
-        | unique
-      }}
-
-- name: Determine passwordless SSH mode based on required groups presence
-  ansible.builtin.set_fact:
-    omnia_required_groups_missing: >-
-      {{
-        omnia_required_groups
-        | difference(omnia_nodes_groups | default([]))
-      }}
-    omnia_passwordless_mode: >-
-      {{
-        'host_star'
-        if (omnia_required_groups_missing | length == 0)
-        else 'derived'
-      }}
-
-- name: Build hostname and IP wildcard patterns from nodes.yaml when groups are incomplete
-  ansible.builtin.set_fact:
-    omnia_nodes_hostname_patterns: >-
-      {{
-        (omnia_nodes_data.nodes | default([]))
-        | map(attribute='name')
-        | map('regex_replace', '[0-9]+$', '*')
-        | list
-        | unique
-      }}
-    omnia_nodes_ip_patterns: >-
-      {{
-        (omnia_nodes_data.nodes | default([]))
-        | map(attribute='interfaces')
-        | map('first')
-        | map(attribute='ip_addrs')
-        | map('first')
-        | map(attribute='ip_addr')
-        | map('regex_replace', '\\.[0-9]+$', '.*')
-        | list
-        | unique
-      }}
-  when: omnia_passwordless_mode == 'derived'

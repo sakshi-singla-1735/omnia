@@ -75,6 +75,18 @@
         name: discovery_validations
         tasks_from: validate_oim_timezone.yml
 
+- name: Build cluster host lists from PXE mapping
+  hosts: localhost
+  connection: local
+  roles:
+    - passwordless_ssh
+
+- name: Configure OIM SSH from cluster host lists
+  hosts: oim
+  connection: ssh
+  roles:
+    - passwordless_ssh
+
 - name: Validate discovery parameters
   hosts: oim
   connection: ssh
@@ -108,5 +120,4 @@
     - slurm_config
     - openldap
     - telemetry
-    - passwordless_ssh
     - configure_ochami

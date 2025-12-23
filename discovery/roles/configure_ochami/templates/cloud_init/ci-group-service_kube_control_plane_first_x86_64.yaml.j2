@@ -55,18 +55,16 @@
                 done
             fi
 
-          - path: /root/.ssh/config
-            permissions: '0600'
-            content: |
-              {% if omnia_passwordless_mode == 'host_star' %}
-              Host *
-                  IdentityFile /root/.ssh/oim_rsa
-                  IdentitiesOnly yes
-              {% else %}
-              Host {{ (k8s_cluster_hostname_patterns + k8s_cluster_ip_patterns) | unique | join(' ') }}
-                  IdentityFile /root/.ssh/oim_rsa
-                  IdentitiesOnly yes
-              {% endif %}
+        - path: /root/.ssh/config
+          permissions: '0600'
+          content: |
+            Host {{ (['service_kube*'] + k8s_cluster_ip_patterns) | unique | join(' ') }}
+                IdentityFile ~/.ssh/oim_rsa
+                IdentitiesOnly yes
+            
+            Host *
+                IdentityFile ~/.ssh/oim_rsa
+                IdentitiesOnly yes
 
         - path: /etc/chrony.conf
           permissions: '0644'
