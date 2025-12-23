@@ -32,7 +32,9 @@
     "login_node":{
         "cluster": [
             {"package": "slurm-slurmd", "type": "rpm", "repo_name": "aarch64_slurm_custom"},
-            {"package": "slurm", "type": "rpm", "repo_name": "aarch64_slurm_custom"}
+            {"package": "slurm", "type": "rpm", "repo_name": "aarch64_slurm_custom"},
+            {"package": "apptainer", "type": "rpm", "repo_name": "epel"},
+            {"package": "nvcr.io/nvidia/hpc-benchmarks", "tag": "25.09", "type": "image" }
         ]
     },
     "login_compiler_node":{
