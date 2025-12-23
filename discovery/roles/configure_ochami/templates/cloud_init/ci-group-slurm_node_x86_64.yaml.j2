@@ -58,13 +58,15 @@
         - path: /root/.ssh/config
           permissions: '0600'
           content: |
-            Host {{ (['slurm-*', 'login-*', 'login_compiler-*'] + slurm_cluster_ip_patterns) | unique | join(' ') }}
-                IdentityFile ~/.ssh/oim_rsa
-                IdentitiesOnly yes
-
+            {% if omnia_passwordless_mode == 'host_star' %}
             Host *
-                IdentityFile ~/.ssh/oim_rsa
+                IdentityFile /root/.ssh/oim_rsa
                 IdentitiesOnly yes
+            {% else %}
+            Host {{ (slurm_cluster_hostname_patterns + slurm_cluster_ip_patterns) | unique | join(' ') }}
+                IdentityFile /root/.ssh/oim_rsa
+                IdentitiesOnly yes
+            {% endif %}
 
         - path: /usr/local/bin/install_nvidia_driver.sh
           permissions: '0755'

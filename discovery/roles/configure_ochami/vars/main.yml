@@ -59,6 +59,11 @@ slurm_cluster_hostnames: "{{ hostvars['localhost']['slurm_cluster_hostnames'] | 
 k8s_cluster_ip_patterns: "{{ hostvars['localhost']['k8s_cluster_ip_patterns'] }}"
 slurm_cluster_ip_patterns: "{{ hostvars['localhost']['slurm_cluster_ip_patterns'] }}"
 
+# Passwordless SSH mode and derived patterns from nodes.yaml (built by passwordless_ssh)
+omnia_passwordless_mode: "{{ hostvars['localhost']['omnia_passwordless_mode'] | default('host_star') }}"
+omnia_nodes_hostname_patterns: "{{ hostvars['localhost']['omnia_nodes_hostname_patterns'] | default([]) }}"
+omnia_nodes_ip_patterns: "{{ hostvars['localhost']['omnia_nodes_ip_patterns'] | default([]) }}"
+
 # Usage: configure_cloud_init_common.yml
 ci_group_common_template: cloud_init/ci-group-common.yaml.j2
 ci_group_common_dest: "{{ cloud_init_dir }}/ci-group-common.yaml"

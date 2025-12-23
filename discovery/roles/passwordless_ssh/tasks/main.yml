@@ -14,9 +14,10 @@
 ---
 # tasks/main.yml
 
-- name: Build cluster host lists from PXE mapping (run on localhost/omnia_core)
-  when: inventory_hostname == 'localhost'
+- name: Build cluster host lists from PXE mapping (delegate to localhost)
   ansible.builtin.include_tasks: build_host_lists.yml
+  delegate_to: localhost
+  run_once: true
 
 - name: Configure OIM SSH based on PXE mapping (run on oim)
   when: inventory_hostname == 'oim'

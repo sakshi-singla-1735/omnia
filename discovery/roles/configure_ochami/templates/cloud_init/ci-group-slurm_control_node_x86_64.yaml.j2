@@ -54,16 +54,18 @@
                 done
             fi
 
-        - path: /root/.ssh/config
-          permissions: '0600'
-          content: |
-            Host {{ (['slurm-*', 'login-*', 'login_compiler-*'] + slurm_cluster_ip_patterns) | unique | join(' ') }}
-                IdentityFile ~/.ssh/oim_rsa
-                IdentitiesOnly yes
-
-            Host *
-                IdentityFile ~/.ssh/oim_rsa
-                IdentitiesOnly yes
+          - path: /root/.ssh/config
+            permissions: '0600'
+            content: |
+              {% if omnia_passwordless_mode == 'host_star' %}
+              Host *
+                  IdentityFile /root/.ssh/oim_rsa
+                  IdentitiesOnly yes
+              {% else %}
+              Host {{ (slurm_cluster_hostname_patterns + slurm_cluster_ip_patterns) | unique | join(' ') }}
+                  IdentityFile /root/.ssh/oim_rsa
+                  IdentitiesOnly yes
+              {% endif %}
 
 {% if hostvars['localhost']['openldap_support'] %}
         - path: /etc/sssd/sssd.conf
