@@ -95,3 +95,6 @@ file_mode_755: "0755"
 file_mode_600: "0600"
 ip_timeout: 10
 ip_wait_loop: 60
+
+# Passwordless SSH mode flag derived from nodes.yaml (set on OIM by passwordless_ssh role)
+all_group_names_present: "{{ hostvars['oim']['all_group_names_present'] | default(false) }}"

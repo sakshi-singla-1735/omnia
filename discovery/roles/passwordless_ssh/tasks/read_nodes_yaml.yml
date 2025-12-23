@@ -77,7 +77,7 @@
       Host *
           IdentityFile ~/.ssh/oim_rsa
           IdentitiesOnly yes
-  when: all_group_names_present | default(false) | bool
+  when: all_group_names_present
 
 - name: Configure SSH on OIM with derived hostname/IP patterns when groups are incomplete
   ansible.builtin.blockinfile:
@@ -91,10 +91,6 @@
                | list
                | unique
                | join(' ') }}
-          IdentityFile ~/.ssh/oim_rsa
-          IdentitiesOnly yes
-
-      Host *
           IdentityFile ~/.ssh/oim_rsa
           IdentitiesOnly yes
   when:
