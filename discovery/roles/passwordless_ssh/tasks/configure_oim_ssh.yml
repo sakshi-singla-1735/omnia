@@ -38,6 +38,10 @@
       }}
   when: omnia_passwordless_mode == 'derived'
 
+- name: DEBUG OIM SSH match list
+  ansible.builtin.debug:
+    var: omnia_cluster_ssh_matches
+
 - name: Manage /etc/hosts entries on OIM for Omnia cluster nodes
   ansible.builtin.blockinfile:
     path: /etc/hosts
