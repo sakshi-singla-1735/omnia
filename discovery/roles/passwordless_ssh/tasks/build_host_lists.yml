@@ -117,3 +117,13 @@
         | list
         | unique
       }}
+
+- name: DEBUG passwordless_ssh facts built from PXE mapping
+  ansible.builtin.debug:
+    msg:
+      k8s_cluster_hostnames: "{{ k8s_cluster_hostnames | default([]) }}"
+      slurm_cluster_hostnames: "{{ slurm_cluster_hostnames | default([]) }}"
+      k8s_cluster_ip_patterns: "{{ k8s_cluster_ip_patterns | default([]) }}"
+      slurm_cluster_ip_patterns: "{{ slurm_cluster_ip_patterns | default([]) }}"
+      omnia_cluster_ip_patterns: "{{ omnia_cluster_ip_patterns | default([]) }}"
+      omnia_hosts_map: "{{ omnia_hosts_map | default({}) }}"

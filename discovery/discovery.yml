@@ -114,6 +114,11 @@
       ansible.builtin.include_role:
         name: configure_ochami
         tasks_from: discover_mapping_nodes.yml
+
+    - name: Read nodes.yaml and derive Omnia node facts
+      ansible.builtin.include_role:
+        name: passwordless_ssh
+        tasks_from: read_nodes_yaml.yml
   roles:
     - nfs_client
     - k8s_config

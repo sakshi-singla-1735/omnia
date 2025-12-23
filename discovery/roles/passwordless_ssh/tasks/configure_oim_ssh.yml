@@ -31,15 +31,18 @@
         | unique
       }}
 
-- name: Build hostname wildcard patterns for k8s and slurm/login stacks
+- name: Build hostname wildcard patterns from actual cluster hostnames
   ansible.builtin.set_fact:
     omnia_cluster_hostname_patterns: >-
       {{
         (
-          (['service_kube*'] if (k8s_cluster_hostnames | length > 0) else [])
+          (k8s_cluster_hostnames | default([]))
           +
-          (['slurm-*', 'login-*', 'login_compiler-*'] if (slurm_cluster_hostnames | length > 0) else [])
+          (slurm_cluster_hostnames | default([]))
         )
+        | map('regex_replace', '[0-9]+$', '*')
+        | list
+        | unique
       }}
 
 - name: Build combined OIM SSH match list (hostname patterns + IP wildcard patterns)
@@ -68,21 +71,13 @@
       {% endfor %}
   when: omnia_hosts_map | default({}) | length > 0
 
-- name: Configure SSH on OIM for passwordless access to all cluster nodes
-  ansible.builtin.blockinfile:
-    path: /root/.ssh/config
-    create: true
-    mode: '0600'
-    marker: "# {mark} OMNIA_CLUSTER_SSH"
-    block: |
-      Host {{ omnia_cluster_ssh_matches
-               | list
-               | unique
-               | join(' ') }}
-          IdentityFile ~/.ssh/oim_rsa
-          IdentitiesOnly yes
-
-      Host *
-          IdentityFile ~/.ssh/oim_rsa
-          IdentitiesOnly yes
-  when: omnia_cluster_ssh_matches | length > 0
+- name: DEBUG configure_oim_ssh facts
+  ansible.builtin.debug:
+    msg:
+      k8s_cluster_hostnames: "{{ k8s_cluster_hostnames | default([]) }}"
+      slurm_cluster_hostnames: "{{ slurm_cluster_hostnames | default([]) }}"
+      omnia_cluster_ip_patterns_raw: "{{ omnia_cluster_ip_patterns_raw | default([]) }}"
+      omnia_cluster_ip_patterns: "{{ omnia_cluster_ip_patterns | default([]) }}"
+      omnia_cluster_hostname_patterns: "{{ omnia_cluster_hostname_patterns | default([]) }}"
+      omnia_cluster_ssh_matches: "{{ omnia_cluster_ssh_matches | default([]) }}"
+      omnia_hosts_map: "{{ omnia_hosts_map | default({}) }}"
