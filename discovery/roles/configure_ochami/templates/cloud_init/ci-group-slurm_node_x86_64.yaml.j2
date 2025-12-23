@@ -58,11 +58,7 @@
         - path: /root/.ssh/config
           permissions: '0600'
           content: |
-            Host {{ (['slurm-*', 'login-*', 'login_compiler-*'] + slurm_cluster_ip_patterns) | unique | join(' ') }}
-                IdentityFile ~/.ssh/oim_rsa
-                IdentitiesOnly yes
-            
-            Host *
+            Host {{ slurm_control_ssh_patterns }}
                 IdentityFile ~/.ssh/oim_rsa
                 IdentitiesOnly yes
 
