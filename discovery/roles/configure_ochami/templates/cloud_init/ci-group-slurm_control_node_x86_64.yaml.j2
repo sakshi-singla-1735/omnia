@@ -54,27 +54,12 @@
                 done
             fi
 
-{% if all_group_names_present | default(false) | bool %}
         - path: /root/.ssh/config
           permissions: '0600'
           content: |
-            Host *
+            Host {{ slurm_control_ssh_patterns }}
                 IdentityFile ~/.ssh/oim_rsa
                 IdentitiesOnly yes
-{% else %}
-        - path: /root/.ssh/config
-          permissions: '0600'
-          content: |
-            {% set slurm_host_patterns = (slurm_cluster_hostnames | default([]))
-                                         | map('regex_replace', '[0-9]+$', '*')
-                                         | list
-                                         | unique %}
-            Host {{ (slurm_host_patterns + slurm_cluster_ip_patterns | default([]))
-                     | unique
-                     | join(' ') }}
-                IdentityFile ~/.ssh/oim_rsa
-                IdentitiesOnly yes
-{% endif %}
 
 {% if hostvars['localhost']['openldap_support'] %}
         - path: /etc/sssd/sssd.conf

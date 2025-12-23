@@ -60,6 +60,41 @@
       | difference(omnia_nodes_groups_from_yaml | default([]))
     ) | length == 0
 
+- name: Build SSH Host pattern strings for k8s and slurm based on nodes.yaml completeness
+  ansible.builtin.set_fact:
+    k8s_ssh_patterns: >-
+      {{
+        '*'
+        if (all_group_names_present | default(false))
+        else (
+          (
+            (hostvars['localhost']['k8s_cluster_hostnames'] | default([]))
+            | map('regex_replace', '[0-9]+$', '*')
+            | list
+            | unique
+          )
+          + (hostvars['localhost']['k8s_cluster_ip_patterns'] | default([]))
+        )
+        | unique
+        | join(' ')
+      }}
+    slurm_ssh_patterns: >-
+      {{
+        '*'
+        if (all_group_names_present | default(false))
+        else (
+          (
+            (hostvars['localhost']['slurm_cluster_hostnames'] | default([]))
+            | map('regex_replace', '[0-9]+$', '*')
+            | list
+            | unique
+          )
+          + (hostvars['localhost']['slurm_cluster_ip_patterns'] | default([]))
+        )
+        | unique
+        | join(' ')
+      }}
+
 - name: DEBUG nodes.yaml groups, hostnames and admin IPs
   ansible.builtin.debug:
     msg:
@@ -104,3 +139,5 @@
       omnia_nodes_groups_from_yaml: "{{ omnia_nodes_groups_from_yaml | default([]) }}"
       all_group_names_present: "{{ all_group_names_present | default(false) }}"
       omnia_cluster_ssh_matches: "{{ omnia_cluster_ssh_matches | default([]) }}"
+      k8s_ssh_patterns: "{{ k8s_ssh_patterns | default('') }}"
+      slurm_ssh_patterns: "{{ slurm_ssh_patterns | default('') }}"

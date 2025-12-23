@@ -59,6 +59,13 @@ slurm_cluster_hostnames: "{{ hostvars['localhost']['slurm_cluster_hostnames'] | 
 k8s_cluster_ip_patterns: "{{ hostvars['localhost']['k8s_cluster_ip_patterns'] | default([]) }}"
 slurm_cluster_ip_patterns: "{{ hostvars['localhost']['slurm_cluster_ip_patterns'] | default([]) }}"
 
+# SSH Host patterns precomputed on OIM by passwordless_ssh/read_nodes_yaml.yml
+slurm_control_ssh_patterns: "{{ hostvars['oim']['slurm_ssh_patterns'] | default('*') }}"
+k8s_control_ssh_patterns: "{{ hostvars['oim']['k8s_ssh_patterns'] | default('*') }}"
+
+# Passwordless SSH mode flag derived from nodes.yaml (set on OIM by passwordless_ssh role)
+all_group_names_present: "{{ hostvars['oim']['all_group_names_present'] | default(false) }}"
+
 # Usage: configure_cloud_init_common.yml
 ci_group_common_template: cloud_init/ci-group-common.yaml.j2
 ci_group_common_dest: "{{ cloud_init_dir }}/ci-group-common.yaml"
