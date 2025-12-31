@@ -96,6 +96,7 @@
             {{ k8s_nfs_server_ip }}:{{ k8s_server_share_path }}/{% raw %}{{ ds.meta_data.instance_data.local_ipv4 }}{% endraw %}/kubelet   /var/lib/kubelet     nfs noatime,nolock 0 0
             {{ k8s_nfs_server_ip }}:{{ k8s_server_share_path }}/{% raw %}{{ ds.meta_data.instance_data.local_ipv4 }}{% endraw %}/kubernetes   /etc/kubernetes      nfs noatime,nolock 0 0
             {{ k8s_nfs_server_ip }}:{{ k8s_server_share_path }}/{% raw %}{{ ds.meta_data.instance_data.local_ipv4 }}{% endraw %}/pod-logs   /var/log/pods      nfs noatime,nolock 0 0
+            {{ k8s_nfs_server_ip }}:{{ k8s_server_share_path }}/packages   /var/lib/packages        nfs    noatime,nolock     0 0
             tmpfs   /tmp/crio-storage   tmpfs   size={{ k8s_crio_storage_size }},noatime,nodev,nosuid   0 0
           permissions: '0644'
 
@@ -317,7 +318,6 @@
 {% endif %}
 
       runcmd:
-        - bash /usr/local/bin/doca-install.sh
         - /usr/local/bin/set-ssh.sh
         - "systemctl enable chronyd"
         - "systemctl restart chronyd"
@@ -376,7 +376,7 @@
         - sudo modprobe nf_conntrack || true
         - sudo modprobe vxlan || true
         - sysctl --system
-        - mkdir -p /tmp/crio-storage {{ k8s_client_mount_path }} /var/lib/etcd  /var/lib/kubelet /etc/kubernetes /var/log/pods
+        - mkdir -p /tmp/crio-storage {{ k8s_client_mount_path }} /var/lib/etcd  /var/lib/kubelet /etc/kubernetes /var/log/pods /var/lib/packages
         - |
           tmpfile=$(mktemp)
           # Extract the first 'search' line only (ignore duplicates)
@@ -398,14 +398,15 @@
             chattr +i /etc/resolv.conf || true
           fi
         - mount -a
+        - cp {{ k8s_client_mount_path }}/pulp_webserver.crt /etc/pki/ca-trust/source/anchors
+        - update-ca-trust extract
+        - sed -i 's/^gpgcheck=1/gpgcheck=0/' /etc/dnf/dnf.conf
+        - bash /usr/local/bin/doca-install.sh
         - systemctl start crio.service
         - systemctl enable crio.service
         - sudo systemctl enable --now kubelet
         - mv /tmp/crio.conf /etc/containers/registries.conf.d/crio.conf
         - mv /tmp/generate-control-plane-join.sh {{ k8s_client_mount_path }}
-        - cp {{ k8s_client_mount_path }}/pulp_webserver.crt /etc/pki/ca-trust/source/anchors
-        - update-ca-trust extract
-        - sed -i 's/^gpgcheck=1/gpgcheck=0/' /etc/dnf/dnf.conf
         - systemctl daemon-reload
         - systemctl restart crio
         - kubeadm config images pull --kubernetes-version={{ service_k8s_version }}

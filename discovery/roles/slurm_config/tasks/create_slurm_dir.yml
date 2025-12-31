@@ -141,34 +141,48 @@
 - name: Print copy paths for x86_64
   ansible.builtin.debug:
     msg: "{{ print_copy_msg }}"
-  loop: "{{ offline_path_x86_64 }}"
+  loop: "{{ offline_path_x86_64 | default([]) }}"
 
 - name: Print copy paths for aarch64
   ansible.builtin.debug:
     msg: "{{ print_copy_msg }}"
-  loop: "{{ offline_path_aarch64 }}"
+  loop: "{{ offline_path_aarch64 | default([]) }}"
+
+- name: Check x86_64 offline package sources
+  ansible.builtin.stat:
+    path: "{{ item.source_path }}"
+  loop: "{{ offline_path_x86_64 | default([]) }}"
+  register: x86_64_offline_pkg_sources
+
+- name: Check aarch64 offline package sources
+  ansible.builtin.stat:
+    path: "{{ item.source_path }}"
+  loop: "{{ offline_path_aarch64 | default([]) }}"
+  register: aarch64_offline_pkg_sources
 
 - name: Copy x86_64 offline packages
   copy:
-    src: "{{ item.source_path }}/"
-    dest: "{{ item.dest_path }}/"
+    src: "{{ item.item.source_path }}/"
+    dest: "{{ item.item.dest_path }}/"
     remote_src: true
     mode: preserve
-  loop: "{{ offline_path_x86_64 }}"
+  loop: "{{ x86_64_offline_pkg_sources.results | default([]) }}"
   when:
-    - item.source_path | length > 0
-    - item.dest_path | length > 0
+    - item.stat.exists
+    - item.item.source_path | length > 0
+    - item.item.dest_path | length > 0
 
 - name: Copy aarch64 offline packages
   copy:
-    src: "{{ item.source_path }}/"
-    dest: "{{ item.dest_path }}/"
+    src: "{{ item.item.source_path }}/"
+    dest: "{{ item.item.dest_path }}/"
     remote_src: true
     mode: preserve
-  loop: "{{ offline_path_aarch64 }}"
+  loop: "{{ aarch64_offline_pkg_sources.results | default([]) }}"
   when:
-    - item.source_path | length > 0
-    - item.dest_path | length > 0
+    - item.stat.exists
+    - item.item.source_path | length > 0
+    - item.item.dest_path | length > 0
 
 - name: Create the runfile directory on share
   ansible.builtin.file:
