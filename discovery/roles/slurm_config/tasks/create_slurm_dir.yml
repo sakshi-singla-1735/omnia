@@ -161,7 +161,7 @@
   register: aarch64_offline_pkg_sources
 
 - name: Copy x86_64 offline packages
-  copy:
+  ansible.builtin.copy:
     src: "{{ item.item.source_path }}/"
     dest: "{{ item.item.dest_path }}/"
     remote_src: true
@@ -173,7 +173,7 @@
     - item.item.dest_path | length > 0
 
 - name: Copy aarch64 offline packages
-  copy:
+  ansible.builtin.copy:
     src: "{{ item.item.source_path }}/"
     dest: "{{ item.item.dest_path }}/"
     remote_src: true
