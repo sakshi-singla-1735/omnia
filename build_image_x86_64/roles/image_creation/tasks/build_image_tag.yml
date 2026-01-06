@@ -17,6 +17,9 @@
   ansible.builtin.command:
     cmd: "podman pull {{ image_build_el10 }}"
   register: pull_result
+  retries: "{{ pull_image_retries }}"
+  delay: "{{ pull_image_delay }}"
+  until: pull_result.rc == 0
   changed_when: "'Image is up to date' not in pull_result.stdout"
 
 - name: Fail if image not pulled successfully
