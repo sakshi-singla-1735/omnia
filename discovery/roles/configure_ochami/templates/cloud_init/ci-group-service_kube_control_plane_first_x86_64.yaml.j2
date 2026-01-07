@@ -60,6 +60,13 @@
                     fi
                 done
             fi
+        
+        - path: /root/.ssh/config
+          permissions: '0600'
+          content: |
+            Host {{ k8s_control_ssh_patterns }}
+                IdentityFile ~/.ssh/oim_rsa
+                IdentitiesOnly yes
 
         - path: /etc/chrony.conf
           permissions: '0644'

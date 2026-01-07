@@ -61,6 +61,13 @@
                     fi
                 done
             fi
+        
+        - path: /root/.ssh/config
+          permissions: '0600'
+          content: |
+            Host {{ slurm_control_ssh_patterns }}
+                IdentityFile ~/.ssh/oim_rsa
+                IdentitiesOnly yes
 
 {% if hostvars['localhost']['openldap_support'] %}
         - path: /etc/sssd/sssd.conf
