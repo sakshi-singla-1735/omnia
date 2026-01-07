@@ -102,4 +102,3 @@ k8s_control_ssh_patterns: "{{ hostvars['oim']['k8s_ssh_patterns'] | default('*')
 
 # Passwordless SSH mode flag derived from nodes.yaml (set on OIM by passwordless_ssh role)
 all_group_names_present: "{{ hostvars['oim']['all_group_names_present'] | default(false) }}"
-
