@@ -31,9 +31,3 @@
   when:
     - slurm_support
     - ctld_list or (cmpt_list or login_list or compiler_login_list)
-
-- name: Install NVIDIA HPC SDK on Slurm NFS
-  ansible.builtin.include_tasks: nvidia_hpcsdk.yml
-  when:
-    - slurm_support
-    - ctld_list or (cmpt_list or login_list or compiler_login_list)
