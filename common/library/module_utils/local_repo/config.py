@@ -142,8 +142,24 @@ pulp_rpm_commands = {
     "update_distribution": "pulp rpm distribution update --name %s  --base-path %s  --repository %s",
     "create_remote_cert": "pulp rpm remote create --name %s --url %s --policy %s --ca-cert %s --client-cert %s --client-key %s",
     "update_remote_cert": "pulp rpm remote update --name %s --url %s --policy %s --ca-cert %s --client-cert %s --client-key %s",
-    "check_distribution": "pulp rpm distribution show --name %s"
+    "check_distribution": "pulp rpm distribution show --name %s",
+    "delete_repository": "pulp rpm repository destroy --name %s",
+    "delete_remote": "pulp rpm remote destroy --name %s",
+    "delete_distribution": "pulp rpm distribution destroy --name %s",
+    "list_publications": "pulp rpm publication list --repository %s",
+    "update_distribution_publication": "pulp rpm distribution update --name %s --publication %s"
 }
+
+# ----------------------------
+# Additional Repos Aggregation Settings
+# Used by process_rpm_config.py for aggregated repos feature
+# Naming convention: <arch>_omnia-additional to match existing filter patterns
+# ----------------------------
+ADDITIONAL_REPOS_KEY = "additional_repos"
+AGGREGATED_REPO_NAME_TEMPLATE = "{arch}_omnia-additional-repo"
+AGGREGATED_REMOTE_NAME_TEMPLATE = "{arch}_omnia-additional-{name}"
+AGGREGATED_DISTRIBUTION_NAME_TEMPLATE = "{arch}_omnia-additional"
+AGGREGATED_BASE_PATH_TEMPLATE = "opt/omnia/offline_repo/cluster/{arch}/rhel/10.0/rpms/omnia-additional"
 STANDARD_LOG_FILE_PATH = "/opt/omnia/log/local_repo/standard.log"
 
 # ----------------------------
