@@ -42,6 +42,9 @@ service_kube_node_x86_64_compute_commands:
 
 service_kube_control_plane_first_x86_64_compute_commands:
   - "echo 'Service kube control plane first x86_64 compute'"
+  - "modprobe mlx5_ib || true"
+  - "modprobe ib_uverbs || true"
+  - "modprobe ib_ipoib || true"
 
 service_kube_control_plane_x86_64_compute_commands:
   - "echo 'Service kube control plane x86_64 compute'"
