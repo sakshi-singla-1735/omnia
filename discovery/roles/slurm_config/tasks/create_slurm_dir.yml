@@ -119,15 +119,27 @@
     group: root
     mode: "{{ common_mode }}"
 
+- name: Create the hpc_tools/nvidia_sdk directory on share
+  ansible.builtin.file:
+    path: "{{ slurm_config_path }}/{{ nvhpc_nfs_rel_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "{{ common_mode }}"
+
 - name: Set NFS info fact
   ansible.builtin.set_fact:
     oim_shared_path: "{{ hostvars['localhost']['oim_shared_path'] }}"
+
+- name: Check if NVIDIA HPC SDK tarball exists for x86_64
+  ansible.builtin.stat:
+    path: "{{ oim_shared_path }}/omnia/{{ nvhpc_tarball_x86_64_relpath }}"
+  register: nvhpc_tarball_x86_64
 
 - name: Check if source directory exists
   ansible.builtin.stat:
     path: "{{ oim_shared_path }}/omnia/offline_repo/cluster/x86_64/rhel/10.0/iso/cuda-run/"
   register: src_dir_check_x86_64
-
 
 - name: Check if source directory exists
   ansible.builtin.stat:
@@ -156,6 +168,16 @@
     remote_src: true
   when: src_dir_check_x86_64.stat.exists and src_dir_check_x86_64.stat.isdir
 
+- name: Copy NVIDIA HPC SDK tarball to hpc_tools/nvidia_sdk on share for x86_64
+  ansible.builtin.copy:
+    src: "{{ oim_shared_path }}/omnia/{{ nvhpc_tarball_x86_64_relpath }}"
+    dest: "{{ slurm_config_path }}/{{ nvhpc_nfs_rel_dir }}/"
+    mode: '0644'
+    owner: root
+    group: root
+    remote_src: true
+  when: nvhpc_tarball_x86_64.stat.exists and not nvhpc_tarball_x86_64.stat.isdir
+  
 - name: Check if munge key exists top level
   ansible.builtin.stat:
     path: "{{ slurm_config_path }}/munge.key"
