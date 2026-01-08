@@ -188,7 +188,11 @@
         - /usr/local/bin/install_cuda_toolkit.sh
         - groupadd -r {{ slurm_group_name }}
         - useradd -r -g {{ slurm_group_name }} -d {{ home_dir }} -s /sbin/nologin {{ user }}
-
+        
+        # Ensure Slurm NFS root is mounted at client_mount_path (e.g. /share_omnia)
+        - mkdir -p {{ client_mount_path }}
+        - echo "{{ cloud_init_slurm_nfs_path }} {{ client_mount_path }} nfs defaults,_netdev 0 0" >> /etc/fstab
+         
         - mkdir -p /var/log/slurm /var/run/slurm /var/spool /var/lib/slurm /etc/slurm/epilog.d /etc/munge /cert /var/log/track
         - echo "{{ cloud_init_nfs_path }}/cert  /cert   nfs defaults,_netdev 0 0" >> /etc/fstab
         - echo "{{ cloud_init_nfs_path }}/$(hostname -s)/var/log/slurm  /var/log/slurm   nfs defaults,_netdev 0 0" >> /etc/fstab
