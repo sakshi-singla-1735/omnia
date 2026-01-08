@@ -17,6 +17,11 @@
           ssh_authorized_keys: "{{ read_ssh_key.stdout }}"
           lock_passwd: false
           hashed_passwd: "{{ hashed_password_output.stdout }}"
+        - name: {{ slurm_user }}
+          uid: {{ slurm_uid }}
+          system: true
+          no_create_home: true
+          shell: /sbin/nologin
       disable_root: false
 
       write_files:
@@ -120,8 +125,8 @@
           content: |
             #!/bin/bash
             SLURMDBD_CONF="/etc/slurm/slurmdbd.conf"
-            SLURM_USER="{{ user }}"
-            SLURM_GROUP="{{ slurm_group_name }}"
+            SLURM_USER="{{ slurm_user }}"
+            SLURM_GROUP="{{ slurm_user }}"
             # Function to extract value from slurm.conf 
             get_value_slurm_conf() {
                 local key="$1"
@@ -131,8 +136,8 @@
                 echo "${value:-$default}"
             }
             chown -R {{ mysql_user }}:{{ mysql_group }} /var/lib/mysql
-            chown -R {{ user }}:{{ slurm_group_name }} /var/log/mariadb
-            chown -R {{ user }}:{{ slurm_group_name }} /etc/my.cnf.d # Required? why slurm user for my.cnf?? 
+            chown -R {{ slurm_user }}:{{ slurm_user }} /var/log/mariadb
+            chown -R {{ slurm_user }}:{{ slurm_user }} /etc/my.cnf.d # Required? why slurm user for my.cnf?? 
             chmod {{ file_mode_755 }} /etc/my.cnf.d /var/lib/mysql /var/log/mariadb
             #firewall
             systemctl enable firewalld
@@ -149,8 +154,8 @@
           content: |
             #!/bin/bash
             SLURMDBD_CONF="/etc/slurm/slurmdbd.conf"
-            SLURM_USER="{{ user }}"
-            SLURM_GROUP="{{ slurm_group_name }}"
+            SLURM_USER="{{ slurm_user }}"
+            SLURM_GROUP="{{ slurm_user }}"
             # Function to extract value from slurm.conf 
             get_value_slurm_conf() {
                 local key="$1"
@@ -160,7 +165,7 @@
                 echo "${value:-$default}"
             }
             chmod {{ file_mode_600 }} /etc/slurm/slurmdbd.conf
-            chown {{ user }}:{{ slurm_group_name }} /etc/slurm/slurmdbd.conf
+            chown {{ slurm_user }}:{{ slurm_user }} /etc/slurm/slurmdbd.conf
             #file PidFile
             PidFile=$(get_value_slurm_conf "PidFile" "/var/run/slurmdbd.pid")
             mkdir -pv $(dirname "$PidFile")
@@ -187,8 +192,8 @@
           content: |
             #!/bin/bash
             SLURM_CONF="/etc/slurm/slurm.conf"
-            SLURM_USER="{{ user }}"
-            SLURM_GROUP="{{ slurm_group_name }}"
+            SLURM_USER="{{ slurm_user }}"
+            SLURM_GROUP="{{ slurm_user }}"
             # Function to extract value from slurm.conf 
             get_value_slurm_conf() {
                 local key="$1"
@@ -250,10 +255,8 @@
 
       runcmd:
          - /usr/local/bin/set-ssh.sh
-         - useradd -mG wheel -p '$6$VHdSKZNm$O3iFYmRiaFQCemQJjhfrpqqV7DdHBi5YpY6Aq06JSQpABPw.3d8PQ8bNY9NuZSmDv7IL/TsrhRJ6btkgKaonT.' testuser # Required??
-         - groupadd -r {{ slurm_group_name }}
-         - useradd -r -g {{ slurm_group_name }} -d {{ home_dir }} -s /sbin/nologin {{ user }}
-
+        # slurm user and group created in the users module
+        
         # Create directories for nfs and mount all
          - mkdir -p /var/log/slurm /etc/slurm {{ home_dir }} /etc/my.cnf.d /etc/munge /var/lib/mysql /var/log/mariadb /cert /var/log/track /var/lib/packages
          - echo "{{ cloud_init_nfs_path }}/cert  /cert   nfs defaults,_netdev 0 0" >> /etc/fstab
@@ -273,10 +276,10 @@
          - bash /usr/local/bin/doca-install.sh
          - bash /usr/local/bin/configure-ib-network.sh
 
-         - chown -R {{ user }}:{{ slurm_group_name }} {{ home_dir }}
+         - chown -R {{ slurm_user }}:{{ slurm_user }} {{ home_dir }}
          - chmod {{ file_mode_755 }} {{ home_dir }}
 
-         - chown -R {{ user }}:{{ slurm_group_name }} /etc/slurm
+         - chown -R {{ slurm_user }}:{{ slurm_user }} /etc/slurm
          - chmod {{ file_mode_755 }} /etc/slurm
          - chmod {{ file_mode }} /etc/slurm/slurm.conf
 

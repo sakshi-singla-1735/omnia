@@ -17,6 +17,12 @@
           ssh_authorized_keys: "{{ read_ssh_key.stdout }}"
           lock_passwd: false
           hashed_passwd: "{{ hashed_password_output.stdout }}"
+        - name: {{ slurm_user }}
+          uid: {{ slurm_uid }}
+          system: true
+          no_create_home: true
+          shell: /sbin/nologin
+
       disable_root: false
 
       write_files:
@@ -272,10 +278,10 @@
             bash /usr/local/bin/check_slurm_controller_status.sh
 
             echo "[INFO] Setting ownership for Slurm directories"
-            chown -R {{ user }}:{{ slurm_group_name }} /var/log/slurm
-            chown -R {{ user }}:{{ slurm_group_name }} /var/run/slurm
-            chown -R {{ user }}:{{ slurm_group_name }} /var/spool
-            chown -R {{ user }}:{{ slurm_group_name }} /var/lib/slurm
+            chown -R {{ slurm_user }}:{{ slurm_user }} /var/log/slurm
+            chown -R {{ slurm_user }}:{{ slurm_user }} /var/run/slurm
+            chown -R {{ slurm_user }}:{{ slurm_user }} /var/spool
+            chown -R {{ slurm_user }}:{{ slurm_user }} /var/lib/slurm
 
             echo "[INFO] Setting permissions for Slurm directories"
             chmod {{ file_mode_755 }} /var/log/slurm /var/run/slurm /var/spool /var/lib/slurm
@@ -287,7 +293,7 @@
             echo "[INFO] Creating and configuring /var/spool/slurmd"
             mkdir -p /var/spool/slurmd
             chmod {{ file_mode_755 }} /var/spool/slurmd
-            chown -R {{ user }}:{{ slurm_group_name }} /var/spool/slurmd
+            chown -R {{ slurm_user }}:{{ slurm_user }} /var/spool/slurmd
 
             echo "[INFO] ===== Completed slurmd setup ====="
 
@@ -387,13 +393,12 @@
       runcmd:
         - /usr/local/bin/set-ssh.sh
         - /usr/local/bin/install_nvidia_driver.sh
-        - useradd -mG wheel -p '$6$VHdSKZNm$O3iFYmRiaFQCemQJjhfrpqqV7DdHBi5YpY6Aq06JSQpABPw.3d8PQ8bNY9NuZSmDv7IL/TsrhRJ6btkgKaonT.' testuser
-        - groupadd -r {{ slurm_group_name }}
-        - useradd -r -g {{ slurm_group_name }} -d {{ home_dir }} -s /sbin/nologin {{ user }}
+        # slurm user and group created in the users module
 
         - /usr/local/bin/configure_dirs_and_mounts.sh
         - cp /cert/pulp_webserver.crt /etc/pki/ca-trust/source/anchors && update-ca-trust
         - sed -i 's/^gpgcheck=1/gpgcheck=0/' /etc/dnf/dnf.conf
+
         - bash /usr/local/bin/doca-install.sh
         - bash /usr/local/bin/configure-ib-network.sh
         - /usr/local/bin/configure_slurmd_setup.sh
