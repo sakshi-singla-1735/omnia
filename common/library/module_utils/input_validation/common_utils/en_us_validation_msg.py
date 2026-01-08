@@ -433,3 +433,4 @@ def get_logic_failed(input_file_path):
 def get_logic_success(input_file_path):
     """Returns a formatted message indicating logic validation success for a file."""
     return f"{'#' * 10} Logic validation successful for {input_file_path} {'#' * 10}"
+

@@ -33,6 +33,11 @@
 #     ntp_servers:
 #       - { address: "172.16.10.80", type: "server" }
 
+# 'ib_network' is a mandatory field, essential for IB network configuration.
+# The 'ib_network' section contains the following variables:
+# - 'subnet': The subnet of the IB network.
+# - 'netmask_bits': The number of bits in the subnet mask.
+
 Networks:
 - admin_network:
     oim_nic_name: "eno1"
