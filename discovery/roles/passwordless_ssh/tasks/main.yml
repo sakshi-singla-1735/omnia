@@ -21,3 +21,8 @@
 - name: Configure OIM SSH based on PXE mapping (run on oim)
   when: inventory_hostname == 'oim'
   ansible.builtin.include_tasks: configure_oim_ssh.yml
+
+- name: Copy OIM SSH key to shared NFS for node-to-node SSH
+  ansible.builtin.include_tasks: copy_ssh_key_to_nfs.yml
+  when:
+    - inventory_hostname == 'oim'

@@ -103,3 +103,11 @@ k8s_control_ssh_patterns: "{{ hostvars['oim']['k8s_ssh_patterns'] | default('*')
 # Passwordless SSH mode flag derived from nodes.yaml (set on OIM by passwordless_ssh role)
 all_group_names_present: "{{ hostvars['oim']['all_group_names_present'] | default(false) }}"
 
+# Shared SSH key on NFS for node→node passwordless SSH
+# Slurm / login stacks
+slurm_ssh_key_nfs_dir: "{{ cloud_init_nfs_path }}/ssh"
+slurm_ssh_key_nfs_path: "{{ slurm_ssh_key_nfs_dir }}/oim_rsa"
+
+# K8s stacks (if you want the same key there; adjust share if different)
+k8s_ssh_key_nfs_dir: "{{ k8s_server_share_path }}/ssh"
+k8s_ssh_key_nfs_path: "{{ k8s_ssh_key_nfs_dir }}/oim_rsa"

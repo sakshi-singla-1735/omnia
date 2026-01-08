@@ -65,7 +65,7 @@
           permissions: '0600'
           content: |
             Host {{ slurm_control_ssh_patterns }}
-                IdentityFile ~/.ssh/oim_rsa
+                IdentityFile {{ slurm_ssh_key_nfs_path }}
                 IdentitiesOnly yes
 
         - path: /usr/local/bin/install_nvidia_driver.sh

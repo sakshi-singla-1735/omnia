@@ -24,11 +24,6 @@
             sed -i 's/^PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config.d/50-cloud-init.conf
             systemctl restart sshd
 
-        - path: /root/.ssh/oim_rsa
-          permissions: '0600'
-          content: |
-            {{ read_ssh_private_key.stdout | indent(12) }}
-
       runcmd:
         - /usr/local/bin/set-ssh-config.sh
 

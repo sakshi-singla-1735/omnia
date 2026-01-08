@@ -42,3 +42,7 @@ Networks:
     dynamic_range: "172.16.107.201-172.16.107.250"
     dns: []
     ntp_servers: []
+
+- ib_network:
+    subnet: "192.168.0.0"
+    netmask_bits: "24"
