@@ -7,9 +7,6 @@
             {"package": "python3-firewall", "type": "rpm", "repo_name": "aarch64_baseos"},
             {"package": "pmix", "type": "rpm", "repo_name": "aarch64_appstream"},
             {"package": "pmix-devel", "type": "rpm", "repo_name": "aarch64_appstream"},
-      { "package": "doca-ofed", "type": "rpm", "repo_name": "doca-ofed"},
-      { "package": "perftes", "type": "rpm", "repo_name": "x86_64_baseos"},
-      { "package": "librdmacm-utils", "type": "rpm", "repo_name": "x86_64_baseos"},
             {"package": "doca-ofed",
              "type": "iso",
              "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.2.1/host/doca-host-3.2.1-044000_25.10_rhel10.aarch64.rpm"
