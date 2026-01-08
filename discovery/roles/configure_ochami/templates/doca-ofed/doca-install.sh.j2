@@ -53,6 +53,14 @@ else
     dnf install -y doca-ofed
 fi
 
+echo "Unloading RDMA kernel modules..."
+rmmod bnxt_re || true
+rmmod mlx5_ib    || true
+rmmod ib_uverbs  || true
+rmmod xpmem      || true
+rmmod ib_core    || true
+rmmod mlx5_core  || true
+
 echo "Loading RDMA kernel modules..."
 modprobe mlx5_core || true
 modprobe mlx5_ib || true
