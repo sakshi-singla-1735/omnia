@@ -64,7 +64,7 @@
           permissions: '0600'
           content: |
             Host {{ slurm_control_ssh_patterns }}
-                IdentityFile {{ slurm_ssh_key_nfs_path }}
+                IdentityFile {{ client_mount_path }}/slurm/ssh/oim_rsa
                 IdentitiesOnly yes
 
 {% if hostvars['localhost']['openldap_support'] %}
