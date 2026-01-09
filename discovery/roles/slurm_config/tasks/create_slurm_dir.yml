@@ -137,7 +137,7 @@
 
 - name: Check if cuda runfile already exists on share (aarch64)
   ansible.builtin.stat:
-    path: "{{ slurm_config_path }}/hpc_tools/runfile"
+    path: "{{ slurm_config_path }}/hpc_tools/runfile/runfile"
   register: cuda_runfile_dest_aarch64
 
 - name: Copy cuda run file using copy module for aarch64
@@ -156,7 +156,7 @@
 
 - name: Check if cuda runfile already exists on share (x86_64)
   ansible.builtin.stat:
-    path: "{{ slurm_config_path }}/hpc_tools/runfile"
+    path: "{{ slurm_config_path }}/hpc_tools/runfile/runfile"
   register: cuda_runfile_dest_x86_64
 
 - name: Copy cuda run file using copy module for x86_64
