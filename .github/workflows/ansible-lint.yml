@@ -6,11 +6,7 @@ on:
       - main
       - staging
       - release_1.7.1
-      - pub/local_repo_arch
-      - pub/provision_arch
-      - pub/ochami
-      - pub/ochami_aarch64
-      - pub/k8s_telemetry
+      - pub/q1_dev
 
 jobs:
   build:
