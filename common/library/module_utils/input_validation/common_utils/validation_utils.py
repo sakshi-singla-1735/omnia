@@ -732,7 +732,7 @@ def validate_cluster_items(cluster_items, json_file_path):
         if is_additional_packages and item_type not in allowed_types_for_additional:
             failures.append(
                 f"Failed. Type '{item_type}' is not allowed in '{json_file_path}'. "
-                f"Only 'rpm' and 'image' types are permitted.")
+                f"Only 'rpm' and 'image' types are permitted in this file.")
             continue
 
         required_fields = config.TYPE_REQUIREMENTS.get(item_type)
