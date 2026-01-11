@@ -36,7 +36,7 @@
 # 'ib_network' is a mandatory field, essential for IB network configuration.
 # The 'ib_network' section contains the following variables:
 # - 'subnet': The subnet of the IB network.
-# - 'netmask_bits': The number of bits in the subnet mask.
+# - 'netmask_bits': The number of bits in the subnet mask. This value must be same as the admin_network netmask_bits.
 
 Networks:
 - admin_network:
