@@ -164,6 +164,53 @@ def validate_duplicate_service_tags_in_mapping_file(pxe_mapping_file_path):
     if duplicates:
         raise ValueError(f"Duplicate SERVICE_TAG found in PXE mapping file: {'; '.join(duplicates)}")
 
+
+def validate_group_parent_service_tag_consistency_in_mapping_file(pxe_mapping_file_path):
+    """Validates that GROUP_NAME has a consistent PARENT_SERVICE_TAG across the mapping file."""
+    if not pxe_mapping_file_path or not os.path.isfile(pxe_mapping_file_path):
+        raise ValueError(f"PXE mapping file not found: {pxe_mapping_file_path}")
+
+    with open(pxe_mapping_file_path, "r", encoding="utf-8") as fh:
+        raw_lines = fh.readlines()
+
+    non_comment_lines = [ln for ln in raw_lines if ln.strip()]
+    reader = csv.DictReader(non_comment_lines)
+
+    fieldname_map = {fn.strip().upper(): fn for fn in reader.fieldnames}
+    group_col = fieldname_map.get("GROUP_NAME")
+    parent_col = fieldname_map.get("PARENT_SERVICE_TAG")
+
+    if not group_col or not parent_col:
+        raise ValueError("GROUP_NAME or PARENT_SERVICE_TAG column not found in PXE mapping file")
+
+    group_to_parent = {}
+    errors = []
+
+    for row_idx, row in enumerate(reader, start=2):
+        group_name = row.get(group_col, "").strip() if row.get(group_col) else ""
+        parent = row.get(parent_col, "").strip() if row.get(parent_col) else ""
+        if not group_name:
+            continue
+
+        if group_name not in group_to_parent:
+            group_to_parent[group_name] = {"parent": parent, "row": row_idx}
+            continue
+
+        prev_parent = group_to_parent[group_name]["parent"]
+        if prev_parent != parent:
+            errors.append(
+                f"GROUP_NAME '{group_name}' is associated with different PARENT_SERVICE_TAG. "
+                f"Found PARENT_SERVICE_TAG='{prev_parent}' at CSV row {group_to_parent[group_name]['row']} and "
+                f"PARENT_SERVICE_TAG='{parent}' at CSV row {row_idx}. "
+                f"Fix: Use exactly one PARENT_SERVICE_TAG value for same GROUP_NAME. "
+            )
+
+    if errors:
+        raise ValueError(
+            "PXE mapping file GROUP_NAME and PARENT_SERVICE_TAG consistency validation errors: "
+            + "\n".join(errors)
+        )
+
 def validate_mapping_file_entries(mapping_file_path):
     """
     Validate CSV mapping file without pandas:
@@ -633,6 +680,7 @@ def validate_provision_config(
             validate_functional_groups_in_mapping_file(pxe_mapping_file_path)
             validate_duplicate_service_tags_in_mapping_file(pxe_mapping_file_path)
             validate_duplicate_hostnames_in_mapping_file(pxe_mapping_file_path)
+            validate_group_parent_service_tag_consistency_in_mapping_file(pxe_mapping_file_path)
             validate_functional_groups_separation(pxe_mapping_file_path)
             validate_parent_service_tag_hierarchy(pxe_mapping_file_path)
 
