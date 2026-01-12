@@ -17,7 +17,7 @@
 
 - name: Merge admin debug packages with base packages
   ansible.builtin.set_fact:
-    x86_64_base_image_packages: "{{ (x86_64_base_image_packages | default([]) + admin_debug_rpm_list | default([])) | unique }}"
+    aarch64_base_image_packages: "{{ (aarch64_base_image_packages | default([]) + admin_debug_rpm_list | default([])) | unique }}"
   when: admin_debug_enabled | bool
 
 - name: Display admin debug package count

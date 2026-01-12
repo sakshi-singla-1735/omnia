@@ -43,3 +43,6 @@
 
 - name: Fetch packages for base and compute image softwares
   ansible.builtin.include_tasks: fetch_packages.yml
+
+- name: Load admin debug packages if enabled
+  ansible.builtin.include_tasks: load_admin_debug_packages.yml
