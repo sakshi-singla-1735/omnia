@@ -38,6 +38,7 @@
 # - 'subnet': The subnet of the IB network.
 # - 'netmask_bits': The number of bits in the subnet mask. This value must be same as the admin_network netmask_bits.
 
+
 Networks:
 - admin_network:
     oim_nic_name: "eno1"
