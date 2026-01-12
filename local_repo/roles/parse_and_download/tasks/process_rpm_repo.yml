@@ -27,6 +27,7 @@
   process_rpm_config:
     local_config: "{{ result.local_config }}"
     log_dir: "{{ base_path }}"
+    additional_repos_config: "{{ result.additional_repos_config | default(omit) }}"
   register: rpm_result
 
 - name: Regenerate DNF cache

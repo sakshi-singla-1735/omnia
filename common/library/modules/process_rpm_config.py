@@ -28,7 +28,11 @@ from ansible.module_utils.local_repo.config import (
     pulp_rpm_commands,
     STANDARD_LOG_FILE_PATH,
     PULP_SYNC_CONCURRENCY,
-    PULP_PUBLISH_CONCURRENCY
+    PULP_PUBLISH_CONCURRENCY,
+    AGGREGATED_REPO_NAME_TEMPLATE,
+    AGGREGATED_REMOTE_NAME_TEMPLATE,
+    AGGREGATED_DISTRIBUTION_NAME_TEMPLATE,
+    AGGREGATED_BASE_PATH_TEMPLATE
 )
 
 def execute_command(cmd_string, log,type_json=None, seconds=None):
@@ -463,9 +467,323 @@ gpgcheck=0
         log.info(f"Created {repo_file_path} with {len(distributions)} repositories")
 
     except PermissionError:
-        slogger.error("Permission denied while writing to /etc/yum.repos.d/. Run with elevated privileges.")
+        log.error("Permission denied while writing to /etc/yum.repos.d/. Run with elevated privileges.")
     except Exception as e:
-        slogger.error(f"Unexpected error while creating YUM repo file: {e}")
+        log.error(f"Unexpected error while creating YUM repo file: {e}")
+
+
+# ============================================================================
+# AGGREGATED REPOS FUNCTIONS
+# These functions handle the additional_repos_* feature which aggregates
+# multiple user-defined repos into a single Pulp repository per architecture.
+# ============================================================================
+
+def delete_aggregated_repo(arch, log):
+    """
+    Delete the aggregated repository, its remotes, and distribution for a given architecture.
+    This is called before recreating the aggregated repo to ensure a clean state.
+
+    Args:
+        arch (str): Architecture (x86_64 or aarch64).
+        log (logging.Logger): Logger instance.
+
+    Returns:
+        bool: True if deletion was successful or resources didn't exist, False on error.
+    """
+    repo_name = AGGREGATED_REPO_NAME_TEMPLATE.format(arch=arch)
+    dist_name = AGGREGATED_DISTRIBUTION_NAME_TEMPLATE.format(arch=arch)
+
+    log.info(f"Deleting aggregated resources for arch '{arch}'")
+
+    # Delete distribution first (depends on repo)
+    dist_cmd = pulp_rpm_commands["delete_distribution"] % dist_name
+    execute_command(dist_cmd, log)  # Ignore errors - may not exist
+
+    # Delete repository (this also removes associated publications)
+    repo_cmd = pulp_rpm_commands["delete_repository"] % repo_name
+    execute_command(repo_cmd, log)  # Ignore errors - may not exist
+
+    log.info(f"Completed deletion of aggregated resources for arch '{arch}'")
+    return True
+
+
+def create_aggregated_repository(arch, log):
+    """
+    Create the aggregated repository for a given architecture.
+
+    Args:
+        arch (str): Architecture (x86_64 or aarch64).
+        log (logging.Logger): Logger instance.
+
+    Returns:
+        tuple: (success, repo_name)
+    """
+    repo_name = AGGREGATED_REPO_NAME_TEMPLATE.format(arch=arch)
+
+    log.info(f"Creating aggregated repository: {repo_name}")
+
+    if not show_rpm_repository(repo_name, log):
+        command = pulp_rpm_commands["create_repository"] % repo_name
+        result = execute_command(command, log)
+        if not result:
+            log.error(f"Failed to create aggregated repository: {repo_name}")
+            return False, repo_name
+        log.info(f"Aggregated repository '{repo_name}' created successfully.")
+    else:
+        log.info(f"Aggregated repository '{repo_name}' already exists.")
+
+    return True, repo_name
+
+
+def create_aggregated_remote(repo_entry, arch, log):
+    """
+    Create or update a remote for an additional repo entry.
+
+    Args:
+        repo_entry (dict): Repository entry with name, url, policy, and optional SSL certs.
+        arch (str): Architecture (x86_64 or aarch64).
+        log (logging.Logger): Logger instance.
+
+    Returns:
+        tuple: (success, remote_name)
+    """
+    name = repo_entry["name"]
+    url = repo_entry["url"]
+    policy = repo_entry["policy"]
+    remote_name = AGGREGATED_REMOTE_NAME_TEMPLATE.format(arch=arch, name=name)
+
+    log.info(f"Creating/updating remote '{remote_name}' for URL: {url}")
+
+    ca_cert = repo_entry.get("ca_cert", "")
+    client_key = repo_entry.get("client_key", "")
+    client_cert = repo_entry.get("client_cert", "")
+
+    if ca_cert and client_key and client_cert:
+        ca_cert_arg = f"@{ca_cert}"
+        client_cert_arg = f"@{client_cert}"
+        client_key_arg = f"@{client_key}"
+
+        if not show_rpm_remote(remote_name, log):
+            command = pulp_rpm_commands["create_remote_cert"] % (
+                remote_name, url, policy, ca_cert_arg, client_cert_arg, client_key_arg
+            )
+        else:
+            command = pulp_rpm_commands["update_remote_cert"] % (
+                remote_name, url, policy, ca_cert_arg, client_cert_arg, client_key_arg
+            )
+    else:
+        if not show_rpm_remote(remote_name, log):
+            command = pulp_rpm_commands["create_remote"] % (remote_name, url, policy)
+        else:
+            command = pulp_rpm_commands["update_remote"] % (remote_name, url, policy)
+
+    result = execute_command(command, log)
+    if not result:
+        log.error(f"Failed to create/update remote: {remote_name}")
+        return False, remote_name
+
+    log.info(f"Remote '{remote_name}' created/updated successfully.")
+    return True, remote_name
+
+
+def sync_aggregated_repository(repo_name, remote_name, log):
+    """
+    Sync the aggregated repository with a specific remote.
+
+    Args:
+        repo_name (str): Name of the aggregated repository.
+        remote_name (str): Name of the remote to sync from.
+        log (logging.Logger): Logger instance.
+
+    Returns:
+        tuple: (success, remote_name)
+    """
+    log.info(f"Syncing repository '{repo_name}' with remote '{remote_name}'")
+
+    command = pulp_rpm_commands["sync_repository"] % (repo_name, remote_name)
+    result = execute_command(command, log)
+
+    if not result:
+        log.error(f"Failed to sync repository '{repo_name}' with remote '{remote_name}'")
+        return False, remote_name
+
+    log.info(f"Successfully synced repository '{repo_name}' with remote '{remote_name}'")
+    return True, remote_name
+
+
+def create_aggregated_publication(repo_name, log):
+    """
+    Create a publication for the aggregated repository.
+
+    Args:
+        repo_name (str): Name of the aggregated repository.
+        log (logging.Logger): Logger instance.
+
+    Returns:
+        tuple: (success, publication_href or None)
+    """
+    log.info(f"Creating publication for aggregated repository: {repo_name}")
+
+    command = pulp_rpm_commands["publish_repository"] % repo_name
+
+    try:
+        cmd = subprocess.run(
+            command, shell=True, capture_output=True, text=True, timeout=3600
+        )
+        log.info(f"Publication command return code: {cmd.returncode}")
+
+        if cmd.returncode != 0:
+            log.error(f"Failed to create publication for {repo_name}: {cmd.stderr}")
+            return False, None
+
+        # Parse the output to get publication href
+        try:
+            pub_data = json.loads(cmd.stdout)
+            pub_href = pub_data.get("pulp_href")
+            log.info(f"Publication created with href: {pub_href}")
+            return True, pub_href
+        except json.JSONDecodeError:
+            # If output is not JSON, try to get href from list
+            log.info("Could not parse publication href from output, fetching from list")
+            list_cmd = pulp_rpm_commands["list_publications"] % repo_name
+            list_result = subprocess.run(
+                list_cmd, shell=True, capture_output=True, text=True
+            )
+            if list_result.returncode == 0:
+                pubs = json.loads(list_result.stdout)
+                if pubs:
+                    # Get the latest publication
+                    pub_href = pubs[-1].get("pulp_href")
+                    log.info(f"Got publication href from list: {pub_href}")
+                    return True, pub_href
+            return True, None
+
+    except Exception as e:
+        log.error(f"Exception during publication creation: {e}")
+        return False, None
+
+
+def create_aggregated_distribution(arch, pub_href, log):
+    """
+    Create or update the distribution for the aggregated repository.
+
+    Args:
+        arch (str): Architecture (x86_64 or aarch64).
+        pub_href (str): Publication href to associate with distribution.
+        log (logging.Logger): Logger instance.
+
+    Returns:
+        tuple: (success, distribution_name)
+    """
+    repo_name = AGGREGATED_REPO_NAME_TEMPLATE.format(arch=arch)
+    dist_name = AGGREGATED_DISTRIBUTION_NAME_TEMPLATE.format(arch=arch)
+    base_path = AGGREGATED_BASE_PATH_TEMPLATE.format(arch=arch)
+
+    log.info(f"Creating/updating distribution '{dist_name}' with base_path '{base_path}'")
+
+    # Check if distribution exists
+    show_cmd = pulp_rpm_commands["check_distribution"] % dist_name
+
+    if execute_command(show_cmd, log):
+        # Distribution exists - update with new publication
+        if pub_href:
+            update_cmd = pulp_rpm_commands["update_distribution_publication"] % (dist_name, pub_href)
+            result = execute_command(update_cmd, log)
+        else:
+            # Update with repository reference
+            update_cmd = pulp_rpm_commands["update_distribution"] % (dist_name, base_path, repo_name)
+            result = execute_command(update_cmd, log)
+
+        if not result:
+            log.error(f"Failed to update distribution: {dist_name}")
+            return False, dist_name
+        log.info(f"Distribution '{dist_name}' updated successfully.")
+    else:
+        # Create new distribution
+        create_cmd = pulp_rpm_commands["distribute_repository"] % (dist_name, base_path, repo_name)
+        result = execute_command(create_cmd, log)
+
+        if not result:
+            log.error(f"Failed to create distribution: {dist_name}")
+            return False, dist_name
+        log.info(f"Distribution '{dist_name}' created successfully.")
+
+    return True, dist_name
+
+
+def manage_aggregated_repos(additional_repos_config, log):
+    """
+    Manage aggregated repositories for additional_repos_* entries.
+    This function handles the complete workflow:
+    1. Delete existing aggregated repo (always recreate for clean state)
+    2. Create new aggregated repository
+    3. Create remotes for each repo entry
+    4. Sync each remote to the aggregated repository
+    5. Create publication
+    6. Create/update distribution
+
+    Args:
+        additional_repos_config (dict): Dictionary with arch as key and list of repo configs as value.
+        log (logging.Logger): Logger instance.
+
+    Returns:
+        tuple: (success, error_message)
+    """
+    log.info("Starting management of aggregated repositories")
+
+    for arch in ["x86_64", "aarch64"]:
+        repos = additional_repos_config.get(arch, [])
+        repo_name = AGGREGATED_REPO_NAME_TEMPLATE.format(arch=arch)
+
+        log.info(f"Processing aggregated repos for arch '{arch}': {len(repos)} repos")
+
+        # Step 1: Delete existing aggregated repo for clean state
+        log.info(f"Step 1: Deleting existing aggregated repo for {arch}")
+        delete_aggregated_repo(arch, log)
+
+        # Step 2: Create aggregated repository
+        log.info(f"Step 2: Creating aggregated repository for {arch}")
+        success, _ = create_aggregated_repository(arch, log)
+        if not success:
+            return False, f"Failed to create aggregated repository for {arch}"
+
+        # Step 3 & 4: Create remotes and sync (only if there are repos)
+        if repos:
+            sync_failures = []
+
+            for repo_entry in repos:
+                # Create remote
+                log.info(f"Step 3: Creating remote for '{repo_entry['name']}'")
+                success, remote_name = create_aggregated_remote(repo_entry, arch, log)
+                if not success:
+                    return False, f"Failed to create remote for {repo_entry['name']}"
+
+                # Sync to aggregated repo
+                log.info(f"Step 4: Syncing remote '{remote_name}' to aggregated repo")
+                success, _ = sync_aggregated_repository(repo_name, remote_name, log)
+                if not success:
+                    sync_failures.append(repo_entry['name'])
+
+            # Check if all syncs succeeded
+            if sync_failures:
+                return False, f"Failed to sync repos for {arch}: {', '.join(sync_failures)}"
+
+        # Step 5: Create publication
+        log.info(f"Step 5: Creating publication for {arch}")
+        success, pub_href = create_aggregated_publication(repo_name, log)
+        if not success:
+            return False, f"Failed to create publication for aggregated repo {arch}"
+
+        # Step 6: Create/update distribution
+        log.info(f"Step 6: Creating/updating distribution for {arch}")
+        success, _ = create_aggregated_distribution(arch, pub_href, log)
+        if not success:
+            return False, f"Failed to create distribution for aggregated repo {arch}"
+
+        log.info(f"Successfully completed aggregated repo management for {arch}")
+
+    log.info("Completed management of all aggregated repositories")
+    return True, "success"
 
 def manage_rpm_repositories_multiprocess(rpm_config, log):
     """
@@ -567,6 +885,9 @@ def main():
 
     The `manage_rpm_repositories_multiprocess` function is called with the `rpm_config` and `log` as arguments.
 
+    If `additional_repos_config` is provided, the `manage_aggregated_repos` function is called to handle
+    the aggregated repositories feature.
+
     Finally, the function exits with a JSON response indicating that the RPM configuration has been processed.
 
     Parameters:
@@ -577,7 +898,8 @@ def main():
     """
     module_args = {
         "local_config": {"type": "list", "required": True},
-        "log_dir": {"type": "str", "required": False, "default": "/tmp/thread_logs"}
+        "log_dir": {"type": "str", "required": False, "default": "/tmp/thread_logs"},
+        "additional_repos_config": {"type": "dict", "required": False, "default": None}
     }
 
     module = AnsibleModule(argument_spec=module_args, supports_check_mode=False)
@@ -585,6 +907,7 @@ def main():
     # Get the local_config parameter from the module
     rpm_config = module.params["local_config"]
     log_dir = module.params["log_dir"]
+    additional_repos_config = module.params["additional_repos_config"]
 
     log = setup_standard_logger(log_dir)
 
@@ -597,6 +920,14 @@ def main():
 
     if result is False:
         module.fail_json(msg=f"Error {output}, check {STANDARD_LOG_FILE_PATH}")
+
+    # Handle aggregated repos if additional_repos_config is provided
+    if additional_repos_config:
+        log.info("Processing additional_repos aggregated repositories")
+        result, output = manage_aggregated_repos(additional_repos_config, log)
+        if result is False:
+            module.fail_json(msg=f"Error in aggregated repos: {output}, check {STANDARD_LOG_FILE_PATH}")
+        log.info("Successfully processed additional_repos aggregated repositories")
 
     module.exit_json(changed=True, result="RPM Config Processed")
 
