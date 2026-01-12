@@ -85,6 +85,11 @@ def validate_local_repo_config(input_file_path, data,
             repos = data.get(repurl)
             if repos:
                 arch_repo_names = arch_repo_names + [x.get('name') for x in repos]
+        # Add additional_repos names for this arch
+        additional_repos_key = f"additional_repos_{arch}"
+        additional_repos = data.get(additional_repos_key)
+        if additional_repos:
+            arch_repo_names = arch_repo_names + [x.get('name') for x in additional_repos]
         repo_names[arch] = repo_names.get(arch, []) + arch_repo_names + base_repo_names
 
     for k,v in repo_names.items():
