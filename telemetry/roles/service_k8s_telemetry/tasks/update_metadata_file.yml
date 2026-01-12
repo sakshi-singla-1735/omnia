@@ -117,6 +117,8 @@
   ansible.builtin.set_fact:
     kube_compute_nodes: >-
       {{ service_cluster_metadata | dict2items
+         | selectattr('value.parent_status', 'defined')
+         | selectattr('value.parent_status', 'equalto', true)
          | selectattr("value.role", "defined")
          | selectattr("value.role", "search", "^service_kube_node")
          | sort(attribute="key") | list }}
