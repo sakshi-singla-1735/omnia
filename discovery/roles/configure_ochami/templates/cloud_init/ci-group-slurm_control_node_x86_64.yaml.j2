@@ -65,6 +65,13 @@
                 done
             fi
 
+        - path: /root/.ssh/config
+          permissions: '0600'
+          content: |
+            Host {{ slurm_control_ssh_patterns }}
+                IdentityFile {{ client_mount_path }}/ssh/oim_rsa
+                IdentitiesOnly yes
+
 {% if hostvars['localhost']['openldap_support'] %}
         - path: /etc/sssd/sssd.conf
           owner: root:root
@@ -249,8 +256,15 @@
 
       runcmd:
          - /usr/local/bin/set-ssh.sh
+
+         - useradd -mG wheel -p '$6$VHdSKZNm$O3iFYmRiaFQCemQJjhfrpqqV7DdHBi5YpY6Aq06JSQpABPw.3d8PQ8bNY9NuZSmDv7IL/TsrhRJ6btkgKaonT.' testuser # Required??
+         - groupadd -r {{ slurm_group_name }}
+         - useradd -r -g {{ slurm_group_name }} -d {{ home_dir }} -s /sbin/nologin {{ user }}
+         
+         # Ensure Slurm NFS root is mounted at client_mount_path (e.g. /share_omnia)
+         - mkdir -p {{ client_mount_path }}/ssh
+
         # slurm user and group created in the users module
-        
         # Create directories for nfs and mount all
          - mkdir -p /var/log/slurm /etc/slurm {{ home_dir }} /etc/my.cnf.d /etc/munge /var/lib/mysql /var/log/mariadb /cert /var/log/track /var/lib/packages
          - echo "{{ cloud_init_nfs_path }}/cert  /cert   nfs defaults,_netdev 0 0" >> /etc/fstab
@@ -263,6 +277,7 @@
          - echo "{{ cloud_init_nfs_path }}/$(hostname -s)/etc/munge      /etc/munge       nfs defaults,_netdev 0 0" >> /etc/fstab
          - echo "{{ trackfile_nfs_path }}    /var/log/track       nfs defaults,_netdev 0 0" >> /etc/fstab
          - echo "{{ cloud_init_nfs_path }}/packages  /var/lib/packages   nfs defaults,_netdev 0 0" >> /etc/fstab
+         - echo "{{ cloud_init_nfs_path }}/ssh {{ client_mount_path }}/ssh nfs defaults,_netdev 0 0" >> /etc/fstab
          - chmod {{ file_mode }} /etc/fstab
          - mount -a
          - cp /cert/pulp_webserver.crt /etc/pki/ca-trust/source/anchors && update-ca-trust
