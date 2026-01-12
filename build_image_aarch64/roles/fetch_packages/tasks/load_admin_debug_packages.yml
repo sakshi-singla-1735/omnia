@@ -5,7 +5,7 @@
 
 - name: Load admin_debug_packages.json
   ansible.builtin.include_vars:
-    file: "{{ input_project_dir }}/config/{{ arch }}/rhel/{{ cluster_os_version }}/admin_debug_packages.json"
+    file: "{{ input_project_dir }}/config/aarch64/rhel/{{ cluster_os_version }}/admin_debug_packages.json"
     name: admin_debug_package_json
   when: admin_debug_enabled | bool
   failed_when: admin_debug_enabled and admin_debug_package_json is not defined
