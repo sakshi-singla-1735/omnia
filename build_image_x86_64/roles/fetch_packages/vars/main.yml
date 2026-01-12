@@ -30,3 +30,19 @@ functional_group_absent_msg: |
   Failure: No x86_64 functional groups found in functional_group_config.yml input file.
   Please make sure x86_64 functional_group should be present in input file functional_group_config.yml
   to execute build_image_x86_64.yml successfully.
+
+# Admin Debug Packages - Messages
+admin_debug_package_count_msg: "Admin debug packages added: {{ admin_debug_rpm_list | default([]) | length }}"
+admin_debug_size_header: "=== Admin Debug Packages Size Metrics ==="
+admin_debug_baseline_msg: "Baseline image: {{ baseline_size_mb | round(2) }} MB"
+admin_debug_with_debug_msg: "With admin_debug: {{ debug_size_mb | round(2) }} MB"
+admin_debug_size_increase_msg: "Size increase: {{ size_delta_mb | round(2) }} MB"
+admin_debug_size_metrics_header: |
+  Admin Debug Packages Size Metrics
+  ==================================
+  Date: {{ ansible_date_time.iso8601 }}
+  Architecture: {{ arch }}
+  
+  Baseline image size: {{ baseline_size_mb | round(2) }} MB
+  With debug packages: {{ debug_size_mb | round(2) }} MB
+  Size increase: {{ size_delta_mb | round(2) }} MB
