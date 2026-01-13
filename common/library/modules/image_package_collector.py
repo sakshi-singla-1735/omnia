@@ -1,3 +1,18 @@
+# Copyright 2026 Dell Inc. or its subsidiaries. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# pylint: disable=import-error,no-name-in-module
 #!/usr/bin/python
 
 import os
@@ -5,6 +20,17 @@ import json
 import yaml
 
 from ansible.module_utils.basic import AnsibleModule
+
+ROLE_SPECIFIC_KEYS = [
+    "slurm_control_node",
+    "slurm_node",
+    "login_node",
+    "login_compiler_node",
+    "service_kube_control_plane_first",
+    "service_kube_control_plane",
+    "service_kube_node"
+]
+
 
 def load_yaml_file(path, module):
     """
@@ -38,12 +64,65 @@ def load_json_file(path, module):
     Returns:
         dict or None: Parsed JSON content if successful, otherwise None.
     """
+    if not os.path.isfile(path):
+        module.log(f"File not found: {path}")
+        return None
     try:
         with open(path, "r") as f:
             return json.load(f)
     except Exception as e:
         module.log(f"Failed to read JSON file {path}: {e}")
         return None
+
+
+def is_additional_packages_enabled(software_config):
+    """
+    Check if additional_packages is defined in softwares array of software_config.json.
+    """
+    if not software_config:
+        return False
+    softwares = software_config.get('softwares', [])
+    return any(sw.get('name') == 'additional_packages' for sw in softwares)
+
+
+def get_allowed_additional_subgroups(software_config):
+    """
+    Get list of allowed subgroups from additional_packages array in software_config.json.
+    """
+    if not software_config:
+        return []
+    additional_packages_list = software_config.get('additional_packages', [])
+    return [item.get('name') for item in additional_packages_list if item.get('name')]
+
+
+def get_additional_packages_for_role(additional_json_path, role_name, module):
+    """
+    Get RPM packages for a specific role from additional_packages.json.
+
+    Args:
+        additional_json_path (str): Path to additional_packages.json.
+        role_name (str): Role name (e.g., 'slurm_control_node').
+        module: Ansible module instance.
+
+    Returns:
+        list: List of RPM package names for the role.
+    """
+    if not additional_json_path or role_name not in ROLE_SPECIFIC_KEYS:
+        return []
+
+    data = load_json_file(additional_json_path, module)
+    if not data or role_name not in data:
+        return []
+
+    role_data = data.get(role_name, {})
+    cluster_items = role_data.get('cluster', [])
+
+    packages = []
+    for item in cluster_items:
+        if item.get('type') == 'rpm' and item.get('package'):
+            packages.append(item['package'])
+
+    return packages
 
 
 def collect_packages_from_json(sw_data, fg_name=None, slurm_defined=False, service_k8s_defined=False):
@@ -204,6 +283,7 @@ def run_module():
         functional_groups_file=dict(type="str", required=True),
         software_config_file=dict(type="str", required=True),
         input_project_dir=dict(type="str", required=True),
+        additional_json_path=dict(type="str", required=False, default=""),
     )
 
     result = dict(changed=False, compute_images_dict={})
@@ -212,6 +292,7 @@ def run_module():
     functional_groups_file = module.params["functional_groups_file"]
     software_config_file = module.params["software_config_file"]
     input_project_dir = module.params["input_project_dir"]
+    additional_json_path = module.params["additional_json_path"]
 
     # Load configs
     functional_groups = load_yaml_file(functional_groups_file, module)
@@ -223,6 +304,10 @@ def run_module():
 
     # Build list of allowed softwares (from software_config.json)
     allowed_softwares = {sw["name"] for sw in software_config.get("softwares", [])}
+
+    # Check if additional_packages is enabled and get allowed subgroups
+    additional_enabled = is_additional_packages_enabled(software_config)
+    allowed_additional_subgroups = get_allowed_additional_subgroups(software_config) if additional_enabled else []
 
     # pylint: disable=line-too-long
     # Functional group → json files mapping
@@ -260,6 +345,22 @@ def run_module():
             fg_name, base_name, arch, os_version, input_project_dir,
             software_map, allowed_softwares, module
         )
+
+        # Add role-specific packages from additional_packages.json if enabled
+        if additional_enabled and base_name in allowed_additional_subgroups:
+            additional_role_pkgs = get_additional_packages_for_role(
+                additional_json_path, base_name, module
+            )
+            packages.extend(additional_role_pkgs)
+
+            # Deduplicate while preserving order
+            seen = set()
+            unique_packages = []
+            for pkg in packages:
+                if pkg not in seen:
+                    unique_packages.append(pkg)
+                    seen.add(pkg)
+            packages = unique_packages
 
         compute_images_dict[fg_name] = {
             "functional_group": fg_name,
