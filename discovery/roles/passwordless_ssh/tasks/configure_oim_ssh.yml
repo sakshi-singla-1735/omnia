@@ -55,9 +55,6 @@
         | unique
       }}
 
-- name: DEBUG OIM SSH match list
-  ansible.builtin.debug:
-    var: omnia_cluster_ssh_matches
 
 - name: Manage /etc/hosts entries on OIM for Omnia cluster nodes
   ansible.builtin.blockinfile:
@@ -71,13 +68,13 @@
       {% endfor %}
   when: omnia_hosts_map | default({}) | length > 0
 
-- name: DEBUG configure_oim_ssh facts
-  ansible.builtin.debug:
-    msg:
-      k8s_cluster_hostnames: "{{ k8s_cluster_hostnames | default([]) }}"
-      slurm_cluster_hostnames: "{{ slurm_cluster_hostnames | default([]) }}"
-      omnia_cluster_ip_patterns_raw: "{{ omnia_cluster_ip_patterns_raw | default([]) }}"
-      omnia_cluster_ip_patterns: "{{ omnia_cluster_ip_patterns | default([]) }}"
-      omnia_cluster_hostname_patterns: "{{ omnia_cluster_hostname_patterns | default([]) }}"
-      omnia_cluster_ssh_matches: "{{ omnia_cluster_ssh_matches | default([]) }}"
-      omnia_hosts_map: "{{ omnia_hosts_map | default({}) }}"
+# - name: DEBUG configure_oim_ssh facts
+ # ansible.builtin.debug:
+    # msg:
+     # k8s_cluster_hostnames: "{{ k8s_cluster_hostnames | default([]) }}"
+      # slurm_cluster_hostnames: "{{ slurm_cluster_hostnames | default([]) }}"
+      # omnia_cluster_ip_patterns_raw: "{{ omnia_cluster_ip_patterns_raw | default([]) }}"
+      # omnia_cluster_ip_patterns: "{{ omnia_cluster_ip_patterns | default([]) }}"
+      # omnia_cluster_hostname_patterns: "{{ omnia_cluster_hostname_patterns | default([]) }}"
+      # omnia_cluster_ssh_matches: "{{ omnia_cluster_ssh_matches | default([]) }}"
+      # omnia_hosts_map: "{{ omnia_hosts_map | default({}) }}"

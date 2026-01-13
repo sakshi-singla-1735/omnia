@@ -383,7 +383,7 @@
 
 - name: Copy OIM private key to Slurm share for node-to-node SSH
   ansible.builtin.copy:
-    src: /root/.ssh/oim_rsa
+    src: "{{ ssh_private_key_path }}"
     dest: "{{ slurm_config_path }}/ssh/oim_rsa"
     owner: root
     group: root
