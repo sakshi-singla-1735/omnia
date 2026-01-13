@@ -57,8 +57,7 @@
       {"package": "binutils", "type": "rpm", "repo_name": "x86_64_baseos"},
       {"package": "binutils-devel", "type": "rpm", "repo_name": "x86_64_appstream"},
       {"package": "clustershell", "type": "rpm", "repo_name": "epel"},
-      {"package": "bash-completion", "type": "rpm", "repo_name": "x86_64_baseos"},
-      {"package": "scorep", "type": "rpm", "repo_name": "epel"}
+      {"package": "bash-completion", "type": "rpm", "repo_name": "x86_64_baseos"}
     ]
   }
 }
