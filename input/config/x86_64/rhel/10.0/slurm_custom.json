@@ -5,6 +5,7 @@
             {"package": "firewalld", "type": "rpm", "repo_name": "x86_64_baseos"},
             {"package": "python3-firewall", "type": "rpm", "repo_name": "x86_64_baseos"},
             {"package": "pmix", "type": "rpm", "repo_name": "x86_64_appstream"},
+            {"package": "apptainer", "type": "rpm", "repo_name": "epel" },
             {"package": "doca-ofed",
              "type": "iso",
              "url": "https://www.mellanox.com/downloads/DOCA/DOCA_v3.2.1/host/doca-host-3.2.1-044000_25.10_rhel10.x86_64.rpm"

@@ -191,8 +191,6 @@
         - bash /usr/local/bin/doca-install.sh
         - /usr/local/bin/set-ssh.sh
         - /usr/local/bin/install_cuda_toolkit.sh
-        - groupadd -r {{ slurm_group_name }}
-        - useradd -r -g {{ slurm_group_name }} -d {{ home_dir }} -s /sbin/nologin {{ user }}
         
         # Ensure Slurm NFS root is mounted at client_mount_path (e.g. /share_omnia)
         - mkdir -p {{ client_mount_path }}/ssh 
