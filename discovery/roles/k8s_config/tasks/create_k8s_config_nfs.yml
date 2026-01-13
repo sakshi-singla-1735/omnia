@@ -39,6 +39,22 @@
     k8s_nfs_server_ip: "{{ (nfs_client_params | selectattr('nfs_name', 'equalto', nfs_storage_name) | first).server_ip }}"
     k8s_server_share_path: "{{ (nfs_client_params | selectattr('nfs_name', 'equalto', nfs_storage_name) | first).server_share_path }}"
 
+- name: Ensure SSH key directory exists on K8s share
+  ansible.builtin.file:
+    path: "{{ k8s_client_mount_path }}/ssh"
+    state: directory
+    owner: root
+    group: root
+    mode: '0700'
+
+- name: Copy OIM private key to K8s share for node-to-node SSH
+  ansible.builtin.copy:
+    src: "{{ ssh_private_key_path }}"
+    dest: "{{ k8s_client_mount_path }}/ssh/oim_rsa"
+    owner: root
+    group: root
+    mode: '0600'
+
 - name: Set admin network nic and ip
   ansible.builtin.set_fact:
     admin_nic_ip: "{{ hostvars['localhost']['admin_nic_ip'] }}"
