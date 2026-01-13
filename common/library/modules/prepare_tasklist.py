@@ -34,7 +34,9 @@ from ansible.module_utils.local_repo.software_utils  import (
     set_version_variables,
     get_subgroup_dict,
     get_new_packages_not_in_status,
-    remove_duplicates_from_trans
+    remove_duplicates_from_trans,
+    parse_additional_repos,
+    validate_additional_repos_names
 )
 
 # Import configuration constants individually (excluding fresh_installation_status)
@@ -161,8 +163,20 @@ def main():
         if not url_result:
             module.fail_json(f"{local_config} is either unreachable, invalid or has incorrect SSL certificates, please verify and provide correct details")
 
+        # Validate additional_repos names for conflicts
+        is_valid, error_msg = validate_additional_repos_names(local_repo_config_path, logger)
+        if not is_valid:
+            module.fail_json(msg=error_msg)
+
+        # Parse additional_repos for aggregated repos feature
+        additional_repos_config, error_msg = parse_additional_repos(
+            local_repo_config_path, repo_config, vault_key_path, logger
+        )
+        if error_msg:
+            module.fail_json(msg=error_msg)
+
         logger.info(f"Package processing completed: {final_tasks_dict}")
-        module.exit_json(changed=False, software_dict=final_tasks_dict, local_config=local_config)
+        module.exit_json(changed=False, software_dict=final_tasks_dict, local_config=local_config, additional_repos_config=additional_repos_config)
 
     except Exception as e:
         logger.error(f"Error occurred: {str(e)}")
