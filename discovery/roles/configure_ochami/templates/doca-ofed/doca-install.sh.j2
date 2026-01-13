@@ -46,7 +46,20 @@ echo "Bootstrap doca-ofed package..."
 rpm -i "/var/lib/packages/${arch}/doca-ofed/doca-host-3.2.1-044000_25.10_rhel10.${arch}.rpm"
 
 echo "Installing doca-ofed..."
-dnf install -y doca-ofed
+if rpm -q doca-ofed >/dev/null 2>&1; then
+    echo "doca-ofed package is already installed."
+else
+    echo "doca-ofed package is not installed. Installing..."
+    dnf install -y doca-ofed
+fi
+
+echo "Unloading RDMA kernel modules..."
+rmmod bnxt_re || true
+rmmod mlx5_ib    || true
+rmmod ib_uverbs  || true
+rmmod xpmem      || true
+rmmod ib_core    || true
+rmmod mlx5_core  || true
 
 echo "Loading RDMA kernel modules..."
 modprobe mlx5_core || true
