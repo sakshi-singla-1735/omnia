@@ -285,8 +285,7 @@
          - mount -a
          - cp /cert/pulp_webserver.crt /etc/pki/ca-trust/source/anchors && update-ca-trust
          - sed -i 's/^gpgcheck=1/gpgcheck=0/' /etc/dnf/dnf.conf
-         - bash /usr/local/bin/doca-install.sh
-         - bash /usr/local/bin/configure-ib-network.sh
+         - bash /usr/local/bin/doca-install.sh && bash /usr/local/bin/configure-ib-network.sh
 
          - chown -R {{ slurm_user }}:{{ slurm_user }} {{ home_dir }}
          - chmod {{ file_mode_755 }} {{ home_dir }}
