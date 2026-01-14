@@ -82,6 +82,22 @@ def is_additional_packages_enabled(software_config):
     return any(sw.get('name') == 'additional_packages' for sw in softwares)
 
 
+def is_admin_debug_enabled(software_config):
+    """
+    Check if admin_debug_packages is defined in softwares array of software_config.json.
+
+    Args:
+        software_config (dict): Parsed software_config.json content.
+
+    Returns:
+        bool: True if admin_debug_packages is in softwares array.
+    """
+    if not software_config:
+        return False
+    softwares = software_config.get('softwares', [])
+    return any(sw.get('name') == 'admin_debug_packages' for sw in softwares)
+
+
 def get_allowed_additional_subgroups(software_config):
     """
     Get list of allowed subgroups from additional_packages array in software_config.json.
