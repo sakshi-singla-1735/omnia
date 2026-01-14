@@ -77,7 +77,7 @@
           permissions: '0600'
           content: |
             Host {{ slurm_control_ssh_patterns }}
-                IdentityFile {{ client_mount_path }}/ssh/oim_rsa
+                IdentityFile {{ client_mount_path }}/slurm/ssh/oim_rsa
                 IdentitiesOnly yes
 
         - path: /usr/local/bin/install_nvidia_driver.sh
@@ -254,7 +254,7 @@
             echo "[INFO] ===== Starting directory creation and NFS mounts for Pulp cert, Slurm and Munge ====="
             
             # Ensure Slurm NFS root is mounted at client_mount_path (e.g. /share_omnia)
-            mkdir -p {{ client_mount_path }}/ssh
+            mkdir -p {{ client_mount_path }}/slurm/ssh
             echo "[INFO] Creating base directories for Pulp cert, Slurm and Munge"
             mkdir -pv /var/log/slurm /var/run/slurm /var/spool /var/lib/slurm /etc/slurm/epilog.d /etc/munge /cert /var/log/track /var/lib/packages
 
@@ -266,7 +266,7 @@
             echo "{{ cloud_init_nfs_path }}/$(hostname -s)/etc/munge      /etc/munge       nfs defaults,_netdev 0 0" >> /etc/fstab
             echo "{{ trackfile_nfs_path }}    /var/log/track       nfs defaults,_netdev 0 0" >> /etc/fstab
             echo "{{ cloud_init_nfs_path }}/packages  /var/lib/packages   nfs defaults,_netdev 0 0" >> /etc/fstab
-            echo "{{ cloud_init_nfs_path }}/ssh {{ client_mount_path }}/ssh nfs defaults,_netdev 0 0" >> /etc/fstab
+            echo "{{ cloud_init_nfs_path }}/ssh {{ client_mount_path }}/slurm/ssh nfs defaults,_netdev 0 0" >> /etc/fstab
             chmod {{ file_mode }} /etc/fstab
 
             echo "[INFO] Mounting all NFS entries from /etc/fstab"
