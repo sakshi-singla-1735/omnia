@@ -16,10 +16,11 @@
 - name: Fetch x86_64 default_packages.json and additional_packages.json software packages
   when: fg_x86_64
   block:
-    - name: Collect base image RPM packages (default + additional)
+    - name: Collect base image RPM packages (default + additional + admin_debug)
       base_image_package_collector:
         default_json_path: "{{ default_json_path }}"
         additional_json_path: "{{ additional_json_path | default('') }}"
+        admin_debug_json_path: "{{ admin_debug_json_path | default('') }}"
         software_config_path: "{{ software_config_file_path }}"
       register: base_image_output
 

@@ -118,6 +118,26 @@ def collect_additional_global_packages(json_path, module):
     return extract_rpm_package_names(global_cluster)
 
 
+def collect_admin_debug_packages(json_path, module):
+    """
+    Collect RPM package names from admin_debug_packages.json.
+
+    Args:
+        json_path (str): Path to admin_debug_packages.json.
+        module (AnsibleModule): The Ansible module instance.
+
+    Returns:
+        list: List of admin debug package names.
+    """
+    data = load_json_file(json_path, module)
+    if not data:
+        return []
+
+    admin_debug_packages = data.get('admin_debug_packages', {})
+    cluster_items = admin_debug_packages.get('cluster', [])
+    return extract_rpm_package_names(cluster_items)
+
+
 def is_additional_packages_enabled(software_config):
     """
     Check if additional_packages is defined in softwares array of software_config.json.
@@ -134,18 +154,35 @@ def is_additional_packages_enabled(software_config):
     return any(sw.get('name') == 'additional_packages' for sw in softwares)
 
 
+def is_admin_debug_enabled(software_config):
+    """
+    Check if admin_debug_packages is defined in softwares array of software_config.json.
+
+    Args:
+        software_config (dict): Parsed software_config.json content.
+
+    Returns:
+        bool: True if admin_debug_packages is in softwares array.
+    """
+    if not software_config:
+        return False
+    softwares = software_config.get('softwares', [])
+    return any(sw.get('name') == 'admin_debug_packages' for sw in softwares)
+
+
 
 
 def run_module():
     """
     Run the Ansible module.
 
-    Collects RPM packages from default_packages.json and additional_packages.json,
-    returns a combined flat list of unique package names.
+    Collects RPM packages from default_packages.json, additional_packages.json,
+    and admin_debug_packages.json, returns a combined flat list of unique package names.
     """
     module_args = dict(
         default_json_path=dict(type="str", required=True),
         additional_json_path=dict(type="str", required=False, default=""),
+        admin_debug_json_path=dict(type="str", required=False, default=""),
         software_config_path=dict(type="str", required=True),
     )
 
@@ -153,13 +190,15 @@ def run_module():
         changed=False,
         base_image_packages=[],
         default_packages=[],
-        additional_packages=[]
+        additional_packages=[],
+        admin_debug_packages=[]
     )
 
     module = AnsibleModule(argument_spec=module_args, supports_check_mode=True)
 
     default_json_path = module.params["default_json_path"]
     additional_json_path = module.params["additional_json_path"]
+    admin_debug_json_path = module.params["admin_debug_json_path"]
     software_config_path = module.params["software_config_path"]
 
     # Load software_config.json
@@ -176,8 +215,14 @@ def run_module():
         additional_pkgs = collect_additional_global_packages(additional_json_path, module)
     result["additional_packages"] = additional_pkgs
 
+    # Collect admin debug packages if enabled
+    admin_debug_pkgs = []
+    if admin_debug_json_path and is_admin_debug_enabled(software_config):
+        admin_debug_pkgs = collect_admin_debug_packages(admin_debug_json_path, module)
+    result["admin_debug_packages"] = admin_debug_pkgs
+
     # Combine and deduplicate while preserving order
-    combined = default_pkgs + additional_pkgs
+    combined = default_pkgs + additional_pkgs + admin_debug_pkgs
     seen = set()
     unique_packages = []
     for pkg in combined:
