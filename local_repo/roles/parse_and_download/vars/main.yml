@@ -46,7 +46,7 @@ pulp_concurrency: 1
 # - null/omit: Skip already synced repos (default)
 # - "all": Force resync all repos
 # - ["repo1", "repo2"]: Only sync specified repos
-#resync_repos: null
+# resync_repos: null
 local_repo_py_module_vars:
   default_vars: &sw_defaults
     timeout: 7200  # Timeout in seconds for each thread
