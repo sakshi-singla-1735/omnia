@@ -16,83 +16,15 @@
 #!/usr/bin/python
 
 import os
-import json
-import yaml
-
 from ansible.module_utils.basic import AnsibleModule
-
-ROLE_SPECIFIC_KEYS = [
-    "slurm_control_node",
-    "slurm_node",
-    "login_node",
-    "login_compiler_node",
-    "service_kube_control_plane_first",
-    "service_kube_control_plane",
-    "service_kube_node"
-]
-
-
-def load_yaml_file(path, module):
-    """
-    Load a YAML file safely.
-
-    Args:
-        path (str): Path to the YAML file.
-        module (AnsibleModule): The Ansible module instance, used for error reporting.
-
-    Returns:
-        dict: Parsed YAML content.
-
-    Raises:
-        Fails the module if the file cannot be read or parsed.
-    """
-    try:
-        with open(path, "r") as f:
-            return yaml.safe_load(f)
-    except Exception as e:
-        module.fail_json(msg=f"Failed to read YAML file {path}: {e}")
-
-
-def load_json_file(path, module):
-    """
-    Load a JSON file safely.
-
-    Args:
-        path (str): Path to the JSON file.
-        module (AnsibleModule): The Ansible module instance, used for logging errors.
-
-    Returns:
-        dict or None: Parsed JSON content if successful, otherwise None.
-    """
-    if not os.path.isfile(path):
-        module.log(f"File not found: {path}")
-        return None
-    try:
-        with open(path, "r") as f:
-            return json.load(f)
-    except Exception as e:
-        module.log(f"Failed to read JSON file {path}: {e}")
-        return None
-
-
-def is_additional_packages_enabled(software_config):
-    """
-    Check if additional_packages is defined in softwares array of software_config.json.
-    """
-    if not software_config:
-        return False
-    softwares = software_config.get('softwares', [])
-    return any(sw.get('name') == 'additional_packages' for sw in softwares)
-
-
-def get_allowed_additional_subgroups(software_config):
-    """
-    Get list of allowed subgroups from additional_packages array in software_config.json.
-    """
-    if not software_config:
-        return []
-    additional_packages_list = software_config.get('additional_packages', [])
-    return [item.get('name') for item in additional_packages_list if item.get('name')]
+from ansible.module_utils.build_image.config import ROLE_SPECIFIC_KEYS
+from ansible.module_utils.build_image.common_functions import (
+    load_json_file,
+    load_yaml_file,
+    is_additional_packages_enabled,
+    get_allowed_additional_subgroups,
+    deduplicate_list
+)
 
 
 def get_additional_packages_for_role(additional_json_path, role_name, module):
@@ -257,14 +189,7 @@ def process_functional_group(fg_name, base_name, arch, os_version, input_project
             packages.extend(collect_packages_from_json(sw_data))
 
     # Deduplicate while preserving order
-    seen = set()
-    unique_packages = []
-    for pkg in packages:
-        if pkg not in seen:
-            unique_packages.append(pkg)
-            seen.add(pkg)
-
-    return unique_packages
+    return deduplicate_list(packages)
 
 
 def run_module():
@@ -352,15 +277,7 @@ def run_module():
                 additional_json_path, base_name, module
             )
             packages.extend(additional_role_pkgs)
-
-            # Deduplicate while preserving order
-            seen = set()
-            unique_packages = []
-            for pkg in packages:
-                if pkg not in seen:
-                    unique_packages.append(pkg)
-                    seen.add(pkg)
-            packages = unique_packages
+            packages = deduplicate_list(packages)
 
         compute_images_dict[fg_name] = {
             "functional_group": fg_name,
