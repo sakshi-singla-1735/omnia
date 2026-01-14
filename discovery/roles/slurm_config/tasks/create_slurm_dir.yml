@@ -119,14 +119,6 @@
     group: root
     mode: "{{ common_mode }}"
 
-- name: Create the HPC benchmarks directory on share
-  ansible.builtin.file:
-    path: "{{ slurm_config_path }}/hpc_benchmarks"
-    state: directory
-    owner: root
-    group: root
-    mode: "{{ common_mode }}"
-
 - name: Set NFS info fact
   ansible.builtin.set_fact:
     oim_shared_path: "{{ hostvars['localhost']['oim_shared_path'] }}"

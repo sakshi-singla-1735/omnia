@@ -371,35 +371,6 @@
           content: |
             {{ lookup('template', 'templates/slurm/check_slurm_controller_status.sh.j2') | indent(12) }}
 
-        - path: /usr/local/bin/configure_hpc_benchmarks.sh
-          permissions: '{{ file_mode_755 }}'
-          content: |
-            #!/bin/bash
-            LOGFILE="/var/log/configure_hpc_benchmarks.log"
-            exec > >(tee -a "$LOGFILE") 2>&1
-
-            echo "[INFO] Setting up HPC benchmarks mount..."
-            HPC_BENCHMARKS_DIR="/hpc_benchmarks"
-
-            # Unmount first if already mounted
-            umount "$HPC_BENCHMARKS_DIR" 2>/dev/null
-
-            echo "[INFO] Creating the hpc directory $HPC_BENCHMARKS_DIR"
-            # Create mount point
-            mkdir -p "$HPC_BENCHMARKS_DIR"
-
-            hpc_nfs_share="{{ cloud_init_nfs_path}}/hpc_benchmarks"
-
-            echo "[INFO] Mounting HPC benchmarks sif file folder from NFS: $hpc_nfs_share"
-            mount -t nfs $hpc_nfs_share $HPC_BENCHMARKS_DIR
-
-            if [ $? -eq 0 ]; then
-                echo "[SUCCESS] HPC benchmarks NFS mount successful"
-            else
-                echo "[ERROR] Failed to mount HPC benchmarks NFS share"
-                exit 1
-            fi
-
       runcmd:
         - /usr/local/bin/set-ssh.sh
         - /usr/local/bin/install_nvidia_driver.sh
@@ -416,7 +387,6 @@
 
         - setenforce 0
         - /usr/local/bin/configure_firewall_and_services.sh
-        - /usr/local/bin/configure_hpc_benchmarks.sh
 
 {% if hostvars['localhost']['openldap_support'] %}
         - /usr/local/bin/update_ldap_conf.sh
