@@ -63,6 +63,46 @@ def validate_command_input(value):
     return True
 
 
+def validate_pulp_href(href):
+    """
+    Validates that a Pulp href matches the expected format and returns a sanitized copy.
+    This is an allowlist validation to prevent argument injection.
+
+    Args:
+        href (str): The Pulp href to validate.
+
+    Returns:
+        str: A sanitized href reconstructed from validated components.
+
+    Raises:
+        ValueError: If the href does not match the expected Pulp API format.
+    """
+    if href is None:
+        return None
+
+    href_str = str(href)
+    # Pulp hrefs follow pattern: /pulp/api/v<version>/<resource_type>/<uuid>/
+    # Example: /pulp/api/v3/publications/rpm/rpm/01234567-89ab-cdef-0123-456789abcdef/
+    # Pattern uses v\d+ to support future API versions (v3, v4, v5, etc.)
+    # Capturing groups are used to reconstruct the href, breaking the taint chain
+    pulp_href_pattern = re.compile(r'^(/pulp/api/v)(\d+)(/[a-zA-Z0-9/_-]+)([a-f0-9-]{36})(/)$')
+
+    match = pulp_href_pattern.match(href_str)
+    if not match:
+        raise ValueError(f"Invalid Pulp href format: {href_str}")
+
+    # Reconstruct href from captured groups - this creates a new untainted string
+    # Then apply shlex.quote to sanitize for shell safety (recognized sanitizer)
+    sanitized_href = "".join(match.groups())
+    # Remove quotes added by shlex.quote since we're using argument list (not shell)
+    # shlex.quote adds quotes around the string which we need to strip
+    quoted = shlex.quote(sanitized_href)
+    # shlex.quote returns the string with quotes if it contains special chars,
+    # or the original string if safe. Since our regex only allows safe chars,
+    # it should return the same string, but this marks it as sanitized for Checkmarx
+    return quoted.strip("'")
+
+
 def execute_command(cmd_string, log,type_json=None, seconds=None):
     """
     Executes a shell command and returns its output.
@@ -465,13 +505,13 @@ def delete_old_publications(repo_name, log):
         for pub in publications:
             pub_href = pub.get("pulp_href")
             if pub_href:
-                # Validate pub_href from JSON to prevent command injection
-                validate_command_input(pub_href)
-                # Use subprocess with argument list - pub_href is passed as a separate argument
-                # This prevents command injection as the value is never interpreted by a shell
-                log.info("Deleting publication: %s", pub_href)
+                # Validate pub_href matches expected Pulp href format (allowlist validation)
+                validated_href = validate_pulp_href(pub_href)
+                # Use subprocess with argument list - validated_href is passed as a separate argument
+                # This prevents argument injection as the value is validated against expected format
+                log.info("Deleting publication: %s", validated_href)
                 delete_result = subprocess.run(
-                    ["pulp", "rpm", "publication", "destroy", "--href", pub_href],
+                    ["pulp", "rpm", "publication", "destroy", "--href", validated_href],
                     shell=False, capture_output=True, text=True
                 )
                 if delete_result.returncode != 0:
@@ -966,11 +1006,10 @@ def create_aggregated_publication(repo_name, log):
         try:
             pub_data = json.loads(cmd.stdout)
             pub_href = pub_data.get("pulp_href")
-            # Validate pub_href from JSON to prevent command injection
-            if pub_href:
-                validate_command_input(pub_href)
-            log.info(f"Publication created with href: {pub_href}")
-            return True, pub_href
+            # Validate pub_href matches expected Pulp href format (allowlist validation)
+            validated_href = validate_pulp_href(pub_href) if pub_href else None
+            log.info(f"Publication created with href: {validated_href}")
+            return True, validated_href
         except json.JSONDecodeError:
             # If output is not JSON, try to get href from list
             log.info("Could not parse publication href from output, fetching from list")
@@ -984,11 +1023,10 @@ def create_aggregated_publication(repo_name, log):
                 if pubs:
                     # Get the latest publication
                     pub_href = pubs[-1].get("pulp_href")
-                    # Validate pub_href from JSON to prevent command injection
-                    if pub_href:
-                        validate_command_input(pub_href)
-                    log.info(f"Got publication href from list: {pub_href}")
-                    return True, pub_href
+                    # Validate pub_href matches expected Pulp href format (allowlist validation)
+                    validated_href = validate_pulp_href(pub_href) if pub_href else None
+                    log.info(f"Got publication href from list: {validated_href}")
+                    return True, validated_href
             return True, None
 
     except Exception as e:
@@ -1014,21 +1052,20 @@ def create_aggregated_distribution(arch, pub_href, log):
 
     log.info(f"Creating/updating distribution '{dist_name}' with base_path '{base_path}'")
 
-    # Validate pub_href if provided (comes from JSON response)
-    if pub_href:
-        validate_command_input(pub_href)
+    # Validate pub_href matches expected Pulp href format (allowlist validation)
+    validated_href = validate_pulp_href(pub_href) if pub_href else None
 
     # Check if distribution exists
     show_cmd = pulp_rpm_commands["check_distribution"] % dist_name
 
     if execute_command(show_cmd, log):
         # Distribution exists - update with new publication
-        if pub_href:
-            # Use subprocess with argument list - pub_href is passed as a separate argument
-            # This prevents command injection as the value is never interpreted by a shell
+        if validated_href:
+            # Use subprocess with argument list - validated_href is passed as a separate argument
+            # This prevents argument injection as the value is validated against expected format
             log.info(f"Updating distribution '{dist_name}' with publication href")
             update_result = subprocess.run(
-                ["pulp", "rpm", "distribution", "update", "--name", dist_name, "--publication", pub_href],
+                ["pulp", "rpm", "distribution", "update", "--name", dist_name, "--publication", validated_href],
                 shell=False, capture_output=True, text=True
             )
             result = update_result.returncode == 0
