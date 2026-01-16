@@ -32,5 +32,6 @@
 - name: Write merged .conf
   ansible.builtin.copy:
     content: "{{ merged_conf.ini_lines | join('\n') }}\n"
+    dest: "{{ slurm_config_path }}/{{ item.0 }}/etc/slurm/{{ item.1 }}.conf"
     mode: "{{ conf_file_mode }}"
     remote_src: "{{ copy_from_oim }}"
