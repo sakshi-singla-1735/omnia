@@ -12,18 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
-- name: Slurm path ops
-  ansible.builtin.set_fact:
-    conf_path_items: "{{ conf_path_items | default({}) | combine({item.key: item.value}) }}"
-  when: item.value is string
-  loop: "{{ configs_input | dict2items }}"
-
-- name: Slurm dict ops
-  ansible.builtin.set_fact:
-    conf_dict_items: "{{ conf_dict_items | default({}) | combine({item.key: item.value}) }}"
-  when: item.value is mapping
-  loop: "{{ configs_input | dict2items }}"
-
 - name: Slurm dict ops
   ansible.builtin.set_fact:
     apply_config: "{{ __default_config }}"

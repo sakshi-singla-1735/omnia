@@ -282,6 +282,7 @@ __default_config:
     CredType: cred/munge
     SlurmctldTimeout: 120
     SlurmdTimeout: 300
+    Epilog: "/etc/slurm/epilog.d/logout_user.sh"
     # S_P_ARRAY type paramater to be provided this way
     # Epilog:
     #   - Epilog: "/etc/slurm/epilog.d/logout_user.sh"
