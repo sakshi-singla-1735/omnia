@@ -26,12 +26,15 @@ def read_dict2ini(conf_dict):
     data = []
     for k, v in conf_dict.items():
         if isinstance(v, list):
-            for item in v:
-                if isinstance(item, dict):
+            for dct_item in v:
+                if isinstance(dct_item, dict):
+                    # TODO: Ordered dict, move the key to the top 
+                    # od = OrderedDict([('a', 1), ('b', 2), ('c', 3)])
+                    # od.move_to_end('c', last=False)  # Move 'c' to the beginning
                     data.append(
-                        " ".join(f"{key}={value}" for key, value in item.items()))
+                        " ".join(f"{key}={value}" for key, value in dct_item.items()))
                 else:
-                    data.append(f"{k}={item}")
+                    data.append(f"{k}={dct_item}")
         else:
             data.append(f"{k}={v}")
     return data
@@ -91,7 +94,7 @@ def slurm_conf_dict_merge(conf_dict_list, module):
             if isinstance(vl, list):
                 for item in vl:
                     if isinstance(item, dict):
-                        module.warn(f"DICT Key: {ky}, Value: {vl}")
+                        # module.warn(f"DICT Key: {ky}, Value: {vl}")
                         existing_dict = merged_dict.get(ky, {})
                         inner_dict = existing_dict.get(item.get(ky), {})
                         inner_dict.update(item)
@@ -99,14 +102,14 @@ def slurm_conf_dict_merge(conf_dict_list, module):
                         existing_dict[item.get(ky)] = inner_dict
                         merged_dict[ky] = existing_dict
                     else:
-                        module.warn(f"LIST Key: {ky}, Value: {vl}")
+                        # module.warn(f"LIST Key: {ky}, Value: {vl}")
                         existing_list = merged_dict.get(ky, [])
-                        module.warn(f"Existing list: {existing_list}")
-                        module.warn(f"Item: {item}")
+                        # module.warn(f"Existing list: {existing_list}")
+                        # module.warn(f"Item: {item}")
                         if item not in existing_list:
                             # existing_list.append(item)
                             existing_list.update(item)
-                        module.warn(f"Updated list: {existing_list}")
+                        # module.warn(f"Updated list: {existing_list}")
                         merged_dict[ky] = existing_list
             else:
                 merged_dict[ky] = vl
@@ -157,7 +160,7 @@ def run_module():
                     if not os.path.exists(conf_source):
                         raise Exception(f"File {conf_source} does not exist")
                     s_dict = parse_slurm_conf(conf_source, module)
-                    module.warn(f"Conf dict: {s_dict}")
+                    # module.warn(f"Conf dict: {s_dict}")
                     conf_dict_list.append(s_dict)
                     # module.warn("After append")
                 else:

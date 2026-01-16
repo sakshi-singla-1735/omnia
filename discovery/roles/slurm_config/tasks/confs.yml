@@ -26,22 +26,33 @@
 
 - name: Slurm dict ops
   ansible.builtin.set_fact:
-    apply_config: >-
-      {{ apply_config | default({})
-        | combine({
-            item: (
-              (__default_config[item] | default({}))
-              | combine(conf_dict_items[item] | default({}))
-            )
-          })
-      }}
-  loop: "{{ conf_files }}"
+    apply_config: "{{ __default_config }}"
+  #   apply_config: >-
+  #     {{ apply_config | default({})
+  #       | combine({
+  #           item: (
+  #             (__default_config[item] | default({}))
+  #             | combine(conf_dict_items[item] | default({}))
+  #           )
+  #         })
+  #     }}
+  # loop: "{{ conf_files }}"
 
+# - name: Merge if any provided mappings
+#   slurm_conf:
+#     op: merge
+#     conf_name: "{{ item }}"
+#     conf_sources:
+#       - "{{ __default_config[item] }}"
+#       - "{{ conf_dict_items.get(item, {}) | default({}) }}"
+#   loop: "{{ conf_files }}"
+#   register: merged_dict_confs
+  
 - name: Read NodeName parameters
   ansible.builtin.include_tasks: read_node_idrac.yml
   when: cmpt_list
   loop: "{{ cmpt_list }}"
-
+  # debugger: always
 # - name: Copy conf file if provided
 #   ansible.builtin.copy:
 #     src: "{{ conf_path_items.get(item.1) }}"
@@ -69,7 +80,19 @@
   ansible.builtin.set_fact:
     slurm_conf_dict: "{{ apply_config['slurm'] }}"
 
+- name: Create all .conf for ctld only Write all files default config
+  ansible.builtin.template:
+    src: "{{ item.1 }}.conf.j2"
+    dest: "{{ slurm_config_path }}/{{ item.0 }}/etc/slurm/{{ item.1 }}.conf"
+    owner: "{{ root_user }}"
+    group: "{{ root_group }}"
+    mode: "{{ conf_file_mode }}"
+  when: ctld_list
+  loop: "{{ ctld_list | product(conf_files | default([])) }}"
+
 - name: Conf merge and write using slurm_conf module
   ansible.builtin.include_tasks: conf_merge.yml
   when: ctld_list
-  loop: "{{ ctld_list | product(conf_path_items.keys() | default([])) }}"
+  loop: "{{ ctld_list | product(configs_input.keys() | default([])) }}"
+# TODO: To apply the cluster_name after merge
+# - pause:

@@ -12,22 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
-- name: Create all .conf for ctld only
-  ansible.builtin.template:
-    src: "{{ item.1 }}.conf.j2"
-    dest: "{{ slurm_config_path }}/{{ item.0 }}/etc/slurm/{{ item.1 }}.conf"
-    owner: "{{ root_user }}"
-    group: "{{ root_group }}"
-    mode: "{{ conf_file_mode }}"
-
 - name: Merge the default and custom slurm conf
   slurm_conf:
     op: merge
     conf_sources:
       - "{{ slurm_config_path }}/{{ item.0 }}/etc/slurm/{{ item.1 }}.conf"
-      - "{{ conf_path_items.get(item.1) }}"
+      - "{{ configs_input.get(item.1, {}) }}" # Either map or file path
     conf_name: "{{ item.1 }}"
   register: merged_conf
+  # debugger: always
 
 - name: Write merged .conf
   ansible.builtin.copy:
