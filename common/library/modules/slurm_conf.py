@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#!/usr/bin/python
-
 from collections import OrderedDict
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.input_validation.common_utils.slurm_conf_utils import SlurmParserEnum, all_confs
@@ -28,7 +26,7 @@ def read_dict2ini(conf_dict):
         if isinstance(v, list):
             for dct_item in v:
                 if isinstance(dct_item, dict):
-                    # TODO: Ordered dict, move the key to the top 
+                    # TODO: Ordered dict, move the key to the top
                     # od = OrderedDict([('a', 1), ('b', 2), ('c', 3)])
                     # od.move_to_end('c', last=False)  # Move 'c' to the beginning
                     data.append(
@@ -79,7 +77,7 @@ def parse_slurm_conf(file_path, module):
                 #         slurm_dict.get(first_key, [])) + [first_value]
                 # else:
                 slurm_dict[list(tmp_dict.keys())[0]] = list(
-                        slurm_dict.get(list(tmp_dict.keys())[0], [])) + [tmp_dict]
+                    slurm_dict.get(list(tmp_dict.keys())[0], [])) + [tmp_dict]
             else:
                 # TODO handle csv values, currently no definite data type for csv values
                 slurm_dict.update(tmp_dict)

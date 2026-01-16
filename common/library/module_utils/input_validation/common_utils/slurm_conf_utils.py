@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# pylint: disable=import-error,no-name-in-module,too-many-locals,too-many-statements
-#!/usr/bin/python
-
 # These are the slurm options for version - 25.11
 import re
 from enum import Enum
@@ -496,35 +493,35 @@ cgroup_options = {
 
 # From https://github.com/SchedMD/slurm/blob/slurm-<VERSION>/src/plugins/mpi/pmix/mpi_pmix.c#L83
 mpi_options = {
-	"PMIxCliTmpDirBase": S_P_STRING,
-	"PMIxCollFence": S_P_STRING,
-	"PMIxDebug": S_P_UINT32,
-	"PMIxDirectConn": S_P_BOOLEAN,
-	"PMIxDirectConnEarly": S_P_BOOLEAN,
-	"PMIxDirectConnUCX": S_P_BOOLEAN,
-	"PMIxDirectSameArch": S_P_BOOLEAN,
-	"PMIxEnv": S_P_STRING,
-	"PMIxFenceBarrier": S_P_BOOLEAN,
-	"PMIxNetDevicesUCX": S_P_STRING,
-	"PMIxShareServerTopology": S_P_BOOLEAN,
-	"PMIxTimeout": S_P_UINT32,
-	"PMIxTlsUCX": S_P_STRING
+    "PMIxCliTmpDirBase": S_P_STRING,
+    "PMIxCollFence": S_P_STRING,
+    "PMIxDebug": S_P_UINT32,
+    "PMIxDirectConn": S_P_BOOLEAN,
+    "PMIxDirectConnEarly": S_P_BOOLEAN,
+    "PMIxDirectConnUCX": S_P_BOOLEAN,
+    "PMIxDirectSameArch": S_P_BOOLEAN,
+    "PMIxEnv": S_P_STRING,
+    "PMIxFenceBarrier": S_P_BOOLEAN,
+    "PMIxNetDevicesUCX": S_P_STRING,
+    "PMIxShareServerTopology": S_P_BOOLEAN,
+    "PMIxTimeout": S_P_UINT32,
+    "PMIxTlsUCX": S_P_STRING
 }
 
 # From https://github.com/SchedMD/slurm/blob/slurm-<VERSION>s/src/interfaces/gres.c#L101C40-L116C2
 gres_options = {
-	"AutoDetect": S_P_STRING,
-	"Count": S_P_STRING,	# Number of Gres available */
-	"CPUs" : S_P_STRING,	# CPUs to bind to Gres resource
-	"Cores": S_P_STRING,	# Cores to bind to Gres resource */
-	"File":  S_P_STRING,	# Path to Gres device */
-	"Files": S_P_STRING,	# Path to Gres device */
-	"Flags": S_P_STRING,	# GRES Flags */
-	"Link":  S_P_STRING,	# Communication link IDs */
-	"Links": S_P_STRING,	# Communication link IDs */
-	"MultipleFiles": S_P_STRING, # list of GRES device files */
-	"Name":  S_P_STRING,	# Gres name */
-	"Type":  S_P_STRING	# Gres type (e.g. model name) */
+    "AutoDetect": S_P_STRING,
+    "Count": S_P_STRING,  # Number of Gres available */
+    "CPUs": S_P_STRING,  # CPUs to bind to Gres resource
+    "Cores": S_P_STRING,  # Cores to bind to Gres resource */
+    "File": S_P_STRING,  # Path to Gres device */
+    "Files": S_P_STRING,  # Path to Gres device */
+    "Flags": S_P_STRING,  # GRES Flags */
+    "Link": S_P_STRING,  # Communication link IDs */
+    "Links": S_P_STRING,  # Communication link IDs */
+    "MultipleFiles": S_P_STRING,  # list of GRES device files */
+    "Name": S_P_STRING,  # Gres name */
+    "Type": S_P_STRING  # Gres type (e.g. model name) */
 }
 
 all_confs = {
@@ -541,7 +538,8 @@ all_confs = {
     "NodeSet": nodeset_options
 }
 
-_HOSTLIST_RE = re.compile(r'^(?P<prefix>[^\[\]]*)\[(?P<inner>[^\[\]]+)\](?P<suffix>.*)$')
+_HOSTLIST_RE = re.compile(
+    r'^(?P<prefix>[^\[\]]*)\[(?P<inner>[^\[\]]+)\](?P<suffix>.*)$')
 
 
 def expand_hostlist(expr):
