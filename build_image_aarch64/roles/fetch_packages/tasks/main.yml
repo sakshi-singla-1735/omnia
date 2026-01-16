@@ -38,6 +38,7 @@
     rhel_tag: "{{ software_config.cluster_os_version }}"
     default_json_path: "{{ input_project_dir }}/config/aarch64/{{ software_config.cluster_os_type }}/{{ software_config.cluster_os_version }}/default_packages.json"  # noqa: yaml[line-length]
     additional_json_path: "{{ input_project_dir }}/config/aarch64/{{ software_config.cluster_os_type }}/{{ software_config.cluster_os_version }}/additional_packages.json"  # noqa: yaml[line-length]
+    admin_debug_json_path: "{{ input_project_dir }}/config/aarch64/{{ software_config.cluster_os_type }}/{{ software_config.cluster_os_version }}/admin_debug_packages.json"  # noqa: yaml[line-length]
 
 - name: Fetch pulp endpoint repos
   ansible.builtin.include_tasks: fetch_pulp_repos.yml
