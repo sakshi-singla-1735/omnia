@@ -17,6 +17,8 @@
 import subprocess
 import multiprocessing
 import os
+import re
+import shlex
 from datetime import datetime
 from functools import partial
 import time
@@ -34,6 +36,32 @@ from ansible.module_utils.local_repo.config import (
     AGGREGATED_BASE_PATH_TEMPLATE,
     PULP_CONCURRENCY
 )
+
+def validate_command_input(value):
+    """
+    Validates input values to prevent command injection.
+
+    Args:
+        value (str): The input value to validate.
+
+    Returns:
+        bool: True if the value is safe, False if it contains dangerous characters.
+
+    Raises:
+        ValueError: If the value contains shell metacharacters that could enable command injection.
+    """
+    if value is None:
+        return True
+
+    value_str = str(value)
+    # Pattern to detect shell metacharacters that could enable command injection
+    dangerous_pattern = re.compile(r'[;&|`$(){}\[\]<>\n\r\\]|\$\(')
+
+    if dangerous_pattern.search(value_str):
+        raise ValueError(f"Invalid input: contains potentially dangerous characters: {value_str}")
+
+    return True
+
 
 def execute_command(cmd_string, log,type_json=None, seconds=None):
     """
@@ -53,7 +81,10 @@ def execute_command(cmd_string, log,type_json=None, seconds=None):
 
     try:
         log.info("Executing Command: %s", cmd_string)
-        cmd = subprocess.run(cmd_string, universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=seconds, shell=True)
+        # Use shlex.split to safely parse the command string into a list of arguments
+        # This prevents command injection by avoiding shell=True
+        cmd_list = shlex.split(cmd_string)
+        cmd = subprocess.run(cmd_list, universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=seconds, shell=False)
         log.info(f"execute command return code : {cmd}")
         if cmd.returncode != 0:
             return False
@@ -354,7 +385,8 @@ def get_repo_version(repo_name, log):
     """
     try:
         command = pulp_rpm_commands["get_repo_version"] % repo_name
-        result = subprocess.run(command, shell=True, capture_output=True, text=True)
+        cmd_list = shlex.split(command)
+        result = subprocess.run(cmd_list, shell=False, capture_output=True, text=True)
 
         if result.returncode != 0:
             return 0
@@ -409,7 +441,8 @@ def delete_old_publications(repo_name, log):
     try:
         # Get list of publications for this repo
         list_command = pulp_rpm_commands["check_publication"] % repo_name
-        result = subprocess.run(list_command, shell=True, capture_output=True, text=True)
+        cmd_list = shlex.split(list_command)
+        result = subprocess.run(cmd_list, shell=False, capture_output=True, text=True)
 
         if result.returncode != 0:
             log.info("No existing publications found for '%s'", repo_name)
@@ -432,9 +465,15 @@ def delete_old_publications(repo_name, log):
         for pub in publications:
             pub_href = pub.get("pulp_href")
             if pub_href:
-                delete_command = pulp_rpm_commands["delete_publication"] % pub_href
+                # Validate pub_href from JSON to prevent command injection
+                validate_command_input(pub_href)
+                # Use subprocess with argument list - pub_href is passed as a separate argument
+                # This prevents command injection as the value is never interpreted by a shell
                 log.info("Deleting publication: %s", pub_href)
-                delete_result = subprocess.run(delete_command, shell=True, capture_output=True, text=True)
+                delete_result = subprocess.run(
+                    ["pulp", "rpm", "publication", "destroy", "--href", pub_href],
+                    shell=False, capture_output=True, text=True
+                )
                 if delete_result.returncode != 0:
                     log.warning("Failed to delete publication %s: %s", pub_href, delete_result.stderr)
                 else:
@@ -913,8 +952,9 @@ def create_aggregated_publication(repo_name, log):
     command = pulp_rpm_commands["publish_repository"] % repo_name
 
     try:
+        cmd_list = shlex.split(command)
         cmd = subprocess.run(
-            command, shell=True, capture_output=True, text=True, timeout=3600
+            cmd_list, shell=False, capture_output=True, text=True, timeout=3600
         )
         log.info(f"Publication command return code: {cmd.returncode}")
 
@@ -926,20 +966,27 @@ def create_aggregated_publication(repo_name, log):
         try:
             pub_data = json.loads(cmd.stdout)
             pub_href = pub_data.get("pulp_href")
+            # Validate pub_href from JSON to prevent command injection
+            if pub_href:
+                validate_command_input(pub_href)
             log.info(f"Publication created with href: {pub_href}")
             return True, pub_href
         except json.JSONDecodeError:
             # If output is not JSON, try to get href from list
             log.info("Could not parse publication href from output, fetching from list")
             list_cmd = pulp_rpm_commands["list_publications"] % repo_name
+            list_cmd_list = shlex.split(list_cmd)
             list_result = subprocess.run(
-                list_cmd, shell=True, capture_output=True, text=True
+                list_cmd_list, shell=False, capture_output=True, text=True
             )
             if list_result.returncode == 0:
                 pubs = json.loads(list_result.stdout)
                 if pubs:
                     # Get the latest publication
                     pub_href = pubs[-1].get("pulp_href")
+                    # Validate pub_href from JSON to prevent command injection
+                    if pub_href:
+                        validate_command_input(pub_href)
                     log.info(f"Got publication href from list: {pub_href}")
                     return True, pub_href
             return True, None
@@ -967,14 +1014,24 @@ def create_aggregated_distribution(arch, pub_href, log):
 
     log.info(f"Creating/updating distribution '{dist_name}' with base_path '{base_path}'")
 
+    # Validate pub_href if provided (comes from JSON response)
+    if pub_href:
+        validate_command_input(pub_href)
+
     # Check if distribution exists
     show_cmd = pulp_rpm_commands["check_distribution"] % dist_name
 
     if execute_command(show_cmd, log):
         # Distribution exists - update with new publication
         if pub_href:
-            update_cmd = pulp_rpm_commands["update_distribution_publication"] % (dist_name, pub_href)
-            result = execute_command(update_cmd, log)
+            # Use subprocess with argument list - pub_href is passed as a separate argument
+            # This prevents command injection as the value is never interpreted by a shell
+            log.info(f"Updating distribution '{dist_name}' with publication href")
+            update_result = subprocess.run(
+                ["pulp", "rpm", "distribution", "update", "--name", dist_name, "--publication", pub_href],
+                shell=False, capture_output=True, text=True
+            )
+            result = update_result.returncode == 0
         else:
             # Update with repository reference
             update_cmd = pulp_rpm_commands["update_distribution"] % (dist_name, base_path, repo_name)
