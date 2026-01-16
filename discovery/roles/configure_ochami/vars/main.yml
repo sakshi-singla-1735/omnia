@@ -101,3 +101,9 @@ k8s_control_ssh_patterns: "{{ hostvars['oim']['k8s_ssh_patterns'] | default('*')
 
 # Passwordless SSH mode flag derived from nodes.yaml (set on OIM by passwordless_ssh role)
 all_group_names_present: "{{ hostvars['oim']['all_group_names_present'] | default(false) }}"
+
+# CUDA/NVIDIA versions
+cuda_toolkit_version: "13.0.2"
+cuda_driver_version: "580.95.05"
+cuda_runfile_x86_64: "cuda_{{ cuda_toolkit_version }}_{{ cuda_driver_version }}_linux.run"
+cuda_runfile_aarch64: "cuda_{{ cuda_toolkit_version }}_{{ cuda_driver_version }}_linux_sbsa.run"
