@@ -12,6 +12,134 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+DOCUMENTATION = r'''
+---
+module: slurm_conf
+short_description: Parse, convert, and merge Slurm configuration files
+version_added: "1.0.0"
+description:
+    - This module provides utilities for working with Slurm configuration files.
+    - It can parse a Slurm conf file into a dictionary (f2d).
+    - It can convert a dictionary back to Slurm conf INI format (d2f).
+    - It can merge multiple configuration sources (files and/or dicts) into one (merge).
+options:
+    op:
+        description:
+            - The operation to perform.
+            - C(f2d) - File to dict. Parse a Slurm conf file and return as dictionary.
+            - C(d2f) - Dict to file. Convert a dictionary to Slurm conf INI lines.
+            - C(merge) - Merge multiple configuration sources into one.
+        required: true
+        type: str
+        choices: ['f2d', 'd2f', 'merge']
+    path:
+        description:
+            - Path to the Slurm configuration file.
+            - Required when I(op=f2d).
+        type: str
+    conf_map:
+        description:
+            - Dictionary of configuration key-value pairs.
+            - Required when I(op=d2f).
+        type: dict
+        default: {}
+    conf_sources:
+        description:
+            - List of configuration sources to merge.
+            - Each source can be a file path (string) or a dictionary of config values.
+            - Sources are merged in order, with later sources overriding earlier ones.
+            - Required when I(op=merge).
+        type: list
+        elements: raw
+        default: []
+    conf_name:
+        description:
+            - The type of Slurm configuration file being processed.
+            - Used for validation of configuration keys.
+        type: str
+        default: slurm
+        choices: ['slurm', 'cgroup', 'gres', 'mpi', 'slurmdbd']
+author:
+    - Jagadeesh N V (jagadeesh.n.v@dell.com)
+notes:
+    - Requires Python 3.7+ for ordered dict behavior.
+    - Array-type parameters (NodeName, PartitionName, SlurmctldHost, etc.) are handled specially.
+'''
+
+EXAMPLES = r'''
+# Parse a slurm.conf file into a dictionary
+- name: Read slurm.conf
+  slurm_conf:
+    op: f2d
+    path: /etc/slurm/slurm.conf
+    conf_name: slurm
+  register: slurm_config
+
+# Convert a dictionary to slurm.conf INI lines
+- name: Generate slurm.conf lines
+  slurm_conf:
+    op: d2f
+    conf_map:
+      ClusterName: mycluster
+      SlurmctldPort: 6817
+      SlurmctldHost:
+        - SlurmctldHost: controller1
+        - SlurmctldHost: controller2
+      NodeName:
+        - NodeName: node[1-10]
+          CPUs: 16
+          RealMemory: 64000
+  register: conf_lines
+
+# Merge a base config file with custom overrides
+- name: Merge configurations
+  slurm_conf:
+    op: merge
+    conf_sources:
+      - /etc/slurm/slurm.conf.base
+      - SlurmctldTimeout: 120
+        SlurmdTimeout: 300
+      - NodeName:
+          - NodeName: newnode1
+            CPUs: 32
+    conf_name: slurm
+  register: merged_config
+
+# Merge multiple config files
+- name: Merge multiple files
+  slurm_conf:
+    op: merge
+    conf_sources:
+      - /etc/slurm/slurm.conf.defaults
+      - /etc/slurm/slurm.conf.site
+      - /etc/slurm/slurm.conf.local
+    conf_name: slurm
+  register: merged_config
+'''
+
+RETURN = r'''
+slurm_dict:
+    description: Parsed configuration as a dictionary (when op=f2d).
+    type: dict
+    returned: when op=f2d
+    sample: {"ClusterName": "mycluster", "SlurmctldPort": "6817"}
+slurm_conf:
+    description: Configuration as INI-format lines (when op=d2f).
+    type: list
+    returned: when op=d2f
+    sample: ["ClusterName=mycluster", "SlurmctldPort=6817"]
+conf_dict:
+    description: Merged configuration as a dictionary (when op=merge).
+    type: dict
+    returned: when op=merge
+    sample: {"ClusterName": "mycluster", "SlurmctldTimeout": 120}
+ini_lines:
+    description: Merged configuration as INI-format lines (when op=merge).
+    type: list
+    returned: when op=merge
+    sample: ["ClusterName=mycluster", "SlurmctldTimeout=120"]
+'''
+
 from collections import OrderedDict
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.input_validation.common_utils.slurm_conf_utils import SlurmParserEnum, all_confs
@@ -128,11 +256,7 @@ def run_module():
         "conf_name": {'type': 'str', 'default': 'slurm'}
     }
 
-    result = dict(
-        changed=False,
-        slurm_dict={},
-        failed=False
-    )
+    result = {"changed": False, "slurm_dict": {}, "failed": False}
 
     # Create the AnsibleModule object
     module = AnsibleModule(argument_spec=module_args,
