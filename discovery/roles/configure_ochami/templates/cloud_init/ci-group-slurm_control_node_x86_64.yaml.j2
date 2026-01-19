@@ -17,9 +17,26 @@
           ssh_authorized_keys: "{{ read_ssh_key.stdout }}"
           lock_passwd: false
           hashed_passwd: "{{ hashed_password_output.stdout }}"
+        - name: {{ slurm_user }}
+          uid: {{ slurm_uid }}
+          system: true
+          no_create_home: true
+          shell: /sbin/nologin
       disable_root: false
 
       write_files:
+        - path: /usr/local/bin/doca-install.sh
+          owner: root:root
+          permissions: '{{ file_mode_755 }}'
+          content: |
+            {{ lookup('template', 'templates/doca-ofed/doca-install.sh.j2') | indent(12) }}
+
+        - path: /usr/local/bin/configure-ib-network.sh
+          owner: root:root
+          permissions: '{{ file_mode_755 }}'
+          content: |
+            {{ lookup('template', 'templates/doca-ofed/configure-ib-network.sh.j2') | indent(12) }}
+
         - path: /usr/local/bin/set-ssh.sh
           permissions: '{{ file_mode_755 }}'
           content: |
@@ -58,7 +75,7 @@
           permissions: '0600'
           content: |
             Host {{ slurm_control_ssh_patterns }}
-                IdentityFile ~/.ssh/oim_rsa
+                IdentityFile {{ client_mount_path }}/slurm/ssh/oim_rsa
                 IdentitiesOnly yes
 
 {% if hostvars['localhost']['openldap_support'] %}
@@ -115,9 +132,9 @@
           content: |
             #!/bin/bash
             SLURMDBD_CONF="/etc/slurm/slurmdbd.conf"
-            SLURM_USER="{{ user }}"
-            SLURM_GROUP="{{ slurm_group_name }}"
-            # Function to extract value from slurm.conf
+            SLURM_USER="{{ slurm_user }}"
+            SLURM_GROUP="{{ slurm_user }}"
+            # Function to extract value from slurm.conf 
             get_value_slurm_conf() {
                 local key="$1"
                 local default="$2"
@@ -126,8 +143,8 @@
                 echo "${value:-$default}"
             }
             chown -R {{ mysql_user }}:{{ mysql_group }} /var/lib/mysql
-            chown -R {{ user }}:{{ slurm_group_name }} /var/log/mariadb
-            chown -R {{ user }}:{{ slurm_group_name }} /etc/my.cnf.d # Required? why slurm user for my.cnf??
+            chown -R {{ slurm_user }}:{{ slurm_user }} /var/log/mariadb
+            chown -R {{ slurm_user }}:{{ slurm_user }} /etc/my.cnf.d # Required? why slurm user for my.cnf?? 
             chmod {{ file_mode_755 }} /etc/my.cnf.d /var/lib/mysql /var/log/mariadb
             #firewall
             systemctl enable firewalld
@@ -144,9 +161,9 @@
           content: |
             #!/bin/bash
             SLURMDBD_CONF="/etc/slurm/slurmdbd.conf"
-            SLURM_USER="{{ user }}"
-            SLURM_GROUP="{{ slurm_group_name }}"
-            # Function to extract value from slurm.conf
+            SLURM_USER="{{ slurm_user }}"
+            SLURM_GROUP="{{ slurm_user }}"
+            # Function to extract value from slurm.conf 
             get_value_slurm_conf() {
                 local key="$1"
                 local default="$2"
@@ -155,7 +172,7 @@
                 echo "${value:-$default}"
             }
             chmod {{ file_mode_600 }} /etc/slurm/slurmdbd.conf
-            chown {{ user }}:{{ slurm_group_name }} /etc/slurm/slurmdbd.conf
+            chown {{ slurm_user }}:{{ slurm_user }} /etc/slurm/slurmdbd.conf
             #file PidFile
             PidFile=$(get_value_slurm_conf "PidFile" "/var/run/slurmdbd.pid")
             mkdir -pv $(dirname "$PidFile")
@@ -182,9 +199,9 @@
           content: |
             #!/bin/bash
             SLURM_CONF="/etc/slurm/slurm.conf"
-            SLURM_USER="{{ user }}"
-            SLURM_GROUP="{{ slurm_group_name }}"
-            # Function to extract value from slurm.conf
+            SLURM_USER="{{ slurm_user }}"
+            SLURM_GROUP="{{ slurm_user }}"
+            # Function to extract value from slurm.conf 
             get_value_slurm_conf() {
                 local key="$1"
                 local default="$2"
@@ -253,39 +270,14 @@
               sleep 5
             done
 
-{% if slurm_workloads_logs_path is defined %}
-        - path: /etc/slurm/prolog.d/20-workload-logs.sh
-          owner: root:root
-          permissions: '0755'
-          content: |
-            #!/bin/bash
-            # SAFE Slurm Prolog — must never fail
-
-            BASE_DIR="{{ slurm_workloads_logs_path }}"
-
-            JOB_ID="${SLURM_JOB_ID:-}"
-            JOB_USER="${SLURM_JOB_USER:-}"
-
-            # Not a real job context
-            [ -z "$JOB_ID" ] && exit 0
-            [ -z "$JOB_USER" ] && exit 0
-
-            JOB_DIR="${BASE_DIR}/${JOB_USER}/${JOB_ID}"
-
-            mkdir -p "$JOB_DIR/images" "$JOB_DIR/tmp" 2>/dev/null || true
-            chmod 700 "$JOB_DIR" 2>/dev/null || true
-
-            exit 0
-{% endif %}
-
       runcmd:
          - /usr/local/bin/set-ssh.sh
-         - useradd -mG wheel -p '$6$VHdSKZNm$O3iFYmRiaFQCemQJjhfrpqqV7DdHBi5YpY6Aq06JSQpABPw.3d8PQ8bNY9NuZSmDv7IL/TsrhRJ6btkgKaonT.' testuser # Required??
-         - groupadd -r {{ slurm_group_name }}
-         - useradd -r -g {{ slurm_group_name }} -d {{ home_dir }} -s /sbin/nologin {{ user }}
+         # Ensure Slurm NFS root is mounted at client_mount_path (e.g. /share_omnia)
+         - mkdir -p {{ client_mount_path }}/slurm/ssh
 
+        # slurm user and group created in the users module
         # Create directories for nfs and mount all
-         - mkdir -p /var/log/slurm /etc/slurm {{ home_dir }} /etc/my.cnf.d /etc/munge /var/lib/mysql /var/log/mariadb /cert /var/log/track
+         - mkdir -p /var/log/slurm /etc/slurm {{ home_dir }} /etc/my.cnf.d /etc/munge /var/lib/mysql /var/log/mariadb /cert /var/log/track /var/lib/packages
          - echo "{{ cloud_init_nfs_path }}/cert  /cert   nfs defaults,_netdev 0 0" >> /etc/fstab
          - echo "{{ cloud_init_nfs_path }}/$(hostname -s)/etc/slurm      /etc/slurm       nfs defaults,_netdev 0 0" >> /etc/fstab
          - echo "{{ cloud_init_nfs_path }}/$(hostname -s)/etc/my.cnf.d   /etc/my.cnf.d    nfs defaults,_netdev 0 0" >> /etc/fstab
@@ -295,53 +287,20 @@
          - echo "{{ cloud_init_nfs_path }}/$(hostname -s)/var/spool      /var/spool       nfs defaults,_netdev 0 0" >> /etc/fstab
          - echo "{{ cloud_init_nfs_path }}/$(hostname -s)/etc/munge      /etc/munge       nfs defaults,_netdev 0 0" >> /etc/fstab
          - echo "{{ trackfile_nfs_path }}    /var/log/track       nfs defaults,_netdev 0 0" >> /etc/fstab
-
-{% if slurm_workloads_share_path is defined and cloud_init_workloads_nfs_path is defined %}
-         # Mount workloads NFS using values from storage_config.yml
-         - mkdir -p {{ slurm_workloads_share_path }}
-         - echo "{{ cloud_init_workloads_nfs_path }} {{ slurm_workloads_share_path }} nfs defaults,_netdev 0 0" >> /etc/fstab
-
-         - mkdir -p {{ slurm_workloads_logs_path }}/job_completion
-         - touch {{ slurm_workloads_logs_path }}/job_completion/jobcomp.log
-         - chown -R {{ user }}:{{ slurm_group_name }} {{ slurm_workloads_logs_path }}/job_completion
-         - chmod 0755 {{ slurm_workloads_logs_path }}/job_completion
-         - chmod 0644 {{ slurm_workloads_logs_path }}/job_completion/jobcomp.log
-
-{% endif %}
-
+         - echo "{{ cloud_init_nfs_path }}/packages  /var/lib/packages   nfs defaults,_netdev 0 0" >> /etc/fstab
+         - echo "{{ cloud_init_nfs_path }}/ssh {{ client_mount_path }}/slurm/ssh nfs defaults,_netdev 0 0" >> /etc/fstab
          - chmod {{ file_mode }} /etc/fstab
          # add dns entries for powerscale
-{% if csi_slurm_support %}
-         - |
-           tmpfile=$(mktemp)
-           # Extract the first 'search' line only (ignore duplicates)
-           search_line=$(grep '^search' /etc/resolv.conf | head -n1)
-           [ -n "$search_line" ] && echo "$search_line" > "$tmpfile"
 
-           # Add your new nameserver entries
-           {% for ns in dns %}
-           echo "nameserver {{ ns }}" >> "$tmpfile"
-           {% endfor %}
-
-           # Add remaining lines except search and empty lines
-           grep -v '^search' /etc/resolv.conf | grep -v '^$' >> "$tmpfile"
-
-           # Remove duplicate lines
-           awk '!seen[$0]++' "$tmpfile" > /etc/resolv.conf
-         - |
-           if command -v chattr >/dev/null 2>&1; then
-             chattr +i /etc/resolv.conf || true
-           fi
-{% endif %}
          - mount -a
-{% if slurm_workloads_logs_path is defined %}
-         - /usr/local/bin/setup_workload_prolog.sh
-{% endif %}
+         - cp /cert/pulp_webserver.crt /etc/pki/ca-trust/source/anchors && update-ca-trust
+         - sed -i 's/^gpgcheck=1/gpgcheck=0/' /etc/dnf/dnf.conf
+         - bash /usr/local/bin/doca-install.sh && bash /usr/local/bin/configure-ib-network.sh
 
-         - chown -R {{ user }}:{{ slurm_group_name }} {{ home_dir }}
+         - chown -R {{ slurm_user }}:{{ slurm_user }} {{ home_dir }}
          - chmod {{ file_mode_755 }} {{ home_dir }}
 
-         - chown -R {{ user }}:{{ slurm_group_name }} /etc/slurm
+         - chown -R {{ slurm_user }}:{{ slurm_user }} /etc/slurm
          - chmod {{ file_mode_755 }} /etc/slurm
          - chmod {{ file_mode }} /etc/slurm/slurm.conf
 
@@ -358,9 +317,6 @@
          - firewall-cmd --reload
          - systemctl enable sshd
          - systemctl start sshd
-
-         - cp /cert/pulp_webserver.crt /etc/pki/ca-trust/source/anchors && update-ca-trust
-         - sed -i 's/^gpgcheck=1/gpgcheck=0/' /etc/dnf/dnf.conf
 
 {% if hostvars['localhost']['openldap_support'] %}
          - /usr/local/bin/update_ldap_conf.sh

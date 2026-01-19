@@ -95,16 +95,9 @@
         | join(' ')
       }}
 
-- name: DEBUG nodes.yaml groups, hostnames and admin IPs
-  ansible.builtin.debug:
-    msg:
-      omnia_nodes_yaml_path: "{{ omnia_nodes_yaml_path }}"
-      omnia_nodes_groups_from_yaml: "{{ omnia_nodes_groups_from_yaml | default([]) }}"
-      all_group_names_present: "{{ all_group_names_present | default(false) }}"
-
 - name: Configure SSH on OIM with Host * when all groups are present in nodes.yaml
   ansible.builtin.blockinfile:
-    path: /root/.ssh/config
+    path: "{{ ssh_private_key_path }}"
     create: true
     mode: '0600'
     marker: "# {mark} OMNIA_CLUSTER_SSH"
@@ -116,7 +109,7 @@
 
 - name: Configure SSH on OIM with derived hostname/IP patterns when groups are incomplete
   ansible.builtin.blockinfile:
-    path: /root/.ssh/config
+    path: "{{ ssh_private_key_path }}"
     create: true
     mode: '0600'
     marker: "# {mark} OMNIA_CLUSTER_SSH"
@@ -132,12 +125,12 @@
     - not all_group_names_present | default(false) | bool
     - omnia_cluster_ssh_matches | default([]) | length > 0
 
-- name: DEBUG summary from read_nodes_yaml flow
-  ansible.builtin.debug:
-    msg:
-      omnia_nodes_yaml_path: "{{ omnia_nodes_yaml_path }}"
-      omnia_nodes_groups_from_yaml: "{{ omnia_nodes_groups_from_yaml | default([]) }}"
-      all_group_names_present: "{{ all_group_names_present | default(false) }}"
-      omnia_cluster_ssh_matches: "{{ omnia_cluster_ssh_matches | default([]) }}"
-      k8s_ssh_patterns: "{{ k8s_ssh_patterns | default('') }}"
-      slurm_ssh_patterns: "{{ slurm_ssh_patterns | default('') }}"
+# - name: DEBUG summary from read_nodes_yaml flow
+  # ansible.builtin.debug:
+    # msg:
+      # omnia_nodes_yaml_path: "{{ omnia_nodes_yaml_path }}"
+      # omnia_nodes_groups_from_yaml: "{{ omnia_nodes_groups_from_yaml | default([]) }}"
+      # all_group_names_present: "{{ all_group_names_present | default(false) }}"
+      # omnia_cluster_ssh_matches: "{{ omnia_cluster_ssh_matches | default([]) }}"
+      # k8s_ssh_patterns: "{{ k8s_ssh_patterns | default('') }}"
+      # SLURM_SSH_patterns: "{{ slurm_ssh_patterns | default('') }}"
