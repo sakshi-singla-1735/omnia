@@ -21,6 +21,7 @@ import re
 import itertools
 import csv
 import yaml
+import ipaddress
 from ansible.module_utils.input_validation.common_utils import validation_utils
 from ansible.module_utils.input_validation.common_utils import config
 from ansible.module_utils.input_validation.common_utils import en_us_validation_msg
@@ -163,6 +164,53 @@ def validate_duplicate_service_tags_in_mapping_file(pxe_mapping_file_path):
 
     if duplicates:
         raise ValueError(f"Duplicate SERVICE_TAG found in PXE mapping file: {'; '.join(duplicates)}")
+
+
+def validate_group_parent_service_tag_consistency_in_mapping_file(pxe_mapping_file_path):
+    """Validates that GROUP_NAME has a consistent PARENT_SERVICE_TAG across the mapping file."""
+    if not pxe_mapping_file_path or not os.path.isfile(pxe_mapping_file_path):
+        raise ValueError(f"PXE mapping file not found: {pxe_mapping_file_path}")
+
+    with open(pxe_mapping_file_path, "r", encoding="utf-8") as fh:
+        raw_lines = fh.readlines()
+
+    non_comment_lines = [ln for ln in raw_lines if ln.strip()]
+    reader = csv.DictReader(non_comment_lines)
+
+    fieldname_map = {fn.strip().upper(): fn for fn in reader.fieldnames}
+    group_col = fieldname_map.get("GROUP_NAME")
+    parent_col = fieldname_map.get("PARENT_SERVICE_TAG")
+
+    if not group_col or not parent_col:
+        raise ValueError("GROUP_NAME or PARENT_SERVICE_TAG column not found in PXE mapping file")
+
+    group_to_parent = {}
+    errors = []
+
+    for row_idx, row in enumerate(reader, start=2):
+        group_name = row.get(group_col, "").strip() if row.get(group_col) else ""
+        parent = row.get(parent_col, "").strip() if row.get(parent_col) else ""
+        if not group_name:
+            continue
+
+        if group_name not in group_to_parent:
+            group_to_parent[group_name] = {"parent": parent, "row": row_idx}
+            continue
+
+        prev_parent = group_to_parent[group_name]["parent"]
+        if prev_parent != parent:
+            errors.append(
+                f"GROUP_NAME '{group_name}' is associated with different PARENT_SERVICE_TAG. "
+                f"Found PARENT_SERVICE_TAG='{prev_parent}' at CSV row {group_to_parent[group_name]['row']} and "
+                f"PARENT_SERVICE_TAG='{parent}' at CSV row {row_idx}. "
+                f"Fix: Use exactly one PARENT_SERVICE_TAG value for same GROUP_NAME. "
+            )
+
+    if errors:
+        raise ValueError(
+            "PXE mapping file GROUP_NAME and PARENT_SERVICE_TAG consistency validation errors: "
+            + "\n".join(errors)
+        )
 
 def validate_mapping_file_entries(mapping_file_path):
     """
@@ -633,6 +681,7 @@ def validate_provision_config(
             validate_functional_groups_in_mapping_file(pxe_mapping_file_path)
             validate_duplicate_service_tags_in_mapping_file(pxe_mapping_file_path)
             validate_duplicate_hostnames_in_mapping_file(pxe_mapping_file_path)
+            validate_group_parent_service_tag_consistency_in_mapping_file(pxe_mapping_file_path)
             validate_functional_groups_separation(pxe_mapping_file_path)
             validate_parent_service_tag_hierarchy(pxe_mapping_file_path)
 
@@ -695,6 +744,54 @@ def validate_network_spec(
             create_error_msg("Networks", None, en_us_validation_msg.ADMIN_NETWORK_MISSING_MSG)
         )
         return errors
+
+    # Extract admin and IB parameters for cross-validation
+    admin_netmask_bits = None
+    admin_primary_ip = None
+    ib_netmask_bits = None
+    ib_subnet = None
+    ib_present = False
+
+    for network in data["Networks"]:
+        if "admin_network" in network and isinstance(network["admin_network"], dict):
+            admin_net = network["admin_network"]
+            admin_netmask_bits = admin_net.get("netmask_bits", admin_netmask_bits)
+            admin_primary_ip = admin_net.get("primary_oim_admin_ip", admin_primary_ip)
+
+        if "ib_network" in network and isinstance(network["ib_network"], dict):
+            ib_net = network["ib_network"]
+            # Consider IB network present only when config is non-empty
+            if ib_net:
+                ib_present = True
+                ib_netmask_bits = ib_net.get("netmask_bits", ib_netmask_bits)
+                ib_subnet = ib_net.get("subnet", ib_subnet)
+
+    # If IB network is configured and both netmask bits are available, they must match
+    if ib_present and ib_netmask_bits and admin_netmask_bits and ib_netmask_bits != admin_netmask_bits:
+        errors.append(
+            create_error_msg(
+                "ib_network.netmask_bits",
+                ib_netmask_bits,
+                en_us_validation_msg.IB_NETMASK_BITS_MISMATCH_MSG,
+            )
+        )
+
+    # If IB subnet and admin primary IP are available, ensure IB subnet is not in admin range
+    if ib_present and ib_subnet and admin_primary_ip and admin_netmask_bits:
+        try:
+            admin_network = ipaddress.IPv4Network(f"{admin_primary_ip}/{admin_netmask_bits}", strict=False)
+            ib_ip = ipaddress.IPv4Address(ib_subnet)
+            if ib_ip in admin_network:
+                errors.append(
+                    create_error_msg(
+                        "ib_network.subnet",
+                        ib_subnet,
+                        en_us_validation_msg.IB_SUBNET_IN_ADMIN_RANGE_MSG,
+                    )
+                )
+        except ValueError:
+            # If IPs/netmask are invalid, rely on existing validations to report issues
+            pass
 
     for network in data["Networks"]:
         errors.extend(_validate_admin_network(network))
@@ -893,3 +990,4 @@ def _validate_ip_ranges(dynamic_range, network_type, netmask_bits):
             )
 
     return errors
+
