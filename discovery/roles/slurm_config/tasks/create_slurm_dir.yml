@@ -18,6 +18,30 @@
 - name: Include storage vars
   ansible.builtin.include_vars: "{{ input_project_dir }}/storage_config.yml"
 
+- name: Load slurm_custom.json for x86_64
+  ansible.builtin.include_vars:
+    file: "{{ input_project_dir }}/config/x86_64/rhel/{{ hostvars['localhost']['cluster_os_version'] }}/slurm_custom.json"
+    name: slurm_custom_x86_64
+  ignore_errors: true
+
+- name: Load slurm_custom.json for aarch64
+  ansible.builtin.include_vars:
+    file: "{{ input_project_dir }}/config/aarch64/rhel/{{ hostvars['localhost']['cluster_os_version'] }}/slurm_custom.json"
+    name: slurm_custom_aarch64
+  ignore_errors: true
+
+- name: Extract CUDA runfile name for x86_64 from slurm_custom.json
+  ansible.builtin.set_fact:
+    cuda_runfile_x86_64: "{{ (slurm_custom_x86_64.slurm_node.cluster | selectattr('package', 'equalto', 'cuda-run') | first).url | basename }}"
+  when: slurm_custom_x86_64 is defined and slurm_custom_x86_64.slurm_node is defined
+  ignore_errors: true
+
+- name: Extract CUDA runfile name for aarch64 from slurm_custom.json
+  ansible.builtin.set_fact:
+    cuda_runfile_aarch64: "{{ (slurm_custom_aarch64.slurm_node.cluster | selectattr('package', 'equalto', 'cuda-run') | first).url | basename }}"
+  when: slurm_custom_aarch64 is defined and slurm_custom_aarch64.slurm_node is defined
+  ignore_errors: true
+
 - name: Set facts for slurm
   ansible.builtin.set_fact:
     nfs_storage_name: "{{ slurm_cluster[0].nfs_storage_name }}"
