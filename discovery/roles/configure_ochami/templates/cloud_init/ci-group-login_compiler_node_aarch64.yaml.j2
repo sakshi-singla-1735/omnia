@@ -107,10 +107,10 @@
             fi
 
             echo "[INFO] Installing CUDA toolkit directly to shared NFS location..."
-            if [ -f "/cuda-runfile/cuda_13.0.2_580.95.05_linux_sbsa.run" ]; then
+            if [ -f "/cuda-runfile/{{ cuda_runfile_aarch64 }}" ]; then
                 mkdir -p /shared-cuda-toolkit/tmp
                 # Install toolkit directly to the NFS-mounted shared location
-                bash /cuda-runfile/cuda_13.0.2_580.95.05_linux_sbsa.run --silent --toolkit --tmpdir=/shared-cuda-toolkit/tmp --toolkitpath=/shared-cuda-toolkit --override
+                bash /cuda-runfile/{{ cuda_runfile_aarch64 }} --silent --toolkit --tmpdir=/shared-cuda-toolkit/tmp --toolkitpath=/shared-cuda-toolkit --override
 
                 if [ $? -eq 0 ]; then
                     echo "[SUCCESS] CUDA toolkit installed successfully to shared location."

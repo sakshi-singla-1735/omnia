@@ -112,8 +112,8 @@
                 fi
 
                 echo "[INFO] Installing NVIDIA driver..."
-                if [ -f "/gpu-runfile/cuda_13.0.2_580.95.05_linux.run" ]; then
-                    bash /gpu-runfile/cuda_13.0.2_580.95.05_linux.run --silent --driver --no-opengl-libs --kernel-source-path=/lib/modules/$(uname -r)/build
+                if [ -f "/gpu-runfile/{{ cuda_runfile_x86_64 }}" ]; then
+                    bash /gpu-runfile/{{ cuda_runfile_x86_64 }} --silent --driver --no-opengl-libs --kernel-source-path=/lib/modules/$(uname -r)/build
                     if [ $? -eq 0 ] && command -v nvidia-smi &>/dev/null; then
                         echo "[SUCCESS] NVIDIA driver installed successfully."
                     else
