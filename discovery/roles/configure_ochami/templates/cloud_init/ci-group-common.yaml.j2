@@ -10,18 +10,25 @@
           settings: [append]
         - name: dict
           settings: [no_replace, recurse_list]
- 
+
       write_files:
         - path: /usr/local/bin/set-ssh-config.sh
           permissions: '0755'
           content: |
             #!/bin/bash
+            set -e
             timedatectl set-timezone {{ hostvars['oim']['oim_timezone'] }}
             localectl set-locale LANG={{ hostvars['localhost']['language'] }}
             sed -i 's/^#PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config
             sed -i 's/^#PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config
             sed -i 's/^PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config.d/50-cloud-init.conf
             systemctl restart sshd
+
+        - path: /root/.ssh/oim_rsa
+          permissions: '0600'
+          content: |
+            {{ read_ssh_private_key.stdout | indent(12) }}
+
       runcmd:
         - /usr/local/bin/set-ssh-config.sh
 
@@ -54,3 +61,4 @@
         - "systemctl restart chronyd"
         - "chronyc sources"
         - "chronyc -a makestep"
+

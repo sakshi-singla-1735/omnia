@@ -120,7 +120,7 @@
 
         - path: /root/omnia_slurm_scripts/00_munge_setup.sh
           permissions: '{{ file_mode_755 }}'
-          content: |        
+          content: |
             chown -R {{ munge_user }}:{{ munge_group }} /etc/munge
             chmod 700 /etc/munge
             chmod {{ file_mode_400 }} /etc/munge/munge.key
@@ -154,7 +154,7 @@
             firewall-cmd --reload
             systemctl enable --now mariadb
             systemctl start mariadb
-            mysql -u root < /root/init_slurm_db.sql                 
+            mysql -u root < /root/init_slurm_db.sql
 
         - path: /root/omnia_slurm_scripts/02_slurmdbd_setup.sh
           permissions: '{{ file_mode_755 }}'
@@ -226,6 +226,16 @@
             touch $SlurmctldLogFile
             chown -v "$SLURM_USER:$SLURM_GROUP" "$SlurmctldLogFile"
             chmod -v 0755 $SlurmctldLogFile
+            # Job completion log file (JobCompLoc is a FILE)
+            JobCompLoc=$(get_value_slurm_conf "JobCompLoc" "")
+            if [ -n "$JobCompLoc" ]; then
+               mkdir -pv "$(dirname "$JobCompLoc")"
+               touch "$JobCompLoc"
+               chown -v "$SLURM_USER:$SLURM_GROUP" "$JobCompLoc"
+               chmod -v 0644 "$JobCompLoc"
+            fi
+
+
             #firewall
             systemctl enable firewalld
             systemctl start firewalld
@@ -262,8 +272,6 @@
 
       runcmd:
          - /usr/local/bin/set-ssh.sh
-
-         
          # Ensure Slurm NFS root is mounted at client_mount_path (e.g. /share_omnia)
          - mkdir -p {{ client_mount_path }}/slurm/ssh
 
@@ -282,6 +290,8 @@
          - echo "{{ cloud_init_nfs_path }}/packages  /var/lib/packages   nfs defaults,_netdev 0 0" >> /etc/fstab
          - echo "{{ cloud_init_nfs_path }}/ssh {{ client_mount_path }}/slurm/ssh nfs defaults,_netdev 0 0" >> /etc/fstab
          - chmod {{ file_mode }} /etc/fstab
+         # add dns entries for powerscale
+
          - mount -a
          - cp /cert/pulp_webserver.crt /etc/pki/ca-trust/source/anchors && update-ca-trust
          - sed -i 's/^gpgcheck=1/gpgcheck=0/' /etc/dnf/dnf.conf
@@ -342,3 +352,4 @@
          - /root/ldms_sampler.sh
 {% endif %}
          - echo "Cloud-Init has completed successfully."
+

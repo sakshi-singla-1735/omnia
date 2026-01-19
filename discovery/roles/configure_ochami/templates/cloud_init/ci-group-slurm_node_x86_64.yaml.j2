@@ -80,6 +80,13 @@
                 IdentityFile {{ client_mount_path }}/slurm/ssh/oim_rsa
                 IdentitiesOnly yes
 
+        - path: /root/.ssh/config
+          permissions: '0600'
+          content: |
+            Host {{ slurm_control_ssh_patterns }}
+                IdentityFile ~/.ssh/oim_rsa
+                IdentitiesOnly yes
+
         - path: /usr/local/bin/install_nvidia_driver.sh
           permissions: '0755'
           content: |

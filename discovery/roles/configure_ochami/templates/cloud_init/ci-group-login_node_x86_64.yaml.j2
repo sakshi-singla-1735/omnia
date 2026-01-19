@@ -80,6 +80,13 @@
                 IdentityFile {{ client_mount_path }}/slurm/ssh/oim_rsa
                 IdentitiesOnly yes
 
+        - path: /root/.ssh/config
+          permissions: '0600'
+          content: |
+            Host {{ slurm_control_ssh_patterns }}
+                IdentityFile ~/.ssh/oim_rsa
+                IdentitiesOnly yes
+
 {% if hostvars['localhost']['openldap_support'] %}
         - path: /etc/sssd/sssd.conf
           owner: root:root
@@ -134,6 +141,29 @@
         - echo "{{ cloud_init_nfs_path }}/packages  /var/lib/packages   nfs defaults,_netdev 0 0" >> /etc/fstab
 
         - chmod {{ file_mode }} /etc/fstab
+        # add dns entries for powerscale
+{% if csi_slurm_support %}
+        - |
+          tmpfile=$(mktemp)
+          # Extract the first 'search' line only (ignore duplicates)
+          search_line=$(grep '^search' /etc/resolv.conf | head -n1)
+          [ -n "$search_line" ] && echo "$search_line" > "$tmpfile"
+
+          # Add your new nameserver entries
+          {% for ns in dns %}
+          echo "nameserver {{ ns }}" >> "$tmpfile"
+          {% endfor %}
+
+          # Add remaining lines except search and empty lines
+          grep -v '^search' /etc/resolv.conf | grep -v '^$' >> "$tmpfile"
+
+          # Remove duplicate lines
+          awk '!seen[$0]++' "$tmpfile" > /etc/resolv.conf
+        - |
+          if command -v chattr >/dev/null 2>&1; then
+            chattr +i /etc/resolv.conf || true
+          fi
+{% endif %}
         - mount -a
         - cp /cert/pulp_webserver.crt /etc/pki/ca-trust/source/anchors && update-ca-trust
         - sed -i 's/^gpgcheck=1/gpgcheck=0/' /etc/dnf/dnf.conf

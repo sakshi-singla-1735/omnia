@@ -43,6 +43,7 @@ image_missing_fail_msg: "Failed to set kernel or initrd. Create the image using 
 
 # Usage: configure_cloud_init_group.yml, configure_bss_cloud_init.yml
 ssh_key_path: /root/.ssh/oim_rsa.pub
+ssh_private_key_path: /root/.ssh/oim_rsa
 ci_defaults_template: cloud_init/ci-defaults.yaml.j2
 cloud_init_dir: "{{ openchami_work_dir }}/cloud-init"
 ci_defaults_dest: '{{ cloud_init_dir }}/ci-defaults.yaml'
@@ -50,6 +51,21 @@ ci_group_load_fail_msg: |
   "Template loading failed. Ensure the template exists in the specified path and is compatible with the defined functional groups."
 default_file_path: "{{ playbook_dir }}/roles/slurm_config/defaults/main.yml"
 ssh_private_key_path: /root/.ssh/oim_rsa
+
+# Hostname lists for stack-specific SSH configs (populated by passwordless_ssh role)
+k8s_cluster_hostnames: "{{ hostvars['localhost']['k8s_cluster_hostnames'] | default([]) }}"
+slurm_cluster_hostnames: "{{ hostvars['localhost']['slurm_cluster_hostnames'] | default([]) }}"
+
+# IP wildcard lists for stack-specific SSH configs
+k8s_cluster_ip_patterns: "{{ hostvars['localhost']['k8s_cluster_ip_patterns'] | default([]) }}"
+slurm_cluster_ip_patterns: "{{ hostvars['localhost']['slurm_cluster_ip_patterns'] | default([]) }}"
+
+# SSH Host patterns precomputed on OIM by passwordless_ssh/read_nodes_yaml.yml
+slurm_control_ssh_patterns: "{{ hostvars['oim']['slurm_ssh_patterns'] | default('*') }}"
+k8s_control_ssh_patterns: "{{ hostvars['oim']['k8s_ssh_patterns'] | default('*') }}"
+
+# Passwordless SSH mode flag derived from nodes.yaml (set on OIM by passwordless_ssh role)
+all_group_names_present: "{{ hostvars['oim']['all_group_names_present'] | default(false) }}"
 
 # Usage: configure_cloud_init_common.yml
 ci_group_common_template: cloud_init/ci-group-common.yaml.j2
