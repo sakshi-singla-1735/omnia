@@ -95,7 +95,7 @@
 
             echo "[INFO] Mounting NFS runfile directory for CUDA toolkit..."
             mkdir -p /cuda-runfile
-            mount -t nfs {{ cloud_init_nfs_path }}/runfile /cuda-runfile
+            mount -t nfs {{ cloud_init_nfs_path }}/hpc_tools/runfile /cuda-runfile
 
             if [ $? -ne 0 ]; then
                 echo "[ERROR] Failed to mount NFS runfile share. Exiting."
@@ -157,7 +157,149 @@
 
             echo "===== CUDA Toolkit installation completed ====="
 
+        - path: /usr/local/bin/install_nvhpc_sdk.sh
+          permissions: '0755'
+          content: |
+            #!/bin/bash
+            LOGFILE="/var/log/nvhpc_sdk_install.log"
+            exec > >(tee -a "$LOGFILE") 2>&1
 
+            echo "===== Starting NVIDIA HPC SDK installation ====="
+
+            NVHPC_PKG_NAME="nvhpc_2025_2511_Linux_x86_64_cuda_13.0"
+            NVHPC_EXPORT="{{ cloud_init_nfs_path }}/hpc_tools/nvidia_sdk"
+            NVHPC_MOUNT="/shared-nvhpc-sdk"
+            NVHPC_TARBALL="${NVHPC_MOUNT}/${NVHPC_PKG_NAME}.tar.gz"
+            NVHPC_INSTALL_DIR_NFS="${NVHPC_MOUNT}/nvhpc"
+            NVHPC_LOCAL_MOUNT="/opt/nvidia/nvhpc"
+
+            mkdir -p "${NVHPC_MOUNT}"
+            mount -t nfs "${NVHPC_EXPORT}" "${NVHPC_MOUNT}"
+
+            # 1) If already mounted/installed, skip
+            if mountpoint -q "${NVHPC_LOCAL_MOUNT}"; then
+                echo "[INFO] ${NVHPC_LOCAL_MOUNT} already mounted. Skipping NVIDIA HPC SDK installation."
+                exit 0
+            fi
+
+            if [ -d "${NVHPC_LOCAL_MOUNT}" ]; then
+                echo "[INFO] ${NVHPC_LOCAL_MOUNT} directory already present. Assuming NVIDIA HPC SDK is installed. Skipping."
+                exit 0
+            fi
+
+            # 2) Check CUDA pre-req
+            echo "[INFO] Checking if CUDA toolkit is installed (nvcc)..."
+            if ! command -v nvcc &>/dev/null; then
+                echo "[ERROR] CUDA toolkit (nvcc) is not installed. NVIDIA HPC SDK requires CUDA 13.0. Skipping NVIDIA HPC SDK installation."
+                exit 0
+            fi
+
+            CUDA_VERSION=$(nvcc --version | grep "release" | awk '{print $6}' | sed 's/,//')
+            echo "[INFO] Detected CUDA toolkit version: ${CUDA_VERSION}"
+
+            # 3) Mount Slurm SDK export to canonical Slurm path
+            echo "[INFO] Mounting NFS export for NVIDIA HPC SDK: ${NVHPC_NFS_EXPORT} -> ${NVHPC_NFS_DIR}"
+            mkdir -p "${NVHPC_NFS_DIR}"
+            mount -t nfs "${NVHPC_NFS_EXPORT}" "${NVHPC_NFS_DIR}"
+
+            if [ $? -ne 0 ]; then
+                echo "[ERROR] Failed to mount ${NVHPC_NFS_EXPORT} on ${NVHPC_NFS_DIR}. Skipping NVIDIA HPC SDK installation."
+                exit 0
+            fi
+
+            # 4) Check tarball on NFS
+            echo "[INFO] Checking for NVIDIA HPC SDK tarball at ${NVHPC_TARBALL}..."
+            if [ ! -f "${NVHPC_TARBALL}" ]; then
+                echo "[ERROR] NVIDIA HPC SDK tarball not found at ${NVHPC_TARBALL}. Skipping NVIDIA HPC SDK installation."
+                exit 0
+            fi
+
+            # 5) Extract on NFS share itself
+            echo "[INFO] Extracting NVIDIA HPC SDK tarball under ${NVHPC_NFS_DIR}..."
+            rm -rf "${NVHPC_EXTRACT_DIR}"
+            tar -xzf "${NVHPC_TARBALL}" -C "${NVHPC_NFS_DIR}"
+            if [ $? -ne 0 ]; then
+                echo "[ERROR] Failed to extract NVIDIA HPC SDK tarball. Skipping installation."
+                exit 0
+            fi
+
+            echo "[INFO] Ensuring NVHPC install directory exists on NFS: ${NVHPC_INSTALL_DIR_NFS}"
+            mkdir -p "${NVHPC_INSTALL_DIR_NFS}"
+
+            # 6) Run installer with target on NFS
+            echo "[INFO] Running NVIDIA HPC SDK installer..."
+            cd "${NVHPC_EXTRACT_DIR}" || {
+                echo "[ERROR] Failed to cd to extracted NVHPC directory: ${NVHPC_EXTRACT_DIR}"
+                exit 0
+            }
+
+            NVHPC_SILENT=true \
+            NVHPC_INSTALL_DIR="${NVHPC_INSTALL_DIR_NFS}" \
+            NVHPC_INSTALL_TYPE=auto \
+            NVHPC_DEFAULT_CUDA=13.0 \
+            ./install 2>&1 | tee -a "${LOGFILE}"
+            RC=${PIPESTATUS[3]}
+
+            if [ ${RC} -ne 0 ]; then
+                echo "[ERROR] NVIDIA HPC SDK installer exited with status ${RC}. Skipping further configuration."
+                exit 0
+            fi
+
+            echo "[SUCCESS] NVIDIA HPC SDK installation on NFS completed."
+
+            # 7) Mount NVHPC from NFS into /opt/nvidia/nvhpc
+            echo "[INFO] Setting up local mount ${NVHPC_LOCAL_MOUNT} from NFS..."
+            mkdir -p /opt/nvidia
+            mkdir -p "${NVHPC_LOCAL_MOUNT}"
+
+            NVHPC_INSTALL_EXPORT="{{ cloud_init_nfs_path }}/hpc_tools/nvidia_sdk/nvhpc"
+
+            if ! grep -q "hpc_tools/nvidia_sdk/nvhpc" /etc/fstab; then
+                echo "${NVHPC_INSTALL_EXPORT}  ${NVHPC_LOCAL_MOUNT}  nfs defaults,_netdev 0 0" >> /etc/fstab
+            fi
+
+            mount "${NVHPC_LOCAL_MOUNT}"
+            if [ $? -ne 0 ]; then
+                echo "[ERROR] Failed to mount ${NVHPC_LOCAL_MOUNT}. Check NFS configuration."
+                exit 0
+            fi
+
+            # 8) Environment file
+            echo "[INFO] Creating /etc/profile.d/nvhpc.sh..."
+            cat > /etc/profile.d/nvhpc.sh << 'EOF'
+            export NVHPC_ROOT=/opt/nvidia/nvhpc
+            export PATH=$NVHPC_ROOT/Linux_x86_64/25.11/compilers/bin:$PATH
+            export LD_LIBRARY_PATH=$NVHPC_ROOT/Linux_x86_64/25.11/compilers/lib:$LD_LIBRARY_PATH
+            export MANPATH=$NVHPC_ROOT/Linux_x86_64/25.11/compilers/man:$MANPATH
+            EOF
+
+            chmod 0755 /etc/profile.d/nvhpc.sh
+            # Apply for current session
+            source /etc/profile.d/nvhpc.sh
+
+            # 9) Verification & logging
+            echo "[INFO] Verifying NVIDIA HPC SDK installation..."
+            if command -v nvc &>/dev/null; then
+                echo "[SUCCESS] nvc is available: $(nvc --version 2>&1 | head -n 1)"
+            else
+                echo "[WARNING] nvc compiler not found in PATH after NVHPC setup."
+            fi
+
+            if command -v nvfortran &>/dev/null; then
+                echo "[SUCCESS] nvfortran is available: $(nvfortran --version 2>&1 | head -n 1)"
+            else
+                echo "[WARNING] nvfortran compiler not found in PATH after NVHPC setup."
+            fi
+
+            echo "[INFO] NVIDIA HPC SDK NVCC version:"
+            if command -v nvcc &>/dev/null; then
+                nvcc --version
+            else
+                echo "[WARNING] nvcc not found after NVHPC setup (using CUDA toolkit nvcc only)."
+            fi
+
+            echo "[SUCCESS] NVIDIA HPC SDK installation and configuration completed."
+        
 
 {% if hostvars['localhost']['openldap_support'] %}
         - path: /etc/sssd/sssd.conf

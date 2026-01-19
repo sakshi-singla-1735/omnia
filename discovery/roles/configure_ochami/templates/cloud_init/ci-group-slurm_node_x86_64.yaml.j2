@@ -104,7 +104,7 @@
             else
                 echo "[INFO] Mounting NFS runfile directory for driver installation..."
                 mkdir -p /gpu-runfile
-                mount -t nfs {{ cloud_init_nfs_path }}/runfile /gpu-runfile
+                mount -t nfs {{ cloud_init_nfs_path }}/hpc_tools/runfile /gpu-runfile
 
                 if [ $? -ne 0 ]; then
                     echo "[ERROR] Failed to mount NFS runfile share. Exiting."
@@ -135,7 +135,7 @@
             # Create mount point
             mkdir -p /usr/local/cuda
 
-            cuda_nfs_share="{{ cloud_init_nfs_path }}/cuda"
+            cuda_nfs_share="{{ cloud_init_nfs_path }}/hpc_tools/cuda"
 
             echo "[INFO] Mounting CUDA toolkit from NFS: $cuda_nfs_share"
             mount -t nfs "$cuda_nfs_share" /usr/local/cuda
