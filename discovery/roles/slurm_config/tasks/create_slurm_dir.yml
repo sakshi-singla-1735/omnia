@@ -103,21 +103,46 @@
     mode: "{{ file_mode }}"
   become: true
 
-- name: Create the cuda directory on share
+- name: Create HPC tools directories on share
   ansible.builtin.file:
-    path: "{{ slurm_config_path }}/cuda"
+    path: "{{ slurm_config_path }}/hpc_tools/{{ item }}"
     state: directory
     owner: root
     group: root
     mode: "{{ common_mode }}"
+  loop:
+    - cuda
+    - runfile
+    - scripts
+    - container_images
 
-- name: Create the runfile directory on share
-  ansible.builtin.file:
-    path: "{{ slurm_config_path }}/runfile"
-    state: directory
-    owner: root
-    group: root
-    mode: "{{ common_mode }}"
+- name: Deploy download_container_image.sh to NFS share
+  ansible.builtin.template:
+    src: "download_container_image.sh.j2"
+    dest: "{{ download_container_image_path }}"
+    owner: "{{ root_user }}"
+    group: "{{ root_group }}"
+    mode: "0755"
+
+- name: Deploy container_image.list to NFS share
+  ansible.builtin.template:
+    src: "container_image.list.j2"
+    dest: "{{ container_image_list_path }}"
+    owner: "{{ root_user }}"
+    group: "{{ root_group }}"
+    mode: "0644"
+
+- name: Set fact for pulp mirror
+  ansible.builtin.set_fact:
+    pulp_mirror: "{{ hostvars['localhost']['admin_nic_ip'] }}:2225"
+
+# - name: Deploy apptainer_mirror.conf to NFS share
+#   ansible.builtin.template:
+#     src: "apptainer_mirror.conf.j2"
+#     dest: "{{ apptainer_mirror_conf_path }}"
+#     owner: "{{ root_user }}"
+#     group: "{{ root_group }}"
+#     mode: "0644"
 
 - name: Set NFS info fact
   ansible.builtin.set_fact:
@@ -148,7 +173,7 @@
 - name: Copy cuda run file using copy module for x86_64
   ansible.builtin.copy:
     src: "{{ oim_shared_path }}/omnia/offline_repo/cluster/x86_64/rhel/10.0/iso/cuda-run/"
-    dest: "{{ slurm_config_path }}/runfile/"
+    dest: "{{ slurm_config_path }}/hpc_tools/runfile/"
     mode: '0755'
     owner: root
     group: root
