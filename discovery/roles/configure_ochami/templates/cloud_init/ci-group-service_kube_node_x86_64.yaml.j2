@@ -212,6 +212,8 @@
         - sed -i 's/^gpgcheck=1/gpgcheck=0/' /etc/dnf/dnf.conf
         - systemctl restart crio
         - kubeadm config images pull --kubernetes-version={{ service_k8s_version }}
+{% set role_name = 'service_kube_node' %}
+{% include 'pull_additional_images.yaml.j2' %}
         - |
           set -e
           MARKER="/etc/kubernetes/.cluster_initialized"

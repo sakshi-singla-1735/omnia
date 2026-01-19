@@ -21,9 +21,6 @@ local_repo_check_msg: |
 input_project_dir: "{{ hostvars['localhost']['input_project_dir'] }}"
 functional_groups_file_path: "{{ hostvars['localhost']['functional_groups_config_path'] }}"
 software_config_file_path: "{{ input_project_dir }}/software_config.json"
-default_json_path: "{{ input_project_dir }}/config/aarch64/rhel/10.0/default_packages.json"
-additional_json_path: "{{ input_project_dir }}/config/aarch64/rhel/10.0/additional_packages.json"
-admin_debug_json_path: "{{ input_project_dir }}/config/aarch64/rhel/10.0/admin_debug_packages.json"
 aarch64_build_image_completion_msg: |
   The playbook build_image_aarch64.yml has been completed successfully.
   To boot x86_64 and aarch64 nodes execute discovery/discovery.yml playbook.

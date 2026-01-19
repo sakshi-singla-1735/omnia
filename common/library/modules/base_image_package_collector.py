@@ -15,65 +15,17 @@
 # pylint: disable=import-error,no-name-in-module
 #!/usr/bin/python
 
-"""
-Ansible module to collect RPM packages from default_packages.json and additional_packages.json.
-Returns a flat list of package names for base image building.
-"""
-
-import os
-import json
+"""Ansible module to collect RPM packages from default_packages.json, additional_packages.json,
+and admin_debug_packages.json. Returns a flat list of package names for base image building."""
 
 from ansible.module_utils.basic import AnsibleModule
-
-ROLE_SPECIFIC_KEYS = [
-    "slurm_control_node",
-    "slurm_node",
-    "login_node",
-    "login_compiler_node",
-    "service_kube_control_plane_first",
-    "service_kube_control_plane",
-    "service_kube_node"
-]
-
-
-def load_json_file(path, module):
-    """
-    Load a JSON file safely.
-
-    Args:
-        path (str): Path to the JSON file.
-        module (AnsibleModule): The Ansible module instance.
-
-    Returns:
-        dict or None: Parsed JSON content if successful, otherwise None.
-    """
-    if not os.path.isfile(path):
-        module.log(f"File not found: {path}")
-        return None
-    try:
-        with open(path, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except Exception as e:
-        module.log(f"Failed to read JSON file {path}: {e}")
-        return None
-
-
-def extract_rpm_package_names(cluster_items):
-    """
-    Extract RPM package names from a cluster list.
-
-    Args:
-        cluster_items (list): List of package items.
-
-    Returns:
-        list: List of package names (strings) where type is 'rpm'.
-    """
-    if not cluster_items or not isinstance(cluster_items, list):
-        return []
-    return [
-        item.get('package') for item in cluster_items
-        if item.get('type') == 'rpm' and item.get('package')
-    ]
+from ansible.module_utils.build_image.common_functions import (
+    load_json_file,
+    is_additional_packages_enabled,
+    is_admin_debug_enabled,
+    extract_rpm_package_names,
+    deduplicate_list
+)
 
 
 def collect_default_packages(json_path, module):
@@ -138,40 +90,6 @@ def collect_admin_debug_packages(json_path, module):
     return extract_rpm_package_names(cluster_items)
 
 
-def is_additional_packages_enabled(software_config):
-    """
-    Check if additional_packages is defined in softwares array of software_config.json.
-
-    Args:
-        software_config (dict): Parsed software_config.json content.
-
-    Returns:
-        bool: True if additional_packages is in softwares array.
-    """
-    if not software_config:
-        return False
-    softwares = software_config.get('softwares', [])
-    return any(sw.get('name') == 'additional_packages' for sw in softwares)
-
-
-def is_admin_debug_enabled(software_config):
-    """
-    Check if admin_debug_packages is defined in softwares array of software_config.json.
-
-    Args:
-        software_config (dict): Parsed software_config.json content.
-
-    Returns:
-        bool: True if admin_debug_packages is in softwares array.
-    """
-    if not software_config:
-        return False
-    softwares = software_config.get('softwares', [])
-    return any(sw.get('name') == 'admin_debug_packages' for sw in softwares)
-
-
-
-
 def run_module():
     """
     Run the Ansible module.
@@ -223,14 +141,7 @@ def run_module():
 
     # Combine and deduplicate while preserving order
     combined = default_pkgs + additional_pkgs + admin_debug_pkgs
-    seen = set()
-    unique_packages = []
-    for pkg in combined:
-        if pkg not in seen:
-            unique_packages.append(pkg)
-            seen.add(pkg)
-
-    result["base_image_packages"] = unique_packages
+    result["base_image_packages"] = deduplicate_list(combined)
     module.exit_json(**result)
 
 
