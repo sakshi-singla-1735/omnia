@@ -87,9 +87,9 @@
             LOGFILE="/var/log/nvidia_install.log"
             exec > >(tee -a "$LOGFILE") 2>&1
 
-            echo "===== Starting NVIDIA GPU detection and driver installation ====="
+            echo "===== Starting NVIDIA GPU detection, driver, CUDA, and NVHPC setup ====="
 
-            # Check for NVIDIA GPU presence
+            # 1) Check for NVIDIA GPU presence
             echo "[INFO] Checking for NVIDIA GPU..."
             if ! lspci | grep -i nvidia &>/dev/null; then
                 echo "[INFO] No NVIDIA GPU detected. Exiting."
@@ -98,7 +98,7 @@
 
             echo "[INFO] NVIDIA GPU detected. Proceeding with setup."
 
-            # Check if NVIDIA driver is already installed
+            # 2) Check if NVIDIA driver is already installed
             if command -v nvidia-smi &>/dev/null; then
                 echo "[INFO] NVIDIA driver already installed. Skipping driver installation."
             else
@@ -128,13 +128,11 @@
                 rmdir /gpu-runfile 2>/dev/null
             fi
 
+            # 3) CUDA toolkit mount and environment
             echo "[INFO] Setting up CUDA toolkit mount..."
-            # Unmount first if already mounted
             umount /usr/local/cuda 2>/dev/null
 
-            # Create mount point
             mkdir -p /usr/local/cuda
-
             cuda_nfs_share="{{ cloud_init_nfs_path }}/hpc_tools/cuda"
 
             echo "[INFO] Mounting CUDA toolkit from NFS: $cuda_nfs_share"
@@ -143,12 +141,10 @@
             if [ $? -eq 0 ]; then
                 echo "[SUCCESS] CUDA toolkit NFS mount successful"
 
-                # Add to fstab for persistence
                 grep -q "$cuda_nfs_share" /etc/fstab || echo "$cuda_nfs_share /usr/local/cuda nfs defaults,_netdev 0 0" >> /etc/fstab
 
                 echo "[INFO] Configuring persistent CUDA environment..."
 
-                # System-wide profile for login shells
                 cat > /etc/profile.d/cuda.sh << 'EOF'
             export PATH=/usr/local/cuda/bin:$PATH
             export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
@@ -156,7 +152,6 @@
             EOF
                 chmod +x /etc/profile.d/cuda.sh
 
-                # Bashrc for non-login shells
                 cat > /etc/bashrc.cuda << 'EOF'
             if [ -d "/usr/local/cuda/bin" ]; then
                 export PATH="/usr/local/cuda/bin:$PATH"
@@ -166,7 +161,6 @@
             EOF
                 grep -q "bashrc.cuda" /etc/bashrc || echo "source /etc/bashrc.cuda" >> /etc/bashrc
 
-                # Slurm prolog for job environment
                 mkdir -p /etc/slurm/prolog.d
                 cat > /etc/slurm/prolog.d/cuda.sh << 'EOF'
             #!/bin/bash
@@ -176,7 +170,6 @@
             EOF
                 chmod +x /etc/slurm/prolog.d/cuda.sh
 
-                # Apply immediately for current session
                 export PATH=/usr/local/cuda/bin:$PATH
                 export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
                 export CUDA_HOME=/usr/local/cuda
@@ -184,12 +177,11 @@
                 echo "[SUCCESS] Persistent CUDA environment configured"
             else
                 echo "[ERROR] Failed to mount CUDA toolkit NFS share"
-                # Clean up failed mount
                 rmdir /usr/local/cuda 2>/dev/null
                 exit 1
             fi
 
-            echo "[INFO] Verifying installation..."
+            echo "[INFO] Verifying CUDA installation..."
             if command -v nvidia-smi &>/dev/null; then
                 nvidia_version=$(nvidia-smi --version | head -n1)
                 echo "[SUCCESS] NVIDIA driver: $nvidia_version"
@@ -204,7 +196,7 @@
                 echo "[ERROR] CUDA toolkit (nvcc) not found."
             fi
 
-            echo "[INFO] Testing persistence in new shell..."
+            echo "[INFO] Testing CUDA persistence in new shell..."
             bash -c 'nvcc --version > /dev/null 2>&1'
             if [ $? -eq 0 ]; then
                 echo "[SUCCESS] CUDA persistence test passed"
@@ -212,87 +204,94 @@
                 echo "[WARNING] CUDA persistence test failed - manual PATH setup may be needed"
             fi
 
-            echo "[INFO] Starting NVIDIA HPC SDK mount and environment setup..."
-
-            # Only proceed with NVHPC if NVIDIA GPU/driver is present
-            if ! command -v nvidia-smi &>/dev/null; then
-                echo "[INFO] nvidia-smi not found. Skipping NVIDIA HPC SDK setup on this node."
-            else
-                NVHPC_NFS_SHARE="{{ cloud_init_nfs_path }}/hpc_tools/nvidia_sdk/nvhpc"
-                NVHPC_LOCAL_MOUNT="/opt/nvidia/nvhpc"
-
-                echo "[INFO] Setting up NVIDIA HPC SDK mount from NFS: $NVHPC_NFS_SHARE"
-
-                # Unmount first if already mounted
-                umount "$NVHPC_LOCAL_MOUNT" 2>/dev/null
-
-                mkdir -p "$NVHPC_LOCAL_MOUNT"
-                mount -t nfs "$NVHPC_NFS_SHARE" "$NVHPC_LOCAL_MOUNT"
-
-                if [ $? -eq 0 ]; then
-                    echo "[SUCCESS] NVIDIA HPC SDK NFS mount successful"
-
-                    # Persist in fstab
-                    grep -q "$NVHPC_NFS_SHARE" /etc/fstab || echo "$NVHPC_NFS_SHARE $NVHPC_LOCAL_MOUNT nfs defaults,_netdev 0 0" >> /etc/fstab
-
-                    echo "[INFO] Configuring persistent NVHPC environment..."
-
-                    # System-wide profile
-                    cat > /etc/profile.d/nvhpc.sh << 'EOF'
-            export NVHPC_ROOT=/opt/nvidia/nvhpc
-            export PATH=$NVHPC_ROOT/Linux_x86_64/25.11/compilers/bin:$PATH
-            export LD_LIBRARY_PATH=$NVHPC_ROOT/Linux_x86_64/25.11/compilers/lib:$LD_LIBRARY_PATH
-            export MANPATH=$NVHPC_ROOT/Linux_x86_64/25.11/compilers/man:$MANPATH
-            EOF
-                    chmod +x /etc/profile.d/nvhpc.sh
-
-                    # Bashrc for non-login shells
-                    cat > /etc/bashrc.nvhpc << 'EOF'
-            if [ -d "/opt/nvidia/nvhpc/Linux_x86_64/25.11/compilers/bin" ]; then
-                export NVHPC_ROOT=/opt/nvidia/nvhpc
-                export PATH="$NVHPC_ROOT/Linux_x86_64/25.11/compilers/bin:$PATH"
-                export LD_LIBRARY_PATH="$NVHPC_ROOT/Linux_x86_64/25.11/compilers/lib:$LD_LIBRARY_PATH"
-                export MANPATH="$NVHPC_ROOT/Linux_x86_64/25.11/compilers/man:$MANPATH"
-            fi
-            EOF
-                    grep -q "bashrc.nvhpc" /etc/bashrc || echo "source /etc/bashrc.nvhpc" >> /etc/bashrc
-
-                    # Slurm prolog
-                    mkdir -p /etc/slurm/prolog.d
-                    cat > /etc/slurm/prolog.d/nvhpc.sh << 'EOF'
-            #!/bin/bash
-            export NVHPC_ROOT=/opt/nvidia/nvhpc
-            export PATH=$NVHPC_ROOT/Linux_x86_64/25.11/compilers/bin:$PATH
-            export LD_LIBRARY_PATH=$NVHPC_ROOT/Linux_x86_64/25.11/compilers/lib:$LD_LIBRARY_PATH
-            export MANPATH=$NVHPC_ROOT/Linux_x86_64/25.11/compilers/man:$MANPATH
-            EOF
-                    chmod +x /etc/slurm/prolog.d/nvhpc.sh
-
-                    # Apply immediately for current shell
-                    export NVHPC_ROOT=/opt/nvidia/nvhpc
-                    export PATH=/opt/nvidia/nvhpc/Linux_x86_64/25.11/compilers/bin:$PATH
-                    export LD_LIBRARY_PATH=/opt/nvidia/nvhpc/Linux_x86_64/25.11/compilers/lib:$LD_LIBRARY_PATH
-                    export MANPATH=/opt/nvidia/nvhpc/Linux_x86_64/25.11/compilers/man:$MANPATH
-
-                    echo "[INFO] Verifying NVIDIA HPC SDK compilers..."
-                    if command -v nvc &>/dev/null; then
-                        echo "[SUCCESS] nvc: $(nvc --version 2>&1 | head -n1)"
-                    else
-                        echo "[WARNING] nvc not found in PATH"
-                    fi
-                    if command -v nvfortran &>/dev/null; then
-                        echo "[SUCCESS] nvfortran: $(nvfortran --version 2>&1 | head -n1)"
-                    else
-                        echo "[WARNING] nvfortran not found in PATH"
-                    fi
-                else
-                    echo "[ERROR] Failed to mount NVIDIA HPC SDK NFS share: $NVHPC_NFS_SHARE"
-                    rmdir "$NVHPC_LOCAL_MOUNT" 2>/dev/null
-                fi
-            fi
-
             echo "===== NVIDIA GPU setup completed ====="
+        
+        - path: /usr/local/bin/setup_nvhpc_sdk.sh
+          permissions: '0755'
+          content: |
+            #!/bin/bash
+            LOGFILE="/var/log/install_nvhpc_sdk_slurm.log"
+            exec > >(tee -a "$LOGFILE") 2>&1
 
+            echo "===== Starting NVIDIA HPC SDK setup on Slurm node (x86_64) ====="
+
+            # 1) Assume NVHPC is already installed on NFS at hpc_tools/nvidia_sdk/nvhpc
+            NVHPC_NFS_SHARE="{{ cloud_init_nfs_path }}/hpc_tools/nvidia_sdk/nvhpc"
+            NVHPC_LOCAL_MOUNT="/opt/nvidia/nvhpc"
+
+            echo "[INFO] Setting up NVIDIA HPC SDK mount from NFS: $NVHPC_NFS_SHARE -> $NVHPC_LOCAL_MOUNT"
+
+            # Unmount if already mounted, then ensure local directory exists
+            umount "$NVHPC_LOCAL_MOUNT" 2>/dev/null
+            mkdir -p /opt/nvidia
+            mkdir -p "$NVHPC_LOCAL_MOUNT"
+
+            # 2) Mount NVHPC from NFS into /opt/nvidia/nvhpc
+            mount -t nfs "$NVHPC_NFS_SHARE" "$NVHPC_LOCAL_MOUNT"
+            if [ $? -ne 0 ]; then
+                echo "[ERROR] Failed to mount NVIDIA HPC SDK NFS share: $NVHPC_NFS_SHARE"
+                rmdir "$NVHPC_LOCAL_MOUNT" 2>/dev/null
+                exit 0
+            fi
+
+            echo "[SUCCESS] NVIDIA HPC SDK NFS mount successful"
+
+            # 3) Persist mount in /etc/fstab
+            grep -q "$NVHPC_NFS_SHARE" /etc/fstab || echo "$NVHPC_NFS_SHARE $NVHPC_LOCAL_MOUNT nfs defaults,_netdev 0 0" >> /etc/fstab
+
+            # 4) Environment configuration
+            echo "[INFO] Configuring persistent NVHPC environment..."
+
+            # /etc/profile.d for login shells
+            cat > /etc/profile.d/nvhpc.sh << 'EOF'
+        export NVHPC_ROOT=/opt/nvidia/nvhpc
+        export PATH=$NVHPC_ROOT/Linux_x86_64/25.11/compilers/bin:$PATH
+        export LD_LIBRARY_PATH=$NVHPC_ROOT/Linux_x86_64/25.11/compilers/lib:$LD_LIBRARY_PATH
+        export MANPATH=$NVHPC_ROOT/Linux_x86_64/25.11/compilers/man:$MANPATH
+        EOF
+            chmod +x /etc/profile.d/nvhpc.sh
+
+            # Bashrc snippet for non-login shells
+            cat > /etc/bashrc.nvhpc << 'EOF'
+        if [ -d "/opt/nvidia/nvhpc/Linux_x86_64/25.11/compilers/bin" ]; then
+            export NVHPC_ROOT=/opt/nvidia/nvhpc
+            export PATH="$NVHPC_ROOT/Linux_x86_64/25.11/compilers/bin:$PATH"
+            export LD_LIBRARY_PATH="$NVHPC_ROOT/Linux_x86_64/25.11/compilers/lib:$LD_LIBRARY_PATH"
+            export MANPATH="$NVHPC_ROOT/Linux_x86_64/25.11/compilers/man:$MANPATH"
+        fi
+        EOF
+            grep -q "bashrc.nvhpc" /etc/bashrc || echo "source /etc/bashrc.nvhpc" >> /etc/bashrc
+
+            # Slurm prolog to set NVHPC env for jobs
+            mkdir -p /etc/slurm/prolog.d
+            cat > /etc/slurm/prolog.d/nvhpc.sh << 'EOF'
+        #!/bin/bash
+        export NVHPC_ROOT=/opt/nvidia/nvhpc
+        export PATH=$NVHPC_ROOT/Linux_x86_64/25.11/compilers/bin:$PATH
+        export LD_LIBRARY_PATH=$NVHPC_ROOT/Linux_x86_64/25.11/compilers/lib:$LD_LIBRARY_PATH
+        export MANPATH=$NVHPC_ROOT/Linux_x86_64/25.11/compilers/man:$MANPATH
+        EOF
+            chmod +x /etc/slurm/prolog.d/nvhpc.sh
+
+            # 5) Apply immediately & verify
+            export NVHPC_ROOT=/opt/nvidia/nvhpc
+            export PATH=/opt/nvidia/nvhpc/Linux_x86_64/25.11/compilers/bin:$PATH
+            export LD_LIBRARY_PATH=/opt/nvidia/nvhpc/Linux_x86_64/25.11/compilers/lib:$LD_LIBRARY_PATH
+            export MANPATH=/opt/nvidia/nvhpc/Linux_x86_64/25.11/compilers/man:$MANPATH
+
+            echo "[INFO] Verifying NVIDIA HPC SDK compilers on slurm node..."
+            if command -v nvc &>/dev/null; then
+                echo "[SUCCESS] nvc: $(nvc --version 2>&1 | head -n1)"
+            else
+                echo "[WARNING] nvc not found in PATH"
+            fi
+            if command -v nvfortran &>/dev/null; then
+                echo "[SUCCESS] nvfortran: $(nvfortran --version 2>&1 | head -n1)"
+            else
+                echo "[WARNING] nvfortran not found in PATH"
+            fi
+
+            echo "[SUCCESS] NVIDIA HPC SDK setup on Slurm node (x86_64) completed."
 
 {% if hostvars['localhost']['openldap_support'] %}
         - path: /etc/sssd/sssd.conf
@@ -482,6 +481,7 @@
       runcmd:
         - /usr/local/bin/set-ssh.sh
         - /usr/local/bin/install_nvidia_driver.sh
+        - /usr/local/bin/setup_nvhpc_sdk.sh
         # slurm user and group created in the users module
 
         - /usr/local/bin/configure_dirs_and_mounts.sh

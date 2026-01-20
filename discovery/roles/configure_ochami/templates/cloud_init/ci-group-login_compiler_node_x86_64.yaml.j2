@@ -105,7 +105,7 @@
             echo "[INFO] Setting up shared CUDA directory..."
             # Create and mount shared directory for compute nodes
             mkdir -p /shared-cuda-toolkit
-            mount -t nfs {{ cloud_init_nfs_path }}/cuda/ /shared-cuda-toolkit
+            mount -t nfs {{ cloud_init_nfs_path }}/hpc_tools/cuda/ /shared-cuda-toolkit
 
             if [ $? -ne 0 ]; then
                 echo "[ERROR] Failed to mount NFS cuda share. Exiting."
@@ -187,7 +187,12 @@
                 exit 0
             fi
 
-            # 2) Check CUDA pre-req
+            # 2) Check nvidia gpu/ CUDA pre-req
+            echo "[INFO] Checking for NVIDIA GPU before NVIDIA HPC SDK installation..."
+            if ! lspci | grep -i nvidia &>/dev/null; then
+                echo "[INFO] No NVIDIA GPU detected on this login-compiler node. Skipping NVIDIA HPC SDK installation."
+                exit 0
+            fi
             echo "[INFO] Checking if CUDA toolkit is installed (nvcc)..."
             if ! command -v nvcc &>/dev/null; then
                 echo "[ERROR] CUDA toolkit (nvcc) is not installed. NVIDIA HPC SDK requires CUDA 13.0. Skipping NVIDIA HPC SDK installation."
@@ -267,11 +272,11 @@
             # 8) Environment file
             echo "[INFO] Creating /etc/profile.d/nvhpc.sh..."
             cat > /etc/profile.d/nvhpc.sh << 'EOF'
-            export NVHPC_ROOT=/opt/nvidia/nvhpc
-            export PATH=$NVHPC_ROOT/Linux_x86_64/25.11/compilers/bin:$PATH
-            export LD_LIBRARY_PATH=$NVHPC_ROOT/Linux_x86_64/25.11/compilers/lib:$LD_LIBRARY_PATH
-            export MANPATH=$NVHPC_ROOT/Linux_x86_64/25.11/compilers/man:$MANPATH
-            EOF
+        export NVHPC_ROOT=/opt/nvidia/nvhpc
+        export PATH=$NVHPC_ROOT/Linux_x86_64/25.11/compilers/bin:$PATH
+        export LD_LIBRARY_PATH=$NVHPC_ROOT/Linux_x86_64/25.11/compilers/lib:$LD_LIBRARY_PATH
+        export MANPATH=$NVHPC_ROOT/Linux_x86_64/25.11/compilers/man:$MANPATH
+        EOF
 
             chmod 0755 /etc/profile.d/nvhpc.sh
             # Apply for current session
