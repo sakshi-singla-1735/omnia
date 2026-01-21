@@ -186,13 +186,13 @@
                 tar -xzf "${NVHPC_TARBALL}" -C "${NVHPC_MOUNT}" \
                 --checkpoint=2000 \
                 --checkpoint-action=echo="[INFO] Extracting NVHPC... please wait"
-    
+
                 if [ $? -ne 0 ]; then
                     echo "[ERROR] Failed to extract NVIDIA HPC SDK tarball. Skipping installation."
                     exit 0
                 fi
             fi
-            
+
             echo "[INFO] Ensuring NVHPC install directory exists on NFS: ${NVHPC_INSTALL_DIR_NFS}"
             mkdir -p "${NVHPC_INSTALL_DIR_NFS}"
 
@@ -223,7 +223,7 @@
             fi
 
             echo "[SUCCESS] NVIDIA HPC SDK installation on NFS completed."
-            
+
             # Mount NVHPC from NFS into /opt/nvidia/nvhpc
             echo "[INFO] Setting up local NVHPC mount at ${NVHPC_LOCAL_MOUNT}..."
 
@@ -247,16 +247,84 @@
                 exit 0
             fi
 
-            cat > /etc/profile.d/nvhpc.sh << 'EOF'
-        export NVHPC_ROOT=/shared-nvhpc-sdk/nvhpc
-        export PATH=$NVHPC_ROOT/Linux_x86_64/25.11/compilers/bin:$PATH
-        export MANPATH=$NVHPC_ROOT/Linux_x86_64/25.11/compilers/man:$MANPATH
-        EOF
-
-            chmod 644 /etc/profile.d/nvhpc.sh
-
             echo "[INFO] NVHPC successfully mounted at ${NVHPC_LOCAL_MOUNT}"
-        
+
+        - path: /usr/local/bin/configure_nvhpc_env.sh
+          permissions: '0755'
+          content: |
+            #!/bin/bash
+            LOGFILE="/var/log/nvhpc_env_config.log"
+            exec >> "$LOGFILE" 2>&1
+
+            echo "===== Configuring NVIDIA HPC SDK environment ====="
+
+            # Cloud-init safe defaults
+            export HOME=/root
+
+            NVCOMPILERS="/opt/nvidia/nvhpc"
+            NVARCH="$(uname -s)_$(uname -m)"
+            NVHPC_VERSION="25.11"
+
+            NVHPC_BASE="$NVCOMPILERS/$NVARCH/$NVHPC_VERSION"
+            PROFILE_FILE="/etc/profile.d/nvhpc.sh"
+
+            if [ ! -d "$NVHPC_BASE/compilers/bin" ]; then
+                echo "[ERROR] NVHPC compilers not found at $NVHPC_BASE"
+                exit 1
+            fi
+
+            echo "[INFO] NVHPC detected at $NVHPC_BASE"
+            echo "[INFO] Writing persistent environment to $PROFILE_FILE"
+
+            cat << EOF > "$PROFILE_FILE"
+            # NVIDIA HPC SDK environment
+            export NVCOMPILERS=$NVCOMPILERS
+            export NVARCH=$NVARCH
+            export NVHPC_VERSION=$NVHPC_VERSION
+
+            export PATH=\$NVCOMPILERS/\$NVARCH/\$NVHPC_VERSION/compilers/bin:\$PATH
+            export MANPATH=\${MANPATH:-}:\$NVCOMPILERS/\$NVARCH/\$NVHPC_VERSION/compilers/man
+
+            # MPI (optional but recommended)
+            export PATH=\$NVCOMPILERS/\$NVARCH/\$NVHPC_VERSION/comm_libs/mpi/bin:\$PATH
+            export MANPATH=\${MANPATH:-}:\$NVCOMPILERS/\$NVARCH/\$NVHPC_VERSION/comm_libs/mpi/man
+
+            # Modules support (optional)
+            export MODULEPATH=\$NVCOMPILERS/modulefiles:\${MODULEPATH:-}
+            EOF
+
+            chmod 644 "$PROFILE_FILE"
+
+            echo "[INFO] Sourcing NVHPC profile for verification"
+            source "$PROFILE_FILE"
+
+            # NVHPC marker file path
+            MARKER_TARGET="/shared-nvhpc-sdk/nvhpc/.nvhpc_env_ready"
+
+            if ! grep -q "{{ cloud_init_nfs_path }}/hpc_tools/nvidia_sdk/nvhpc" /etc/fstab; then
+                echo "[ERROR] NVHPC NFS path not found in /etc/fstab"
+                exit 1
+            fi
+
+            echo "[INFO] NVHPC NFS entry found in /etc/fstab"
+
+            # -------------------------------------------------------------------
+            # 6. Create marker ONLY after everything succeeds
+            # -------------------------------------------------------------------
+            if [ ! -d "/shared-nvhpc-sdk/nvhpc" ]; then
+                echo "[ERROR] Marker directory missing: /shared_nvhpc_sdk/nvhpc"
+                exit 1
+            fi
+
+            touch "$MARKER_TARGET"
+            echo "[SUCCESS] NVHPC marker created: $MARKER_TARGET"
+
+            echo "===== NVHPC environment configuration completed successfully ====="
+
+
+
+
+
 {% if hostvars['localhost']['openldap_support'] %}
         - path: /etc/sssd/sssd.conf
           owner: root:root
@@ -340,7 +408,7 @@
         - systemctl restart sshd
         - cp /cert/pulp_webserver.crt /etc/pki/ca-trust/source/anchors && update-ca-trust
         - sed -i 's/^gpgcheck=1/gpgcheck=0/' /etc/dnf/dnf.conf
-        # nvidia sdk install 
+        # nvidia sdk install
         - /usr/local/bin/install_nvhpc_sdk.sh
 
 
@@ -444,4 +512,5 @@
 
         - /root/ldms_sampler.sh
 {% endif %}
+        - /usr/local/bin/configure_nvhpc_env.sh
         - echo "Cloud-Init has completed successfully."
