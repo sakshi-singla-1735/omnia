@@ -15,26 +15,9 @@
           ssh_authorized_keys: "{{ read_ssh_key.stdout }}"
           lock_passwd: false
           hashed_passwd: "{{ hashed_password_output.stdout }}"
-        - name: {{ slurm_user }}
-          uid: {{ slurm_uid }}
-          system: true
-          no_create_home: true
-          shell: /sbin/nologin
       disable_root: false
 
       write_files:
-        - path: /usr/local/bin/doca-install.sh
-          owner: root:root
-          permissions: '{{ file_mode_755 }}'
-          content: |
-            {{ lookup('template', 'templates/doca-ofed/doca-install.sh.j2') | indent(12) }}
-
-        - path: /usr/local/bin/configure-ib-network.sh
-          owner: root:root
-          permissions: '{{ file_mode_755 }}'
-          content: |
-            {{ lookup('template', 'templates/doca-ofed/configure-ib-network.sh.j2') | indent(12) }}
-
         - path: /usr/local/bin/set-ssh.sh
           permissions: '0755'
           content: |
@@ -69,13 +52,7 @@
                     fi
                 done
             fi
-        
-        - path: /root/.ssh/config
-          permissions: '0600'
-          content: |
-            Host {{ slurm_control_ssh_patterns }}
-                IdentityFile {{ client_mount_path }}/slurm/ssh/oim_rsa
-                IdentitiesOnly yes
+
 
         - path: /usr/local/bin/install_cuda_toolkit.sh
           permissions: '0755'
@@ -95,44 +72,32 @@
 
             echo "[INFO] Mounting NFS runfile directory for CUDA toolkit..."
             mkdir -p /cuda-runfile
-            mount -t nfs {{ cloud_init_nfs_path }}/hpc_tools/runfile /cuda-runfile
+            mount -t nfs {{ cloud_init_nfs_path }}/runfile /cuda-runfile
 
             if [ $? -ne 0 ]; then
                 echo "[ERROR] Failed to mount NFS runfile share. Exiting."
                 exit 1
             fi
 
-            echo "[INFO] Setting up shared CUDA directory..."
-            # Create and mount shared directory for compute nodes
-            mkdir -p /shared-cuda-toolkit
-            mount -t nfs {{ cloud_init_nfs_path }}/hpc_tools/cuda/ /shared-cuda-toolkit
-
-            if [ $? -ne 0 ]; then
-                echo "[ERROR] Failed to mount NFS cuda share. Exiting."
-                umount /cuda-runfile 2>/dev/null
-                exit 1
-            fi
-
-            echo "[INFO] Installing CUDA toolkit directly to shared NFS location..."
+            echo "[INFO] Installing CUDA toolkit..."
             if [ -f "/cuda-runfile/cuda_13.0.2_580.95.05_linux.run" ]; then
-                mkdir -p /shared-cuda-toolkit/tmp
-                # Install toolkit directly to the NFS-mounted shared location
-                bash /cuda-runfile/cuda_13.0.2_580.95.05_linux.run --silent --toolkit --tmpdir=/shared-cuda-toolkit/tmp --toolkitpath=/shared-cuda-toolkit --override
+                # Install only the toolkit component
+                bash /cuda-runfile/cuda_13.0.2_580.95.05_linux.run --silent --toolkit --toolkitpath=/usr/local/cuda --override
 
                 if [ $? -eq 0 ]; then
-                    echo "[SUCCESS] CUDA toolkit installed successfully to shared location."
+                    echo "[SUCCESS] CUDA toolkit installed successfully."
 
-                    # Set up environment variables pointing to shared location
+                    # Set up environment variables
                     cat > /etc/profile.d/cuda.sh << 'ENDOFFILE'
-            export PATH=/shared-cuda-toolkit/bin:$PATH
-            export LD_LIBRARY_PATH=/shared-cuda-toolkit/lib64:$LD_LIBRARY_PATH
-            export CUDA_HOME=/shared-cuda-toolkit
+            export PATH=/usr/local/cuda/bin:$PATH
+            export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+            export CUDA_HOME=/usr/local/cuda
             ENDOFFILE
 
                     # Apply environment variables for current session
-                    export PATH=/shared-cuda-toolkit/bin:$PATH
-                    export LD_LIBRARY_PATH=/shared-cuda-toolkit/lib64:$LD_LIBRARY_PATH
-                    export CUDA_HOME=/shared-cuda-toolkit
+                    export PATH=/usr/local/cuda/bin:$PATH
+                    export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+                    export CUDA_HOME=/usr/local/cuda
 
                     echo "[INFO] CUDA environment configured"
                 else
@@ -150,6 +115,17 @@
             else
                 echo "[ERROR] CUDA toolkit (nvcc) not found after installation."
             fi
+
+            echo "[INFO] Setting up shared CUDA directory for compute nodes..."
+            # Create shared directory for compute nodes to mount
+            mkdir -p /shared-cuda-toolkit
+            # Mount the shared NFS location where compute nodes will access the toolkit
+            mount -t nfs {{ cloud_init_nfs_path }}/cuda/ /shared-cuda-toolkit
+
+            echo "[INFO] Copying CUDA toolkit to shared location..."
+            # Copy the installed CUDA toolkit to the shared location for compute nodes
+            #rsync -av /usr/local/cuda/ /shared-cuda-toolkit/ --exclude='*.a' --exclude='doc/'
+            cp -r /usr/local/cuda/* /shared-cuda-toolkit/ 2>/dev/null || true
 
             echo "[INFO] Cleaning up temporary mounts..."
             umount /cuda-runfile 2>/dev/null
@@ -172,11 +148,9 @@
             NVHPC_TARBALL="${NVHPC_MOUNT}/${NVHPC_PKG_NAME}.tar.gz"
             NVHPC_INSTALL_DIR_NFS="${NVHPC_MOUNT}/nvhpc"
             NVHPC_LOCAL_MOUNT="/opt/nvidia/nvhpc"
+            NVHPC_EXTRACT_DIR="${NVHPC_MOUNT}/${NVHPC_PKG_NAME}"
 
-            mkdir -p "${NVHPC_MOUNT}"
-            mount -t nfs "${NVHPC_EXPORT}" "${NVHPC_MOUNT}"
-
-            # 1) If already mounted/installed, skip
+            # If already mounted/installed, skip otherwise mount
             if mountpoint -q "${NVHPC_LOCAL_MOUNT}"; then
                 echo "[INFO] ${NVHPC_LOCAL_MOUNT} already mounted. Skipping NVIDIA HPC SDK installation."
                 exit 0
@@ -187,32 +161,14 @@
                 exit 0
             fi
 
-            # 2) Check nvidia gpu/ CUDA pre-req
-            echo "[INFO] Checking for NVIDIA GPU before NVIDIA HPC SDK installation..."
-            if ! lspci | grep -i nvidia &>/dev/null; then
-                echo "[INFO] No NVIDIA GPU detected on this login-compiler node. Skipping NVIDIA HPC SDK installation."
-                exit 0
-            fi
-            echo "[INFO] Checking if CUDA toolkit is installed (nvcc)..."
-            if ! command -v nvcc &>/dev/null; then
-                echo "[ERROR] CUDA toolkit (nvcc) is not installed. NVIDIA HPC SDK requires CUDA 13.0. Skipping NVIDIA HPC SDK installation."
-                exit 0
-            fi
-
-            CUDA_VERSION=$(nvcc --version | grep "release" | awk '{print $6}' | sed 's/,//')
-            echo "[INFO] Detected CUDA toolkit version: ${CUDA_VERSION}"
-
-            # 3) Mount Slurm SDK export to canonical Slurm path
-            echo "[INFO] Mounting NFS export for NVIDIA HPC SDK: ${NVHPC_NFS_EXPORT} -> ${NVHPC_NFS_DIR}"
-            mkdir -p "${NVHPC_NFS_DIR}"
-            mount -t nfs "${NVHPC_NFS_EXPORT}" "${NVHPC_NFS_DIR}"
-
+            mkdir -p "${NVHPC_MOUNT}"
+            mount -t nfs "${NVHPC_EXPORT}" "${NVHPC_MOUNT}"
             if [ $? -ne 0 ]; then
-                echo "[ERROR] Failed to mount ${NVHPC_NFS_EXPORT} on ${NVHPC_NFS_DIR}. Skipping NVIDIA HPC SDK installation."
+                echo "[ERROR] Failed to mount ${NVHPC_EXPORT} on ${NVHPC_MOUNT}. Skipping NVIDIA HPC SDK installation."
                 exit 0
             fi
 
-            # 4) Check tarball on NFS
+            # Check tarball on NFS
             echo "[INFO] Checking for NVIDIA HPC SDK tarball at ${NVHPC_TARBALL}..."
             if [ ! -f "${NVHPC_TARBALL}" ]; then
                 echo "[ERROR] NVIDIA HPC SDK tarball not found at ${NVHPC_TARBALL}. Skipping NVIDIA HPC SDK installation."
@@ -220,92 +176,87 @@
             fi
 
             # 5) Extract on NFS share itself
-            echo "[INFO] Extracting NVIDIA HPC SDK tarball under ${NVHPC_NFS_DIR}..."
-            rm -rf "${NVHPC_EXTRACT_DIR}"
-            tar -xzf "${NVHPC_TARBALL}" -C "${NVHPC_NFS_DIR}"
-            if [ $? -ne 0 ]; then
-                echo "[ERROR] Failed to extract NVIDIA HPC SDK tarball. Skipping installation."
-                exit 0
-            fi
+            EXTRACT_SIZE_GB=$(du -sBG "${NVHPC_EXTRACT_DIR}" 2>/dev/null | cut -f1 | tr -d 'G')
 
+            if [ -d "${NVHPC_EXTRACT_DIR}" ] && [ "${EXTRACT_SIZE_GB}" -ge 13 ] && [ -f "${NVHPC_EXTRACT_DIR}/install" ]; then
+                echo "[INFO] NVHPC already extracted (size=${EXTRACT_SIZE_GB}G, install file exists). Skipping extraction."
+            else
+                echo "[INFO] Extracting NVIDIA HPC SDK tarball under ${NVHPC_MOUNT}..."
+                # Optional: SHOw checkpoint progress
+                tar -xzf "${NVHPC_TARBALL}" -C "${NVHPC_MOUNT}" \
+                --checkpoint=2000 \
+                --checkpoint-action=echo="[INFO] Extracting NVHPC... please wait"
+    
+                if [ $? -ne 0 ]; then
+                    echo "[ERROR] Failed to extract NVIDIA HPC SDK tarball. Skipping installation."
+                    exit 0
+                fi
+            fi
+            
             echo "[INFO] Ensuring NVHPC install directory exists on NFS: ${NVHPC_INSTALL_DIR_NFS}"
             mkdir -p "${NVHPC_INSTALL_DIR_NFS}"
 
-            # 6) Run installer with target on NFS
-            echo "[INFO] Running NVIDIA HPC SDK installer..."
-            cd "${NVHPC_EXTRACT_DIR}" || {
-                echo "[ERROR] Failed to cd to extracted NVHPC directory: ${NVHPC_EXTRACT_DIR}"
-                exit 0
-            }
+            # Run installer with target on NFS
+            INSTALL_BIN_DIR="${NVHPC_INSTALL_DIR_NFS}/Linux_x86_64/25.11/compilers/bin"
 
-            NVHPC_SILENT=true \
-            NVHPC_INSTALL_DIR="${NVHPC_INSTALL_DIR_NFS}" \
-            NVHPC_INSTALL_TYPE=auto \
-            NVHPC_DEFAULT_CUDA=13.0 \
-            ./install 2>&1 | tee -a "${LOGFILE}"
-            RC=${PIPESTATUS[3]}
+            if [ -x "${INSTALL_BIN_DIR}/nvc" ]; then
+                echo "[INFO] NVHPC already installed at ${NVHPC_INSTALL_DIR_NFS} (nvc found). Skipping installer."
+            else
+                echo "[INFO] Running NVIDIA HPC SDK installer..."
+                cd "${NVHPC_EXTRACT_DIR}" || {
+                    echo "[ERROR] Failed to cd to extracted NVHPC directory: ${NVHPC_EXTRACT_DIR}"
+                    exit 0
+                }
 
-            if [ ${RC} -ne 0 ]; then
-                echo "[ERROR] NVIDIA HPC SDK installer exited with status ${RC}. Skipping further configuration."
-                exit 0
+                NVHPC_SILENT=true \
+                NVHPC_INSTALL_DIR="${NVHPC_INSTALL_DIR_NFS}" \
+                NVHPC_INSTALL_TYPE=auto \
+                ./install 2>&1 | tee -a "${LOGFILE}"
+
+                RC=${PIPESTATUS[0]}
+                echo "[INFO] NVHPC installer exited with return code: ${RC}"
+
+                if [ ${RC} -ne 0 ]; then
+                    echo "[ERROR] NVIDIA HPC SDK installer failed with status ${RC}. Skipping further configuration."
+                    exit 0
+                fi
             fi
 
             echo "[SUCCESS] NVIDIA HPC SDK installation on NFS completed."
+            
+            # Mount NVHPC from NFS into /opt/nvidia/nvhpc
+            echo "[INFO] Setting up local NVHPC mount at ${NVHPC_LOCAL_MOUNT}..."
 
-            # 7) Mount NVHPC from NFS into /opt/nvidia/nvhpc
-            echo "[INFO] Setting up local mount ${NVHPC_LOCAL_MOUNT} from NFS..."
-            mkdir -p /opt/nvidia
             mkdir -p "${NVHPC_LOCAL_MOUNT}"
 
             NVHPC_INSTALL_EXPORT="{{ cloud_init_nfs_path }}/hpc_tools/nvidia_sdk/nvhpc"
+            FSTAB_ENTRY="${NVHPC_INSTALL_EXPORT} ${NVHPC_LOCAL_MOUNT} nfs defaults,_netdev 0 0"
 
-            if ! grep -q "hpc_tools/nvidia_sdk/nvhpc" /etc/fstab; then
-                echo "${NVHPC_INSTALL_EXPORT}  ${NVHPC_LOCAL_MOUNT}  nfs defaults,_netdev 0 0" >> /etc/fstab
+            # Add fstab entry only if it does not already exist
+            if ! grep -qE "^[^#].*${NVHPC_INSTALL_EXPORT}[[:space:]]+${NVHPC_LOCAL_MOUNT}[[:space:]]+nfs" /etc/fstab; then
+                echo "[INFO] Adding NVHPC mount to /etc/fstab"
+                echo "${FSTAB_ENTRY}" >> /etc/fstab
+            else
+                echo "[INFO] NVHPC mount already present in /etc/fstab"
             fi
 
-            mount "${NVHPC_LOCAL_MOUNT}"
-            if [ $? -ne 0 ]; then
-                echo "[ERROR] Failed to mount ${NVHPC_LOCAL_MOUNT}. Check NFS configuration."
+            # Mount using fstab entry
+            echo "[INFO] Mounting ${NVHPC_LOCAL_MOUNT}..."
+            if ! mount "${NVHPC_LOCAL_MOUNT}"; then
+                echo "[ERROR] Failed to mount ${NVHPC_LOCAL_MOUNT}. Check NFS export and /etc/fstab."
                 exit 0
             fi
 
-            # 8) Environment file
-            echo "[INFO] Creating /etc/profile.d/nvhpc.sh..."
             cat > /etc/profile.d/nvhpc.sh << 'EOF'
-        export NVHPC_ROOT=/opt/nvidia/nvhpc
+        export NVHPC_ROOT=/shared-nvhpc-sdk/nvhpc
         export PATH=$NVHPC_ROOT/Linux_x86_64/25.11/compilers/bin:$PATH
-        export LD_LIBRARY_PATH=$NVHPC_ROOT/Linux_x86_64/25.11/compilers/lib:$LD_LIBRARY_PATH
         export MANPATH=$NVHPC_ROOT/Linux_x86_64/25.11/compilers/man:$MANPATH
         EOF
 
-            chmod 0755 /etc/profile.d/nvhpc.sh
-            # Apply for current session
-            source /etc/profile.d/nvhpc.sh
+            chmod 644 /etc/profile.d/nvhpc.sh
 
-            # 9) Verification & logging
-            echo "[INFO] Verifying NVIDIA HPC SDK installation..."
-            if command -v nvc &>/dev/null; then
-                echo "[SUCCESS] nvc is available: $(nvc --version 2>&1 | head -n 1)"
-            else
-                echo "[WARNING] nvc compiler not found in PATH after NVHPC setup."
-            fi
-
-            if command -v nvfortran &>/dev/null; then
-                echo "[SUCCESS] nvfortran is available: $(nvfortran --version 2>&1 | head -n 1)"
-            else
-                echo "[WARNING] nvfortran compiler not found in PATH after NVHPC setup."
-            fi
-
-            echo "[INFO] NVIDIA HPC SDK NVCC version:"
-            if command -v nvcc &>/dev/null; then
-                nvcc --version
-            else
-                echo "[WARNING] nvcc not found after NVHPC setup (using CUDA toolkit nvcc only)."
-            fi
-
-            echo "[SUCCESS] NVIDIA HPC SDK installation and configuration completed."
+            echo "[INFO] NVHPC successfully mounted at ${NVHPC_LOCAL_MOUNT}"
         
-
 {% if hostvars['localhost']['openldap_support'] %}
         - path: /etc/sssd/sssd.conf
           owner: root:root
@@ -344,12 +295,10 @@
       runcmd:
         - /usr/local/bin/set-ssh.sh
         - /usr/local/bin/install_cuda_toolkit.sh
-        - /usr/local/bin/install_nvhpc_sdk.sh
+        - groupadd -r {{ slurm_group_name }}
+        - useradd -r -g {{ slurm_group_name }} -d {{ home_dir }} -s /sbin/nologin {{ user }}
 
-        # Ensure Slurm NFS root is mounted at client_mount_path (e.g. /share_omnia)
-        - mkdir -p {{ client_mount_path }}/slurm/ssh 
-        - mkdir -p /var/log/slurm /var/run/slurm /var/spool /var/lib/slurm /etc/slurm/epilog.d /etc/munge /cert /var/log/track /var/lib/packages
-
+        - mkdir -p /var/log/slurm /var/run/slurm /var/spool /var/lib/slurm /etc/slurm/epilog.d /etc/munge /cert /var/log/track
         - echo "{{ cloud_init_nfs_path }}/cert  /cert   nfs defaults,_netdev 0 0" >> /etc/fstab
         - echo "{{ cloud_init_nfs_path }}/$(hostname -s)/var/log/slurm  /var/log/slurm   nfs defaults,_netdev 0 0" >> /etc/fstab
         - echo "{{ cloud_init_nfs_path }}/$(hostname -s)/var/spool      /var/spool       nfs defaults,_netdev 0 0" >> /etc/fstab
@@ -357,28 +306,21 @@
         - echo "{{ cloud_init_nfs_path }}/$(hostname -s)/var/spool      /var/spool       nfs defaults,_netdev 0 0" >> /etc/fstab
         - echo "{{ cloud_init_nfs_path }}/$(hostname -s)/etc/munge      /etc/munge       nfs defaults,_netdev 0 0" >> /etc/fstab
         - echo "{{ trackfile_nfs_path }}    /var/log/track       nfs defaults,_netdev 0 0" >> /etc/fstab
-        - echo "{{ cloud_init_nfs_path }}/ssh {{ client_mount_path }}/slurm/ssh nfs defaults,_netdev 0 0" >> /etc/fstab
-        - echo "{{ cloud_init_nfs_path }}/cert  /cert   nfs defaults,_netdev 0 0" >> /etc/fstab
-        - echo "{{ cloud_init_nfs_path }}/packages  /var/lib/packages   nfs defaults,_netdev 0 0" >> /etc/fstab
-
         - chmod {{ file_mode }} /etc/fstab
         - mount -a
-        - cp /cert/pulp_webserver.crt /etc/pki/ca-trust/source/anchors && update-ca-trust
-        - sed -i 's/^gpgcheck=1/gpgcheck=0/' /etc/dnf/dnf.conf
-        - bash /usr/local/bin/doca-install.sh && bash /usr/local/bin/configure-ib-network.sh
         - yes | cp /etc/slurm/epilog.d/slurmd.service /usr/lib/systemd/system/
         - /usr/local/bin/check_slurm_controller_status.sh
-        - chown -R {{ slurm_user }}:{{ slurm_user }} /var/log/slurm
-        - chown -R {{ slurm_user }}:{{ slurm_user }} /var/run/slurm
-        - chown -R {{ slurm_user }}:{{ slurm_user }} /var/spool
-        - chown -R {{ slurm_user }}:{{ slurm_user }} /var/lib/slurm
+        - chown -R {{ user }}:{{ slurm_group_name }} /var/log/slurm
+        - chown -R {{ user }}:{{ slurm_group_name }} /var/run/slurm
+        - chown -R {{ user }}:{{ slurm_group_name }} /var/spool
+        - chown -R {{ user }}:{{ slurm_group_name }} /var/lib/slurm
         - chown -R {{ munge_user }}:{{ munge_group }} /etc/munge/munge.key
         - chmod {{ file_mode_755 }} /var/log/slurm /var/run/slurm /var/spool /var/lib/slurm
         - chmod {{ file_mode_400 }} /etc/munge/munge.key
         - chmod {{ file_mode_755 }} /etc/slurm/epilog.d/
         - mkdir -p /var/spool/slurmd
         - chmod {{ file_mode_755 }} /var/spool/slurmd
-        - chown -R {{ slurm_user }}:{{ slurm_user }} /var/spool/slurmd
+        - chown -R {{ user }}:{{ slurm_group_name }} /var/spool/slurmd
         - setenforce 0
         - systemctl enable firewalld
         - systemctl start firewalld
@@ -398,6 +340,9 @@
         - systemctl restart sshd
         - cp /cert/pulp_webserver.crt /etc/pki/ca-trust/source/anchors && update-ca-trust
         - sed -i 's/^gpgcheck=1/gpgcheck=0/' /etc/dnf/dnf.conf
+        # nvidia sdk install 
+        - /usr/local/bin/install_nvhpc_sdk.sh
+
 
 {% if hostvars['localhost']['openldap_support'] %}
         - /usr/local/bin/update_ldap_conf.sh
