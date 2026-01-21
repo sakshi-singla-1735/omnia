@@ -121,6 +121,11 @@
   ansible.builtin.set_fact:
     oim_shared_path: "{{ hostvars['localhost']['oim_shared_path'] }}"
 
+- name: Check if NVIDIA HPC SDK tarball exists for x86_64
+  ansible.builtin.stat:
+    path: "{{ oim_shared_path }}/omnia/{{ nvhpc_tarball_x86_64_relpath }}"
+  register: nvhpc_tarball_x86_64
+
 - name: Check if source directory exists
   ansible.builtin.stat:
     path: "{{ oim_shared_path }}/omnia/offline_repo/cluster/x86_64/rhel/10.0/iso/cuda-run/"
