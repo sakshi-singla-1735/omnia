@@ -294,9 +294,14 @@
             EOF
 
             chmod 644 "$PROFILE_FILE"
-
-            echo "[INFO] Sourcing NVHPC profile for verification"
-            source "$PROFILE_FILE"
+            # **Source profile for current shell AND all future non-login shells**
+            if [ -f "$PROFILE_FILE" ]; then
+                echo "[INFO] Sourcing NVHPC profile for current shell"
+                # Source it for script session
+                source "$PROFILE_FILE"
+                # Also append to /etc/bashrc if not already present (for all future shells)
+                grep -q "nvhpc.sh" /etc/bashrc || echo "source $PROFILE_FILE" >> /etc/bashrc
+            fi
 
             # NVHPC marker file path
             MARKER_TARGET="/shared-nvhpc-sdk/nvhpc/.nvhpc_env_ready"
