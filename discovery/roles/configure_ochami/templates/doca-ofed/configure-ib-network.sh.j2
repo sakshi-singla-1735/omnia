@@ -30,18 +30,26 @@ IB_IP=$(int_to_ip "$IB_IP_INT")
 
 echo "Derived IB IP : $IB_IP/$NETMASK_BITS"
 
-
+MAX_WAIT=120        # total wait time in seconds (2 minutes)
+INTERVAL=10         # check every 10 seconds
+ELAPSED=0
 IB_NIC=""
 
-for nic in $(ip -o link show | awk -F': ' '{print $2}' | grep '^ib'); do
-  if ip link show "$nic" | grep -q "UP,LOWER_UP"; then
-    IB_NIC="$nic"
-    break
-  fi
+while [[ $ELAPSED -lt $MAX_WAIT ]]; do
+  for nic in $(ip -o link show | awk -F': ' '{print $2}' | grep '^ib'); do
+    if ip link show "$nic" | grep -q "UP,LOWER_UP"; then
+      IB_NIC="$nic"
+      break 2
+    fi
+  done
+
+  echo "IB interface not ready yet. Waiting..."
+  sleep $INTERVAL
+  ELAPSED=$((ELAPSED + INTERVAL))
 done
 
 if [[ -z "$IB_NIC" ]]; then
-  echo "No active InfiniBand interface found. Exiting."
+  echo "No active InfiniBand interface found after ${MAX_WAIT}s. Exiting."
   exit 0
 fi
 
