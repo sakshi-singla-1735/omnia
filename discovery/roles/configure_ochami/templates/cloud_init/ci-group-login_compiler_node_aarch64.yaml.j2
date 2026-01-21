@@ -131,12 +131,6 @@
             rmdir /cuda-runfile 2>/dev/null
 
             echo "===== CUDA Toolkit installation completed ====="
-        
-        - path: /tmp/apptainer_mirror.conf
-          permissions: '0644'
-          content: |
-            {{ lookup('template', 'templates/nodes/apptainer_mirror.conf.j2') | indent(12) }}
-
 
 {% if hostvars['localhost']['openldap_support'] %}
         - path: /etc/sssd/sssd.conf
