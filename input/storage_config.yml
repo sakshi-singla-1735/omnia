@@ -32,7 +32,7 @@
 # This IQN uniquely identifies the host to the storage array.
 
 # volume_id:
-# This is the unique LUN serial/identifier for the
+# This is the unique WWN/identifier for the
 # specific volume that should be used for persistent storage.
 # The script uses this value during multipath scanning to select the correct mapped device
 
