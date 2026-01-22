@@ -36,12 +36,12 @@
 # specific volume that should be used for persistent storage.
 # The script uses this value during multipath scanning to select the correct mapped device
 
-powervault_config:
-  ip:
-    - 172.1.2.3
-  port: 3260
-  isci_initiators: iqn.initiator.com.example:7d7d7d7d7d7
-  volume_id: 00c0ff4343f1f1f1001c8c4e6901000000
+#powervault_config:
+#  ip:
+#    - 172.1.2.3
+#  port: 3260
+#  isci_initiators: iqn.initiator.com.example:7d7d7d7d7d7
+#  volume_id: 00c0ff4343f1f1f1001c8c4e6901000000
 
 
 # -----------------------------NFS------------------------------------------------
