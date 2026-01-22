@@ -20,7 +20,8 @@
             {"package": "mariadb-server", "type": "rpm", "repo_name": "x86_64_appstream"},
             {"package": "iscsi-initiator-utils", "type": "rpm", "repo_name": "x86_64_baseos"},
             {"package": "device-mapper-multipath", "type": "rpm", "repo_name": "x86_64_baseos"},
-            {"package": "sg3_utils", "type": "rpm", "repo_name": "x86_64_baseos"}
+            {"package": "sg3_utils", "type": "rpm", "repo_name": "x86_64_baseos"},
+            {"package": "lsscsi", "type": "rpm", "repo_name": "x86_64_baseos"}
         ]
     },
     "slurm_node": {
