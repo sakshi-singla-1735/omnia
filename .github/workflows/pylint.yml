@@ -3,15 +3,11 @@ name: Pylint
 on:
   pull_request:
     branches:
+      - main
       - staging
       - release_1.7.1
-      - pub/local_repo_arch
-      - pub/provision_arch
-      - pub/ochami
-      - pub/ochami_aarch64
-      - pub/k8s_telemetry
-      - pub/ib_support
       - pub/v2.1_rc1
+      - pub/q1_dev
 
 jobs:
   build:

@@ -330,6 +330,8 @@
         - systemctl daemon-reload
         - systemctl restart crio
         - kubeadm config images pull --kubernetes-version={{ service_k8s_version }}
+{% set role_name = 'service_kube_control_plane' %}
+{% include 'pull_additional_images.yaml.j2' %}
         - echo "Installing helm"
         - /usr/local/bin/install-helm.sh
 
