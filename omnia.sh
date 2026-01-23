@@ -918,7 +918,7 @@ install_omnia_core() {
     local omnia_core_tag="1.1"
     local omnia_core_registry="docker.io/dellhpcomniaaisolution"
     
-    # Check if local omnia_core:1.4 exists
+    # Check if local omnia_core:1.1 exists
     if podman inspect omnia_core:${omnia_core_tag} >/dev/null 2>&1; then
         echo -e "${GREEN}✓ Omnia core image (omnia_core:${omnia_core_tag}) found locally.${NC}"
     # Check if latest exists for backward compatibility
