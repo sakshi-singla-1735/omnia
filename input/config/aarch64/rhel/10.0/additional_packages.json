@@ -3,5 +3,25 @@
         "cluster": [
 
         ]
+    },
+    "slurm_control_node": {
+        "cluster": [
+
+        ]
+    },
+    "slurm_node": {
+        "cluster": [
+
+        ]
+    },
+    "login_node": {
+        "cluster": [
+
+        ]
+    },
+    "login_compiler_node": {
+        "cluster": [
+
+        ]
     }
 }
