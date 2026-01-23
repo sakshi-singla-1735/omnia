@@ -35,7 +35,7 @@
       {"package": "cloud-init", "type": "rpm", "repo_name": "aarch64_appstream"},
       {"package": "glibc-langpack-en", "type": "rpm", "repo_name": "aarch64_baseos"},
       {"package": "gedit", "type": "rpm", "repo_name": "epel"},
-      { "package": "docker.io/dellhpcomniaaisolution/image-build-aarch64", "tag": "1.0", "type": "image" }
+      { "package": "docker.io/dellhpcomniaaisolution/image-build-aarch64", "tag": "1.1", "type": "image" }
     ]
   }
 }
