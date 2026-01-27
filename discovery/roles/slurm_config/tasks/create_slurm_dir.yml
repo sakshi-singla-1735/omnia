@@ -103,8 +103,8 @@
     mode: "{{ file_mode }}"
   become: true
 
-- name: Create cuda dirs
-  ansible.builtin.include_tasks: cuda.yml
+- name: Create hpc tools dirs
+  ansible.builtin.include_tasks: hpc_tools.yml
 
 - name: Check if munge key exists top level
   ansible.builtin.stat:
