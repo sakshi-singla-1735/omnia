@@ -12,14 +12,39 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
-# Move to packages directory moving forward
-- name: Create the cuda directory on share
+
+- name: Create HPC tools directories on share
   ansible.builtin.file:
-    path: "{{ slurm_config_path }}/cuda"
+    path: "{{ slurm_config_path }}/hpc_tools/{{ item }}"
     state: directory
     owner: root
     group: root
     mode: "{{ common_mode }}"
+  loop:
+    - cuda
+    - runfile
+    - scripts
+    - container_images
+
+- name: Deploy download_container_image.sh to NFS share
+  ansible.builtin.template:
+    src: "download_container_image.sh.j2"
+    dest: "{{ download_container_image_path }}"
+    owner: "{{ root_user }}"
+    group: "{{ root_group }}"
+    mode: "0755"
+
+- name: Deploy container_image.list to NFS share
+  ansible.builtin.template:
+    src: "container_image.list.j2"
+    dest: "{{ container_image_list_path }}"
+    owner: "{{ root_user }}"
+    group: "{{ root_group }}"
+    mode: "0644"
+
+- name: Set fact for pulp mirror
+  ansible.builtin.set_fact:
+    pulp_mirror: "{{ hostvars['localhost']['admin_nic_ip'] }}:2225"
 
 - name: Create x86_64 package base directory
   ansible.builtin.file:
@@ -93,14 +118,6 @@
     - item.item.source_path | length > 0
     - item.item.dest_path | length > 0
 
-- name: Create the runfile directory on share
-  ansible.builtin.file:
-    path: "{{ slurm_config_path }}/runfile"
-    state: directory
-    owner: root
-    group: root
-    mode: "{{ common_mode }}"
-
 - name: Set NFS info fact
   ansible.builtin.set_fact:
     oim_shared_path: "{{ hostvars['localhost']['oim_shared_path'] }}"
@@ -118,7 +135,7 @@
 - name: Copy cuda run file using copy module for aarch64
   ansible.builtin.copy:
     src: "{{ oim_shared_path }}/omnia/offline_repo/cluster/aarch64/rhel/10.0/iso/cuda-run/"
-    dest: "{{ slurm_config_path }}/runfile/"
+    dest: "{{ slurm_config_path }}/hpc_tools/runfile/"
     mode: '0755'
     owner: root
     group: root
@@ -129,7 +146,7 @@
 - name: Copy cuda run file using copy module for x86_64
   ansible.builtin.copy:
     src: "{{ oim_shared_path }}/omnia/offline_repo/cluster/x86_64/rhel/10.0/iso/cuda-run/"
-    dest: "{{ slurm_config_path }}/runfile/"
+    dest: "{{ slurm_config_path }}/hpc_tools/runfile/"
     mode: '0755'
     owner: root
     group: root
