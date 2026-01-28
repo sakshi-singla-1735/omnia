@@ -148,6 +148,6 @@ parallel_copy_candidates:
     dest: "{{ slurm_config_path }}/hpc_tools/runfile/"
 
   # NVIDIA HPC SDK (x86_64 tarball extracted dir)
-  - name: nvhpc_sdk_x86_64
-    src: "{{ oim_shared_path }}/omnia/{{ nvhpc_tarball_x86_64_relpath | dirname }}/"
-    dest: "{{ slurm_config_path }}/hpc_tools/nvidia_sdk/"
+  # - name: nvhpc_sdk_x86_64
+  #  src: "{{ oim_shared_path }}/omnia/{{ nvhpc_tarball_x86_64_relpath | dirname }}/"
+  #  dest: "{{ slurm_config_path }}/hpc_tools/nvidia_sdk/"
