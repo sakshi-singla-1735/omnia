@@ -8,7 +8,6 @@
             {"package": "pmix", "type": "rpm", "repo_name": "aarch64_appstream"},
             {"package": "pmix-devel", "type": "rpm", "repo_name": "aarch64_appstream"},
             {"package": "nvcr.io/nvidia/hpc-benchmarks", "tag": "25.09", "type": "image"},
-            {"package": "apptainer", "type": "rpm", "repo_name": "epel"}
             {"package": "apptainer", "type": "rpm", "repo_name": "epel" },
             {"package": "doca-ofed",
              "type": "iso",

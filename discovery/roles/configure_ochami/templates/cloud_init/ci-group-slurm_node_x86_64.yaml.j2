@@ -256,8 +256,7 @@
             # Ensure Slurm NFS root is mounted at client_mount_path (e.g. /share_omnia)
             mkdir -p {{ client_mount_path }}/slurm/ssh
             echo "[INFO] Creating base directories for Pulp cert, Slurm and Munge"
-            mkdir -pv /var/log/slurm /var/run/slurm /var/spool /var/lib/slurm /etc/slurm/epilog.d /etc/munge /cert /var/log/track /hpc_tools/container_images /hpc_tools/scripts
-            mkdir -pv /var/log/slurm /var/run/slurm /var/spool /var/lib/slurm /etc/slurm/epilog.d /etc/munge /cert /var/log/track /var/lib/packages
+            mkdir -pv /var/log/slurm /var/run/slurm /var/spool /var/lib/slurm /etc/slurm/epilog.d /etc/munge /cert /var/log/track /var/lib/packages /hpc_tools/container_images /hpc_tools/scripts
 
             echo "[INFO] Updating /etc/fstab with NFS entries for Pulp cert, Slurm and Munge paths"
             echo "{{ cloud_init_nfs_path }}/cert  /cert   nfs defaults,_netdev 0 0" >> /etc/fstab
