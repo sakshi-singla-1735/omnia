@@ -716,7 +716,7 @@ Description=${container_name^} Container
 [Container]
 ContainerName=${container_name}
 HostName=${container_name}
-Image=${container_name}:1.0
+Image=${container_name}:1.1
 Network=host
 
 # Capabilities
@@ -915,16 +915,16 @@ show_help() {
 }
 
 install_omnia_core() {
-    local omnia_core_tag="1.0"
+    local omnia_core_tag="1.1"
     local omnia_core_registry="docker.io/dellhpcomniaaisolution"
     
-    # Check if local omnia_core:1.0 exists
+    # Check if local omnia_core:1.1 exists
     if podman inspect omnia_core:${omnia_core_tag} >/dev/null 2>&1; then
         echo -e "${GREEN}✓ Omnia core image (omnia_core:${omnia_core_tag}) found locally.${NC}"
     # Check if latest exists for backward compatibility
     elif podman inspect omnia_core:latest >/dev/null 2>&1; then
         echo -e "${GREEN}✓ Omnia core image (omnia_core:latest) found locally.${NC}"
-        # Tag it as 1.0 for consistency
+        # Tag it as 1.1 for consistency
         podman tag omnia_core:latest omnia_core:${omnia_core_tag}
     else
         # Try pulling from Docker Hub with retry logic

@@ -125,3 +125,5 @@ offline_path_aarch64:
   - name: doca-ofed
     source_path: "{{ offline_repo_basepath_aarch64 }}/doca-ofed"
     dest_path: "{{ packages_base_dir_aarch64 }}/doca-ofed"
+
+ssh_private_key_path: /root/.ssh/oim_rsa
