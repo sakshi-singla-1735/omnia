@@ -1,4 +1,4 @@
-# Copyright 2026 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Copyright 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -103,27 +103,31 @@ auth_tls_certs_path: "/opt/omnia/auth/tls_certs/ldapserver.crt"
 slurm_installation_type: configless
 pulp_webserver_cert_path: "/opt/omnia/pulp/settings/certs/pulp_webserver.crt"
 controller_empty_msg: "Slurm controller functional group is missing from PXE mapping file. Please update the file and rerun discovery.yml."
-download_container_image_path: "{{ slurm_config_path }}/hpc_tools/scripts/download_container_image.sh"
-container_image_list_path: "{{ slurm_config_path }}/hpc_tools/scripts/container_image.list"
-pulp_mirror: "{{ hostvars['localhost']['admin_nic_ip'] }}:2225"
-packages_base_dir_x86_64: "{{ slurm_config_path }}/packages/x86_64"
-packages_base_dir_aarch64: "{{ slurm_config_path }}/packages/aarch64"
-offline_repo_basepath_x86_64: "{{ oim_shared_path }}/omnia/offline_repo/cluster/x86_64/rhel/10.0/iso"
-offline_repo_basepath_aarch64: "{{ oim_shared_path }}/omnia/offline_repo/cluster/aarch64/rhel/10.0/iso"
-packages_layout_x86_64:
-  - doca-ofed
-  - cuda
-packages_layout_aarch64:
-  - doca-ofed
-  - cuda
-print_copy_msg: "Copying {{ item.name }} from {{ item.source_path }} to {{ item.dest_path }}"
-offline_path_x86_64:
-  - name: doca-ofed
-    source_path: "{{ offline_repo_basepath_x86_64 }}/doca-ofed"
-    dest_path: "{{ packages_base_dir_x86_64 }}/doca-ofed"
-offline_path_aarch64:
-  - name: doca-ofed
-    source_path: "{{ offline_repo_basepath_aarch64 }}/doca-ofed"
-    dest_path: "{{ packages_base_dir_aarch64 }}/doca-ofed"
+# nvidia sdk vars
+nvhpc_package_name: "nvhpc_2025_2511_Linux_x86_64_cuda_13.0"
+nvhpc_tarball_x86_64_relpath: "offline_repo/cluster/x86_64/rhel/10.0/tarball/{{ nvhpc_package_name }}/{{ nvhpc_package_name }}.tar.gz"
+nvhpc_nfs_rel_dir: "hpc_tools/nvidia_sdk"
 
-ssh_private_key_path: /root/.ssh/oim_rsa
+# parallel file copy
+parallel_copy_max_workers: 4
+
+# ------------------------------------------------------------
+# Parallel Copy Candidates (Only path existence matters)
+# ------------------------------------------------------------
+
+parallel_copy_candidates:
+
+  # CUDA Runfile (aarch64 repo path)
+  - name: cuda_runfile_aarch64
+    src: "{{ oim_shared_path }}/omnia/offline_repo/cluster/aarch64/rhel/10.0/iso/cuda-run/"
+    dest: "{{ slurm_config_path }}/hpc_tools/runfile/"
+
+  # CUDA Runfile (x86_64 repo path)
+  - name: cuda_runfile_x86_64
+    src: "{{ oim_shared_path }}/omnia/offline_repo/cluster/x86_64/rhel/10.0/iso/cuda-run/"
+    dest: "{{ slurm_config_path }}/hpc_tools/runfile/"
+
+  # NVIDIA HPC SDK (x86_64 tarball extracted dir)
+  - name: nvhpc_sdk_x86_64
+    src: "{{ oim_shared_path }}/omnia/{{ nvhpc_tarball_x86_64_relpath | dirname }}/"
+    dest: "{{ slurm_config_path }}/hpc_tools/nvidia_sdk/"

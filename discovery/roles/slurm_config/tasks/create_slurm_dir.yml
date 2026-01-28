@@ -1,4 +1,4 @@
-# Copyright 2026 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Copyright 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,34 +18,6 @@
 - name: Include storage vars
   ansible.builtin.include_vars: "{{ input_project_dir }}/storage_config.yml"
 
-- name: Load slurm_custom.json for x86_64
-  ansible.builtin.include_vars:
-    file: "{{ input_project_dir }}/config/x86_64/rhel/{{ hostvars['localhost']['cluster_os_version'] }}/slurm_custom.json"
-    name: slurm_custom_x86_64
-  failed_when: false
-
-- name: Load slurm_custom.json for aarch64
-  ansible.builtin.include_vars:
-    file: "{{ input_project_dir }}/config/aarch64/rhel/{{ hostvars['localhost']['cluster_os_version'] }}/slurm_custom.json"
-    name: slurm_custom_aarch64
-  failed_when: false
-
-- name: Extract CUDA runfile name for x86_64 from slurm_custom.json
-  ansible.builtin.set_fact:
-    cuda_runfile_x86_64: "{{ (slurm_custom_x86_64.slurm_node.cluster | selectattr('package', 'equalto', 'cuda-run') | first).url | basename }}"
-  when:
-    - slurm_custom_x86_64 is defined
-    - slurm_custom_x86_64.slurm_node is defined
-    - slurm_custom_x86_64.slurm_node.cluster | selectattr('package', 'equalto', 'cuda-run') | list | length > 0
-
-- name: Extract CUDA runfile name for aarch64 from slurm_custom.json
-  ansible.builtin.set_fact:
-    cuda_runfile_aarch64: "{{ (slurm_custom_aarch64.slurm_node.cluster | selectattr('package', 'equalto', 'cuda-run') | first).url | basename }}"
-  when:
-    - slurm_custom_aarch64 is defined
-    - slurm_custom_aarch64.slurm_node is defined
-    - slurm_custom_aarch64.slurm_node.cluster | selectattr('package', 'equalto', 'cuda-run') | list | length > 0
-
 - name: Set facts for slurm
   ansible.builtin.set_fact:
     nfs_storage_name: "{{ slurm_cluster[0].nfs_storage_name }}"
@@ -62,6 +34,10 @@
     configs_input: "{{ slurm_cluster[0].config_sources | default({}) | dict2items | rejectattr('value', 'falsy') | list | items2dict }}"
     slurm_config_path: "{{ share_path }}/{{ slurm_dir_name }}"
     controller_trackfile_path: "{{ share_path }}/ctld_track"
+
+- name: Build parallel copy list for HPC tools
+  ansible.builtin.set_fact:
+    parallel_copy_pairs: []
 
 - name: Configure openldap if supported
   ansible.builtin.include_tasks: openldap_config.yml
@@ -131,8 +107,49 @@
     mode: "{{ file_mode }}"
   become: true
 
-- name: Create hpc tools dirs
-  ansible.builtin.include_tasks: hpc_tools.yml
+- name: Create HPC tools directories on share
+  ansible.builtin.file:
+    path: "{{ slurm_config_path }}/hpc_tools/{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "{{ common_mode }}"
+  loop:
+    - cuda
+    - runfile
+    - scripts
+    - container_images
+    - nvidia_sdk
+    - benchmarks
+
+- name: Set NFS info fact
+  ansible.builtin.set_fact:
+    oim_shared_path: "{{ hostvars['localhost']['oim_shared_path'] }}"
+
+- name: Initialize parallel copy pairs
+  ansible.builtin.set_fact:
+    parallel_copy_pairs: []
+
+- name: Check which parallel copy source directories exist
+  ansible.builtin.stat:
+    path: "{{ item.src }}"
+  loop: "{{ parallel_copy_candidates }}"
+  register: copy_source_checks
+  failed_when: false
+
+- name: Add only valid copy pairs (source exists)
+  ansible.builtin.set_fact:
+    parallel_copy_pairs: >-
+      {{ parallel_copy_pairs +
+         [[ item.item.src, item.item.dest ]] }}
+  loop: "{{ copy_source_checks.results }}"
+  when: item.stat.exists
+
+- name: Parallel copy HPC tool files
+  parallel_file_copy:
+    copy_pairs: "{{ parallel_copy_pairs }}"
+    max_workers: "{{ parallel_copy_max_workers }}"
+  when: parallel_copy_pairs | length > 0
 
 - name: Check if munge key exists top level
   ansible.builtin.stat:
@@ -156,8 +173,71 @@
             (compiler_login_list | default([])) +
             (login_list | default([])) }}"
 
-- name: Conf merge and write using slurm_conf module
-  ansible.builtin.include_tasks: confs.yml
+- name: Slurm path ops
+  ansible.builtin.set_fact:
+    conf_path_items: "{{ conf_path_items | default({}) | combine({item.key: item.value}) }}"
+  when: item.value is string
+  loop: "{{ configs_input | dict2items }}"
+
+- name: Slurm dict ops
+  ansible.builtin.set_fact:
+    conf_dict_items: "{{ conf_dict_items | default({}) | combine({item.key: item.value}) }}"
+  when: item.value is mapping
+  loop: "{{ configs_input | dict2items }}"
+
+- name: Slurm dict ops
+  ansible.builtin.set_fact:
+    apply_config: >-
+      {{ apply_config | default({})
+        | combine({
+            item: (
+              (__default_config[item] | default({}))
+              | combine(conf_dict_items[item] | default({}))
+            )
+          })
+      }}
+  loop: "{{ conf_files }}"
+
+- name: Read NodeName parameters
+  ansible.builtin.include_tasks: read_node_idrac.yml
+  when: cmpt_list
+  loop: "{{ cmpt_list }}"
+
+- name: Copy conf file if provided
+  ansible.builtin.copy:
+    src: "{{ conf_path_items.get(item.1) }}"
+    dest: "{{ slurm_config_path }}/{{ item.0 }}/etc/slurm/{{ item.1 }}.conf"
+    mode: "{{ conf_file_mode }}"
+    remote_src: "{{ copy_from_oim }}"
+  when: ctld_list
+  loop: "{{ ctld_list | product(conf_path_items.keys() | default([])) }}"
+
+- name: Add gpu parameters to slurm conf
+  ansible.builtin.set_fact:
+    apply_config: "{{ apply_config | default({}) | combine({'slurm': (apply_config['slurm'] | combine(gpu_slurm_conf))}) }}"
+  when: gpu_params is defined and gpu_params
+
+- name: Verify slurm conf keys only
+  ansible.builtin.assert:
+    that:
+      - (apply_config[item].keys() | list) | difference(__conf_keys[item]) | length == 0
+    fail_msg: "The following {{ item }} config keys are invalid: {{ apply_config[item].keys() | list | difference(__conf_keys[item]) | join(', ') }}"
+  when: apply_config[item] and __conf_keys[item]
+  loop: "{{ conf_files }}"
+
+- name: Slurm dict ops
+  ansible.builtin.set_fact:
+    slurm_conf_dict: "{{ apply_config['slurm'] }}"
+
+- name: Create all .conf for ctld only
+  ansible.builtin.template:
+    src: "{{ item.1 }}.conf.j2"
+    dest: "{{ slurm_config_path }}/{{ item.0 }}/etc/slurm/{{ item.1 }}.conf"
+    owner: "{{ root_user }}"
+    group: "{{ root_group }}"
+    mode: "{{ conf_file_mode }}"
+  when: ctld_list
+  loop: "{{ ctld_list | product(conf_files | difference(conf_path_items.keys() | default([]))) }}"
 
 - name: Create mariadb cnf
   ansible.builtin.template:
@@ -215,19 +295,3 @@
   ansible.builtin.set_fact:
     cloud_init_slurm_nfs_path: "{{ nfs_server_ip }}:{{ nfs_server_path }}"
     client_mount_path: "{{ share_path }}"
-
-- name: Ensure SSH key directory exists on Slurm share
-  ansible.builtin.file:
-    path: "{{ slurm_config_path }}/ssh"
-    state: directory
-    owner: root
-    group: root
-    mode: '0700'
-
-- name: Copy OIM private key to Slurm share for node-to-node SSH
-  ansible.builtin.copy:
-    src: "{{ ssh_private_key_path }}"
-    dest: "{{ slurm_config_path }}/ssh/oim_rsa"
-    owner: root
-    group: root
-    mode: '0600'
