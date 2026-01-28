@@ -37,6 +37,7 @@ from ansible.module_utils.local_repo.standard_logger import setup_standard_logge
 DEFAULT_MAX_WORKERS = 4
 DEFAULT_RETRY_COUNT = 2
 DEFAULT_DELETE_EXISTING = True
+PARALLEL_FILE_COPY_LOG = '/opt/omnia/log/core/playbooks/parallel_file_copy.log/'
 
 # ============================================================
 # Copy Worker Function
@@ -133,7 +134,7 @@ def main():
         max_workers=dict(type="int", required=False, default=DEFAULT_MAX_WORKERS),
         retry_count=dict(type="int", required=False, default=DEFAULT_RETRY_COUNT),
         delete_existing=dict(type="bool", required=False, default=DEFAULT_DELETE_EXISTING),
-        slog_file=dict(type="str", required=False, default="/tmp/parallel_copy.log"),
+        slog_file=dict(type="str", required=False, default=PARALLEL_FILE_COPY_LOG),
     )
 
     module = AnsibleModule(argument_spec=module_args, supports_check_mode=True)
