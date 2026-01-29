@@ -455,6 +455,18 @@
         - mkdir -p {{ client_mount_path }}
         - echo "{{ cloud_init_slurm_nfs_path }} {{ client_mount_path }} nfs defaults,_netdev 0 0" >> /etc/fstab
         - mount -a
+        - echo "One or more shared components (UCX / OpenMPI / LDMS) are enabled."
+        - echo "Shared NFS mount is available at: {{ client_mount_path }}"
+        - /usr/local/bin/configure_ucx_openmpi_env.sh
+        # - echo ""
+        # - echo "IMPORTANT:"
+        # - echo "1. Install UCX and/or OpenMPI on the LOGIN / COMPILER node first."
+        # - echo "2. Ensure they are installed under the shared mount:"
+        # - echo "   {{ client_mount_path }}/hpc_tools/benchmarks/"
+        # - echo "3. On this node, run the environment setup script when ready:"
+        # - echo ""
+        # - echo "This step is intentionally NOT run automatically."
+        - echo "=================================================="
 {% endif %}
 
 {% if hostvars['localhost']['ldms_support'] %}
