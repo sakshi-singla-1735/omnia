@@ -219,6 +219,18 @@
           permissions: '0644'
           content: |
             {{ lookup('template', 'templates/nodes/apptainer_mirror.conf.j2') | indent(12) }}
+        
+        - path: /usr/local/bin/setup_nvhpc_sdk.sh
+          owner: root:root
+          permissions: '{{ file_mode_755 }}'
+          content: |
+            {{ lookup('template', 'templates/hpc_tools/install_nvhpc_sdk.sh.j2') | indent(12) }}
+        
+        - path: /usr/local/bin/setup_nvhpc_sdk.sh
+          owner: root:root
+          permissions: '{{ file_mode_755 }}'
+          content: |
+            {{ lookup('template', 'templates/hpc_tools/configure_nvhpc_env.sh.j2') | indent(12) }}
 
       runcmd:
         - /usr/local/bin/set-ssh.sh
@@ -334,4 +346,8 @@
 
         - /root/ldms_sampler.sh
 {% endif %}
+
+        # nvidia sdk install
+        - /usr/local/bin/install_nvhpc_sdk.sh
+        - /usr/local/bin/configure_nvhpc_env.sh
         - echo "Cloud-Init has completed successfully."

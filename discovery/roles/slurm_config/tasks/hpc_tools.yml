@@ -25,6 +25,7 @@
     - runfile
     - scripts
     - container_images
+    - nvidia_sdk
 
 - name: Deploy download_container_image.sh to NFS share
   ansible.builtin.template:
