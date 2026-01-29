@@ -220,13 +220,13 @@
           content: |
             {{ lookup('template', 'templates/nodes/apptainer_mirror.conf.j2') | indent(12) }}
         
-        - path: /usr/local/bin/setup_nvhpc_sdk.sh
+        - path: /usr/local/bin/install_nvhpc_sdk.sh
           owner: root:root
           permissions: '{{ file_mode_755 }}'
           content: |
             {{ lookup('template', 'templates/hpc_tools/install_nvhpc_sdk.sh.j2') | indent(12) }}
         
-        - path: /usr/local/bin/setup_nvhpc_sdk.sh
+        - path: /usr/local/bin/configure_nvhpc_env.sh
           owner: root:root
           permissions: '{{ file_mode_755 }}'
           content: |
